@@ -40,7 +40,7 @@ export default function Footer() {
                 </Typography>
               </li>
               <li className="social-item">
-                <span className="social-icon">📷</span>
+                <span className="social-icon">e</span>
                 <Typography size="text-sm" color="text-dark">
                   Email
                 </Typography>

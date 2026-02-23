@@ -1,6 +1,9 @@
 /* footer.css */
 
 .footer-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   width: 100%;
   background: #ffffff;
   margin-top: auto;
