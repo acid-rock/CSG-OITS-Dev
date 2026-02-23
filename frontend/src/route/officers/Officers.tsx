@@ -5,7 +5,11 @@ import { FaTiktok } from 'react-icons/fa';
 import { useState } from 'react';
 
 const Officers = () => {
-  const [isOpen, setOpen] = useState(false);
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const handleToggle = (idx) => {
+    setOpenIndex(openIndex === idx ? null : idx);
+  };
 
   return (
     <div className='officers-container'>
@@ -45,29 +49,32 @@ const Officers = () => {
 
               {/* Members Dropdown - Pure CSS */}
               <div className='members-section'>
-                <details className='members-dropdown'>
+                <details 
+                  key={idx} 
+                  className='members-dropdown' 
+                  open={openIndex === idx} // Only opens if the index matches
+                >
                   <summary
                     className='dropdown-toggle'
-                    onClick={() => setOpen((prev) => !prev)}
+                    onClick={(e) => {
+                      e.preventDefault(); // Stop default HTML behavior
+                      handleToggle(idx);  // Pass the current index
+                    }}
                   >
                     <div className='dropdown-toggle-content'>
-                      Members ({committee.members.length}){' '}
+                      Members ({committee.members.length})
                       <div className='dropdown-icons'>
-                        {isOpen ? (
-                          <ChevronUp size={24} />
-                        ) : (
-                          <ChevronDown size={24} />
-                        )}
+                        {openIndex === idx ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                       </div>
                     </div>
                   </summary>
-                  <div className='dropdown-content'>
-                    {committee.members?.map((member, i) => (
-                      <div key={i} className='member-item'>
-                        <span className='member-name'>{member.id}</span>
-                        <span className='member-role'>{member.role}</span>
-                      </div>
-                    ))}
+                    <div className='dropdown-content'>
+                      {committee.members?.map((member, i) => (
+                        <div key={i} className='member-item'>
+                          <span className='member-name'>{member.id}</span>
+                          <span className='member-role'>{member.role}</span>
+                        </div>
+                      ))}
                   </div>
                 </details>
               </div>

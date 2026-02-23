@@ -45,6 +45,7 @@
 .members-section {
   flex: 1;
   min-width: 300px;
+  align-self: flex-start; 
 }
 
 .officer-card {

@@ -30,67 +30,6 @@ export default function Footer() {
         <div className="footer-columns">
           <div className="footer-column">
             <Typography size="text-sm" color="text-ghost">
-              NAVIGATION
-            </Typography>
-            <ul className="footer-menu">
-              <li>
-                <Typography size="text-light" color="text-dark">
-                  Home page
-                </Typography>
-              </li>
-              <li>
-                <Typography size="text-light" color="text-dark">
-                  About us
-                </Typography>
-              </li>
-              <li>
-                <Typography size="text-light" color="text-dark">
-                  Initiatives
-                </Typography>
-              </li>
-              <li>
-                <Typography size="text-light" color="text-dark">
-                  Meetings
-                </Typography>
-              </li>
-              <li>
-                <Typography size="text-light" color="text-dark">
-                  Contact
-                </Typography>
-              </li>
-            </ul>
-          </div>
-
-          <div className="footer-column">
-            <Typography size="text-sm" color="text-ghost">
-              QUICK ACCESS
-            </Typography>
-            <ul className="footer-menu">
-              <li>
-                <Typography size="text-light" color="text-dark">
-                  Reports
-                </Typography>
-              </li>
-              <li>
-                <Typography size="text-light" color="text-dark">
-                  Transparency
-                </Typography>
-              </li>
-              <li>
-                <Typography size="text-light" color="text-dark">
-                  Budget
-                </Typography>
-              </li>
-              <li>
-                <Typography size="text-light" color="text-dark">
-                  Archives
-                </Typography>
-              </li>
-            </ul>
-          </div>
-
-          <div className="footer-column">
-            <Typography size="text-sm" color="text-ghost">
               Connect with us
             </Typography>
             <ul className="footer-social">
@@ -103,25 +42,7 @@ export default function Footer() {
               <li className="social-item">
                 <span className="social-icon">📷</span>
                 <Typography size="text-sm" color="text-dark">
-                  Instagram
-                </Typography>
-              </li>
-              <li className="social-item">
-                <span className="social-icon">𝕏</span>
-                <Typography size="text-sm" color="text-dark">
-                  X
-                </Typography>
-              </li>
-              <li className="social-item">
-                <span className="social-icon">in</span>
-                <Typography size="text-sm" color="text-dark">
-                  LinkedIn
-                </Typography>
-              </li>
-              <li className="social-item">
-                <span className="social-icon">▶</span>
-                <Typography size="text-sm" color="text-dark">
-                  YouTube
+                  Email
                 </Typography>
               </li>
             </ul>

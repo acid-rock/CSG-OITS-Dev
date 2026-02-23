@@ -61,13 +61,6 @@ export default function Navigation() {
           ))}
         </div>
 
-        {/* Desktop Feedback Button */}
-        <div className='nav-right nav-desktop'>
-          <Button variant='primary' id='feedback'>
-            Feedback
-          </Button>
-        </div>
-
         {/* Mobile Hamburger */}
         <button
           type='button'

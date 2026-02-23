@@ -8,12 +8,13 @@
 
 /* Top section with newsletter and links */
 .footer-main {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 60px 20px 40px;
-  display: grid;
-  grid-template-columns: 1.2fr 2fr;
-  gap: 60px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between; 
+  align-items: flex-start;
+  padding: 60px 80px;            
+  max-width: 1400px;             
+  margin: 0 auto;               
 }
 
 /* Newsletter section */
@@ -82,8 +83,8 @@
 /* Footer columns */
 .footer-columns {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
 }
 
 .footer-column {
