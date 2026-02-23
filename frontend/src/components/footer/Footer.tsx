@@ -103,25 +103,7 @@ export default function Footer() {
               <li className="social-item">
                 <span className="social-icon">📷</span>
                 <Typography size="text-sm" color="text-dark">
-                  Instagram
-                </Typography>
-              </li>
-              <li className="social-item">
-                <span className="social-icon">𝕏</span>
-                <Typography size="text-sm" color="text-dark">
-                  X
-                </Typography>
-              </li>
-              <li className="social-item">
-                <span className="social-icon">in</span>
-                <Typography size="text-sm" color="text-dark">
-                  LinkedIn
-                </Typography>
-              </li>
-              <li className="social-item">
-                <span className="social-icon">▶</span>
-                <Typography size="text-sm" color="text-dark">
-                  YouTube
+                  Email
                 </Typography>
               </li>
             </ul>
