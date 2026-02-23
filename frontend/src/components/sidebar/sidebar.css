@@ -1,0 +1,101 @@
+.sidebar-container {
+    width: 260px;
+    height: 100vh;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border-right: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    left: 0;
+}
+
+/* Header Section */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    gap: 12px;
+    margin-bottom: 2rem;
+}
+
+.sidebar-logo {
+    width: 45px;
+    height: auto;
+    object-fit: contain;
+}
+
+.sidebar-title {
+    display: flex;
+    flex-direction: column;
+    line-height: 0;
+}
+
+/* Navigation Buttons */
+.sidebar-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nav-button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    width: 100%;
+    color: #4b5563;
+}
+
+.nav-button:hover {
+    background-color: #5396d5;
+}
+
+.nav-button.active {
+    background-color: #5396d5;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(91, 155, 213, 0.3);
+}
+
+.nav-button.active p {
+    color: white;
+}
+
+.nav-icon {
+    display: flex;
+    align-items: center;
+}
+
+/* Footer Section */
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 1.5rem;
+}
+
+.welcome-admin {
+    padding-left: 0.5rem;
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #4b5563;
+    padding: 0.5rem;
+    transition: color 0.2s;
+}
+
+.logout-button:hover {
+    color: #ef4444;
+}
