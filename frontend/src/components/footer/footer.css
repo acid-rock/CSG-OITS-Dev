@@ -1,9 +1,6 @@
 /* footer.css */
 
 .footer-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   width: 100%;
   background: #ffffff;
   margin-top: auto;
@@ -13,11 +10,11 @@
 .footer-main {
   display: flex;
   flex-direction: row;
-  justify-content: space-between; 
+  justify-content: space-between;
   align-items: flex-start;
-  padding: 60px 80px;            
+  padding: 60px 80px;           
   max-width: 1400px;             
-  margin: 0 auto;               
+  margin: 0 auto;           
 }
 
 /* Newsletter section */
@@ -25,6 +22,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 400px;        
 }
 
 .footer-logo {
@@ -86,8 +84,8 @@
 /* Footer columns */
 .footer-columns {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 12px;
+  grid-template-columns: auto;
+  gap: 40px;
 }
 
 .footer-column {
