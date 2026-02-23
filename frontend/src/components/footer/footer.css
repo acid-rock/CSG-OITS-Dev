@@ -1,6 +1,9 @@
 /* footer.css */
 
 .footer-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   width: 100%;
   background: #ffffff;
   margin-top: auto;
@@ -8,12 +11,12 @@
 
 /* Top section with newsletter and links */
 .footer-main {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 60px;
   max-width: 1400px;
   margin: 0 auto;
   padding: 60px 20px 40px;
-  display: grid;
-  grid-template-columns: 1.2fr 2fr;
-  gap: 60px;
 }
 
 /* Newsletter section */
@@ -82,7 +85,7 @@
 /* Footer columns */
 .footer-columns {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 40px;
 }
 
