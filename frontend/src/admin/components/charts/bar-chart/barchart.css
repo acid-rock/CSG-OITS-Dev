@@ -1,0 +1,25 @@
+.bar-chart-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  max-width: 450px;
+  border: 2px solid rgba(208, 208, 208, 1);
+  border-radius: 1rem;
+}
+
+.bar-chart-details {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.bar-chart-details span {
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.bar-chart-details p {
+  font-size: 0.75rem;
+}

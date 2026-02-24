@@ -56,21 +56,21 @@ export default function AnnouncementCard({
   return (
     <div
       id={id}
-      className={`announce-card ${variant}`}
+      className={`site-announce-card ${variant}`}
       style={style}
       onClick={onClick}
     >
-      <div className='announcement-card-image'>
+      <div className='site-announce-card-image'>
         <img
           src={currentItem.image}
           alt={currentItem.title || 'Announcement'}
         />
       </div>
 
-      <div className='announcement-card-content'>
-        <h3 className='announcement-card-title'>{currentItem.title}</h3>
-        <p className='announcement-card-date'>{currentItem.date}</p>
-        <p className='announcement-card-description'>
+      <div className='site-announce-card-content'>
+        <h3 className='site-announce-card-title'>{currentItem.title}</h3>
+        <p className='site-announce-card-date'>{currentItem.date}</p>
+        <p className='site-announce-card-description'>
           {currentItem.description}
         </p>
 
