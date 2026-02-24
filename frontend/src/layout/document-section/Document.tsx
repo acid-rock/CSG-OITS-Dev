@@ -4,10 +4,16 @@ import './document.css';
 import Button from '../../components/button/Button';
 import documents from '../../config/documentsConfig';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import Modal from '../../components/modal/Modal';
 
 export default function Document() {
-  const handleView = (id: string) => {
-    console.log('Viewing document:', id);
+  const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleView = (doc: any) => {
+    setSelectedDoc(doc);
+    setIsModalOpen(true);
   };
 
   return (
@@ -38,7 +44,7 @@ export default function Document() {
         <div className='view-btn'>
           <Button variant='primary'>
             <Link
-              to='/officers'
+              to='/bulletin'
               style={{
                 textDecoration: 'none',
                 color: 'white',
@@ -49,6 +55,17 @@ export default function Document() {
           </Button>
         </div>
       </div>
+      {isModalOpen && selectedDoc && (
+        <Modal
+          isOpen={isModalOpen}
+          setOpen={setIsModalOpen}
+          imageSrc={selectedDoc.image}
+          imageAlt={selectedDoc.title}
+          date={selectedDoc.date}
+          title={selectedDoc.title}
+          description={selectedDoc.fullContent || selectedDoc.description} // Show full text
+        />
+      )}
     </div>
   );
 }

@@ -36,12 +36,6 @@ const Officers = () => {
                       <a href='#' className='social-icon'>
                         <Facebook size={20} />
                       </a>
-                      <a href='#' className='social-icon'>
-                        <FaTiktok size={20} />
-                      </a>
-                      <a href='#' className='social-icon'>
-                        <Instagram size={20} />
-                      </a>
                     </div>
                   </div>
                 ))}

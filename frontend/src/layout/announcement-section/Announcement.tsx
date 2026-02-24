@@ -3,9 +3,17 @@ import eventData from '../../config/eventsConfig';
 import Typography from '../../components/typography/Typography';
 import AnnouncementCard from '../../components/announcement-card/Announcement-card';
 import './announcement.css';
+import Modal from '../../components/modal/Modal';
 
 export default function Announcement() {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null); // Add state for selected event
+  const [open, setOpen] = useState(false);
+
+  const handleCardClick = (event: any) => {
+    setSelectedEvent(event);
+    setOpen(true);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,10 +51,24 @@ export default function Announcement() {
               date={currentEvent.date}
               image={currentEvent.image}
               variant='default'
+              onClick={() => handleCardClick(currentEvent)}
             />
           )}
         </div>
       </div>
+
+      {open && selectedEvent && (
+        <Modal
+          isOpen={open}
+          setOpen={setOpen}
+          imageSrc={selectedEvent.image}
+          imageAlt={selectedEvent.title}
+          date={selectedEvent.date}
+          title={selectedEvent.title}
+          description={selectedEvent.description}
+        ></Modal>
+      )}
+      
     </section>
   );
 }

@@ -91,9 +91,6 @@ export default function Navigation() {
               {button.label}
             </Button>
           ))}
-          <Button variant="primary" id="feedback-mobile" onClick={closeMenu}>
-            Feedback
-          </Button>
         </div>
       </div>
     </nav>

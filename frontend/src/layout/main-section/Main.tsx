@@ -4,6 +4,13 @@ import Button from '../../components/button/Button';
 import wave from '../../assets/Wave_Section.svg';
 
 export default function Main() {
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className='hero-container'>
       <div className='hero-layout'>
@@ -21,8 +28,12 @@ export default function Main() {
             accesible.
           </Typography>
           <div className='hero-buttons'>
-            <Button variant='primary'>Documents</Button>
-            <Button variant='outline'>Learn more</Button>
+            <Button 
+              variant='primary'
+              onClick={() => scrollToSection('document')} 
+            >
+              Documents
+            </Button>
           </div>
         </div>
         <div className='hero-image'>
