@@ -4,6 +4,7 @@
   height: 97vh;
   border-radius: 1rem;
   overflow: hidden;
+  background-color: #f5f7fa;
 }
 
 /* Header */
@@ -21,7 +22,7 @@
 .announce-header span {
   font-weight: 700;
   font-size: 1.5rem;
-  color: #222;
+  color: #111827;
 }
 
 .announce-header p {
@@ -66,15 +67,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.55rem;
-  border: 1px solid #555;
-  background: transparent;
-  cursor: pointer;
-  padding: 0.25rem;
+  background: white; 
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 5px;
+  transition: all 0.2s;
 }
 
 .announce-action-btn img {
-  filter: brightness(0) invert(1);
+  filter: none !important; 
+  width: 18px;
+  height: 18px;
 }
 
 @keyframes announce-spin360 {
@@ -89,15 +92,15 @@
 
 /* Table wrapper */
 .announce-file-table {
-  background-color: #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: block; 
+  height: 100%;            
+  overflow-y: auto;
+  overflow-x: hidden;
   border-radius: 0.5rem;
-  max-height: 80vh;
-  padding: 0.5rem;
+  padding: 0;
 }
 
 .announce-file-table > span {
@@ -109,16 +112,16 @@
 }
 
 .announce-file-table table {
-  width: 100%;
+  display: table !important;
+  width: 100% !important;
+  table-layout: fixed !important; 
   border-collapse: collapse;
-  font-family: inherit;
-  background: #fff;
-  display: block;
-  overflow-x: auto;
-  overflow-y: auto;
-  font-size: 1.1rem;
-  border-radius: 0.5rem;
-  flex: 1;
+}
+
+.announce-file-table thead, 
+.announce-file-table tbody {
+  display: table-row-group !important;
+  width: 100% !important;
 }
 
 /* Checkbox styling scoped to this table only */
@@ -144,11 +147,13 @@
 
 /* Table head */
 .announce-table-header-black {
-  background: #111 !important;
+  background-color: #F3F4F6 !important;
 }
 
 .announce-table-header-black th.announce-table-head {
-  background: #111 !important;
+  background-color: #F3F4F6 !important;
+  color: #111827 !important;
+  border-bottom: 1px solid #e5e7eb !important;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -160,9 +165,10 @@
 }
 
 .announce-table-header-black input[type='checkbox'] {
-  accent-color: #fff;
-  flex-shrink: 0;
-  filter: brightness(0) invert(1);
+  accent-color: #2563eb;
+  filter: none !important; 
+  margin: 0;
+  cursor: pointer;
 }
 
 .announce-table-actions {
@@ -191,6 +197,21 @@
   z-index: 10;
 }
 
+.announce-file-table thead th {
+  background-color: #F3F4F6 !important;
+  color: #4b5563; 
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
 .announce-file-table tbody {
   display: table;
   width: 100%;
@@ -214,6 +235,17 @@
   font-size: 0.85rem;
 }
 
+.announce-file-table td {
+  padding: 1.25rem 1.5rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #f3f4f6;
+  white-space: normal;   
+  overflow: visible;       
+  text-overflow: clip;      
+  word-break: break-word;  
+  vertical-align: top;      
+}
+
 .announce-file-table th {
   font-size: 0.8rem;
   background: #111;
@@ -227,12 +259,12 @@
 }
 
 .announce-file-table tbody tr {
-  border-bottom: 1px solid #f0f0f0;
-  transition: background 0.2s ease;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s;
 }
 
 .announce-file-table tbody tr:hover {
-  background: #f8f9fa;
+  background-color: #f9fafb;
 }
 
 .announce-file-table tbody tr:last-child {
@@ -323,4 +355,26 @@
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   background: rgba(255, 255, 255, 0.3);
+}
+
+.announce-table-header-black th.announce-table-head {
+  background-color: #F3F4F6 !important;
+  display: table-cell !important; 
+  padding: 0; 
+  vertical-align: middle;
+}
+
+.announce-toolbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.docs-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }

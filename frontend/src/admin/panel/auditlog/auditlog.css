@@ -4,6 +4,7 @@
   height: 97vh;
   border-radius: 1rem;
   overflow: hidden;
+  background-color: #f5f7fa;
 }
 
 .audit-header {
@@ -20,7 +21,7 @@
 .audit-header span {
   font-weight: 700;
   font-size: 1.5rem;
-  color: #222;
+  color: #111827;
 }
 
 .audit-header p {
@@ -34,21 +35,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.55rem;
-  border: 1px solid #555;
-  background: transparent;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px;
   cursor: pointer;
-  padding: 0.25rem;
+  transition: all 0.2s ease;
 }
 
 .audit-action-btn img {
-  filter: brightness(0) invert(1);
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 @keyframes audit-spin360 {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .audit-spin {
@@ -57,161 +59,93 @@
 
 /* Table wrapper */
 .audit-file-table {
-  background-color: #e0e0e0;
+  background-color: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  display: block; 
+  height: 100%;            
+  overflow-y: auto;
+  overflow-x: hidden;
   border-radius: 0.5rem;
-  max-height: 80vh;
-  padding: 0.5rem;
-  margin-top: 2rem;
-}
-
-.audit-file-table > span {
-  display: block;
-  font-weight: 600;
-  font-size: 1.1rem;
-  padding: 1.25rem 1.5rem 0.75rem;
-  color: #222;
+  margin: 1.5rem;
 }
 
 .audit-file-table table {
-  width: 100%;
+  display: table !important;
+  width: 100% !important;
+  table-layout: fixed !important; 
   border-collapse: collapse;
-  font-family: inherit;
-  background: #fff;
-  display: block;
-  overflow-x: auto;
-  overflow-y: auto;
-  font-size: 1.1rem;
-  border-radius: 0.5rem;
-  flex: 1;
 }
 
-/* Table head */
+/* Table head & Toolbar Fixes */
 .audit-table-header-black {
-  background: #111 !important;
+  background-color: #F3F4F6 !important;
 }
 
 .audit-table-header-black th.audit-table-head {
-  background: #111 !important;
-  display: table-cell;
-  padding: 1rem 2.5rem;
+  background-color: #F3F4F6 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  display: table-cell !important; 
+  padding: 0; 
+  vertical-align: middle;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.audit-toolbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
   width: 100%;
   box-sizing: border-box;
-  vertical-align: middle;
 }
 
 .audit-table-actions {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: flex-end;
   gap: 0.75rem;
-  width: 100%;
+  align-items: center;
 }
 
-/* Scoped FilterSelect overrides — only inside audit-table-actions */
-.audit-table-actions .audit-filter-select select,
-.audit-table-actions .audit-filter-select button,
-.audit-table-actions .audit-filter-select > * {
-  color: #fff;
-  background: transparent;
-  border-color: #555;
-}
-
-.audit-file-table thead {
-  display: table;
-  width: calc(100% - 8px);
-  table-layout: fixed;
+/* Column Titles (Row 2) */
+.audit-column-titles th {
+  background-color: #F3F4F6 !important;
+  color: #4b5563; 
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1.5rem;
+  text-align: left; /* Switched to left for better readability in logs */
+  border-bottom: 1px solid #e5e7eb;
   position: sticky;
-  top: 0;
-  background: #111;
+  top: 55px; /* Sits below the toolbar row */
   z-index: 10;
 }
 
-.audit-file-table tbody {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-
-.audit-file-table tr {
-  display: table-row;
-  width: 100%;
-}
-
-.audit-file-table th,
+/* Table cells */
 .audit-file-table td {
-  padding: 1rem 2.5rem;
-  text-align: center;
-  background: #fff;
-  display: table-cell;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 1.25rem 1.5rem;
   font-size: 0.85rem;
-  width: 25%;
-}
-
-.audit-file-table th {
-  font-size: 0.8rem;
-  background: #111;
-  color: #ccc;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #333;
-  position: sticky;
-  top: 0;
-}
-
-.audit-file-table tbody tr {
-  border-bottom: 1px solid #f0f0f0;
-  transition: background 0.2s ease;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  white-space: normal;   
+  word-break: break-word;  
+  vertical-align: top;      
 }
 
 .audit-file-table tbody tr:hover {
-  background: #f8f9fa;
+  background-color: #f9fafb;
 }
 
-.audit-file-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.audit-file-table tbody tr.audit-active {
-  background: #e8f4ff;
-}
-
-.audit-file-table tbody tr.audit-active td {
-  background: #e8f4ff;
-}
-
-/* Scrollbar */
-.audit-file-table table,
-.audit-file-table tbody {
-  scrollbar-width: thin;
-  scrollbar-color: #b3c6e0 #f5f7fa;
-}
-
-.audit-file-table table::-webkit-scrollbar,
-.audit-file-table tbody::-webkit-scrollbar {
+/* Scrollbar customization */
+.audit-file-table::-webkit-scrollbar {
   height: 8px;
   width: 8px;
   background: #f5f7fa;
-  border-radius: 8px;
 }
 
-.audit-file-table table::-webkit-scrollbar-thumb,
-.audit-file-table tbody::-webkit-scrollbar-thumb {
+.audit-file-table::-webkit-scrollbar-thumb {
   background: #b3c6e0;
   border-radius: 8px;
-}
-
-.audit-file-table table::-webkit-scrollbar-thumb:hover,
-.audit-file-table tbody::-webkit-scrollbar-thumb:hover {
-  background: #8fa8c8;
 }

@@ -41,13 +41,6 @@ const Announcement = () => {
     <div className='announce-container'>
       <div className='announce-header'>
         <span>Announcement</span>
-        <p>
-          {new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })}
-        </p>
       </div>
       <div className='announce-btn-container'>
         <span>{announcementConfig.length} Files</span>
@@ -57,8 +50,8 @@ const Announcement = () => {
         <table>
           <thead>
             <tr className='announce-table-header-black'>
-              <th colSpan={5} className='announce-table-head'>
-                <div>
+              <th colSpan={6} className='announce-table-head'>
+                <div className='announce-toolbar-content'>
                   <input
                     type='checkbox'
                     title='Select All'
@@ -67,40 +60,46 @@ const Announcement = () => {
                       if (active.length === announcementConfig.length) {
                         setActive([]);
                       } else {
-                        setActive(
-                          announcementConfig.map((file) => file.fileName)
-                        );
+                        setActive(announcementConfig.map((file) => file.fileName));
                       }
                     }}
                   />
-                </div>
-                <div className='announce-table-actions'>
-                  <FilterSelect
-                    options={filterOptions}
-                    value={filter}
-                    onChange={setFilter}
-                    label='Filter'
-                  />
-                  <FilterSelect
-                    options={filterOptions}
-                    value={sort}
-                    onChange={setSort}
-                    label='Sort'
-                  />
-                  <button
-                    className='announce-action-btn announce-refresh-btn'
-                    title='Refresh'
-                    onClick={handleRefresh}
-                  >
-                    <img
-                      src='/refresh.png'
-                      alt='refresh'
-                      className={spinning ? 'announce-spin' : ''}
-                      style={{ width: 20, height: 20 }}
+                  <div className='docs-table-actions'>
+                    <FilterSelect
+                      options={filterOptions}
+                      value={filter}
+                      onChange={setFilter}
+                      label='Filter'
                     />
-                  </button>
+                    <FilterSelect
+                      options={filterOptions}
+                      value={sort}
+                      onChange={setSort}
+                      label='Sort'
+                    />
+                    <button
+                      className='docs-action-btn docs-refresh-btn'
+                      title='Refresh'
+                      onClick={handleRefresh}
+                    >
+                      <img
+                        src='/refresh.png'
+                        alt='refresh'
+                        className={spinning ? 'docs-spin' : ''}
+                        style={{ width: 20, height: 20 }}
+                      />
+                    </button>
+                  </div>
                 </div>
               </th>
+            </tr>
+            <tr className='announce-column-titles'>
+              <th style={{ width: '60px' }}></th>
+              <th>File Name</th>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Date & Time</th>
+              <th style={{ width: '100px' }}></th>
             </tr>
           </thead>
           <tbody>
@@ -113,7 +112,6 @@ const Announcement = () => {
                   <input
                     className='checkbox'
                     type='checkbox'
-                    title={`Select ${file.fileName}`}
                     checked={active.includes(file.fileName)}
                     onChange={() => handleActive(file.fileName)}
                   />
@@ -125,7 +123,7 @@ const Announcement = () => {
                 <td className='announce-file-btn'>
                   <img
                     src='/bin.png'
-                    alt=''
+                    alt='delete'
                     onClick={() => {
                       setId(file.fileName);
                       setIsModalOpen(true);
@@ -133,7 +131,7 @@ const Announcement = () => {
                   />
                   <img
                     src='/edit.png'
-                    alt=''
+                    alt='edit'
                     onClick={() => {
                       setOpen(!open);
                       setId(file.fileName);

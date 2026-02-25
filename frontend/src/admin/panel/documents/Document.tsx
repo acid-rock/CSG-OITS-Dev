@@ -32,134 +32,89 @@ const Documents = () => {
   };
 
   const handleDelete = (id: string) => {
-    fetch(`/api/document/delete/${id}`, {
-      method: 'DELETE',
-    })
+    fetch(`/api/document/delete/${id}`, { method: 'DELETE' })
       .then((res) => res.json())
-      .then((data) => {
-        console.log('Delete success:', data);
-        setIsModalOpen(false);
-      })
-      .catch((err) => {
-        console.error('Delete error:', err);
-      });
+      .then(() => setIsModalOpen(false))
+      .catch((err) => console.error('Delete error:', err));
   };
 
   return (
     <div className='docs-container'>
       <div className='docs-header'>
         <span>Documents</span>
-        <p>
-          {new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })}
-        </p>
       </div>
-      <span className='docs-btn-container'>
+
+      <div className='docs-btn-container'>
         <span>{announcementConfig.length} Files</span>
-        <button
-          onClick={() => {
-            setOpen(true);
-            setId(null);
-          }}
-        >
+        <button onClick={() => { setOpen(true); setId(null); }}>
           Add Document
         </button>
-      </span>
+      </div>
+
       <div className='docs-file-table'>
         <table>
           <thead>
+
             <tr className='docs-table-header-black'>
-              <th colSpan={6} className='docs-table-head'>
-                <div>
+              <th colSpan={6}>
+                <div className='docs-toolbar-inner'>
                   <input
                     type='checkbox'
-                    title='Select All'
                     checked={active.length === announcementConfig.length}
                     onChange={() => {
-                      if (active.length === announcementConfig.length) {
-                        setActive([]);
-                      } else {
-                        setActive(
-                          announcementConfig.map((file) => file.fileName)
-                        );
-                      }
+                      if (active.length === announcementConfig.length) setActive([]);
+                      else setActive(announcementConfig.map((file) => file.fileName));
                     }}
                   />
-                </div>
-                <div className='docs-table-actions'>
-                  <FilterSelect
-                    options={filterOptions}
-                    value={filter}
-                    onChange={setFilter}
-                    label='Filter'
-                  />
-                  <FilterSelect
-                    options={filterOptions}
-                    value={sort}
-                    onChange={setSort}
-                    label='Sort'
-                  />
-                  <button
-                    className='docs-action-btn docs-refresh-btn'
-                    title='Refresh'
-                    onClick={handleRefresh}
-                  >
-                    <img
-                      src='/refresh.png'
-                      alt='refresh'
-                      className={spinning ? 'docs-spin' : ''}
-                      style={{ width: 20, height: 20 }}
-                    />
-                  </button>
+                  <div className='docs-table-actions'>
+                    <FilterSelect options={filterOptions} value={filter} onChange={setFilter} label='Filter' />
+                    <FilterSelect options={filterOptions} value={sort} onChange={setSort} label='Sort' />
+                    <button className='docs-action-btn' onClick={handleRefresh}>
+                      <img
+                        src='/refresh.png'
+                        alt='refresh'
+                        className={spinning ? 'docs-spin' : ''}
+                        style={{ width: 20, height: 20 }}
+                      />
+                    </button>
+                  </div>
                 </div>
               </th>
+            </tr>
+            {/* Row 2: Column Titles */}
+            <tr className='docs-column-titles'>
+              <th style={{ width: '60px' }}></th>
+              <th>File Name</th>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Date & Time</th>
+              <th style={{ width: '120px' }}></th>
             </tr>
           </thead>
           <tbody>
             {announcementConfig.map((file, idx) => (
-              <tr
-                key={idx}
-                className={`docs-table-row ${active.includes(file.fileName) ? 'docs-active' : ''}`}
-              >
+              <tr key={idx} className={active.includes(file.fileName) ? 'docs-active' : ''}>
                 <td>
                   <input
-                    className='checkbox'
                     type='checkbox'
-                    title={`Select ${file.fileName}`}
                     checked={active.includes(file.fileName)}
                     onChange={() => handleActive(file.fileName)}
                   />
                 </td>
                 <td>{file.imageName}</td>
                 <td>{file.fileName}</td>
-                <td>{file.description}</td>
+                <td className='docs-desc-cell'>{file.description}</td>
                 <td>{file.date}</td>
                 <td className='docs-file-btn'>
-                  <img
-                    src='/bin.png'
-                    alt=''
-                    onClick={() => {
-                      setId(file.fileName);
-                      setIsModalOpen(true);
-                    }}
-                  />
-                  <img
-                    src='/edit.png'
-                    alt=''
-                    onClick={() => {
-                      setOpen(!open);
-                      setId(file.fileName);
-                    }}
-                  />
+                  <img src='/bin.png' alt='delete' onClick={() => { setId(file.fileName); setIsModalOpen(true); }} />
+                  <img src='/edit.png' alt='edit' onClick={() => { setOpen(true); setId(file.fileName); }} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
       {open && (
         <div className='docs-form-position'>
           <Form forType='document' id={id} setOpen={setOpen} />
@@ -167,13 +122,7 @@ const Documents = () => {
       )}
       {isModalOpen && (
         <div className='docs-modal-position'>
-          <DeleteModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onConfirm={() => {
-              if (id) handleDelete(id);
-            }}
-          />
+          <DeleteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={() => id && handleDelete(id)} />
         </div>
       )}
     </div>

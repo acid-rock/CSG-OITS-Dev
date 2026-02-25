@@ -73,10 +73,6 @@
   padding: 0.25rem;
 }
 
-.docs-action-btn img {
-  filter: brightness(0) invert(1);
-}
-
 @keyframes docs-spin360 {
   to {
     transform: rotate(360deg);
@@ -89,15 +85,12 @@
 
 /* Table wrapper */
 .docs-file-table {
-  background-color: #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  background-color: #fff;
+  margin: 0 1.5rem 1.5rem;
   border-radius: 0.5rem;
-  max-height: 80vh;
-  padding: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow-y: auto; /* ENABLE SCROLL */
+  flex: 1;
 }
 
 .docs-file-table > span {
@@ -111,6 +104,7 @@
 .docs-file-table table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   font-family: inherit;
   background: #fff;
   display: block;
@@ -139,11 +133,12 @@
 
 /* Table head */
 .docs-table-header-black {
-  background: #111 !important;
+  background: #F3F4F6 !important;
 }
 
 .docs-table-header-black th.docs-table-head {
-  background: #111 !important;
+  background: #F3F4F6 !important;
+  color: #111;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -155,9 +150,10 @@
 }
 
 .docs-table-header-black input[type='checkbox'] {
-  accent-color: #fff;
-  flex-shrink: 0;
-  filter: brightness(0) invert(1);
+  accent-color: #2563eb;
+  filter: none !important; 
+  margin: 0;
+  cursor: pointer;
 }
 
 .docs-table-actions {
@@ -202,12 +198,12 @@
 
 .docs-file-table th {
   font-size: 0.8rem;
-  background: #111;
-  color: #ccc;
+  background: #F3F4F6;
+  color: #000000;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #e0e0e0;
   position: sticky;
   top: 0;
 }
@@ -309,4 +305,29 @@
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   background: rgba(255, 255, 255, 0.3);
+}
+
+.docs-column-titles th {
+  background-color: #F3F4F6;
+  color: #4b5563;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  padding: 1rem 1.5rem;
+  text-align: left;
+}
+
+.docs-file-table td {
+  padding: 1.25rem 1.5rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #f3f4f6;
+  white-space: normal;      
+  word-break: break-word;  
+  vertical-align: top;
+}
+
+.docs-toolbar-inner {
+  background-color: f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

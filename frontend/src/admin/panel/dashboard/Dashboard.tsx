@@ -39,6 +39,7 @@ const Dashboard = () => {
           <table>
             <thead>
               <tr className='table-header-black'>
+                <th>Name</th>
                 <th>Action</th>
                 <th>File Name</th>
                 <th>Description</th>
@@ -52,6 +53,7 @@ const Dashboard = () => {
                   key={idx}
                   className={`table-row ${active.includes(file.fileName) ? 'active' : ''}`}
                 >
+                  <td>{file.name}</td>
                   <td>{file.action}</td>
                   <td>{file.fileName}</td>
                   <td>{file.description}</td>

@@ -4,50 +4,44 @@ import './contributor.css';
 export const contributorConfig = [
   {
     img: 'https://randomuser.me/api/portraits/men/32.jpg',
-    name: 'Bob Smith',
-    position: 'Backend Engineer',
+    name: 'Ralph Kenneth B. Perez',
+    position: 'UI/UX Designer',
     bio: 'Specializes in server-side logic and database design.',
   },
   {
     img: 'https://randomuser.me/api/portraits/men/32.jpg',
-    name: 'Bob Smith',
-    position: 'Backend Engineer',
+    name: 'Jerald D. Estrella',
+    position: 'Front-End Developer',
     bio: 'Specializes in server-side logic and database design.',
   },
   {
     img: 'https://randomuser.me/api/portraits/men/32.jpg',
-    name: 'Bob Smith',
-    position: 'Backend Engineer',
+    name: 'Taisei Domingo',
+    position: 'Front-End Developer',
     bio: 'Specializes in server-side logic and database design.',
   },
   {
     img: 'https://randomuser.me/api/portraits/men/32.jpg',
-    name: 'Bob Smith',
-    position: 'Backend Engineer',
+    name: 'Lorenz E. Tuboro',
+    position: 'Back-End Developer',
     bio: 'Specializes in server-side logic and database design.',
   },
   {
     img: 'https://randomuser.me/api/portraits/men/32.jpg',
-    name: 'Bob Smith',
-    position: 'Backend Engineer',
+    name: 'John Harold D. Magma',
+    position: 'Quality Assurance Officer',
     bio: 'Specializes in server-side logic and database design.',
   },
   {
     img: 'https://randomuser.me/api/portraits/men/32.jpg',
-    name: 'Bob Smith',
-    position: 'Backend Engineer',
+    name: 'Ivan P. Duran',
+    position: 'Project Head',
     bio: 'Specializes in server-side logic and database design.',
   },
   {
     img: 'https://randomuser.me/api/portraits/men/32.jpg',
-    name: 'Bob Smith',
-    position: 'Backend Engineer',
-    bio: 'Specializes in server-side logic and database design.',
-  },
-  {
-    img: 'https://randomuser.me/api/portraits/men/32.jpg',
-    name: 'Bob Smith',
-    position: 'Backend Engineer',
+    name: 'Gerald D. Alansalon',
+    position: 'Documentation Officer',
     bio: 'Specializes in server-side logic and database design.',
   },
 ];
@@ -63,13 +57,6 @@ const Contributor = () => {
     <div className='admin-contributor-container'>
       <div className='admin-contributor-header'>
         <span>Contributors</span>
-        <p>
-          {new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })}
-        </p>
       </div>
       <div className='admin-contributor-avatar-list'>
         <div className='admin-contributor-avatar-row admin-contributor-avatar-row-1'>
