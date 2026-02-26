@@ -54,47 +54,49 @@ const Documents = () => {
       <div className='docs-file-table'>
         <table>
           <thead>
-
+            {/* Row 1: Toolbar */}
             <tr className='docs-table-header-black'>
               <th colSpan={6}>
                 <div className='docs-toolbar-inner'>
-                  <input
-                    type='checkbox'
-                    checked={active.length === announcementConfig.length}
-                    onChange={() => {
-                      if (active.length === announcementConfig.length) setActive([]);
-                      else setActive(announcementConfig.map((file) => file.fileName));
-                    }}
-                  />
                   <div className='docs-table-actions'>
                     <FilterSelect options={filterOptions} value={filter} onChange={setFilter} label='Filter' />
                     <FilterSelect options={filterOptions} value={sort} onChange={setSort} label='Sort' />
                     <button className='docs-action-btn' onClick={handleRefresh}>
-                      <img
-                        src='/refresh.png'
-                        alt='refresh'
-                        className={spinning ? 'docs-spin' : ''}
-                        style={{ width: 20, height: 20 }}
+                      <img 
+                        src='/refresh.png' 
+                        alt='refresh' 
+                        className={spinning ? 'docs-spin' : ''} 
+                        style={{ width: 20, height: 20 }} 
                       />
                     </button>
                   </div>
                 </div>
               </th>
             </tr>
+
             {/* Row 2: Column Titles */}
             <tr className='docs-column-titles'>
-              <th style={{ width: '60px' }}></th>
-              <th>File Name</th>
-              <th>Title</th>
-              <th>Description</th>
-              <th>Date & Time</th>
-              <th style={{ width: '120px' }}></th>
+              <th className='docs-col-check'>
+                <input
+                  type='checkbox'
+                  checked={active.length === announcementConfig.length && announcementConfig.length > 0}
+                  onChange={() => {
+                    if (active.length === announcementConfig.length) setActive([]);
+                    else setActive(announcementConfig.map((file) => file.fileName));
+                  }}
+                />
+              </th>
+              <th className='docs-col-file'>File Name</th>
+              <th className='docs-col-title'>Title</th>
+              <th className='docs-col-desc'>Description</th>
+              <th className='docs-col-date'>Date & Time</th>
+              <th className='docs-col-actions'></th>
             </tr>
           </thead>
           <tbody>
             {announcementConfig.map((file, idx) => (
               <tr key={idx} className={active.includes(file.fileName) ? 'docs-active' : ''}>
-                <td>
+                <td className='docs-col-check'>
                   <input
                     type='checkbox'
                     checked={active.includes(file.fileName)}

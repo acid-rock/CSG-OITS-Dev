@@ -30,7 +30,7 @@ const Audit = () => {
             <tr className='audit-table-header-black'>
               <th colSpan={4} className='audit-table-head'>
                 <div className='audit-toolbar-content'>
-                  <div style={{ visibility: 'hidden' }}>Spacer</div> {/* To balance the flex if needed */}
+                  <div style={{ visibility: 'hidden' }}>Spacer</div> 
                   <div className='audit-table-actions'>
                     <FilterSelect
                       options={filterOptions}

@@ -34,7 +34,7 @@ const Announcement = () => {
   const handleDelete = (id: string) => {
     fetch(`/api/announcement/delete/${id}`, {
       method: 'DELETE',
-    });
+    }).then(() => setIsModalOpen(false));
   };
 
   return (
@@ -44,48 +44,23 @@ const Announcement = () => {
       </div>
       <div className='announce-btn-container'>
         <span>{announcementConfig.length} Files</span>
-        <button onClick={() => setOpen(!open)}>Add Document</button>
+        <button onClick={() => { setOpen(true); setId(''); }}>Add Announcement</button>
       </div>
       <div className='announce-file-table'>
         <table>
           <thead>
+            {/* Row 1: Toolbar */}
             <tr className='announce-table-header-black'>
-              <th colSpan={6} className='announce-table-head'>
+              <th colSpan={6}>
                 <div className='announce-toolbar-content'>
-                  <input
-                    type='checkbox'
-                    title='Select All'
-                    checked={active.length === announcementConfig.length}
-                    onChange={() => {
-                      if (active.length === announcementConfig.length) {
-                        setActive([]);
-                      } else {
-                        setActive(announcementConfig.map((file) => file.fileName));
-                      }
-                    }}
-                  />
-                  <div className='docs-table-actions'>
-                    <FilterSelect
-                      options={filterOptions}
-                      value={filter}
-                      onChange={setFilter}
-                      label='Filter'
-                    />
-                    <FilterSelect
-                      options={filterOptions}
-                      value={sort}
-                      onChange={setSort}
-                      label='Sort'
-                    />
-                    <button
-                      className='docs-action-btn docs-refresh-btn'
-                      title='Refresh'
-                      onClick={handleRefresh}
-                    >
+                  <div className='announce-table-actions'>
+                    <FilterSelect options={filterOptions} value={filter} onChange={setFilter} label='Filter' />
+                    <FilterSelect options={filterOptions} value={sort} onChange={setSort} label='Sort' />
+                    <button className='announce-action-btn' title='Refresh' onClick={handleRefresh}>
                       <img
                         src='/refresh.png'
                         alt='refresh'
-                        className={spinning ? 'docs-spin' : ''}
+                        className={spinning ? 'announce-spin' : ''}
                         style={{ width: 20, height: 20 }}
                       />
                     </button>
@@ -93,24 +68,30 @@ const Announcement = () => {
                 </div>
               </th>
             </tr>
+            {/* Row 2: Column Titles */}
             <tr className='announce-column-titles'>
-              <th style={{ width: '60px' }}></th>
-              <th>File Name</th>
-              <th>Title</th>
-              <th>Description</th>
-              <th>Date & Time</th>
-              <th style={{ width: '100px' }}></th>
+              <th className='announce-col-check'>
+                <input
+                  type='checkbox'
+                  checked={active.length === announcementConfig.length && announcementConfig.length > 0}
+                  onChange={() => {
+                    if (active.length === announcementConfig.length) setActive([]);
+                    else setActive(announcementConfig.map((file) => file.fileName));
+                  }}
+                />
+              </th>
+              <th className='announce-col-file'>File Name</th>
+              <th className='announce-col-title'>Title</th>
+              <th className='announce-col-desc'>Description</th>
+              <th className='announce-col-date'>Date & Time</th>
+              <th className='announce-col-actions'></th>
             </tr>
           </thead>
           <tbody>
             {announcementConfig.map((file, idx) => (
-              <tr
-                key={idx}
-                className={`announce-table-row ${active.includes(file.fileName) ? 'announce-active' : ''}`}
-              >
-                <td>
+              <tr key={idx} className={active.includes(file.fileName) ? 'announce-active' : ''}>
+                <td className='announce-col-check'>
                   <input
-                    className='checkbox'
                     type='checkbox'
                     checked={active.includes(file.fileName)}
                     onChange={() => handleActive(file.fileName)}
@@ -118,38 +99,21 @@ const Announcement = () => {
                 </td>
                 <td>{file.imageName}</td>
                 <td>{file.fileName}</td>
-                <td>{file.description}</td>
+                <td className='announce-desc-cell'>{file.description}</td>
                 <td>{file.date}</td>
                 <td className='announce-file-btn'>
-                  <img
-                    src='/bin.png'
-                    alt='delete'
-                    onClick={() => {
-                      setId(file.fileName);
-                      setIsModalOpen(true);
-                    }}
-                  />
-                  <img
-                    src='/edit.png'
-                    alt='edit'
-                    onClick={() => {
-                      setOpen(!open);
-                      setId(file.fileName);
-                    }}
-                  />
+                  <img src='/bin.png' alt='delete' onClick={() => { setId(file.fileName); setIsModalOpen(true); }} />
+                  <img src='/edit.png' alt='edit' onClick={() => { setOpen(true); setId(file.fileName); }} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
       {isModalOpen && (
         <div className='announce-modal-position'>
-          <DeleteModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onConfirm={() => handleDelete(id)}
-          />
+          <DeleteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={() => handleDelete(id)} />
         </div>
       )}
       {open && (
