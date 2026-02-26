@@ -1,0 +1,312 @@
+.docs-container {
+  display: flex;
+  flex-direction: column;
+  height: 97vh;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+/* Header */
+.docs-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+  padding: 1rem 1.5rem;
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.docs-header span {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #222;
+}
+
+.docs-header p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Button container */
+.docs-btn-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1rem 1.5rem;
+}
+
+.docs-btn-container span {
+  font-size: 1.25rem;
+}
+
+.docs-btn-container button {
+  background-color: #5396d5;
+  border-radius: 8px;
+  padding: 0.35rem 0.7rem;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+
+.docs-btn-container button:hover {
+  background-color: #357abd;
+  box-shadow: 0 2px 8px #357abd26;
+  cursor: pointer;
+}
+
+/* Action button (refresh) */
+.docs-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.55rem;
+  border: 1px solid #555;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.docs-action-btn img {
+  filter: brightness(0) invert(1);
+}
+
+@keyframes docs-spin360 {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.docs-spin {
+  animation: docs-spin360 0.6s linear;
+}
+
+/* Table wrapper */
+.docs-file-table {
+  background-color: #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  max-height: 80vh;
+  padding: 0.5rem;
+}
+
+.docs-file-table > span {
+  display: block;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 1.25rem 1.5rem 0.75rem;
+  color: #222;
+}
+
+.docs-file-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: inherit;
+  background: #fff;
+  display: block;
+  overflow-x: auto;
+  overflow-y: auto;
+  font-size: 1.1rem;
+  border-radius: 0.5rem;
+  flex: 1;
+}
+
+/* Checkbox styling scoped to this table only */
+.docs-file-table input[type='checkbox'] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: #5396d5;
+  border-radius: 4px;
+}
+
+/* tbody row checkboxes — reset any inherited filter */
+.docs-file-table tbody input[type='checkbox'],
+.docs-file-table tbody .checkbox {
+  accent-color: #5396d5;
+  filter: none !important;
+}
+
+/* Table head */
+.docs-table-header-black {
+  background: #111 !important;
+}
+
+.docs-table-header-black th.docs-table-head {
+  background: #111 !important;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.docs-table-header-black input[type='checkbox'] {
+  accent-color: #fff;
+  flex-shrink: 0;
+  filter: brightness(0) invert(1);
+}
+
+.docs-table-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.docs-file-table thead {
+  display: table;
+  width: calc(100% - 8px);
+  table-layout: fixed;
+  position: sticky;
+  top: 0;
+  background: #111;
+  z-index: 10;
+}
+
+.docs-file-table tbody {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.docs-file-table tr {
+  display: table-row;
+  width: 100%;
+}
+
+.docs-file-table th,
+.docs-file-table td {
+  padding: 1rem 2.5rem;
+  text-align: left;
+  background: #fff;
+  display: table-cell;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.docs-file-table th {
+  font-size: 0.8rem;
+  background: #111;
+  color: #ccc;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #333;
+  position: sticky;
+  top: 0;
+}
+
+.docs-file-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s ease;
+}
+
+.docs-file-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.docs-file-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.docs-file-table tbody tr.docs-active {
+  background: #e8f4ff;
+}
+
+.docs-file-table tbody tr.docs-active td {
+  background: #e8f4ff;
+}
+
+/* File action buttons */
+.docs-file-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.docs-file-btn img {
+  width: 20px;
+  height: 20px;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.docs-file-btn img:hover {
+  filter: brightness(0.8);
+}
+
+/* Scrollbar */
+.docs-file-table table,
+.docs-file-table tbody {
+  scrollbar-width: thin;
+  scrollbar-color: #b3c6e0 #f5f7fa;
+}
+
+.docs-file-table table::-webkit-scrollbar,
+.docs-file-table tbody::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.docs-file-table table::-webkit-scrollbar-thumb,
+.docs-file-table tbody::-webkit-scrollbar-thumb {
+  background: #b3c6e0;
+  border-radius: 8px;
+}
+
+.docs-file-table table::-webkit-scrollbar-thumb:hover,
+.docs-file-table tbody::-webkit-scrollbar-thumb:hover {
+  background: #8fa8c8;
+}
+
+/* Overlays */
+.docs-form-position {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.docs-modal-position {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.3);
+}

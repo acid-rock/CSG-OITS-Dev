@@ -1,0 +1,32 @@
+.recent-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recent-btn {
+  display: flex;
+
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 2rem;
+  background-color: rgba(118, 170, 219, 1);
+  border-radius: 1rem;
+  border: 1px solid rgba(208, 208, 208, 1);
+  color: rgb(52, 116, 176);
+  font-weight: 700;
+}
+
+.pie-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 2rem;
+  background-color: rgba(118, 170, 219, 1);
+  border-radius: 1rem;
+  border: 1px solid rgba(208, 208, 208, 1);
+  color: rgb(52, 116, 176);
+  font-weight: 700;
+}
