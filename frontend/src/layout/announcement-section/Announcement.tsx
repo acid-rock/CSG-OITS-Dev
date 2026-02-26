@@ -35,7 +35,7 @@ export default function Announcement() {
       <div className='announcement-layout'>
         <div className='announcement-texts'>
           <Typography size='text-md' color='text-dark'>
-            CSG Bulletin
+            Announcements
           </Typography>
           <Typography size='text-sm' color='text-ghost'>
             Explore official records from student government proceedings
@@ -68,7 +68,6 @@ export default function Announcement() {
           description={selectedEvent.description}
         ></Modal>
       )}
-      
     </section>
   );
 }

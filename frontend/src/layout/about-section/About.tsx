@@ -35,14 +35,14 @@ export default function About() {
           </div>
           <div className='about-content-image'>
             <img
-              src='https://csg-imus.github.io/CSG-Imus-OITS/Dashboard-Photos/IMG_1498.png'
+              src='./about1.jpg'
               alt='Central Student Government'
               className='about-image'
             />
           </div>
           <div className='about-content-image'>
             <img
-              src='https://csg-imus.github.io/CSG-Imus-OITS/Dashboard-Photos/IMG_1462.png'
+              src='./about2.jpg'
               alt='Central Student Government'
               className='about-image'
             />

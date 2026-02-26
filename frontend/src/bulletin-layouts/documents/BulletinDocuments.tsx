@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import DocumentCard from '../../components/document-card/Document-card';
-import bulletinDocuments from '../../config/bulletin-documents';
+import documents from '../../config/documentsConfig.ts';
 import './bulletinDocument.css';
 import Typography from '../../components/typography/Typography';
+import DocumentModal from '../../components/document-modal/DocumentModal.tsx';
 
 type DocumentItem = {
   id: string;
@@ -10,36 +11,45 @@ type DocumentItem = {
   description: string;
   category: string;
   date?: string;
-  image?: string;
   url?: string;
   size?: string;
   type?: string;
+  memoSrc?: string;
 };
 
 export default function BulletinDocument() {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(
-    null
+  const [selectedDocument, setSelectedDocument] = useState<DocumentItem>(
+    documents[0]
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Derive unique categories directly from the documents array
+  const uniqueCategories = Array.from(
+    new Set(documents.map((doc) => doc.category))
   );
 
   const categories = [
     { id: 'all', label: 'All Documents' },
-    { id: 'minutes', label: 'Meeting Minutes' },
-    { id: 'reports', label: 'Reports' },
-    { id: 'policies', label: 'Policies' },
+    ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
   ];
 
-  const filteredDocuments = () => {
-    return selectedCategory === 'all'
-      ? bulletinDocuments
-      : bulletinDocuments.filter((doc) => doc.category === selectedCategory);
-  };
+  // Filter documents by selected category
+  const filteredDocuments =
+    selectedCategory === 'all'
+      ? documents
+      : documents.filter((doc) => doc.category === selectedCategory);
 
-  const handleDocumentClick = (doc: DocumentItem) => {
+  // Clicking a card updates the preview panel
+  const handleSelect = (doc: DocumentItem) => {
     setSelectedDocument(doc);
   };
 
-  const displayedDocument = selectedDocument || bulletinDocuments[0];
+  // Clicking "View" opens the modal
+  const handleView = (doc: DocumentItem) => {
+    setSelectedDocument(doc);
+    setIsModalOpen(true);
+  };
 
   return (
     <section id='documents' className='bulletin-document-container'>
@@ -51,6 +61,7 @@ export default function BulletinDocument() {
           Explore official documents from student government
         </Typography>
       </div>
+
       <div className='bulletin-document-layout-wrapper'>
         <div className='bulletin-document-layout'>
           {/* Sidebar Navigation */}
@@ -77,15 +88,15 @@ export default function BulletinDocument() {
           {/* Document Grid */}
           <main className='bulletin-document-content'>
             <div className='bulletin-document-grid'>
-              {filteredDocuments().map((doc: DocumentItem) => (
+              {filteredDocuments.map((doc) => (
                 <DocumentCard
                   key={doc.id}
                   id={doc.id}
                   title={doc.title}
                   description={doc.description}
                   date={doc.date}
-                  image={doc.image}
-                  onClick={() => handleDocumentClick(doc)}
+                  onSelect={() => handleSelect(doc)}
+                  onView={() => handleView(doc)}
                 />
               ))}
             </div>
@@ -95,61 +106,32 @@ export default function BulletinDocument() {
         {/* Always Visible Document Preview Panel */}
         <aside className='bulletin-preview-panel'>
           <div className='bulletin-preview-content'>
-            {/* Image Section */}
-            <div className='bulletin-preview-image'>
-              {displayedDocument.image ? (
-                <img
-                  src={displayedDocument.image}
-                  alt={displayedDocument.title}
-                />
-              ) : (
-                <div className='bulletin-preview-placeholder'>
-                  <svg
-                    width='64'
-                    height='64'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                  >
-                    <path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' />
-                    <polyline points='14 2 14 8 20 8' />
-                    <line x1='16' y1='13' x2='8' y2='13' />
-                    <line x1='16' y1='17' x2='8' y2='17' />
-                  </svg>
-                </div>
-              )}
-            </div>
-
-            {/* Text Section */}
             <div className='bulletin-preview-body'>
-              {displayedDocument.date && (
-                <p className='bulletin-preview-date'>
-                  {displayedDocument.date}
-                </p>
+              {selectedDocument.date && (
+                <p className='bulletin-preview-date'>{selectedDocument.date}</p>
               )}
               <h2 className='bulletin-preview-title'>
-                {displayedDocument.title}
+                {selectedDocument.title}
               </h2>
               <p className='bulletin-preview-description'>
-                {displayedDocument.description}
+                {selectedDocument.description}
               </p>
-
-              <button
-                type='button'
-                className='bulletin-preview-download-btn'
-                onClick={() =>
-                  displayedDocument.url &&
-                  window.open(displayedDocument.url, '_blank')
-                }
-              >
-                Download Document{' '}
-                {displayedDocument.size && `(${displayedDocument.size})`}
-              </button>
             </div>
           </div>
         </aside>
       </div>
+
+      {/* Modal for document preview */}
+      {isModalOpen && (
+        <DocumentModal
+          selected={{
+            title: selectedDocument.title,
+            date: selectedDocument.date ?? '',
+            memoSrc: selectedDocument.url ?? selectedDocument.memoSrc ?? '',
+          }}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </section>
   );
 }

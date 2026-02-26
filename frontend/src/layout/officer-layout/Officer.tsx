@@ -6,10 +6,6 @@ import Button from '../../components/button/Button';
 import './officer.css';
 
 export default function Officer() {
-  const handleView = (id: string) => {
-    console.log('Viewing document:', id);
-  };
-
   return (
     <section className='officer-container' id='officers'>
       <div className='officer-layout'>
@@ -18,31 +14,29 @@ export default function Officer() {
             Executive Officers
           </Typography>
           <Typography size='text-light' color='text-ghost'>
-            This are the executive officers
+            These are the executive officers
           </Typography>
         </div>
+
         <div className='officer-grid'>
-          {officer.map((officer) => (
-            <div key={officer.id} className='office-card-container'>
+          {officer.slice(0, 3).map((o) => (
+            <div key={o.id} className='office-card-container'>
               <OfficerCard
-                id={officer.id}
-                title={officer.title}
-                description={officer.description}
-                image={officer.image}
+                id={o.id}
+                title={o.title}
+                description={o.description}
+                image={o.image}
                 variant='default'
-                onClick={() => handleView(officer.id)}
               />
             </div>
           ))}
         </div>
+
         <div className='view-btn'>
           <Button variant='primary'>
             <Link
               to='/officers'
-              style={{
-                textDecoration: 'none',
-                color: 'white',
-              }}
+              style={{ textDecoration: 'none', color: 'white' }}
             >
               VIEW ALL
             </Link>

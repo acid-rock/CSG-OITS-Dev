@@ -18,14 +18,17 @@
 }
 
 .committee-title {
-  font-size: 24px;
-  font-weight: bold;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   margin-bottom: 30px;
   text-align: center;
   border-bottom: 2px solid #2563eb;
   padding-bottom: 10px;
   display: inline-block;
   width: 100%;
+  color: var(--text-color);
 }
 
 .committee-layout {
@@ -45,7 +48,7 @@
 .members-section {
   flex: 1;
   min-width: 300px;
-  align-self: flex-start; 
+  align-self: flex-start;
 }
 
 .officer-card {
@@ -57,7 +60,9 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   min-width: 200px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .officer-card:hover {
@@ -75,16 +80,19 @@
 }
 
 .officer-name {
-  font-size: 16px;
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
   font-weight: 600;
   margin: 0 0 5px 0;
   text-align: center;
-  color: #1e293b;
+  color: var(--text-color);
 }
 
 .officer-title {
-  font-size: 14px;
-  color: #64748b;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
   margin: 0 0 15px 0;
   text-align: center;
 }
@@ -92,10 +100,11 @@
 .social-icons {
   display: flex;
   gap: 12px;
+  color: white;
 }
 
 .social-icon {
-  color: #64748b;
+  color: #fff;
   transition: color 0.2s;
   text-decoration: none;
 }
@@ -104,7 +113,7 @@
   color: #2563eb;
 }
 
-/* Members section with useState control */
+/* Members section */
 .members-dropdown {
   background: white;
   border-radius: 12px;
@@ -121,12 +130,14 @@
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
   transition: background 0.2s;
   border: none;
   outline: none;
   list-style: none;
+  box-sizing: border-box;
 }
 
 .dropdown-toggle::-webkit-details-marker {
@@ -140,6 +151,8 @@
 .dropdown-toggle-content {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .dropdown-icon {
@@ -149,6 +162,13 @@
   color: white;
   min-width: 24px;
   min-height: 24px;
+}
+
+.dropdown-icons {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: white;
 }
 
 .dropdown-toggle:hover {
@@ -178,13 +198,21 @@
 }
 
 .member-name {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
   font-weight: 500;
-  color: #1e293b;
+  color: var(--text-color);
 }
 
 .member-role {
-  font-size: 14px;
-  color: #64748b;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.fb-icon {
+  color: #fff;
 }
 
 @media (max-width: 768px) {

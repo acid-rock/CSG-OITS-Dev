@@ -28,19 +28,16 @@ export default function Main() {
             accesible.
           </Typography>
           <div className='hero-buttons'>
-            <Button 
+            <Button
               variant='primary'
-              onClick={() => scrollToSection('document')} 
+              onClick={() => scrollToSection('document')}
             >
               Documents
             </Button>
           </div>
         </div>
         <div className='hero-image'>
-          <img
-            src='https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800'
-            alt='test'
-          />
+          <img src='./home2.JPG' alt='test' />
         </div>
       </div>
       <div className='wave-image'>
