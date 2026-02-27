@@ -26,6 +26,7 @@ router.get("/", async (req, res) => {
       imgUrl: imgUrl,
       title: row.title,
       content: row.content,
+      date: row.created_at,
     };
   });
 
