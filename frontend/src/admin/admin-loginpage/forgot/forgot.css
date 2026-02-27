@@ -4,6 +4,14 @@
   align-items: center;
   min-height: 100vh;
   position: relative;
+  font-family:
+    'Roboto', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.forgotPassword-container *,
+.forgotPassword-container *::before,
+.forgotPassword-container *::after {
+  font-family: inherit;
 }
 
 /* Blurred background layer */
@@ -19,6 +27,21 @@
   background-position: center;
   background-repeat: no-repeat;
   filter: blur(3px);
+  transform: scale(1.05); /* prevents blur edge bleed */
+  z-index: 0; /* changed from 1 so ::after overlay can sit above it */
+}
+
+/* ── Blue gradient overlay — matches login page ── */
+.forgotPassword-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    145deg,
+    rgba(10, 36, 99, 0.55) 0%,
+    rgba(24, 90, 188, 0.4) 50%,
+    rgba(74, 144, 226, 0.3) 100%
+  );
   z-index: 1;
 }
 
@@ -30,7 +53,9 @@
   width: 100%;
   max-width: 400px;
   position: relative;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 10px 40px rgba(10, 36, 99, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   z-index: 2;
   box-sizing: border-box;
@@ -49,7 +74,7 @@
   border-radius: 50%;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(10, 36, 99, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -67,22 +92,28 @@
 }
 
 .forgotPassword-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #111;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
   margin: 0;
+  line-height: 1.4;
+  text-align: center;
 }
 
 .forgotPassword-content {
   margin-top: 1rem;
+  text-align: left;
 }
 
 .input-label {
   text-align: left;
-  font-size: 0.95rem;
-  color: #555;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 0.65rem;
 }
 
 .input-group {
@@ -97,60 +128,74 @@
   top: 50%;
   left: 12px;
   transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  opacity: 0.6;
+  width: 18px;
+  height: 18px;
+  opacity: 0.45;
   pointer-events: none;
   color: #666;
 }
 
+/* ── Inputs match login style ── */
 .input-field {
   width: 100%;
-  background-color: #d0d3db;
-  border: none;
-  padding: 0.8rem 1rem 0.8rem 2.8rem;
+  height: 48px;
+  background-color: #f0f4f9;
+  border: 1.5px solid #e5eaf2;
+  padding: 0 1rem 0 2.6rem;
   border-radius: 10px;
-  font-size: 1rem;
+  font-size: 0.92rem;
   outline: none;
   box-sizing: border-box;
-  color: #333;
-  transition: 0.3s;
+  color: #0f172a;
+  font-family: inherit;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
 }
 
 .input-field::placeholder {
-  color: #888;
+  color: #aab4c4;
 }
 
 .input-field:focus {
-  background-color: #e3e5ee;
-  box-shadow: 0 0 5px rgba(91, 155, 213, 0.5);
+  background-color: #fff;
+  border-color: #5396d5;
+  box-shadow: 0 0 0 3px rgba(83, 150, 213, 0.12);
 }
 
+/* ── Button matches login style ── */
 .send-2fa-button {
   width: 100%;
-  height: 50px;
-  background-color: #5b9bd5;
+  height: 48px;
+  background-color: #5396d5;
   color: white;
   border: none;
-  padding: 0.8rem;
+  padding: 0;
   border-radius: 10px;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   margin-top: 1rem;
   box-sizing: border-box;
-  transition: 0.3s;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
 }
 
 .send-2fa-button:hover {
-  background-color: #4a8ac4;
+  background-color: #357abd;
+  box-shadow: 0 4px 14px rgba(83, 150, 213, 0.4);
   transform: translateY(-1px);
 }
 
 .success-icon-circle {
   width: 80px;
   height: 80px;
-  background-color: #5b9bd5;
+  background-color: #5396d5;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -159,21 +204,22 @@
 }
 
 .success-title {
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
-  font-weight: 600;
-  color: #111;
+  font-weight: 700;
+  color: #0f172a;
   margin: 0.5rem 0;
 }
 
 .success-subtext {
-  font-size: 0.95rem;
-  color: #666;
+  font-size: 0.92rem;
+  color: #64748b;
   margin: 0.5rem 0 1.5rem 0;
 }
 
 .error-text {
   color: #e74c3c;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   margin-top: -0.8rem;
   margin-bottom: 1rem;
   text-align: left;
@@ -181,7 +227,7 @@
 }
 
 .input-field.error {
-  border: 2px solid #e74c3c;
+  border: 1.5px solid #e74c3c;
   background-color: #fdeaea;
 }
 
@@ -193,7 +239,7 @@
   }
 
   .forgotPassword-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
 
   .input-field,

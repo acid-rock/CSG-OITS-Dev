@@ -4,8 +4,10 @@
   height: 97vh;
   border-radius: 1rem;
   overflow: hidden;
+  background-color: #f5f7fa;
 }
 
+/* Header */
 .audit-header {
   display: flex;
   flex-direction: row;
@@ -23,26 +25,47 @@
   color: #222;
 }
 
-.audit-header p {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0;
+/* ── Toolbar ── */
+.audit-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-/* Action button (refresh) */
+.audit-file-count {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.audit-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+/* Refresh button */
 .audit-action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 0.55rem;
-  border: 1px solid #555;
+  border: 1px solid #ccc;
   background: transparent;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.28rem 0.4rem;
+  transition: border-color 0.2s;
 }
 
-.audit-action-btn img {
-  filter: brightness(0) invert(1);
+.audit-action-btn:hover {
+  border-color: #5396d5;
 }
 
 @keyframes audit-spin360 {
@@ -55,26 +78,15 @@
   animation: audit-spin360 0.6s linear;
 }
 
-/* Table wrapper */
+/* ── Table wrapper ── */
 .audit-file-table {
-  background-color: #e0e0e0;
+  background-color: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
   border-radius: 0.5rem;
-  max-height: 80vh;
-  padding: 0.5rem;
-  margin-top: 2rem;
-}
-
-.audit-file-table > span {
-  display: block;
-  font-weight: 600;
-  font-size: 1.1rem;
-  padding: 1.25rem 1.5rem 0.75rem;
-  color: #222;
+  max-height: 75vh;
+  overflow: auto;
+  margin: 1rem 1.5rem;
+  border: 1px solid #e0e0e0;
 }
 
 .audit-file-table table {
@@ -82,99 +94,117 @@
   border-collapse: collapse;
   font-family: inherit;
   background: #fff;
-  display: block;
-  overflow-x: auto;
-  overflow-y: auto;
-  font-size: 1.1rem;
-  border-radius: 0.5rem;
-  flex: 1;
+  font-size: 0.9rem;
+  table-layout: fixed;
+  display: table;
 }
 
-/* Table head */
-.audit-table-header-black {
-  background: #111 !important;
-}
-
-.audit-table-header-black th.audit-table-head {
-  background: #111 !important;
-  display: table-cell;
-  padding: 1rem 2.5rem;
-  width: 100%;
-  box-sizing: border-box;
-  vertical-align: middle;
-}
-
-.audit-table-actions {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-/* Scoped FilterSelect overrides — only inside audit-table-actions */
-.audit-table-actions .audit-filter-select select,
-.audit-table-actions .audit-filter-select button,
-.audit-table-actions .audit-filter-select > * {
-  color: #fff;
-  background: transparent;
-  border-color: #555;
+/* ── Header ── */
+.audit-table-header-light {
+  background: #f3f4f6;
 }
 
 .audit-file-table thead {
-  display: table;
-  width: calc(100% - 8px);
-  table-layout: fixed;
-  position: sticky;
-  top: 0;
-  background: #111;
-  z-index: 10;
+  display: table-header-group;
+  background: #f3f4f6;
 }
 
 .audit-file-table tbody {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
+  display: table-row-group;
 }
 
 .audit-file-table tr {
   display: table-row;
-  width: 100%;
 }
 
 .audit-file-table th,
 .audit-file-table td {
-  padding: 1rem 2.5rem;
-  text-align: center;
-  background: #fff;
+  padding: 0.85rem 1.25rem;
+  text-align: left;
   display: table-cell;
+  vertical-align: middle;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.85rem;
-  width: 25%;
+  box-sizing: border-box;
 }
 
 .audit-file-table th {
-  font-size: 0.8rem;
-  background: #111;
-  color: #ccc;
+  background: #f3f4f6;
+  color: #555;
   font-weight: 600;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #e0e0e0;
   position: sticky;
   top: 0;
+  z-index: 10;
 }
 
+.audit-file-table td {
+  background: #fff;
+  color: #333;
+  font-size: 0.85rem;
+}
+
+/* ── User / Admin cell ── */
+.audit-user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow: hidden;
+}
+
+.audit-user-name {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Role badges */
+.audit-role-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  width: fit-content;
+  letter-spacing: 0.3px;
+}
+
+.audit-role-admin {
+  background: #e8f1fb;
+  color: #1a72d4;
+}
+
+.audit-role-super {
+  background: #fef3e2;
+  color: #c47a0a;
+}
+
+/* ── Datetime cell ── */
+.audit-datetime {
+  font-size: 0.8rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+/* ── Row states ── */
 .audit-file-table tbody tr {
   border-bottom: 1px solid #f0f0f0;
   transition: background 0.2s ease;
+  cursor: pointer;
 }
 
 .audit-file-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.audit-file-table tbody tr:hover td {
   background: #f8f9fa;
 }
 
@@ -214,4 +244,26 @@
 .audit-file-table table::-webkit-scrollbar-thumb:hover,
 .audit-file-table tbody::-webkit-scrollbar-thumb:hover {
   background: #8fa8c8;
+}
+
+/* ── Colgroup column widths ── */
+.audit-file-table col.audit-col-user {
+  width: 20%;
+}
+.audit-file-table col.audit-col-image {
+  width: 15%;
+}
+.audit-file-table col.audit-col-filename {
+  width: 20%;
+}
+.audit-file-table col.audit-col-description {
+  width: 25%;
+}
+.audit-file-table col.audit-col-date {
+  width: 20%;
+}
+
+.refresh-img {
+  width: 20px;
+  height: 20px;
 }

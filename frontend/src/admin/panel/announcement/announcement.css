@@ -4,6 +4,7 @@
   height: 97vh;
   border-radius: 1rem;
   overflow: hidden;
+  background-color: #f5f7fa;
 }
 
 /* Header */
@@ -24,57 +25,66 @@
   color: #222;
 }
 
-.announce-header p {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0;
-}
-
-/* Button container */
-.announce-btn-container {
+/* ── Toolbar ── */
+.announce-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 1rem 1.5rem;
+  padding: 0.85rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.announce-btn-container span {
-  font-size: 1.25rem;
+.announce-file-count {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #444;
 }
 
-.announce-btn-container button {
+.announce-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.announce-add-btn {
   background-color: #5396d5;
   border-radius: 8px;
-  padding: 0.35rem 0.7rem;
+  padding: 0.35rem 0.8rem;
   border: none;
   color: #fff;
   font-weight: 600;
   font-size: 0.85rem;
+  cursor: pointer;
   transition:
     background 0.2s,
     box-shadow 0.2s;
 }
 
-.announce-btn-container button:hover {
+.announce-add-btn:hover {
   background-color: #357abd;
   box-shadow: 0 2px 8px #357abd26;
-  cursor: pointer;
 }
 
-/* Action button (refresh) */
+/* Refresh button */
 .announce-action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 0.55rem;
-  border: 1px solid #555;
+  border: 1px solid #ccc;
   background: transparent;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.28rem 0.4rem;
+  transition: border-color 0.2s;
 }
 
-.announce-action-btn img {
-  filter: brightness(0) invert(1);
+.announce-action-btn:hover {
+  border-color: #5396d5;
 }
 
 @keyframes announce-spin360 {
@@ -87,25 +97,15 @@
   animation: announce-spin360 0.6s linear;
 }
 
-/* Table wrapper */
+/* ── Table wrapper ── */
 .announce-file-table {
-  background-color: #e0e0e0;
+  background-color: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
   border-radius: 0.5rem;
-  max-height: 80vh;
-  padding: 0.5rem;
-}
-
-.announce-file-table > span {
-  display: block;
-  font-weight: 600;
-  font-size: 1.1rem;
-  padding: 1.25rem 1.5rem 0.75rem;
-  color: #222;
+  max-height: 75vh;
+  overflow: auto;
+  margin: 1rem 1.5rem;
+  border: 1px solid #e0e0e0;
 }
 
 .announce-file-table table {
@@ -113,125 +113,117 @@
   border-collapse: collapse;
   font-family: inherit;
   background: #fff;
-  display: block;
-  overflow-x: auto;
-  overflow-y: auto;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   border-radius: 0.5rem;
-  flex: 1;
+  table-layout: fixed;
+  display: table;
 }
 
-/* Checkbox styling scoped to this table only */
-.announce-file-table input[type='checkbox'] {
-  cursor: pointer;
-  width: 18px;
-  height: 18px;
-  accent-color: #5396d5;
-  border-radius: 4px;
-}
-
-/* tbody row checkboxes — reset any inherited filter, keep blue accent */
-.announce-file-table tbody input[type='checkbox'] {
-  accent-color: #5396d5;
-  filter: none;
-}
-
-/* Individual row checkbox via className */
-.announce-file-table tbody .checkbox {
-  accent-color: #5396d5;
-  filter: none !important;
-}
-
-/* Table head */
-.announce-table-header-black {
-  background: #111 !important;
-}
-
-.announce-table-header-black th.announce-table-head {
-  background: #111 !important;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2.5rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.announce-table-header-black input[type='checkbox'] {
-  accent-color: #fff;
-  flex-shrink: 0;
-  filter: brightness(0) invert(1);
-}
-
-.announce-table-actions {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-/* Scoped FilterSelect overrides — only inside announce-table-actions */
-.announce-table-actions .announce-filter-select select,
-.announce-table-actions .announce-filter-select button,
-.announce-table-actions .announce-filter-select > * {
-  color: #fff;
-  background: transparent;
-  border-color: #555;
+.announce-table-header-light {
+  background: #f3f4f6;
 }
 
 .announce-file-table thead {
-  display: table;
-  width: calc(100% - 8px);
-  table-layout: fixed;
-  position: sticky;
-  top: 0;
-  background: #111;
-  z-index: 10;
+  display: table-header-group;
+  background: #f3f4f6;
 }
 
 .announce-file-table tbody {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
+  display: table-row-group;
 }
 
 .announce-file-table tr {
   display: table-row;
-  width: 100%;
 }
 
 .announce-file-table th,
 .announce-file-table td {
-  padding: 1rem 2.5rem;
+  padding: 0.85rem 1.25rem;
   text-align: left;
-  background: #fff;
   display: table-cell;
+  vertical-align: middle;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.85rem;
+  box-sizing: border-box;
 }
 
 .announce-file-table th {
-  font-size: 0.8rem;
-  background: #111;
-  color: #ccc;
+  background: #f3f4f6;
+  color: #555;
   font-weight: 600;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #e0e0e0;
   position: sticky;
   top: 0;
+  z-index: 10;
 }
 
+.announce-file-table td {
+  background: #fff;
+  color: #333;
+  font-size: 0.85rem;
+}
+
+/* ── Custom checkboxes ── */
+.announce-file-table table input[type='checkbox'],
+.announce-file-table thead tr th input[type='checkbox'],
+.announce-file-table tbody tr td input[type='checkbox'],
+.announce-file-table tbody tr td input.checkbox {
+  cursor: pointer;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 2px solid #ccc !important;
+  border-radius: 4px !important;
+  background-color: #fff !important;
+  position: relative !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+  filter: none !important;
+}
+
+.announce-file-table table input[type='checkbox']:checked,
+.announce-file-table thead tr th input[type='checkbox']:checked,
+.announce-file-table tbody tr td input[type='checkbox']:checked,
+.announce-file-table tbody tr td input.checkbox:checked {
+  background-color: #5396d5 !important;
+  border-color: #5396d5 !important;
+}
+
+.announce-file-table table input[type='checkbox']:checked::after,
+.announce-file-table thead tr th input[type='checkbox']:checked::after,
+.announce-file-table tbody tr td input[type='checkbox']:checked::after,
+.announce-file-table tbody tr td input.checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+/* ── Row states ── */
 .announce-file-table tbody tr {
   border-bottom: 1px solid #f0f0f0;
   transition: background 0.2s ease;
 }
 
 .announce-file-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.announce-file-table tbody tr:hover td {
   background: #f8f9fa;
 }
 
@@ -247,25 +239,42 @@
   background: #e8f4ff;
 }
 
-/* File action buttons */
+/* ── Action icons: hidden by default, revealed on row hover ── */
 .announce-file-btn {
-  display: flex;
+  white-space: nowrap;
+  text-align: right;
+  vertical-align: middle;
+}
+
+.announce-file-btn-inner {
+  display: inline-flex;
   align-items: center;
-  gap: 1rem;
-  justify-content: flex-end;
+  gap: 0.65rem;
 }
 
 .announce-file-btn img {
   width: 20px;
   height: 20px;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
   cursor: pointer;
-  transition: filter 0.2s;
+  display: inline-block;
+  vertical-align: middle;
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    filter 0.15s;
+}
+
+/* Show icons when the row is hovered */
+.announce-file-table tbody tr:hover .announce-file-btn img {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .announce-file-btn img:hover {
-  filter: brightness(0.8);
+  filter: brightness(0.6);
+  transform: scale(1.12);
 }
 
 /* Scrollbar */
@@ -295,7 +304,8 @@
 }
 
 /* Overlays */
-.announce-form-position {
+.announce-form-position,
+.announce-modal-position {
   position: absolute;
   top: 0;
   left: 0;
@@ -310,17 +320,27 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
-.announce-modal-position {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  background: rgba(255, 255, 255, 0.3);
+/* ── Colgroup column widths ── */
+.announce-file-table col.col-checkbox {
+  width: 5%;
+}
+.announce-file-table col.col-image {
+  width: 15%;
+}
+.announce-file-table col.col-filename {
+  width: 20%;
+}
+.announce-file-table col.col-description {
+  width: 30%;
+}
+.announce-file-table col.col-date {
+  width: 15%;
+}
+.announce-file-table col.col-actions {
+  width: 15%;
+}
+
+.refresh-img {
+  width: 20px;
+  height: 20px;
 }

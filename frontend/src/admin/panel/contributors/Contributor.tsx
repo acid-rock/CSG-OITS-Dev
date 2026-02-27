@@ -63,13 +63,6 @@ const Contributor = () => {
     <div className='admin-contributor-container'>
       <div className='admin-contributor-header'>
         <span>Contributors</span>
-        <p>
-          {new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })}
-        </p>
       </div>
       <div className='admin-contributor-avatar-list'>
         <div className='admin-contributor-avatar-row admin-contributor-avatar-row-1'>

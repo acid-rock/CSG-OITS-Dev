@@ -5,12 +5,12 @@ const Login = () => {
   return (
     <div className='login-container'>
       <div className='login-card'>
-        {/* Logo */}
+        {/* Logo — centered above card */}
         <div className='logo-wrapper'>
           <img src='/CSG_logo.svg' alt='CSG Logo' className='logo-img' />
         </div>
 
-        {/* Header */}
+        {/* Header — centered */}
         <div className='login-header'>
           <h2 className='login-title'>
             Online Information Transparency System
@@ -24,7 +24,7 @@ const Login = () => {
             <img src='/user-login.png' alt='User' className='input-icon' />
             <input
               type='email'
-              placeholder='Cvsu Email'
+              placeholder='CvSU Email'
               className='input-field'
             />
           </div>

@@ -3,4 +3,21 @@
   flex-direction: row;
   width: 100%;
   min-height: 100vh;
+  font-family:
+    'Roboto', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* Ensure all text elements inside admin inherit the font */
+.admin-panel *,
+.admin-panel *::before,
+.admin-panel *::after {
+  font-family: inherit;
+}
+
+/* White background for all inputs, textareas, and selects in admin */
+.admin-panel input,
+.admin-panel textarea,
+.admin-panel select {
+  background-color: #ffffff;
+  font-family: inherit;
 }

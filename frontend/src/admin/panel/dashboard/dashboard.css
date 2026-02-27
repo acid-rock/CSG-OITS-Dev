@@ -45,6 +45,130 @@
   margin-bottom: 1.5rem;
 }
 
+/* ── Summary Bar ── */
+.dashboard-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Pending Requests Banner */
+.pending-requests-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #e8f4ff;
+  border: 1px solid #b3c6e0;
+  border-left: 4px solid #5396d5;
+  border-radius: 8px;
+  padding: 12px 16px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.pending-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5396d5;
+  flex-shrink: 0;
+}
+
+.pending-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.pending-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5396d5;
+}
+
+.pending-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #222;
+}
+
+.pending-badge {
+  background: #5396d5;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Quick Stats */
+.quick-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 18px;
+  min-width: 180px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.stat-icon--officers {
+  background: #e8f4ff;
+  color: #5396d5;
+}
+
+.stat-icon--docs {
+  background: #e8f4ff;
+  color: #5396d5;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-number {
+  font-size: 22px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* ── File Table ── */
 .dashboard-file-table {
   background-color: #fff;
   border-radius: 12px;
@@ -167,20 +291,16 @@
 }
 
 .table-header-black {
-  background: #111;
+  background: #f3f4f6;
 }
 
 .table-header-black th {
-  background: #111 !important;
-  color: #fff !important;
-  border-bottom: 2px solid #222;
+  background: #f3f4f6 !important;
+  color: #555 !important;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.table-header-black input[type='checkbox'] {
-  accent-color: #fff;
-}
-
-/* Webkit browsers */
+/* Scrollbar — Webkit browsers */
 .dashboard-file-table table::-webkit-scrollbar,
 .dashboard-file-table tbody::-webkit-scrollbar {
   height: 8px;
