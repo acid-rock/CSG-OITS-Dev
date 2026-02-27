@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
       const images = filenames.map((file) => {
         return anonSupabase.storage
           .from("events")
-          .getPublicUrl(`${filenames.img_dir}/${file.name}`).data.publicUrl;
+          .getPublicUrl(`${folder.img_dir}/${file.name}`).data.publicUrl;
       });
 
       return {
