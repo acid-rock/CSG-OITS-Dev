@@ -33,6 +33,7 @@ router.get("/", async (req, res) => {
     return {
       id: file.id,
       name: file.file_path,
+      description: file.description,
       category: file.file_path.split("/")[0],
       url: data.publicUrl,
       thumbnail: thumbnail,
