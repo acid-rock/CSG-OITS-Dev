@@ -1,8 +1,16 @@
 .officer-container {
   display: flex;
+  height: 100%;
   flex-direction: column;
   align-items: center;
   margin-top: 5rem;
+}
+
+.office-card-container > * {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
 }
 
 .officer-layout {
@@ -26,6 +34,32 @@
   margin-bottom: 24px;
 }
 
+.board-member-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  align-items: stretch; 
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.board-member-grid > .office-card-container {
+  grid-column: span 1; 
+}
+
+.adviser-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  align-items: stretch; 
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.adviser-grid > .office-card-container {
+  grid-column: span 1; 
+}
+
 /* First row - 3 cards */
 .officer-grid > :nth-child(1),
 .officer-grid > :nth-child(2),
@@ -36,25 +70,11 @@
 /* Second row - 4 cards */
 .officer-grid > :nth-child(4),
 .officer-grid > :nth-child(5),
-.officer-grid > :nth-child(6),
-.officer-grid > :nth-child(7) {
-  grid-column: span 3;
-}
-
-/* Third row - 3 cards */
-.officer-grid > :nth-child(8),
-.officer-grid > :nth-child(9),
-.officer-grid > :nth-child(10) {
+.officer-grid > :nth-child(6) {
   grid-column: span 4;
 }
 
-/* Fourth row - 4 cards */
-.officer-grid > :nth-child(11),
-.officer-grid > :nth-child(12),
-.officer-grid > :nth-child(13),
-.officer-grid > :nth-child(14) {
-  grid-column: span 3;
-}
+
 
 /* Card container fills grid cell */
 .office-card-container {

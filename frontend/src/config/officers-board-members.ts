@@ -1,3 +1,5 @@
+import assetsMap from "./imageConfig";
+
 const committees = [
   {
     committee: 'Rules and Internal Affairs Committee',
@@ -6,13 +8,13 @@ const committees = [
         id: 'Ken B. Lentejas',
         title: 'RIAC Chairperson',
         image:
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+          assetsMap.lentejas,
       },
       {
         id: 'Rica Babes Delos Reyes',
         title: 'RIAC Vice Chairperson',
         image:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+          assetsMap.logo,
       },
     ],
     members: [
@@ -26,20 +28,20 @@ const committees = [
       { id: 'Louber Apin', role: 'Member'},
     ],
   },
-    {
+  {
     committee: 'Committee on External Affairs',
     officials: [
       {
         id: 'John Jefferson De Leon',
         title: 'COEXA Chairperson',
         image:
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+          assetsMap.deleon,
       },
       {
         id: 'Dean Levi\'s Aquino',
-        title: 'Creatives Vice Chairperson',
+        title: 'COEXA Vice Chairperson',
         image:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+          assetsMap.logo,
       },
     ],
     members: [
@@ -49,20 +51,20 @@ const committees = [
       { id: 'Juria Mae Dela Cerna', role:'Member'},
     ],
   },
-    {
+  {
     committee: 'Secretariat Committee',
     officials: [
       {
         id: 'Daniel Camaclang',
         title: 'SECCOM Chairperson',
         image:
-          'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+          assetsMap.camaclang,
       },
       {
         id: 'Lorelle Salude',
         title: 'Assistant Secretary',
         image:
-          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+          assetsMap.salude,
       },
     ],
     members: [
@@ -77,20 +79,20 @@ const committees = [
       { id: 'Zachariah Sydney Babon', role:'UnderSec'},
     ],
   },
-    {
+  {
     committee: 'Committee on Finance',
     officials: [
       {
         id: 'Samantha Natalie Fatallo',
         title: 'COF Chairperson',
         image:
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+          assetsMap.logo,
       },
       {
         id: 'Chris John Labalan',
         title: 'Assistant Treasurer',
         image:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+          assetsMap.labalan,
       },
     ],
     members: [
@@ -102,20 +104,20 @@ const committees = [
       { id: 'Krisha Lauren Genido', role:'Assoc. For Finance'},
     ],
   },
-    {
+  {
     committee: 'Committee on Audit',
     officials: [
       {
         id: 'Cristina Velasquez Domingo',
         title: 'COA Chairperson',
         image:
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+          assetsMap.domingo,
       },
       {
         id: 'Ma. Shammel G. Layba',
         title: 'Assistant Auditor',
         image:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+          assetsMap.logo,
       },
     ],
     members: [
@@ -126,20 +128,20 @@ const committees = [
       { id: 'Raine Kristea Candiz Maxine M. Cerro', role:'Commissioner'},
     ],
   },
-    {
+  {
     committee: 'Committee on Culture, Athletics, And Arts',
     officials: [
       {
         id: 'Mary Eunice Ramos',
         title: 'CCAA Chairperson',
         image:
-          'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+          assetsMap.ramos,
       },
       {
         id: 'Hans Christian Ancierto',
         title: 'CCAA Vice Chairperson',
         image:
-          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+          assetsMap.logo,
       },
     ],
     members: [
@@ -149,40 +151,40 @@ const committees = [
       { id: 'Jay Ar Rondina', role:'Member'},
     ],
   },
-    {
+  {
     committee: 'Social and Environmental Awareness Committee',
     officials: [
       {
         id: 'Lorelle Salude',
         title: 'SOCENVI Chairperson',
         image:
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+          assetsMap.salude,
       },
       {
         id: 'Ralfh Molina',
         title: 'SOCENVI Vice Chairperson',
         image:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+          assetsMap.logo,
       },
     ],
     members: [
       { id: 'Jennifer Nazareno', role:'Member'},
     ],
   },
-    {
+  {
     committee: 'Committee on Creatives',
     officials: [
       {
         id: 'Kenn Harvey Fajardo Brocoy',
         title: 'Overall Head',
         image:
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+          assetsMap.brocoy,
       },
       {
         id: 'Charles Derrick A. Garcia',
         title: 'Creatives Chairperson',
         image:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+          assetsMap.garcia,
       },
     ],
     members: [
@@ -209,13 +211,13 @@ const committees = [
         id: 'Juanita Anjela Rivas',
         title: 'CSAC Chairperson',
         image:
-          'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400',
+          assetsMap.rivas,
       },
       {
         id: 'Athena Contrivida',
         title: 'CSAC Vice Charperson',
         image:
-          'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400',
+          assetsMap.logo,
       },
     ],
     members: [
@@ -227,20 +229,20 @@ const committees = [
       { id: 'Michaela Miel R. Siapno', role:'Member'},
     ],
   },
-    {
+  {
     committee: 'Committee on Web Development',
     officials: [
       {
         id: 'Ivan Parales Duran',
         title: 'WebDev Chairperson',
         image:
-          'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+          assetsMap.duran,
       },
       {
         id: 'John Harold D. Magma',
         title: 'WebDev Vice Chairperson',
         image:
-          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+          assetsMap.logo,
       },
     ],
     members: [
