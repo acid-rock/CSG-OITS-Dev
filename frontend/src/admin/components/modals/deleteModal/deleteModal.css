@@ -1,4 +1,4 @@
-.modal-overlay {
+.admin-delete-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -11,16 +11,16 @@
   z-index: 1000;
 }
 
-.modal-container {
+.admin-delete-container {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   max-width: 420px;
   width: 90%;
-  animation: slideIn 0.3s ease-out;
+  animation: adminDeleteSlideIn 0.3s ease-out;
 }
 
-@keyframes slideIn {
+@keyframes adminDeleteSlideIn {
   from {
     opacity: 0;
     transform: translateY(-20px);
@@ -31,7 +31,7 @@
   }
 }
 
-.modal-content {
+.admin-delete-content {
   padding: 2.5rem 2rem 2rem;
   display: flex;
   flex-direction: column;
@@ -39,18 +39,18 @@
   text-align: center;
 }
 
-.modal-icon {
+.admin-delete-icon {
   margin-bottom: 1.25rem;
 }
 
-.modal-title {
+.admin-delete-title {
   font-size: 1.5rem;
   font-weight: 600;
   color: #111;
   margin-bottom: 0.75rem;
 }
 
-.modal-message {
+.admin-delete-message {
   font-size: 0.95rem;
   color: #999;
   line-height: 1.5;
@@ -58,14 +58,14 @@
   max-width: 320px;
 }
 
-.modal-actions {
+.admin-delete-actions {
   display: flex;
   gap: 1rem;
   width: 100%;
   justify-content: center;
 }
 
-.btn {
+.admin-delete-btn {
   padding: 0.75rem 2rem;
   border-radius: 8px;
   font-size: 1rem;
@@ -76,22 +76,22 @@
   min-width: 120px;
 }
 
-.btn-delete {
+.admin-delete-btn--confirm {
   background: #5b9fd8;
   color: #fff;
 }
 
-.btn-delete:hover {
+.admin-delete-btn--confirm:hover {
   background: #4a8dc7;
   box-shadow: 0 4px 12px rgba(91, 159, 216, 0.3);
 }
 
-.btn-cancel {
+.admin-delete-btn--cancel {
   background: #d95f5f;
   color: #fff;
 }
 
-.btn-cancel:hover {
+.admin-delete-btn--cancel:hover {
   background: #c74d4d;
   box-shadow: 0 4px 12px rgba(217, 95, 95, 0.3);
 }

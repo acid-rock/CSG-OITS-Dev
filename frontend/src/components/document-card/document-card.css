@@ -4,8 +4,8 @@
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  max-width: 280px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.401);
+  max-width: 360px;
 }
 
 .document-card-image {
@@ -42,6 +42,11 @@
   font-weight: 600;
   color: #111827;
   line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .document-card-description {
@@ -49,10 +54,21 @@
   font-size: 14px;
   color: #6b7280;
   line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.document-card-description.single-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .document-card-date {
-  margin: 0;
+  margin: 0 0 8px 0;
   font-size: 12px;
   color: #9ca3af;
 }
@@ -85,5 +101,5 @@
 }
 
 .document-card.elevated {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.533);
 }

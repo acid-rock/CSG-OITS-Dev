@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.90.21",
+    "@types/chart.js": "^2.9.41",
+    "@types/react": "^18.2.0",
+    "some-new-library": "^1.0.0",
     "chart.js": "^4.5.1",
     "lucide-react": "^0.555.0",
     "pdfjs-dist": "^5.4.624",

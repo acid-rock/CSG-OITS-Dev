@@ -1,5 +1,36 @@
-.filter-container {
+.filter-select-container {
   display: flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.4rem;
+}
+
+.filter-select-label {
+  font-size: 0.85rem;
+  color: #444;
+  white-space: nowrap;
+}
+
+.filter-select-input {
+  border-radius: 8px;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #bbb;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background-color: #fff;
+  color: #222;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.filter-select-input:focus {
+  outline: none;
+  border-color: #5396d5;
+  box-shadow: 0 0 0 2px rgba(83, 150, 213, 0.15);
+}
+
+.filter-select-input option {
+  background-color: #fff;
+  color: #222;
 }

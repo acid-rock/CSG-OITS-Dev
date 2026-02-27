@@ -14,17 +14,18 @@ const FilterSelect = ({
   onChange,
   label,
 }: FilterSelectProps) => (
-  <label className='filter-container'>
-    {label}
+  <div className='filter-select-container'>
+    {label && (
+      <label className='filter-select-label' htmlFor='filter-select'>
+        {label}
+      </label>
+    )}
     <select
+      id='filter-select'
+      className='filter-select-input'
       value={value}
       onChange={(e: ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
-      style={{
-        borderRadius: '8px',
-        padding: '0.25rem 0.75rem',
-        border: '1px solid #bbb',
-        fontSize: '0.95rem',
-      }}
+      aria-label={label || 'Filter select'}
     >
       <option value='' disabled hidden>
         {label}
@@ -35,7 +36,7 @@ const FilterSelect = ({
         </option>
       ))}
     </select>
-  </label>
+  </div>
 );
 
 export default FilterSelect;

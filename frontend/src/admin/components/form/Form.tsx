@@ -6,10 +6,18 @@ import PdfSelector from '../pdf-selector-components/pdf-selector';
 interface FormProps {
   forType: 'announcement' | 'document';
   id?: string | null;
+  initialTitle?: string;
+  initialDescription?: string;
   setOpen: (open: boolean) => void;
 }
 
-const Form = ({ forType, id, setOpen }: FormProps) => {
+const Form = ({
+  forType,
+  id,
+  initialTitle = '',
+  initialDescription = '',
+  setOpen,
+}: FormProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [showPdfSelector, setShowPdfSelector] = useState(false);
@@ -17,8 +25,8 @@ const Form = ({ forType, id, setOpen }: FormProps) => {
   const [pdf, setPdf] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [selectedBoxes, setSelectedBoxes] = useState<Box[]>([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(initialDescription);
 
   const url =
     forType === 'announcement'
@@ -34,7 +42,10 @@ const Form = ({ forType, id, setOpen }: FormProps) => {
 
     if (pdf) {
       formData.append('file', pdf);
-      formData.append('boxes', JSON.stringify(selectedBoxes));
+      // Only send boxes for documents — announcements skip the selector
+      if (forType === 'document') {
+        formData.append('boxes', JSON.stringify(selectedBoxes));
+      }
     }
 
     fetch(url, {
@@ -50,7 +61,10 @@ const Form = ({ forType, id, setOpen }: FormProps) => {
         setPreview(file.name);
         setPdf(file);
         setPdfUrl(URL.createObjectURL(file));
-        setShowPdfSelector(true);
+        // Only open the PDF box selector for documents, not announcements
+        if (forType === 'document') {
+          setShowPdfSelector(true);
+        }
       } else {
         const reader = new FileReader();
         reader.onloadend = () => setPreview(reader.result as string);
@@ -74,51 +88,26 @@ const Form = ({ forType, id, setOpen }: FormProps) => {
   return (
     <div className='form-container'>
       <div className='form-header'>
-        <h2>Add New File</h2>
+        <h2>{id ? 'Update File' : 'Add New File'}</h2>
       </div>
 
-      {/* PDF Selector Modal */}
-      {showPdfSelector && pdfUrl && (
-        <div
-          className='pdf-selector-overlay'
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-          }}
-        >
-          <div
-            className='pdf-selector-modal'
-            style={{
-              backgroundColor: 'white',
-              padding: '1rem',
-              borderRadius: '8px',
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              overflow: 'auto',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: '1rem',
-              }}
-            >
+      {/* PDF Selector Modal — documents only */}
+      {forType === 'document' && showPdfSelector && pdfUrl && (
+        <div className='pdf-selector-overlay'>
+          <div className='pdf-selector-modal'>
+            <div className='pdf-selector-header'>
               <h3>Select areas on PDF</h3>
               <button
                 type='button'
+                className='btn btn-secondary'
                 onClick={() => setShowPdfSelector(false)}
-                style={{ padding: '0.5rem 1rem' }}
               >
                 Done ({selectedBoxes.length} selected)
               </button>
             </div>
-            <PdfSelector fileUrl={pdfUrl} onBoxesChange={setSelectedBoxes} />
+            <div className='pdf-selector-body'>
+              <PdfSelector fileUrl={pdfUrl} onBoxesChange={setSelectedBoxes} />
+            </div>
           </div>
         </div>
       )}
@@ -149,12 +138,11 @@ const Form = ({ forType, id, setOpen }: FormProps) => {
         </div>
 
         <div className='image-upload'>
-          <label>{forType === 'document' ? 'File' : 'PDF'}</label>
+          <label>{forType === 'announcement' ? 'Image' : 'File'}</label>
           <div
             className={`image-preview${preview ? ' has-image' : ''}`}
             id='imagePreview'
             onClick={handleImageClick}
-            style={{ cursor: 'pointer' }}
           >
             {!preview ? (
               <div className='image-placeholder'>
@@ -162,28 +150,33 @@ const Form = ({ forType, id, setOpen }: FormProps) => {
                 <div className='upload-text'>
                   <strong>Click to upload</strong>
                   <br />
-                  PDF files
+                  {forType === 'announcement' ? 'PNG, JPG, JPEG' : 'PDF files'}
                 </div>
               </div>
             ) : preview?.endsWith('.pdf') ? (
               <div className='pdf-preview'>
                 <div className='upload-icon'>📄</div>
                 <div className='upload-text'>{preview}</div>
-                {selectedBoxes.length > 0 && (
-                  <div style={{ marginTop: '0.5rem', color: 'green' }}>
-                    ✓ {selectedBoxes.length} area(s) selected
-                  </div>
+                {/* Edit selections button only shown for documents */}
+                {forType === 'document' && (
+                  <>
+                    {selectedBoxes.length > 0 && (
+                      <div className='pdf-selected-count'>
+                        ✓ {selectedBoxes.length} area(s) selected
+                      </div>
+                    )}
+                    <button
+                      type='button'
+                      className='btn btn-edit-selections'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPdfSelector(true);
+                      }}
+                    >
+                      Edit selections
+                    </button>
+                  </>
                 )}
-                <button
-                  type='button'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowPdfSelector(true);
-                  }}
-                  style={{ marginTop: '0.5rem' }}
-                >
-                  Edit selections
-                </button>
               </div>
             ) : (
               <img id='previewImage' alt='Preview' src={preview} />
@@ -193,9 +186,9 @@ const Form = ({ forType, id, setOpen }: FormProps) => {
             type='file'
             ref={fileInputRef}
             title='Select a file to upload'
-            accept='application/pdf'
+            accept={forType === 'announcement' ? 'image/*' : 'application/pdf'}
             onChange={handleFileChange}
-            style={{ display: 'none' }}
+            className='file-input-hidden'
           />
         </div>
 
@@ -208,7 +201,7 @@ const Form = ({ forType, id, setOpen }: FormProps) => {
             Cancel
           </button>
           <button type='submit' className='btn btn-submit'>
-            Post
+            {id ? 'Update' : 'Post'}
           </button>
         </div>
       </form>

@@ -42,13 +42,7 @@ export default function OfficerCard({
       </div>
       <div className='officer-card-socials'>
         <div className='social-icon'>
-          <FaFacebook />
-        </div>
-        <div className='social-icon'>
-          <FaTiktok />
-        </div>
-        <div className='social-icon'>
-          <FaInstagram />
+          <FaFacebook className='fb-icon' />
         </div>
       </div>
     </div>

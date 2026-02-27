@@ -10,26 +10,32 @@
 .navigation-layout {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; 
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1rem;
-  gap: 2rem;
+  padding: 1rem 2rem;           
 }
 
-/* Navigation Sections */
-.nav-left,
-.nav-center,
-.nav-right {
+/* Navigation Sections */ 
+.nav-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;                
+  flex-shrink: 20;               
 }
 
 .nav-center {
-  flex: 1;
-  justify-content: center;
-  gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;          
+  margin-left: auto;    
+  margin-right: 0;      
+  flex: none;           
+}
+
+.nav-desktop {
+  display: flex;
+  justify-content: flex-end;    
 }
 
 /* Logo */

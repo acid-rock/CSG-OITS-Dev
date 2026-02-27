@@ -29,7 +29,9 @@
   overflow: hidden;
   padding-right: 0px;
   padding-top: 1rem;
-  transition: padding 0.2s ease, overflow 0.2s ease;
+  transition:
+    padding 0.2s ease,
+    overflow 0.2s ease;
 }
 
 /* On tablet/desktop allow scaled cards to grow outside the wrapper */

@@ -1,179 +1,85 @@
 const eventData = [
   {
     id: 1,
-    title: 'Tech Conference 2024',
+    title: '40th Commemoration of the EDSA People Power Revolution',
     description:
-      'Join us for the biggest tech conference of the year featuring keynotes from industry leaders.',
-    date: 'Dec 15, 2024',
-    location: 'San Francisco, CA',
-    image:
-      'https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Technology',
+      'The CvSU-Imus community gathered for a meaningful seminar commemorating the 40th Anniversary of the EDSA People Power Revolution. With insightful discussions from Ms. Grace Gonzales and Sir Hermenegildo Ceniza, students deepened their understanding of Philippine history and the power of collective action in shaping a better future. The commemoration reminded everyone that the voice of the people remains a powerful force for change.',
+    date: 'February 25, 2025',
+    location: 'CvSU-Imus Campus, Imus, Cavite',
+    image: './edsa.jpg',
+    category: 'Education & History',
   },
   {
     id: 2,
-    title: 'Design Workshop',
+    title: 'DLMC Advisory: University-Wide Big Clean-Up Drive',
     description:
-      'Learn modern design principles and UX best practices from expert designers.',
-    date: 'Dec 20, 2024',
-    location: 'New York, NY',
-    image:
-      'https://images.unsplash.com/photo-1561070791-2526d30994b5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2064&q=80',
-    category: 'Design',
+      'In line with Office Memorandum No. PMAPN-036-2026 issued by the University President, February 25, 2026 (7:30 AM – 4:30 PM) was declared as a University-Wide Big Clean-Up Drive. This initiative supports the University’s commitment to Quality Management System (QMS) principles and aims to maintain a safe, clean, and orderly learning environment. Offices remained open to ensure continuity of services, while students, faculty, and staff were encouraged to actively participate and bring their own cleaning materials. The DLMC encourages everyone to take part in promoting discipline, responsibility, and environmental awareness within the campus community.',
+    date: 'February 25, 2026',
+    location: 'CvSU-Imus Campus, Imus, Cavite',
+    image: './dlmc.jpg',
+    category: 'Campus Advisory',
   },
   {
     id: 3,
-    title: 'Music Festival',
+    title:
+      'UPDATE | CSG - Imus Attends the Quarterly Meeting with LYDC and Other Organizations',
     description:
-      'Experience live performances from top artists in a vibrant outdoor setting.',
-    date: 'Jan 5, 2025',
-    location: 'Austin, TX',
-    image:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Entertainment',
+      'On February 20, 2026, the Central Student Government actively participated in the Quarterly Meeting with the Local Youth Development Council (LYDC) held at the Imus City Hall. The session focused on the Local Youth Development Plan and the upcoming City-Wide Youth Info Caravan. As a registered member of the LYDC, the CSG collaborated with other student and youth organizations from different schools to streamline efforts across the 10 Centers. The CSG proudly represented the school in working toward a more empowered future for every Kabataang Imuseno and Kabsuhenyos.',
+    date: 'February 20, 2026',
+    location: 'Imus City Hall, Imus, Cavite',
+    image: './lydc.jpg',
+    category: 'CSG Update',
   },
   {
     id: 4,
-    title: 'Food Expo',
+    title: 'JUST IN | CSG to Establish Possible Partnership with Upwind Coffee',
     description:
-      'Discover culinary delights from around the world with tastings and demonstrations.',
-    date: 'Jan 12, 2025',
-    location: 'Los Angeles, CA',
-    image:
-      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2067&q=80',
-    category: 'Food & Beverage',
+      'On February 18, 2026, the Central Student Government discussed a possible partnership with Upwind Coffee for an upcoming major event this second semester. The collaboration aims to showcase the business to CvSU Heroes while enhancing the overall event experience. Through this initiative, the CSG remains dedicated to providing the best experiences for the Heroes in upcoming activities. Para sa Kabsuhenyos, puso ang magiging sentro ng serbisyo.',
+    date: 'February 18, 2026',
+    location: 'CvSU-Imus Campus, Imus, Cavite',
+    image: './partnership.jpg',
+    category: 'CSG Update',
   },
   {
-    id: 5,
-    title: 'Startup Summit',
+    id: 1,
+    title: '40th Commemoration of the EDSA People Power Revolution',
     description:
-      'Network with entrepreneurs, investors, and innovators shaping the future.',
-    date: 'Jan 20, 2025',
-    location: 'Boston, MA',
-    image:
-      'https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Business',
+      'The CvSU-Imus community gathered for a meaningful seminar commemorating the 40th Anniversary of the EDSA People Power Revolution. With insightful discussions from Ms. Grace Gonzales and Sir Hermenegildo Ceniza, students deepened their understanding of Philippine history and the power of collective action in shaping a better future. The commemoration reminded everyone that the voice of the people remains a powerful force for change.',
+    date: 'February 25, 2025',
+    location: 'CvSU-Imus Campus, Imus, Cavite',
+    image: './edsa.jpg',
+    category: 'Education & History',
   },
   {
-    id: 6,
-    title: 'Art Exhibition',
+    id: 2,
+    title: 'DLMC Advisory: University-Wide Big Clean-Up Drive',
     description:
-      'Explore contemporary art from emerging and established artists.',
-    date: 'Feb 1, 2025',
-    location: 'Chicago, IL',
-    image:
-      'https://images.unsplash.com/photo-1563089145-599997674d42?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Art & Culture',
-  },
-  {
-    id: 7,
-    title: 'Gaming Con',
-    description:
-      'Play the latest games, meet developers, and participate in esports tournaments.',
-    date: 'Feb 14, 2025',
-    location: 'Seattle, WA',
-    image:
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Gaming',
-  },
-  {
-    id: 8,
-    title: 'Fitness Camp',
-    description:
-      'Transform your health with intensive training sessions and nutrition workshops.',
-    date: 'Feb 20, 2025',
-    location: 'Miami, FL',
-    image:
-      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Health & Fitness',
+      'In line with Office Memorandum No. PMAPN-036-2026 issued by the University President, February 25, 2026 (7:30 AM – 4:30 PM) was declared as a University-Wide Big Clean-Up Drive. This initiative supports the University’s commitment to Quality Management System (QMS) principles and aims to maintain a safe, clean, and orderly learning environment. Offices remained open to ensure continuity of services, while students, faculty, and staff were encouraged to actively participate and bring their own cleaning materials. The DLMC encourages everyone to take part in promoting discipline, responsibility, and environmental awareness within the campus community.',
+    date: 'February 25, 2026',
+    location: 'CvSU-Imus Campus, Imus, Cavite',
+    image: './dlmc.jpg',
+    category: 'Campus Advisory',
   },
   {
     id: 3,
-    title: 'Music Festival',
+    title:
+      'UPDATE | CSG - Imus Attends the Quarterly Meeting with LYDC and Other Organizations',
     description:
-      'Experience live performances from top artists in a vibrant outdoor setting.',
-    date: 'Jan 5, 2025',
-    location: 'Austin, TX',
-    image:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Entertainment',
+      'On February 20, 2026, the Central Student Government actively participated in the Quarterly Meeting with the Local Youth Development Council (LYDC) held at the Imus City Hall. The session focused on the Local Youth Development Plan and the upcoming City-Wide Youth Info Caravan. As a registered member of the LYDC, the CSG collaborated with other student and youth organizations from different schools to streamline efforts across the 10 Centers. The CSG proudly represented the school in working toward a more empowered future for every Kabataang Imuseno and Kabsuhenyos.',
+    date: 'February 20, 2026',
+    location: 'Imus City Hall, Imus, Cavite',
+    image: './lydc.jpg',
+    category: 'CSG Update',
   },
   {
-    id: 3,
-    title: 'Music Festival',
+    id: 4,
+    title: 'JUST IN | CSG to Establish Possible Partnership with Upwind Coffee',
     description:
-      'Experience live performances from top artists in a vibrant outdoor setting.',
-    date: 'Jan 5, 2025',
-    location: 'Austin, TX',
-    image:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Entertainment',
-  },
-  {
-    id: 3,
-    title: 'Music Festival',
-    description:
-      'Experience live performances from top artists in a vibrant outdoor setting.',
-    date: 'Jan 5, 2025',
-    location: 'Austin, TX',
-    image:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Entertainment',
-  },
-  {
-    id: 3,
-    title: 'Music Festival',
-    description:
-      'Experience live performances from top artists in a vibrant outdoor setting.',
-    date: 'Jan 5, 2025',
-    location: 'Austin, TX',
-    image:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Entertainment',
-  },
-  {
-    id: 3,
-    title: 'Music Festival',
-    description:
-      'Experience live performances from top artists in a vibrant outdoor setting.',
-    date: 'Jan 5, 2025',
-    location: 'Austin, TX',
-    image:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Entertainment',
-  },
-  {
-    id: 3,
-    title: 'Music Festival',
-    description:
-      'Experience live performances from top artists in a vibrant outdoor setting.',
-    date: 'Jan 5, 2025',
-    location: 'Austin, TX',
-    image:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Entertainment',
-  },
-  {
-    id: 3,
-    title: 'Music Festival',
-    description:
-      'Experience live performances from top artists in a vibrant outdoor setting.',
-    date: 'Jan 5, 2025',
-    location: 'Austin, TX',
-    image:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Entertainment',
-  },
-  {
-    id: 3,
-    title: 'Music Festival',
-    description:
-      'Experience live performances from top artists in a vibrant outdoor setting.',
-    date: 'Jan 5, 2025',
-    location: 'Austin, TX',
-    image:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    category: 'Entertainment',
+      'On February 18, 2026, the Central Student Government discussed a possible partnership with Upwind Coffee for an upcoming major event this second semester. The collaboration aims to showcase the business to CvSU Heroes while enhancing the overall event experience. Through this initiative, the CSG remains dedicated to providing the best experiences for the Heroes in upcoming activities. Para sa Kabsuhenyos, puso ang magiging sentro ng serbisyo.',
+    date: 'February 18, 2026',
+    location: 'CvSU-Imus Campus, Imus, Cavite',
+    image: './partnership.jpg',
+    category: 'CSG Update',
   },
 ];
 

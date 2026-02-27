@@ -4,7 +4,7 @@
   height: 97vh;
   border-radius: 1rem;
   overflow: hidden;
-  position: relative;
+  background-color: #f5f7fa;
 }
 
 /* Header */
@@ -25,167 +25,287 @@
   color: #222;
 }
 
-/* Button container */
-.docs-btn-container {
+/* ── Toolbar ── */
+.docs-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 1rem 1.5rem;
+  padding: 0.85rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.docs-btn-container span {
-  font-size: 1.25rem;
+.docs-file-count {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #444;
 }
 
-.docs-btn-container button {
+.docs-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.docs-add-btn {
   background-color: #5396d5;
   border-radius: 8px;
-  padding: 0.35rem 0.7rem;
+  padding: 0.35rem 0.8rem;
   border: none;
   color: #fff;
   font-weight: 600;
   font-size: 0.85rem;
-  transition: background 0.2s, box-shadow 0.2s;
   cursor: pointer;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
 }
 
-.docs-btn-container button:hover {
+.docs-add-btn:hover {
   background-color: #357abd;
   box-shadow: 0 2px 8px #357abd26;
 }
 
-/* Action button (refresh) */
+/* Refresh button */
 .docs-action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 0.55rem;
-  border: 1px solid #555;
+  border: 1px solid #ccc;
   background: transparent;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.28rem 0.4rem;
+  transition: border-color 0.2s;
+}
+
+.docs-action-btn:hover {
+  border-color: #5396d5;
 }
 
 @keyframes docs-spin360 {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .docs-spin {
   animation: docs-spin360 0.6s linear;
 }
 
-/* Table Wrapper */
+/* ── Table wrapper ── */
 .docs-file-table {
   background-color: #fff;
-  margin: 0 1.5rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  overflow: auto; /* Handles scrolling properly */
-  flex: 1;
+  max-height: 75vh;
+  overflow: auto;
+  margin: 1rem 1.5rem;
   border: 1px solid #e0e0e0;
 }
 
 .docs-file-table table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* Ensures column widths are respected */
+  font-family: inherit;
   background: #fff;
+  font-size: 0.9rem;
+  border-radius: 0.5rem;
+  table-layout: fixed;
+  display: table;
 }
 
-/* Checkbox Styling */
-.docs-file-table input[type='checkbox'] {
-  cursor: pointer;
-  width: 18px;
-  height: 18px;
-  accent-color: #5396d5;
+.docs-table-header-light {
+  background: #f3f4f6;
 }
 
-/* Header Rows */
-.docs-table-header-black th {
-  background: #F3F4F6;
-  padding: 0.5rem 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
+.docs-file-table thead {
+  display: table-header-group;
+  background: #f3f4f6;
 }
 
-.docs-toolbar-inner {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  width: 100%;
+.docs-file-table tbody {
+  display: table-row-group;
 }
 
-.docs-table-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
+.docs-file-table tr {
+  display: table-row;
 }
 
-/* Column Titles (Row 2) */
-.docs-column-titles th {
-  background-color: #F3F4F6;
-  color: #4b5563;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  padding: 1rem 1.5rem;
+.docs-file-table th,
+.docs-file-table td {
+  padding: 0.85rem 1.25rem;
   text-align: left;
+  display: table-cell;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.docs-file-table th {
+  background: #f3f4f6;
+  color: #555;
   font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e0e0e0;
   position: sticky;
   top: 0;
-  z-index: 5;
-  border-bottom: 1px solid #e0e0e0;
+  z-index: 10;
 }
 
-/* Column Width Definitions */
-.docs-col-check { width: 60px; text-align: center !important; }
-.docs-col-file { width: 15%; }
-.docs-col-title { width: 20%; }
-.docs-col-desc { width: 35%; }
-.docs-col-date { width: 15%; }
-.docs-col-actions { width: 100px; }
-
-/* Table Body Cells */
 .docs-file-table td {
-  padding: 1.25rem 1.5rem;
+  background: #fff;
+  color: #333;
   font-size: 0.85rem;
-  border-bottom: 1px solid #f3f4f6;
-  vertical-align: middle;
-  word-break: break-word;
 }
 
-.docs-desc-cell {
-  white-space: normal;
-  color: #666;
+/* ── Custom checkboxes ── */
+.docs-file-table table input[type='checkbox'],
+.docs-file-table thead tr th input[type='checkbox'],
+.docs-file-table tbody tr td input[type='checkbox'],
+.docs-file-table tbody tr td input.checkbox {
+  cursor: pointer;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 2px solid #ccc !important;
+  border-radius: 4px !important;
+  background-color: #fff !important;
+  position: relative !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+  filter: none !important;
+}
+
+.docs-file-table table input[type='checkbox']:checked,
+.docs-file-table thead tr th input[type='checkbox']:checked,
+.docs-file-table tbody tr td input[type='checkbox']:checked,
+.docs-file-table tbody tr td input.checkbox:checked {
+  background-color: #5396d5 !important;
+  border-color: #5396d5 !important;
+}
+
+.docs-file-table table input[type='checkbox']:checked::after,
+.docs-file-table thead tr th input[type='checkbox']:checked::after,
+.docs-file-table tbody tr td input[type='checkbox']:checked::after,
+.docs-file-table tbody tr td input.checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+/* ── Row states ── */
+.docs-file-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s ease;
 }
 
 .docs-file-table tbody tr:hover {
   background: #f8f9fa;
 }
 
-.docs-file-table tr.docs-active {
-  background: #e8f4ff !important;
+.docs-file-table tbody tr:hover td {
+  background: #f8f9fa;
 }
 
-/* File Actions (Bin/Edit) */
+.docs-file-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.docs-file-table tbody tr.docs-active {
+  background: #e8f4ff;
+}
+
+.docs-file-table tbody tr.docs-active td {
+  background: #e8f4ff;
+}
+
+/* ── Action icons: hidden by default, revealed on row hover ── */
 .docs-file-btn {
-  display: flex;
+  white-space: nowrap;
+  text-align: right;
+  vertical-align: middle;
+}
+
+.docs-file-btn-inner {
+  display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
-  justify-content: flex-end;
+  gap: 0.65rem;
 }
 
 .docs-file-btn img {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
-  transition: opacity 0.2s;
+  display: inline-block;
+  vertical-align: middle;
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    filter 0.15s;
+}
+
+/* Show icons when the row is hovered */
+.docs-file-table tbody tr:hover .docs-file-btn img {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .docs-file-btn img:hover {
-  opacity: 0.7;
+  filter: brightness(0.6);
+  transform: scale(1.12);
+}
+
+/* Scrollbar */
+.docs-file-table table,
+.docs-file-table tbody {
+  scrollbar-width: thin;
+  scrollbar-color: #b3c6e0 #f5f7fa;
+}
+
+.docs-file-table table::-webkit-scrollbar,
+.docs-file-table tbody::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.docs-file-table table::-webkit-scrollbar-thumb,
+.docs-file-table tbody::-webkit-scrollbar-thumb {
+  background: #b3c6e0;
+  border-radius: 8px;
+}
+
+.docs-file-table table::-webkit-scrollbar-thumb:hover,
+.docs-file-table tbody::-webkit-scrollbar-thumb:hover {
+  background: #8fa8c8;
 }
 
 /* Overlays */
-.docs-form-position, .docs-modal-position {
+.docs-form-position,
+.docs-modal-position {
   position: absolute;
   top: 0;
   left: 0;
@@ -195,6 +315,32 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Colgroup column widths ── */
+.docs-file-table col.col-checkbox {
+  width: 5%;
+}
+.docs-file-table col.col-image {
+  width: 15%;
+}
+.docs-file-table col.col-filename {
+  width: 20%;
+}
+.docs-file-table col.col-description {
+  width: 30%;
+}
+.docs-file-table col.col-date {
+  width: 15%;
+}
+.docs-file-table col.col-actions {
+  width: 15%;
+}
+
+.refresh-img {
+  width: 20px;
+  height: 20px;
 }

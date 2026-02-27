@@ -1,116 +1,131 @@
 .officer-container {
   display: flex;
+  height: 100%;
   flex-direction: column;
   align-items: center;
   margin-top: 5rem;
 }
 
+.office-card-container > * {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
 .officer-layout {
   display: flex;
   flex-direction: column;
-  max-width: 1400px;
+  max-width: 1100px;
   width: 100%;
   margin: 0 auto;
 }
 
 .document-texts {
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 36px;
 }
 
-/* Grid with alternating rows */
 .officer-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr); /* 12-column grid for flexibility */
-  gap: 40px;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
   width: 100%;
-  margin-bottom: 40px;
-  min-height: 600px;
+  margin-bottom: 24px;
 }
 
-/* First 3 cards - span 4 columns each (4+4+4 = 12) */
+.board-member-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  align-items: stretch; 
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.board-member-grid > .office-card-container {
+  grid-column: span 1; 
+}
+
+.adviser-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  align-items: stretch; 
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.adviser-grid > .office-card-container {
+  grid-column: span 1; 
+}
+
+/* First row - 3 cards */
 .officer-grid > :nth-child(1),
 .officer-grid > :nth-child(2),
 .officer-grid > :nth-child(3) {
   grid-column: span 4;
 }
 
-/* Next 4 cards - span 3 columns each (3+3+3+3 = 12) */
+/* Second row - 4 cards */
 .officer-grid > :nth-child(4),
 .officer-grid > :nth-child(5),
-.officer-grid > :nth-child(6),
-.officer-grid > :nth-child(7) {
-  grid-column: span 3;
-}
-
-/* If you have more cards, continue the pattern */
-.officer-grid > :nth-child(8),
-.officer-grid > :nth-child(9),
-.officer-grid > :nth-child(10) {
+.officer-grid > :nth-child(6) {
   grid-column: span 4;
 }
 
-.officer-grid > :nth-child(11),
-.officer-grid > :nth-child(12),
-.officer-grid > :nth-child(13),
-.officer-grid > :nth-child(14) {
-  grid-column: span 3;
+
+
+/* Card container fills grid cell */
+.office-card-container {
+  width: 100%;
 }
 
-/* Pagination */
-.page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 40px;
+.office-card-container > * {
+  width: 100%;
 }
 
-.page-arrow {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #d1d5db;
-  background: white;
-  border-radius: 6px;
-  font-size: 18px;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Strip padding so image touches card edges */
+.office-card-container .officer-card {
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
 }
 
-.page-arrow:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #9ca3af;
+/* Image fills full card width flush */
+.office-card-container .officer-card-image {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+  overflow: hidden;
 }
 
-.page-arrow:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.office-card-container .officer-card-image img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
 }
 
-.page-info {
-  padding: 10px 20px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-  font-size: 14px;
-  color: #374151;
-  font-weight: 500;
+/* Zoom on hover instead of lifting card */
+.office-card-container .officer-card:hover .officer-card-image img {
+  transform: scale(1.04);
 }
 
 .view-btn {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   display: inline-block;
   align-self: center;
 }
 
-/* Tablet - switch to simpler layout */
+/* Tablet */
 @media (min-width: 768px) and (max-width: 1023px) {
   .officer-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
   }
 
   .officer-grid > * {
@@ -118,38 +133,22 @@
   }
 }
 
-/* Mobile - single column */
+/* Mobile */
 @media (max-width: 767px) {
   .officer-container {
     padding: 40px 16px;
   }
 
   .document-texts {
-    margin-bottom: 30px;
+    margin-bottom: 24px;
   }
 
   .officer-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    min-height: 400px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
   }
 
   .officer-grid > * {
     grid-column: span 1 !important;
-  }
-
-  .page {
-    gap: 15px;
-  }
-
-  .page-arrow {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
-  }
-
-  .page-info {
-    font-size: 13px;
-    padding: 8px 16px;
   }
 }

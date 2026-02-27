@@ -78,7 +78,7 @@
 .bulletin-document-content {
   max-height: calc(100vh - 200px);
   overflow-y: auto;
-  padding-right: 10px;
+  padding: 10px;
 }
 
 .bulletin-document-grid {
@@ -150,25 +150,6 @@
   color: #374151;
   line-height: 1.6;
   margin: 0 0 20px 0;
-}
-
-.bulletin-preview-download-btn {
-  width: 100%;
-  padding: 10px 20px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.bulletin-preview-download-btn:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
 /* Scrollbar Styles */

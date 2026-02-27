@@ -1,7 +1,12 @@
 import './latestupdates.css';
 import Typography from '../../components/typography/Typography';
+import documents from '../../config/documentsConfig';
 
 const LatestUpdates = () => {
+  const latest = [...documents]
+    .sort((a, b) => Number(b.id) - Number(a.id))
+    .slice(0, 3);
+
   return (
     <div className='latest-container'>
       <div className='latest-layout'>
@@ -15,55 +20,25 @@ const LatestUpdates = () => {
               size='text-s'
               style={{ fontWeight: 'normal' }}
             >
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Rerum ea
-              debitis esse, unde dignissimos praesentium minima, placeat quos
-              accusantium illum sapiente! Aperiam molestiae iusto eius dolores
-              repellendus quis optio ex.
+              Stay informed with the most recent documents and announcements
+              from the Central Student Government of CvSU-Imus Campus.
             </Typography>
           </div>
           <div className='content-cards-container'>
-            <div className='content-cards'>
-              <div className='cards-link'>
-                <a href=''>Category</a>
+            {latest.map((doc) => (
+              <div key={doc.id} className='content-cards'>
+                <div className='cards-link'>
+                  <a href='/bulletin'>{doc.category}</a>
+                </div>
+                <div className='cards-text'>
+                  <Typography color='text-dark' size='text-xs'>
+                    {doc.description.length > 160
+                      ? doc.description.slice(0, 160) + '...'
+                      : doc.description}
+                  </Typography>
+                </div>
               </div>
-              <div className='cards-text'>
-                <Typography color='text-dark' size='text-xs'>
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Repudiandae, consequatur. Labore magni, vitae rem architecto
-                  eum molestias aspernatur eveniet delectus, quibusdam odio
-                  inventore beatae reiciendis itaque ipsum dolorem tempora
-                  provident.
-                </Typography>
-              </div>
-            </div>
-            <div className='content-cards'>
-              <div className='cards-link'>
-                <a href=''>Category</a>
-              </div>
-              <div className='cards-text'>
-                <Typography color='text-dark' size='text-xs'>
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Repudiandae, consequatur. Labore magni, vitae rem architecto
-                  eum molestias aspernatur eveniet delectus, quibusdam odio
-                  inventore beatae reiciendis itaque ipsum dolorem tempora
-                  provident.
-                </Typography>
-              </div>
-            </div>
-            <div className='content-cards'>
-              <div className='cards-link'>
-                <a href=''>Category</a>
-              </div>
-              <div className='cards-text'>
-                <Typography color='text-dark' size='text-xs'>
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Repudiandae, consequatur. Labore magni, vitae rem architecto
-                  eum molestias aspernatur eveniet delectus, quibusdam odio
-                  inventore beatae reiciendis itaque ipsum dolorem tempora
-                  provident.
-                </Typography>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

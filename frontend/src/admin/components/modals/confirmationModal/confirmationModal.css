@@ -1,4 +1,4 @@
-.confirmation-container-overlay {
+.admin-confirm-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -11,7 +11,7 @@
   z-index: 1000;
 }
 
-.confirmation-container {
+.admin-confirm-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -22,10 +22,10 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   max-width: 450px;
   width: 100%;
-  animation: slideIn 0.3s ease-out;
+  animation: adminConfirmSlideIn 0.3s ease-out;
 }
 
-@keyframes slideIn {
+@keyframes adminConfirmSlideIn {
   from {
     opacity: 0;
     transform: translateY(-20px);
@@ -36,7 +36,7 @@
   }
 }
 
-.confirmation-container .confirmation-title {
+.admin-confirm-title {
   font-size: 1.5rem;
   font-weight: 600;
   color: #111;
@@ -44,7 +44,7 @@
   text-align: center;
 }
 
-.confirmation-modal-message {
+.admin-confirm-message {
   font-size: 0.95rem;
   color: #999;
   line-height: 1.5;
@@ -52,14 +52,14 @@
   max-width: 340px;
 }
 
-.confirmation-modal-actions {
+.admin-confirm-actions {
   display: flex;
   gap: 1rem;
   width: 100%;
   justify-content: center;
 }
 
-.confirmation-btn {
+.admin-confirm-btn {
   padding: 0.75rem 2rem;
   border-radius: 8px;
   font-size: 1rem;
@@ -70,22 +70,22 @@
   min-width: 120px;
 }
 
-.confirmation-btn-confirm {
+.admin-confirm-btn--confirm {
   background: #5b9fd8;
   color: #fff;
 }
 
-.confirmation-btn-confirm:hover {
+.admin-confirm-btn--confirm:hover {
   background: #4a8dc7;
   box-shadow: 0 4px 12px rgba(91, 159, 216, 0.3);
 }
 
-.confirmation-btn-cancel {
+.admin-confirm-btn--cancel {
   background: #d95f5f;
   color: #fff;
 }
 
-.confirmation-btn-cancel:hover {
+.admin-confirm-btn--cancel:hover {
   background: #c74d4d;
   box-shadow: 0 4px 12px rgba(217, 95, 95, 0.3);
 }

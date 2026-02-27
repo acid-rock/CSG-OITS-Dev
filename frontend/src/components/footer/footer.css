@@ -1,9 +1,6 @@
 /* footer.css */
 
 .footer-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   width: 100%;
   background: #ffffff;
   margin-top: auto;
@@ -11,12 +8,13 @@
 
 /* Top section with newsletter and links */
 .footer-main {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 60px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 60px 80px;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 60px 20px 40px;
 }
 
 /* Newsletter section */
@@ -24,6 +22,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 600px;
 }
 
 .footer-logo {
@@ -50,18 +49,25 @@
   margin-top: 10px;
 }
 
-.newsletter-input {
+/* Namespaced input — won't clash with admin styles */
+.footer-email-input {
   flex: 1;
   padding: 12px 16px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
   outline: none;
+  background: #ffffff;
+  color: #111827;
   transition: border-color 0.2s;
 }
 
-.newsletter-input:focus {
+.footer-email-input:focus {
   border-color: #9ca3af;
+}
+
+.footer-email-input::placeholder {
+  color: #9ca3af;
 }
 
 .newsletter-button {
@@ -85,7 +91,7 @@
 /* Footer columns */
 .footer-columns {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  grid-template-columns: auto;
   gap: 40px;
 }
 
@@ -145,8 +151,7 @@
 .social-icon {
   width: 24px;
   height: 24px;
-  background: #111827;
-  color: white;
+  background: #616161;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -250,7 +255,7 @@
     padding: 16px 12px;
   }
 
-  .newsletter-input,
+  .footer-email-input,
   .newsletter-button {
     font-size: 13px;
     padding: 10px 14px;

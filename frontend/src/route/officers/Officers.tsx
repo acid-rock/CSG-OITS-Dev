@@ -1,12 +1,14 @@
 import './officers.css';
 import committees from '../../config/officers-board-members';
-import { Facebook, Instagram, ChevronDown, ChevronUp } from 'lucide-react';
-import { FaTiktok } from 'react-icons/fa';
+import { Facebook, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
 const Officers = () => {
-  const [isOpen, setOpen] = useState(false);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
+  const handleToggle = (idx: number) => {
+    setOpenIndex(openIndex === idx ? null : idx);
+  };
   return (
     <div className='officers-container'>
       <div className='officers-layout'>
@@ -30,13 +32,7 @@ const Officers = () => {
                     <p className='officer-title'>{official.title}</p>
                     <div className='social-icons'>
                       <a href='#' className='social-icon'>
-                        <Facebook size={20} />
-                      </a>
-                      <a href='#' className='social-icon'>
-                        <FaTiktok size={20} />
-                      </a>
-                      <a href='#' className='social-icon'>
-                        <Instagram size={20} />
+                        <Facebook size={20} className='fb-icon' />
                       </a>
                     </div>
                   </div>
@@ -45,15 +41,22 @@ const Officers = () => {
 
               {/* Members Dropdown - Pure CSS */}
               <div className='members-section'>
-                <details className='members-dropdown'>
+                <details
+                  key={idx}
+                  className='members-dropdown'
+                  open={openIndex === idx} // Only opens if the index matches
+                >
                   <summary
                     className='dropdown-toggle'
-                    onClick={() => setOpen((prev) => !prev)}
+                    onClick={(e) => {
+                      e.preventDefault(); // Stop default HTML behavior
+                      handleToggle(idx); // Pass the current index
+                    }}
                   >
                     <div className='dropdown-toggle-content'>
-                      Members ({committee.members.length}){' '}
+                      Members ({committee.members.length})
                       <div className='dropdown-icons'>
-                        {isOpen ? (
+                        {openIndex === idx ? (
                           <ChevronUp size={24} />
                         ) : (
                           <ChevronDown size={24} />

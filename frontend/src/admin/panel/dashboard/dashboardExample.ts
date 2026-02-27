@@ -1,6 +1,5 @@
 export const fileTableConfig = [
   {
-    name: 'John Doe',
     action: 'update',
     fileName: 'Report.jpeg',
     description: 'Report File',
@@ -8,7 +7,6 @@ export const fileTableConfig = [
     date: '',
   },
   {
-    name: 'Beth Kim',
     action: 'update',
     fileName: 'Officer.png',
     description: 'Officer Picture',
@@ -16,7 +14,6 @@ export const fileTableConfig = [
     date: 'Jan 25, 2026',
   },
   {
-    name: 'Gilbert Batongbakal',
     action: 'update',
     fileName: 'File 1',
     description: 'Announcement File',
@@ -24,7 +21,6 @@ export const fileTableConfig = [
     date: 'Jan 22, 2026',
   },
   {
-    name: 'Dublas Kirby',
     action: 'update',
     fileName: 'File 2',
     description: 'Empty File',
@@ -32,7 +28,6 @@ export const fileTableConfig = [
     date: 'Jan 20, 2026',
   },
   {
-    name: 'Maria Aguilar',
     action: 'update',
     fileName: 'File 2',
     description: 'Empty File',
@@ -40,7 +35,6 @@ export const fileTableConfig = [
     date: 'Jan 20, 2026',
   },
   {
-    name: 'Stephen King',
     action: 'update',
     fileName: 'File 2',
     description: 'Empty File',
@@ -48,7 +42,6 @@ export const fileTableConfig = [
     date: 'Jan 20, 2026',
   },
   {
-    name: 'Jersie Tan',
     action: 'update',
     fileName: 'Report.jpeg',
     description: 'Report File',
@@ -56,7 +49,6 @@ export const fileTableConfig = [
     date: '',
   },
   {
-    name: 'Joyce Bernal',
     action: 'update',
     fileName: 'Officer.png',
     description: 'Officer Picture',
@@ -64,7 +56,6 @@ export const fileTableConfig = [
     date: 'Jan 25, 2026',
   },
   {
-    name: 'Eiriel Kim',
     action: 'update',
     fileName: 'File 1',
     description: 'Announcement File',
@@ -72,7 +63,6 @@ export const fileTableConfig = [
     date: 'Jan 22, 2026',
   },
   {
-    name: 'Junior Sanchez',
     action: 'update',
     fileName: 'File 2',
     description: 'Empty File',
@@ -80,7 +70,6 @@ export const fileTableConfig = [
     date: 'Jan 20, 2026',
   },
   {
-    name: 'Patrick Star',
     action: 'update',
     fileName: 'File 2',
     description: 'Empty File',
@@ -88,7 +77,6 @@ export const fileTableConfig = [
     date: 'Jan 20, 2026',
   },
   {
-    name: 'Anthony Squarepants',
     action: 'update',
     fileName: 'File 2',
     description: 'Empty File',

@@ -13,8 +13,6 @@ import Officers from './route/officers/Officers';
 import Login from './admin/admin-loginpage/login/Login';
 import Forgot from './admin/admin-loginpage/forgot/Forgot';
 import AdminPage from './admin/AdminPage';
-// Admin Protected
-import ProtectedRoute from './admin/ProtectedRoute';
 
 const router = createBrowserRouter([
   // Guest Routes
@@ -38,7 +36,7 @@ const router = createBrowserRouter([
   },
   // Admin Protected Routes
   {
-    path: '/admin/',
+    path: '/admin',
     element: <AdminPage />,
   },
 ]);

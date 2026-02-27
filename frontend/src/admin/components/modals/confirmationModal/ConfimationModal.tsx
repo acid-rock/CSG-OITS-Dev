@@ -7,25 +7,25 @@ interface confirmationProps {
 
 const ConfimationModal = ({ onConfirm, onClose }: confirmationProps) => {
   return (
-    <div className='confirmation-container-overlay'>
-      <div className='confirmation-container'>
-        <h2 className='confirmation-title'>
+    <div className='admin-confirm-overlay'>
+      <div className='admin-confirm-container'>
+        <h2 className='admin-confirm-title'>
           Confirm System Information Update
         </h2>
-        <p className='confirmation-modal-message'>
-          You’re about to change system information. Please review the details
+        <p className='admin-confirm-message'>
+          You're about to change system information. Please review the details
           carefully before confirming. These changes will take effect
           immediately.
         </p>
-        <div className='confirmation-modal-actions'>
+        <div className='admin-confirm-actions'>
           <button
-            className='confirmation-btn confirmation-btn-confirm'
+            className='admin-confirm-btn admin-confirm-btn--confirm'
             onClick={onConfirm}
           >
             Confirm
           </button>
           <button
-            className='confirmation-btn confirmation-btn-cancel'
+            className='admin-confirm-btn admin-confirm-btn--cancel'
             onClick={onClose}
           >
             Cancel

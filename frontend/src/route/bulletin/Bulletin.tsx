@@ -7,7 +7,6 @@ const Bulletin = () => {
     <div>
       <LatestUpdates />
       <BulletinDocuments />
-      <Officer />
     </div>
   );
 };
