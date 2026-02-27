@@ -6,6 +6,7 @@ import documentRoutes from "./routes/documents.routes.js";
 import announcementRoutes from "./routes/announcements.routes.js";
 import cookieParser from "cookie-parser";
 import { requireAuth } from "./middlewares/auth.middleware.js";
+import cors from "cors";
 
 const app = express();
 
@@ -13,6 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Middlewares
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
