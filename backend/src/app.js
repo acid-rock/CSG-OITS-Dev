@@ -5,6 +5,7 @@ import userRoutes from "./routes/user.routes.js";
 import documentRoutes from "./routes/documents.routes.js";
 import announcementRoutes from "./routes/announcements.routes.js";
 import eventRoutes from "./routes/events.routes.js";
+import officerRoutes from "./routes/officers.routes.js";
 import cookieParser from "cookie-parser";
 import { requireAuth } from "./middlewares/auth.middleware.js";
 import cors from "cors";
@@ -28,6 +29,7 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/documents", documentRoutes);
 app.use("/api/v1/announcements", announcementRoutes);
 app.use("/api/v1/events", eventRoutes);
+app.use("/api/v1/officers", officerRoutes);
 app.use("/api/v1/test", requireAuth, (req, res) => {
   console.log(req.user);
   return res.send("Passed.");
