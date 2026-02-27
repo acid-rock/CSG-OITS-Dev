@@ -1,5 +1,5 @@
-import React from 'react';
-import './modal.css';
+import React from "react";
+import "./modal.css";
 
 interface ModalProps {
   isOpen: boolean;
@@ -33,21 +33,21 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className='modal-backdrop' onClick={handleBackdropClick}>
-      <div className='modal-container'>
-        <button className='modal-close-btn' onClick={handleCloseClick}>
+    <div className="modal-backdrop" onClick={handleBackdropClick}>
+      <div className="modal-container">
+        <button className="modal-close-btn" onClick={handleCloseClick}>
           ×
         </button>
 
-        <div className='modal-content'>
-          <div className='modal-image-section'>
-            <img src={imageSrc} alt={imageAlt} className='modal-image' />
+        <div className="modal-content">
+          <div className="modal-image-section">
+            <img src={imageSrc} alt={imageAlt} className="modal-image" />
           </div>
 
-          <div className='modal-text-section'>
-            <h2 className='modal-title'>{title}</h2>
-            <p className='modal-date'>{date}</p>
-            <p className='modal-description'>{description}</p>
+          <div className="modal-text-section">
+            <h2 className="modal-title">{title}</h2>
+            <p className="modal-date">{date}</p>
+            <p className="modal-description">{description}</p>
           </div>
         </div>
       </div>
