@@ -39,7 +39,7 @@
   gap: 32px;
   width: 100%;
   max-width: 1200px;
-  justify-items: center;
+  justify-items: stretch;
   align-items: stretch;
   grid-auto-rows: 1fr;
 }

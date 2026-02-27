@@ -1,21 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import fetchBulletinData from "../../config/eventsConfig";
+import { useEffect, useState } from "react";
 import Typography from "../../components/typography/Typography";
 import AnnouncementCard from "../../components/announcement-card/Announcement-card";
 import "./announcement.css";
 import Modal from "../../components/modal/Modal";
-
-type Announcement = {
-  id: string;
-  imgUrl: string;
-  title: string;
-  content: string;
-  date: string;
-};
+import { useOutletContext } from "react-router-dom";
+import type { OutletContext } from "../../root-layout/Root-layout";
 
 export default function Announcement() {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [bulletin, setBulletin] = useState<Announcement[]>([]);
+  const { bulletin } = useOutletContext<OutletContext>();
   const [selectedEvent, setSelectedEvent] = useState<any>(null); // Add state for selected event
   const [open, setOpen] = useState(false);
 
@@ -25,22 +18,12 @@ export default function Announcement() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await fetchBulletinData();
-        setBulletin(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchData();
-
     const interval = setInterval(() => {
-      fetchData();
       setCurrentSlide((prev) => {
-        if (bulletin.length === 0) return 0;
-        return (prev + 1) % bulletin.length;
+        if (prev + 1 >= bulletin.length) {
+          return 0;
+        }
+        return prev + 1;
       });
     }, 5000); // Changes slide every 5 seconds
 
