@@ -32,6 +32,7 @@ router.get("/", async (req, res) => {
 
     return {
       id: file.id,
+      createdAt: file.created_at,
       name: file.file_path,
       description: file.description,
       category: file.file_path.split("/")[0],
