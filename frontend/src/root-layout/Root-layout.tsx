@@ -23,6 +23,7 @@ export type Document = {
   description: string;
   category: string;
   url: string;
+  date: string;
 };
 
 type Event = {
