@@ -1,0 +1,234 @@
+.officers-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.officers-layout {
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
+  width: 100%;
+  margin-top: 5rem;
+}
+
+.committee-section {
+  margin-bottom: 60px;
+}
+
+.committee-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 30px;
+  text-align: center;
+  border-bottom: 2px solid #2563eb;
+  padding-bottom: 10px;
+  display: inline-block;
+  width: 100%;
+  color: var(--text-color);
+}
+
+.committee-layout {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.officials-section {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.members-section {
+  flex: 1;
+  min-width: 300px;
+  align-self: flex-start;
+}
+
+.officer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.officer-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.officer-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+  border: 3px solid #2563eb;
+}
+
+.officer-name {
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+  text-align: center;
+  color: var(--text-color);
+}
+
+.officer-title {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+.social-icons {
+  display: flex;
+  gap: 12px;
+  color: white;
+}
+
+.social-icon {
+  color: #fff;
+  transition: color 0.2s;
+  text-decoration: none;
+}
+
+.social-icon:hover {
+  color: #2563eb;
+}
+
+/* Members section */
+.members-dropdown {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  padding: 20px;
+  background: var(--primary-blue);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.2s;
+  border: none;
+  outline: none;
+  list-style: none;
+  box-sizing: border-box;
+}
+
+.dropdown-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.dropdown-toggle::marker {
+  display: none;
+}
+
+.dropdown-toggle-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.dropdown-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.dropdown-icons {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: white;
+}
+
+.dropdown-toggle:hover {
+  background: #1d4ed8;
+}
+
+.dropdown-content {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.member-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-item:hover {
+  background: #f8fafc;
+}
+
+.member-name {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.member-role {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.fb-icon {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .committee-layout {
+    flex-direction: column;
+  }
+
+  .officials-section {
+    justify-content: center;
+  }
+
+  .members-section {
+    width: 100%;
+  }
+
+  .committee-title {
+    margin-top: 3rem;
+  }
+}

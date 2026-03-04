@@ -1,0 +1,67 @@
+.base {
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1.5;
+  letter-spacing: -1px;
+  flex-shrink: 1;
+  transition: all 0.75s ease;
+}
+
+/*font color*/
+.text-primary {
+  color: var(--primary-blue);
+}
+
+.text-nonbold {
+  font-weight: lighter;
+}
+
+.text-dark {
+  color: var(--text-color);
+}
+
+.text-ghost {
+  color: var(--text-muted);
+}
+
+/*font weight*/
+.text-thin {
+  font-weight: 100;
+}
+
+.text-light {
+  font-weight: 300;
+}
+
+.text-normal {
+  font-weight: 400;
+}
+
+.text-semibold {
+  font-weight: 600;
+}
+
+.text-bold {
+  font-weight: 700;
+}
+
+/*font size*/
+.text-xs {
+  font-size: clamp(0.625rem, 1.5vw, 0.875rem);
+}
+
+.text-sm {
+  font-size: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+.text-md {
+  font-size: clamp(1.125rem, 3vw, 1.75rem);
+}
+
+.text-lg {
+  font-size: clamp(1.75rem, 5vw, 3.5rem); /* min, preferred, max */
+}
+
+.text-xl {
+  font-size: clamp(2.5rem, 7vw, 5rem);
+}

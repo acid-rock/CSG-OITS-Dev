@@ -1,0 +1,97 @@
+.admin-delete-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.admin-delete-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 420px;
+  width: 90%;
+  animation: adminDeleteSlideIn 0.3s ease-out;
+}
+
+@keyframes adminDeleteSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-delete-content {
+  padding: 2.5rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.admin-delete-icon {
+  margin-bottom: 1.25rem;
+}
+
+.admin-delete-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 0.75rem;
+}
+
+.admin-delete-message {
+  font-size: 0.95rem;
+  color: #999;
+  line-height: 1.5;
+  margin-bottom: 1.75rem;
+  max-width: 320px;
+}
+
+.admin-delete-actions {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.admin-delete-btn {
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  min-width: 120px;
+}
+
+.admin-delete-btn--confirm {
+  background: #5b9fd8;
+  color: #fff;
+}
+
+.admin-delete-btn--confirm:hover {
+  background: #4a8dc7;
+  box-shadow: 0 4px 12px rgba(91, 159, 216, 0.3);
+}
+
+.admin-delete-btn--cancel {
+  background: #d95f5f;
+  color: #fff;
+}
+
+.admin-delete-btn--cancel:hover {
+  background: #c74d4d;
+  box-shadow: 0 4px 12px rgba(217, 95, 95, 0.3);
+}

@@ -1,0 +1,343 @@
+.form-container {
+  width: 780px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem 2.25rem;
+  box-shadow:
+    0 8px 32px rgba(30, 80, 160, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 9999;
+  position: relative;
+}
+
+/* ── Header ── */
+.form-header {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1.5px solid #f0f4fa;
+}
+
+.form-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: -0.3px;
+}
+
+/* ── Grid layout ── */
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+/* ── Left: fields ── */
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid #e5eaf2;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: #f8fafd;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #b0b8c8;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #5396d5;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(83, 150, 213, 0.12);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 140px;
+  line-height: 1.55;
+}
+
+/* ── Right: upload area ── */
+.image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.image-upload > label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.image-preview {
+  width: 100%;
+  height: 230px;
+  border: 2px dashed #c8d9f0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+  position: relative;
+  overflow: hidden;
+  background: #f0f7ff;
+}
+
+.image-preview:hover {
+  border-color: #5396d5;
+  background: #e6f0fb;
+}
+
+.image-preview.has-image {
+  border-style: solid;
+  border-color: #5396d5;
+  background: #fff;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: none;
+}
+
+.image-preview.has-image img {
+  display: block;
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  color: #9ab3cc;
+  pointer-events: none;
+}
+
+.image-preview.has-image .image-placeholder {
+  display: none;
+}
+
+.upload-icon {
+  width: 52px;
+  height: 52px;
+  background: #deeaf8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.upload-text {
+  font-size: 0.82rem;
+  text-align: center;
+  color: #8aa5be;
+  line-height: 1.5;
+}
+
+.upload-text strong {
+  color: #5396d5;
+  font-weight: 600;
+}
+
+/* Hidden file input */
+.file-input-hidden {
+  display: none;
+}
+
+/* ── PDF preview state ── */
+.pdf-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.pdf-selected-count {
+  margin-top: 0.4rem;
+  color: #2e9e5b;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.btn-edit-selections {
+  margin-top: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  background: #eef5fd;
+  color: #5396d5;
+  border: 1.5px solid #c8d9f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.btn-edit-selections:hover {
+  background: #ddeaf8;
+  border-color: #5396d5;
+}
+
+/* ── Form actions ── */
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1.5px solid #f0f4fa;
+}
+
+.btn {
+  padding: 0.55rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-family: inherit;
+}
+
+.btn-cancel {
+  background: #f4f6fa;
+  color: #6b7280;
+  border: 1.5px solid #e5eaf2;
+}
+
+.btn-cancel:hover {
+  background: #eaecf2;
+  color: #444;
+}
+
+/* Post / Submit — matches "Add Document" blue */
+.btn-submit {
+  background: #5396d5;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(83, 150, 213, 0.25);
+}
+
+.btn-submit:hover {
+  background: #357abd;
+  box-shadow: 0 4px 12px rgba(83, 150, 213, 0.35);
+}
+
+.btn-secondary {
+  background: #5396d5;
+  color: #fff;
+  border: none;
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+}
+
+.btn-secondary:hover {
+  background: #357abd;
+}
+
+/* ── PDF Selector Modal ── */
+.pdf-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.pdf-selector-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+}
+
+.pdf-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5eaf2;
+  background: #f8fafd;
+}
+
+.pdf-selector-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.pdf-selector-body {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .form-container {
+    width: 100%;
+    padding: 1.5rem;
+  }
+
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    grid-column: 1;
+  }
+}

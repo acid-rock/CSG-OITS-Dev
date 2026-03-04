@@ -1,0 +1,225 @@
+.settings-form-container {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 420px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  position: relative;
+  gap: 1.25rem;
+}
+
+/* Header */
+.settings-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 0.25rem;
+}
+
+.settings-form-header span {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.settings-form-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #aaa;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.settings-form-close:hover {
+  color: #333;
+}
+
+/* Form group */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input {
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid #ddeaf8;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  outline: none;
+  color: #1a1a1a;
+  background: #eef5fd;
+}
+
+.form-group input:focus {
+  border-color: #7ab3e0;
+  box-shadow: 0 0 0 3px rgba(122, 179, 224, 0.15);
+  background: #f5f9fe;
+}
+
+/* Image Upload */
+.image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.image-upload > label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.image-preview {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  border: 1.5px dashed #7ab3e0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  background: #eef5fd;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.image-preview:hover {
+  border-color: #4a90c4;
+  background: #e3eff9;
+}
+
+.image-preview.has-image {
+  border-style: solid;
+  border-color: #7ab3e0;
+  background: #f5f9fe;
+}
+
+.image-preview img#previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+
+.upload-icon {
+  font-size: 1.8rem;
+}
+
+.upload-text {
+  font-size: 0.78rem;
+  color: #7ab3e0;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.upload-text strong {
+  color: #4a90c4;
+}
+
+/* Remove image button */
+.remove-image-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  z-index: 2;
+}
+
+.remove-image-btn:hover {
+  background: rgba(220, 38, 38, 0.8);
+}
+
+/* File input & label */
+.file-input-hidden {
+  display: none;
+}
+
+.file-name-label {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-top: -0.2rem;
+}
+
+/* Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+}
+
+.btn-cancel {
+  background: #f4f4f4;
+  color: #555;
+}
+
+.btn-cancel:hover {
+  background: #eaeaea;
+}
+
+.btn-submit {
+  background: #1a72d4;
+  color: #fff;
+}
+
+.btn-submit:hover {
+  background: #1558a8;
+}
+
+.btn-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

@@ -1,0 +1,24 @@
+.announcement-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.announcement-layout {
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 3rem;
+}
+
+.announcement-content {
+  display: flex;
+  height: 500px;
+  width: 80vw;
+}

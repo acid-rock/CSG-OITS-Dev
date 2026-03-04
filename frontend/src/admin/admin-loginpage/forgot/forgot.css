@@ -1,0 +1,249 @@
+.forgotPassword-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  position: relative;
+  font-family:
+    'Roboto', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.forgotPassword-container *,
+.forgotPassword-container *::before,
+.forgotPassword-container *::after {
+  font-family: inherit;
+}
+
+/* Blurred background layer */
+.forgotPassword-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('../../../../public/login-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(3px);
+  transform: scale(1.05); /* prevents blur edge bleed */
+  z-index: 0; /* changed from 1 so ::after overlay can sit above it */
+}
+
+/* ── Blue gradient overlay — matches login page ── */
+.forgotPassword-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    145deg,
+    rgba(10, 36, 99, 0.55) 0%,
+    rgba(24, 90, 188, 0.4) 50%,
+    rgba(74, 144, 226, 0.3) 100%
+  );
+  z-index: 1;
+}
+
+.forgotPassword-layout,
+.success-modal {
+  background: white;
+  padding: 3rem 2rem 2rem 2rem;
+  border-radius: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  box-shadow:
+    0 10px 40px rgba(10, 36, 99, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.logo-wrapper {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.logo-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(10, 36, 99, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.forgotPassword-text {
+  margin-top: 50px;
+  margin-bottom: 1.5rem;
+}
+
+.forgotPassword-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.forgotPassword-content {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.input-label {
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 0.65rem;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 1.2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  opacity: 0.45;
+  pointer-events: none;
+  color: #666;
+}
+
+/* ── Inputs match login style ── */
+.input-field {
+  width: 100%;
+  height: 48px;
+  background-color: #f0f4f9;
+  border: 1.5px solid #e5eaf2;
+  padding: 0 1rem 0 2.6rem;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  outline: none;
+  box-sizing: border-box;
+  color: #0f172a;
+  font-family: inherit;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
+}
+
+.input-field::placeholder {
+  color: #aab4c4;
+}
+
+.input-field:focus {
+  background-color: #fff;
+  border-color: #5396d5;
+  box-shadow: 0 0 0 3px rgba(83, 150, 213, 0.12);
+}
+
+/* ── Button matches login style ── */
+.send-2fa-button {
+  width: 100%;
+  height: 48px;
+  background-color: #5396d5;
+  color: white;
+  border: none;
+  padding: 0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  box-sizing: border-box;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+.send-2fa-button:hover {
+  background-color: #357abd;
+  box-shadow: 0 4px 14px rgba(83, 150, 213, 0.4);
+  transform: translateY(-1px);
+}
+
+.success-icon-circle {
+  width: 80px;
+  height: 80px;
+  background-color: #5396d5;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 1.5rem auto;
+}
+
+.success-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.5rem 0;
+}
+
+.success-subtext {
+  font-size: 0.92rem;
+  color: #64748b;
+  margin: 0.5rem 0 1.5rem 0;
+}
+
+.error-text {
+  color: #e74c3c;
+  font-size: 0.82rem;
+  margin-top: -0.8rem;
+  margin-bottom: 1rem;
+  text-align: left;
+  font-weight: 500;
+}
+
+.input-field.error {
+  border: 1.5px solid #e74c3c;
+  background-color: #fdeaea;
+}
+
+/* Responsive */
+@media (max-width: 450px) {
+  .forgotPassword-layout,
+  .success-modal {
+    padding: 2.5rem 1.5rem 1.5rem;
+  }
+
+  .forgotPassword-title {
+    font-size: 1.1rem;
+  }
+
+  .input-field,
+  .send-2fa-button {
+    height: 45px;
+  }
+}
