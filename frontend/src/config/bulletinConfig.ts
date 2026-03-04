@@ -1,9 +1,9 @@
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default async function fetchBulletinData() {
-  const { data } = await axios.get(
-    "http://localhost:3000/api/v1/announcements/",
-  );
+  const { data } = await axios.get(`${API_URL}/announcements/`);
 
   const dataWithFormattedDates = data.map((d: any) => {
     const date = new Date(d.date);
@@ -19,5 +19,3 @@ export default async function fetchBulletinData() {
 
   return dataWithFormattedDates;
 }
-
-await fetchBulletinData();

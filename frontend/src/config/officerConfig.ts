@@ -1,9 +1,8 @@
 import axios from "axios";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default async function fetchOfficers() {
-  const { data } = await axios.get("http://localhost:3000/api/v1/officers");
+  const { data } = await axios.get(`${API_URL}/officers`);
 
   return data;
 }
-
-console.log(await fetchOfficers());

@@ -1,7 +1,8 @@
 import axios from "axios";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default async function fetchDocuments() {
-  const { data } = await axios.get("http://localhost:3000/api/v1/documents");
+  const { data } = await axios.get(`${API_URL}/documents`);
 
   const dataWithFormattedDates = data.map((d: any) => {
     const date = new Date(d.createdAt);
@@ -18,9 +19,6 @@ export default async function fetchDocuments() {
       }),
     };
   });
-  console.log(dataWithFormattedDates);
 
   return dataWithFormattedDates;
 }
-
-await fetchDocuments();
