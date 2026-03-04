@@ -31,6 +31,7 @@ router.get("/", async (req, res) => {
       year_serving: officer.year_serving,
       student_number: officer.student_number,
       committee: officer.committee,
+      is_committee_official: officer.is_committee_official,
     };
   });
 
