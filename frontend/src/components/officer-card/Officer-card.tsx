@@ -1,12 +1,12 @@
-import './officer-card.css';
-import { FaFacebook, FaInstagram, FaTiktok } from 'react-icons/fa';
+import "./officer-card.css";
+import { FaFacebook } from "react-icons/fa";
 
 type OfficerCardProps = {
   id?: string;
   title?: string;
   description?: string;
   image?: string;
-  variant?: 'default' | 'outlined' | 'elevated';
+  variant?: "default" | "outlined" | "elevated";
   onClick?: () => void;
   className?: string;
   style?: React.CSSProperties;
@@ -17,7 +17,7 @@ export default function OfficerCard({
   title,
   description,
   image,
-  variant = 'default',
+  variant = "default",
   onClick,
   style,
 }: OfficerCardProps) {
@@ -29,20 +29,20 @@ export default function OfficerCard({
       onClick={onClick}
     >
       {image && (
-        <div className='officer-card-image'>
+        <div className="officer-card-image">
           <img src={image} alt={title} />
         </div>
       )}
-      <div className='officer-card-content'>
+      <div className="officer-card-content">
         <h3>{id}</h3>
-        {title && <h3 className='officer-card-title'>{title}</h3>}
+        {title && <h3 className="officer-card-title">{title}</h3>}
         {description && (
-          <p className='officer-card-description'>{description}</p>
+          <p className="officer-card-description">{description}</p>
         )}
       </div>
-      <div className='officer-card-socials'>
-        <div className='social-icon'>
-          <FaFacebook className='fb-icon' />
+      <div className="officer-card-socials">
+        <div className="social-icon">
+          <FaFacebook className="fb-icon" />
         </div>
       </div>
     </div>

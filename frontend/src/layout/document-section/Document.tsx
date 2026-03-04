@@ -4,7 +4,6 @@ import "./document.css";
 import Button from "../../components/button/Button";
 import { Link, useOutletContext } from "react-router-dom";
 import { useState } from "react";
-import documents from "../../config/documentsConfig.ts";
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
 import type {
   OutletContext,
@@ -61,9 +60,9 @@ export default function Document() {
       {isModalOpen && selectedDoc && (
         <DocumentModal
           selected={{
-            title: selectedDoc.title,
+            title: selectedDoc.name,
             date: selectedDoc.date ?? "",
-            memoSrc: selectedDoc.url ?? selectedDoc.memoSrc ?? "",
+            memoSrc: selectedDoc.url ?? "",
           }}
           onClose={() => {
             setIsModalOpen(false);

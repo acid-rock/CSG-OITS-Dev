@@ -1,7 +1,7 @@
 import "./latestupdates.css";
 import Typography from "../../components/typography/Typography";
 import { useOutletContext } from "react-router-dom";
-import type { Document, OutletContext } from "../../root-layout/Root-layout";
+import type { OutletContext } from "../../root-layout/Root-layout";
 
 const LatestUpdates = () => {
   const { documents } = useOutletContext<OutletContext>();

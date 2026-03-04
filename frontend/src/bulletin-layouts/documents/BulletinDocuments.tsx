@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import DocumentCard from "../../components/document-card/Document-card";
-import documents from "../../config/documentsConfig.ts";
 import "./bulletinDocument.css";
 import Typography from "../../components/typography/Typography";
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";

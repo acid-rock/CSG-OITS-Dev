@@ -1,5 +1,4 @@
 import "./officers.css";
-import committees from "../../config/officers-board-members";
 import { Facebook, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";

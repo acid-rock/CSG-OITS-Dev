@@ -66,7 +66,6 @@ export default function Events() {
                       onClick={() => handleCardClick(event)}
                       style={{ cursor: "pointer" }} // Make it clear it's clickable
                     >
-                      <div>{console.log(event)}</div>
                       <Card
                         title={event.name}
                         description={event.description}

@@ -48,13 +48,6 @@ export type Officer = {
   is_committee_official: boolean;
 };
 
-type Officers = {
-  executives: Officer[];
-  board: Officer[];
-  members: Officer[];
-  advisers: Officer[];
-};
-
 export interface OutletContext {
   bulletin: Announcement[];
   documents: Document[];

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import type { MouseEvent, ReactNode } from 'react';
-import pdfjsLib from './pdfjs';
-import { createPortal } from 'react-dom';
+import { useEffect, useRef, useState } from "react";
+import type { MouseEvent, ReactNode } from "react";
+import pdfjsLib from "./pdfjs";
+import { createPortal } from "react-dom";
 
 export type Box = {
   id: string;
@@ -46,7 +46,7 @@ function Overlay({
   vpWidth,
   vpHeight,
   draft,
-  isDrawing,
+  // isDrawing,
   onMouseDown,
   onMouseMove,
   onMouseUp,
@@ -68,7 +68,7 @@ function Overlay({
       }}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
-      className='absolute inset-0 cursor-crosshair'
+      className="absolute inset-0 cursor-crosshair"
       width={vpWidth}
       height={vpHeight}
     >
@@ -81,8 +81,8 @@ function Overlay({
             y={box.y * vpHeight}
             width={box.width * vpWidth}
             height={box.height * vpHeight}
-            fill='rgba(0,0,0,0.15)'
-            stroke='black'
+            fill="rgba(0,0,0,0.15)"
+            stroke="black"
             strokeWidth={2}
           ></rect>
         ))}
@@ -93,8 +93,8 @@ function Overlay({
           y={draft.y * vpHeight}
           width={draft.width * vpWidth}
           height={draft.height * vpHeight}
-          fill='rgba(0,0,0,0.15)'
-          stroke='blue'
+          fill="rgba(0,0,0,0.15)"
+          stroke="blue"
           strokeWidth={2}
         />
       )}
@@ -166,7 +166,7 @@ export function PdfSelector({ fileUrl, onBoxesChange }: PdfSelectorProps) {
     async function render() {
       if (!containerRef.current || !fileUrl) return;
 
-      containerRef.current.innerHTML = '';
+      containerRef.current.innerHTML = "";
 
       const pdf = await pdfjsLib.getDocument(fileUrl).promise;
 
@@ -179,12 +179,12 @@ export function PdfSelector({ fileUrl, onBoxesChange }: PdfSelectorProps) {
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale });
 
-        const pageWrapper = document.createElement('div');
+        const pageWrapper = document.createElement("div");
         pageWrapper.dataset.page = String(pageNum);
-        pageWrapper.className = 'relative mb-6';
+        pageWrapper.className = "relative mb-6";
 
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
         if (!ctx) continue;
 
         canvas.width = viewport.width;
@@ -218,8 +218,8 @@ export function PdfSelector({ fileUrl, onBoxesChange }: PdfSelectorProps) {
   }, [fileUrl, scale]);
 
   return (
-    <div className='w-full flex justify-center'>
-      <div ref={containerRef} className='w-full max-w-5xl'></div>
+    <div className="w-full flex justify-center">
+      <div ref={containerRef} className="w-full max-w-5xl"></div>
 
       {pages.map((pageNum) => {
         const size = pageSizes[pageNum] || { width: 0, height: 0 };
