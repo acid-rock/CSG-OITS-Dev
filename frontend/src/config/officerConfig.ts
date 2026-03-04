@@ -6,4 +6,4 @@ export default async function fetchOfficers() {
   return data;
 }
 
-await fetchOfficers();
+console.log(await fetchOfficers());

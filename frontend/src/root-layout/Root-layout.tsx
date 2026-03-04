@@ -35,7 +35,7 @@ type Event = {
   images: string[];
 };
 
-type Officer = {
+export type Officer = {
   id: string;
   full_name: string;
   position: string;
@@ -44,7 +44,15 @@ type Officer = {
   socials?: string;
   year_serving: string;
   student_number?: string;
-  committee?: string;
+  committee?: number;
+  is_committee_official: boolean;
+};
+
+type Officers = {
+  executives: Officer[];
+  board: Officer[];
+  members: Officer[];
+  advisers: Officer[];
 };
 
 export interface OutletContext {
@@ -58,7 +66,7 @@ const Root = () => {
   const [bulletin, setBulletin] = useState<Announcement[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [officers, setOfficers] = useState<Officer[]>([]);
+  const [officers, setOfficers] = useState<Officer[]>();
 
   useEffect(() => {
     const fetchAll = async () => {
