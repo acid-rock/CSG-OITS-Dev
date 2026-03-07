@@ -1,6 +1,6 @@
-import './settingsForm.css';
-import { useState, useRef } from 'react';
-import ConfimationModal from '../../modals/confirmationModal/ConfimationModal';
+import "./SettingsForm.css";
+import { useState, useRef } from "react";
+import ConfimationModal from "../../modals/confirmationModal/ConfimationModal";
 
 interface SettingsFormProps {
   setEdit: (open: boolean) => void;
@@ -8,7 +8,7 @@ interface SettingsFormProps {
 
 const SettingsForm = ({ setEdit }: SettingsFormProps) => {
   const [confirmModal, setConfirmModal] = useState(false);
-  const [systemName, setSystemName] = useState('Online Transparency System');
+  const [systemName, setSystemName] = useState("Online Transparency System");
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,66 +31,66 @@ const SettingsForm = ({ setEdit }: SettingsFormProps) => {
     e.stopPropagation();
     setPreview(null);
     setFileName(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = () => {
     // TODO: send systemName + preview (base64 or file) to backend
-    console.log('Saving:', { systemName, preview });
+    console.log("Saving:", { systemName, preview });
     setConfirmModal(false);
     setEdit(false);
   };
 
   return (
-    <div className='settings-form-container'>
-      <div className='settings-form-header'>
+    <div className="settings-form-container">
+      <div className="settings-form-header">
         <span>Edit General Settings</span>
         <button
-          type='button'
-          className='settings-form-close'
+          type="button"
+          className="settings-form-close"
           onClick={() => setEdit(false)}
-          title='Close'
+          title="Close"
         >
           ✕
         </button>
       </div>
 
       <form onSubmit={(e) => e.preventDefault()}>
-        <div className='form-group'>
-          <label htmlFor='system-name'>System Name</label>
+        <div className="form-group">
+          <label htmlFor="system-name">System Name</label>
           <input
-            type='text'
-            id='system-name'
-            name='system-name'
+            type="text"
+            id="system-name"
+            name="system-name"
             value={systemName}
             onChange={(e) => setSystemName(e.target.value)}
-            placeholder='Enter system name'
+            placeholder="Enter system name"
           />
         </div>
 
-        <div className='image-upload'>
+        <div className="image-upload">
           <label>System Logo</label>
           <div
-            className={`image-preview${preview ? ' has-image' : ''}`}
+            className={`image-preview${preview ? " has-image" : ""}`}
             onClick={handleImageClick}
-            title='Click to upload image'
+            title="Click to upload image"
           >
             {preview ? (
               <>
-                <img id='previewImage' alt='Preview' src={preview} />
+                <img id="previewImage" alt="Preview" src={preview} />
                 <button
-                  type='button'
-                  className='remove-image-btn'
+                  type="button"
+                  className="remove-image-btn"
                   onClick={handleRemoveImage}
-                  title='Remove image'
+                  title="Remove image"
                 >
                   ✕
                 </button>
               </>
             ) : (
-              <div className='image-placeholder'>
-                <div className='upload-icon'>📁</div>
-                <div className='upload-text'>
+              <div className="image-placeholder">
+                <div className="upload-icon">📁</div>
+                <div className="upload-text">
                   <strong>Click to upload</strong> or drag and drop
                   <br />
                   PNG, JPG up to 10MB
@@ -99,31 +99,31 @@ const SettingsForm = ({ setEdit }: SettingsFormProps) => {
             )}
           </div>
           {fileName && (
-            <span className='file-name-label'>Selected: {fileName}</span>
+            <span className="file-name-label">Selected: {fileName}</span>
           )}
           <input
-            type='file'
-            id='fileInput'
-            accept='image/*'
+            type="file"
+            id="fileInput"
+            accept="image/*"
             ref={fileInputRef}
-            name='file'
+            name="file"
             onChange={handleFileChange}
-            className='file-input-hidden'
-            aria-label='Upload system logo'
+            className="file-input-hidden"
+            aria-label="Upload system logo"
           />
         </div>
 
-        <div className='form-actions'>
+        <div className="form-actions">
           <button
-            type='button'
-            className='btn btn-cancel'
+            type="button"
+            className="btn btn-cancel"
             onClick={() => setEdit(false)}
           >
             Cancel
           </button>
           <button
-            className='btn btn-submit'
-            type='button'
+            className="btn btn-submit"
+            type="button"
             onClick={() => setConfirmModal(true)}
             disabled={!systemName.trim()}
           >
