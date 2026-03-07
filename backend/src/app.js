@@ -7,9 +7,18 @@ import officerRoutes from "./routes/officers.routes.js";
 import committeeRoutes from "./routes/committee.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import rateLimit from "express-rate-limit";
 import "dotenv/config";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "";
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const app = express();
 
 app.set("trust proxy", 1);
@@ -26,6 +35,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use("/api/v1", apiLimiter);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/documents", documentRoutes);
 app.use("/api/v1/announcements", announcementRoutes);
