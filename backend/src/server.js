@@ -2,9 +2,13 @@ import app from "./app.js";
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, (err) => {
-  if (err) console.error(err);
-
+const server = app.listen(PORT, () => {
   console.clear();
   console.log(`Listening to ${PORT}`);
+});
+
+// Catch startup errors (just in case)
+server.on("error", (err) => {
+  console.error("Server failed to start: ", err);
+  process.exit(1);
 });
