@@ -1,6 +1,4 @@
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
 import userRoutes from "./routes/user.routes.js";
 import documentRoutes from "./routes/documents.routes.js";
 import announcementRoutes from "./routes/announcements.routes.js";
@@ -8,22 +6,24 @@ import eventRoutes from "./routes/events.routes.js";
 import officerRoutes from "./routes/officers.routes.js";
 import committeeRoutes from "./routes/committee.routes.js";
 import cookieParser from "cookie-parser";
-import { requireAuth } from "./middlewares/auth.middleware.js";
 import cors from "cors";
+import "dotenv/config";
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "";
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+app.set("trust proxy", 1);
 
 // Middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: FRONTEND_URL,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files
-app.use(express.static(path.join(__dirname, "../client/dist")));
 
 // Routes
 app.use("/api/v1/user", userRoutes);
@@ -32,14 +32,29 @@ app.use("/api/v1/announcements", announcementRoutes);
 app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/officers", officerRoutes);
 app.use("/api/v1/committees", committeeRoutes);
-app.use("/api/v1/test", requireAuth, (req, res) => {
-  console.log(req.user);
-  return res.send("Passed.");
+
+// 404 Handler
+app.use((req, res, next) => {
+  return res.status(404).json({ message: "Route/endpoint not found." });
 });
 
-// React
-app.get("/{*splat}", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+// Global Error handler
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+
+  if (err.isOperational) {
+    return res.status(status).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+
+  console.error(err);
+
+  res.status(500).json({
+    status: "error",
+    message: "Something went wrong.",
+  });
 });
 
 export default app;
