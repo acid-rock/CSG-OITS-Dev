@@ -47,6 +47,11 @@ app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/officers", officerRoutes);
 app.use("/api/v1/committees", committeeRoutes);
 
+// Health route
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 // 404 Handler
 app.use((req, res, next) => {
   return res.status(404).json({ message: "Route/endpoint not found." });
