@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import morgan from "morgan";
 import "dotenv/config";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "";
@@ -32,6 +33,7 @@ app.use(
     credentials: true,
   }),
 );
+app.use(morgan("combined"));
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
