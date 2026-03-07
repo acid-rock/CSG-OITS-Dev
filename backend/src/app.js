@@ -8,6 +8,7 @@ import committeeRoutes from "./routes/committee.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import "dotenv/config";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "";
@@ -24,6 +25,7 @@ const app = express();
 app.set("trust proxy", 1);
 
 // Middlewares
+app.use(helmet());
 app.use(
   cors({
     origin: FRONTEND_URL,
