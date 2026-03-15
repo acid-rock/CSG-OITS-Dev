@@ -1,4 +1,6 @@
 .announcement-container {
+  background-image: url('../../assets/bg1.svg');
+  
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -21,4 +23,16 @@
   display: flex;
   height: 500px;
   width: 80vw;
+}
+
+.wave-image {
+  width: 100%;
+  margin-top: 2rem; 
+}
+
+.wave {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
 }

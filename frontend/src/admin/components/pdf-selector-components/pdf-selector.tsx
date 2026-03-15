@@ -46,7 +46,6 @@ function Overlay({
   vpWidth,
   vpHeight,
   draft,
-  isDrawing,
   onMouseDown,
   onMouseMove,
   onMouseUp,

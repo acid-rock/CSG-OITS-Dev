@@ -1,6 +1,6 @@
 .document-container {
-  padding: 80px 20px;
   background-color: #fcfcfc; 
+  background-image: url(../../assets/Documents.svg);
 }
 
 .document-layout {
@@ -46,6 +46,22 @@
 
 .document-grid > * {
   height: 100%;
+}
+
+.wave-image {
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wave {
+  width: 100vw;
+  height: auto;
+  display: block;
+  object-fit: cover;
 }
 
 /* Responsive Design */

@@ -12,7 +12,8 @@ const documents = [
     id: '1',
     title: '40th Commemoration of the EDSA People Power Revolution',
     description:
-      'The CvSU-Imus community gathers for a meaningful seminar commemorating the 40th Anniversary of the EDSA People Power Revolution. With insightful discussions from Ms. Grace Gonzales and Sir Hermenegildo Ceniza, students deepen their understanding of Philippine history and the power of collective action in shaping a better future. This commemoration reminds everyone that the voice of the people remains a powerful force for change.',
+      'Understand the conversations sharing campus life',
+    term: '2025-2026 - 2nd Semester',
     date: 'Feb 25, 2025',
     location: 'CvSU-Imus Campus, Imus, Cavite',
     category: 'Memorandum',
@@ -22,7 +23,8 @@ const documents = [
     id: '2',
     title: 'CSG Advisory: University-Wide Big Clean-Up Drive',
     description:
-      "In line with Office Memorandum No. PMAPN-036-2026 issued by the University President, February 25, 2026 (7:30 AM – 4:30 PM) is declared as a University-Wide Big Clean-Up Drive. This initiative supports the University's commitment to Quality Management System (QMS) principles and aims to maintain a safe, clean, and orderly learning environment.",
+      'Understand the conversations sharing campus life',
+    term: '2025-2026 - 2nd Semester',
     date: 'Feb 25, 2026',
     category: 'Memorandum',
     location: 'CvSU-Imus Campus, Imus, Cavite',
@@ -32,8 +34,8 @@ const documents = [
     id: '3',
     title: 'CSG Advisory: University-Wide Big Clean-Up Drive',
     description:
-      "In line with Office Memorandum No. PMAPN-036-2026 issued by the University President, February 25, 2026 (7:30 AM – 4:30 PM) is declared as a University-Wide Big Clean-Up Drive. This initiative supports the University's commitment to Quality Management System (QMS) principles and aims to maintain a safe, clean, and orderly learning environment.",
-    date: 'Feb 25, 2026',
+      'Understand the conversations sharing campus life',
+    term: '2025-2026 - 2nd Semester',
     location: 'CvSU-Imus Campus, Imus, Cavite',
     category: 'Advisory',
     url: officeMemo3,
@@ -42,7 +44,8 @@ const documents = [
     id: '4',
     title: 'CSG Advisory: University-Wide Big Clean-Up Drive',
     description:
-      "In line with Office Memorandum No. PMAPN-036-2026 issued by the University President, February 25, 2026 (7:30 AM – 4:30 PM) is declared as a University-Wide Big Clean-Up Drive. This initiative supports the University's commitment to Quality Management System (QMS) principles and aims to maintain a safe, clean, and orderly learning environment.",
+      'Understand the conversations sharing campus life',
+    term: '2025-2026 - 2nd Semester',
     date: 'Feb 25, 2026',
     location: 'CvSU-Imus Campus, Imus, Cavite',
     category: 'Advisory',

@@ -2,7 +2,7 @@
 
 .footer-container {
   width: 100%;
-  background: #ffffff;
+  background: #202631;
   margin-top: auto;
 }
 
@@ -164,7 +164,7 @@
 .footer-bottom {
   border-top: 1px solid #e5e7eb;
   padding: 24px 20px;
-  background: #f9fafb;
+  background: #202631;
 }
 
 .footer-layout {

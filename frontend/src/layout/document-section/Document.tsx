@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import documents from '../../config/documentsConfig.ts';
 import DocumentModal from '../../components/document-modal/DocumentModal.tsx';
+import wave from '../../assets/1.svg'
 
 type DocumentItem = {
   id: string;
@@ -26,15 +27,22 @@ export default function Document() {
     setIsModalOpen(true);
   };
 
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   return (
     <div className='document-container'>
       <div className='document-layout'>
+        <div className='wave-image'>
+          <img className='wave' src={wave} alt='Wave' />
+        </div>
         <div className='document-texts'>
-          <Typography size='text-md' color='text-dark'>
+          <Typography size='text-md' color='text-white'>
             Comprehensive Document Library
           </Typography>
-          <Typography size='text-sm' color='text-ghost'>
-            This is where the documents
+          <Typography size='text-sm' color='text-white'>
+            Explore our comprehensive library of official documents, memos, and reports.
           </Typography>
         </div>
 
@@ -43,11 +51,13 @@ export default function Document() {
             <DocumentCard
               key={docu.id}
               id={docu.id}
+              category={docu.category}
               title={docu.title}
               description={docu.description}
+              term={docu.term}
               date={docu.date}
               variant='default'
-              onSelect={() => {}} // no preview panel on this page
+              onSelect={() => {}}
               onView={() => handleView(docu)}
             />
           ))}
@@ -58,6 +68,7 @@ export default function Document() {
             <Link
               to='/bulletin'
               style={{ textDecoration: 'none', color: 'white' }}
+              onClick={scroll}
             >
               VIEW ALL
             </Link>

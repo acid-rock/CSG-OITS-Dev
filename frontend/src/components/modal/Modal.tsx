@@ -9,6 +9,8 @@ interface ModalProps {
   date: string;
   title: string;
   description: string;
+  onNext?: () => void;
+  onPrev?: () => void;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -19,6 +21,8 @@ const Modal: React.FC<ModalProps> = ({
   date,
   title,
   description,
+  onNext,
+  onPrev,
 }) => {
   if (!isOpen) return null;
 
@@ -34,6 +38,11 @@ const Modal: React.FC<ModalProps> = ({
 
   return (
     <div className='modal-backdrop' onClick={handleBackdropClick}>
+
+      <button className='modal-arrow left' onClick={onPrev}>
+        ❮
+      </button>
+
       <div className='modal-container'>
         <button className='modal-close-btn' onClick={handleCloseClick}>
           ×
@@ -51,6 +60,11 @@ const Modal: React.FC<ModalProps> = ({
           </div>
         </div>
       </div>
+
+      <button className='modal-arrow right' onClick={onNext}>
+        ❯
+      </button>
+
     </div>
   );
 };

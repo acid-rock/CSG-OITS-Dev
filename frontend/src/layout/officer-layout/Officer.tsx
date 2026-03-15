@@ -1,96 +1,99 @@
-import OfficerCard from '../../components/officer-card/Officer-card';
-import Typography from '../../components/typography/Typography';
-import officer from '../../config/officerConfig';
-import { Link } from 'react-router-dom';
-import Button from '../../components/button/Button';
-import './officer.css';
-import board from '../../config/boardConfig';
-import adviser from '../../config/adviserConfig';
+import OfficerCard from '../../components/officer-card/Officer-card'
+import Typography from '../../components/typography/Typography'
+import officer from '../../config/officerConfig'
+import board from '../../config/boardConfig'
+import { Link } from 'react-router-dom'
+import Button from '../../components/button/Button'
+import './officer.css'
+import adviser from '../../config/adviserConfig'
 
 export default function Officer() {
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
   return (
-    <section className='officer-container' id='officers'>
-      <div className='officer-layout'>
-        <div className='document-texts'>
-          <Typography size='text-md' color='text-dark'>
+    <section className="officer-container" id="officers">
+      <div className="officer-layout">
+
+        <div className="document-texts">
+          <Typography size="text-md" color="text-white">
             Executive Officers
           </Typography>
-          <Typography size='text-light' color='text-ghost'>
-            These are the executive officers
+
+          <Typography size="text-light" color="text-white">
+            Meet your Executive Officers
           </Typography>
         </div>
 
-        <div className='officer-grid'>
-          {officer.slice(0, 6).map((o) => (
-            <div key={o.id} className='office-card-container'>
-              <OfficerCard
-                id={o.id}
-                title={o.title}
-                description={o.description}
-                image={o.image}
-                variant='default'
-              />
-            </div>
+        <div className="officer-grid">
+          {officer.slice(0, 7).map((o) => (
+            <OfficerCard
+              key={o.id}
+              id={o.id}
+              title={o.title}
+              description={o.description}
+              image={o.image}
+            />
           ))}
         </div>
 
-        <div className='document-texts'>
-          <Typography size='text-md' color='text-dark'>
+        <div className="document-texts">
+          <Typography size="text-md" color="text-white">
             Board Members
           </Typography>
-          <Typography size='text-light' color='text-ghost'>
-            These are the board members
+
+          <Typography size="text-light" color="text-white">
+            Meet the Board Members
           </Typography>
         </div>
 
-        <div className='board-member-grid'>
+        <div className="board-grid">
           {board.slice(0, 10).map((b) => (
-            <div key={b.id} className='office-card-container'>
-              <OfficerCard
-                id={b.id}
-                title={b.title}
-                description={b.description}
-                image={b.image}
-                variant='default'
-              />
-            </div>
+            <OfficerCard
+              key={b.id}
+              id={b.id}
+              title={b.title}
+              description={b.description}
+              image={b.image}
+            />
           ))}
         </div>
 
-        <div className='document-texts'>
-          <Typography size='text-md' color='text-dark'>
+        <div className="document-texts">
+          <Typography size="text-md" color="text-white">
             Advisers
           </Typography>
-          <Typography size='text-light' color='text-ghost'>
-            These are the advisers
+
+          <Typography size="text-light" color="text-white">
+            Meet our Advisers
           </Typography>
         </div>
 
-        <div className='adviser-grid'>
+        <div className="adviser-grid">
           {adviser.slice(0, 2).map((a) => (
-            <div key={a.id} className='office-card-container'>
-              <OfficerCard
-                id={a.id}
-                title={a.title}
-                description={a.description}
-                image={a.image}
-                variant='default'
-              />
-            </div>
+            <OfficerCard
+              key={a.id}
+              id={a.id}
+              title={a.title}
+              description={a.description}
+              image={a.image}
+            />
           ))}
         </div>
 
-        <div className='view-btn'>
-          <Button variant='primary'>
+        <div className="view-btn">
+          <Button variant="primary">
             <Link
-              to='/officers'
+              to="/officers"
               style={{ textDecoration: 'none', color: 'white' }}
+              onClick={scroll}
             >
               VIEW ALL
             </Link>
           </Button>
         </div>
+
       </div>
     </section>
-  );
+  )
 }

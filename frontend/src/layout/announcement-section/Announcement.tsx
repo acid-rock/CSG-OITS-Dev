@@ -7,7 +7,7 @@ import Modal from '../../components/modal/Modal';
 
 export default function Announcement() {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null); // Add state for selected event
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [open, setOpen] = useState(false);
 
   const handleCardClick = (event: any) => {
@@ -19,11 +19,11 @@ export default function Announcement() {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
         if (prev + 1 >= eventData.length) {
-          return 0; // Go back to the beginning
+          return 0; 
         }
-        return prev + 1; // Move to the next slide
+        return prev + 1; 
       });
-    }, 5000); // Changes slide every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
@@ -34,10 +34,10 @@ export default function Announcement() {
     <section className='announcement-container'>
       <div className='announcement-layout'>
         <div className='announcement-texts'>
-          <Typography size='text-md' color='text-dark'>
+          <Typography size='text-md' color='text-white'>
             Announcements
           </Typography>
-          <Typography size='text-sm' color='text-ghost'>
+          <Typography size='text-sm' color='text-white'>
             Explore official records from student government proceedings
           </Typography>
         </div>

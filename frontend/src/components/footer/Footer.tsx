@@ -12,26 +12,22 @@ export default function Footer() {
           <div className='footer-logo'>
             <img src={logo} alt='Logo' className='logo-image' />
           </div>
-          <Typography size='text-light' color='text-dark'>
-            Stay informed about student government updates and campus
-            initiatives
+          <Typography size='text-light' color='text-white'>
+            Stay informed on the latest student government 
+            updates and campus initiatives.
           </Typography>
           <div className='newsletter-form'>
-            <input
-              type='email'
-              placeholder='Email address'
-              className='footer-email-input'
-            />
             <button className='newsletter-button'>Feedback</button>
           </div>
-          <Typography size='text-light' color='text-dark'>
-            By sending feedback, you can help improve this website
+          <Typography size='text-light' color='text-white'>
+            Your feedback helps us improve. 
+            Let us know how we can make this platform better.
           </Typography>
         </div>
 
         <div className='footer-columns'>
           <div className='footer-column'>
-            <Typography size='text-sm' color='text-ghost'>
+            <Typography size='text-sm' color='text-white'>
               Connect with us
             </Typography>
             <ul className='footer-social'>
@@ -39,7 +35,7 @@ export default function Footer() {
                 <span className='social-icon'>
                   <FaFacebook style={{ color: '#ffffff' }} />
                 </span>
-                <Typography size='text-sm' color='text-dark'>
+                <Typography size='text-sm' color='text-white'>
                   Facebook
                 </Typography>
               </li>
@@ -47,7 +43,7 @@ export default function Footer() {
                 <span className='social-icon'>
                   <MdEmail style={{ color: '#ffffff' }} />
                 </span>
-                <Typography size='text-sm' color='text-dark'>
+                <Typography size='text-sm' color='text-white'>
                   Email
                 </Typography>
               </li>
@@ -59,19 +55,19 @@ export default function Footer() {
       <div className='footer-bottom'>
         <div className='footer-layout'>
           <div className='footer-text'>
-            <Typography size='text-light' color='text-dark'>
+            <Typography size='text-light' color='text-white'>
               © 2024 Student Government Transparency Project. All Rights
               Reserved
             </Typography>
           </div>
           <div className='footer-links'>
-            <Typography size='text-light' color='text-dark'>
+            <Typography size='text-light' color='text-white'>
               Privacy policy
             </Typography>
-            <Typography size='text-light' color='text-dark'>
+            <Typography size='text-light' color='text-white'>
               Terms of services
             </Typography>
-            <Typography size='text-light' color='text-dark'>
+            <Typography size='text-light' color='text-white'>
               Cookie settings
             </Typography>
           </div>

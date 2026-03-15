@@ -30,6 +30,13 @@ const officer = [
     image: assetsMap.camaclang,
   },
   {
+    id: 'Samantha Natalie Fattalo',
+    title: 'Treasurer',
+    description:
+      'Ensuring responsible management of student government resources',
+    image: assetsMap.logo,
+  },
+  {
     id: 'Cristina V. Domingo',
     title: 'Auditor',
     description:

@@ -24,7 +24,6 @@ export default function BulletinDocument() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Derive unique categories directly from the documents array
   const uniqueCategories = Array.from(
     new Set(documents.map((doc) => doc.category))
   );
@@ -34,18 +33,15 @@ export default function BulletinDocument() {
     ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
   ];
 
-  // Filter documents by selected category
   const filteredDocuments =
     selectedCategory === 'all'
       ? documents
       : documents.filter((doc) => doc.category === selectedCategory);
 
-  // Clicking a card updates the preview panel
   const handleSelect = (doc: DocumentItem) => {
     setSelectedDocument(doc);
   };
 
-  // Clicking "View" opens the modal
   const handleView = (doc: DocumentItem) => {
     setSelectedDocument(doc);
     setIsModalOpen(true);
@@ -58,7 +54,7 @@ export default function BulletinDocument() {
           Documents
         </Typography>
         <Typography size='text-sm' color='text-ghost'>
-          Explore official documents from student government
+          Access official records, resolutions, and proceedings of the Central Student Government.
         </Typography>
       </div>
 
@@ -102,26 +98,9 @@ export default function BulletinDocument() {
             </div>
           </main>
         </div>
-
-        {/* Always Visible Document Preview Panel */}
-        <aside className='bulletin-preview-panel'>
-          <div className='bulletin-preview-content'>
-            <div className='bulletin-preview-body'>
-              {selectedDocument.date && (
-                <p className='bulletin-preview-date'>{selectedDocument.date}</p>
-              )}
-              <h2 className='bulletin-preview-title'>
-                {selectedDocument.title}
-              </h2>
-              <p className='bulletin-preview-description'>
-                {selectedDocument.description}
-              </p>
-            </div>
-          </div>
-        </aside>
       </div>
 
-      {/* Modal for document preview */}
+      {/* Modal */}
       {isModalOpen && (
         <DocumentModal
           selected={{

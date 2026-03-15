@@ -1,154 +1,179 @@
 .officer-container {
   display: flex;
-  height: 100%;
   flex-direction: column;
   align-items: center;
-  margin-top: 5rem;
-}
-
-.office-card-container > * {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
+  padding: 80px 20px;
+  background: url('../../assets/officer.svg');
+  background-size: cover;
 }
 
 .officer-layout {
-  display: flex;
-  flex-direction: column;
   max-width: 1100px;
   width: 100%;
-  margin: 0 auto;
 }
 
 .document-texts {
   text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: 50px;
 }
 
+/*officer*/
 .officer-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(8, 1fr);
+  column-gap: 40px;
+  row-gap: 70px;
+  justify-items: center;
   width: 100%;
-  margin-bottom: 24px;
 }
 
-.board-member-grid {
+.officer-grid > :nth-child(1) {
+  grid-column: 4 / span 2;
+}
+
+.officer-grid > :nth-child(2) {
+  grid-column: 2 / span 2;
+}
+
+.officer-grid > :nth-child(3) {
+  grid-column: 6 / span 2;
+}
+.officer-grid > :nth-child(4) {
+  grid-column: 1 / span 2;
+}
+
+.officer-grid > :nth-child(5) {
+  grid-column: 3 / span 2;
+}
+
+.officer-grid > :nth-child(6) {
+  grid-column: 5 / span 2;
+}
+
+.officer-grid > :nth-child(7) {
+  grid-column: 7 / span 2;
+}
+
+/*board*/
+.board-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
-  align-items: stretch; 
+  grid-template-columns: repeat(5, 1fr); 
+  grid-template-rows: repeat(2, auto);   
+  column-gap: 40px;                       
+  row-gap: 70px;                          
+  justify-items: center;
+  justify-content: center;                  
   width: 100%;
-  margin-bottom: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.board-member-grid > .office-card-container {
-  grid-column: span 1; 
-}
-
+/*adviser*/
 .adviser-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  align-items: stretch; 
+  grid-template-columns: repeat(2, 1fr); 
+  grid-template-rows: repeat(1, auto);   
+  column-gap: 40px;                       
+  row-gap: 70px;                          
+  justify-items: center;
+  justify-content: center;                  
   width: 100%;
-  margin-bottom: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.adviser-grid > .office-card-container {
-  grid-column: span 1; 
-}
-
-/* First row - 3 cards */
-.officer-grid > :nth-child(1),
-.officer-grid > :nth-child(2),
-.officer-grid > :nth-child(3) {
-  grid-column: span 4;
-}
-
-/* Second row - 4 cards */
-.officer-grid > :nth-child(4),
-.officer-grid > :nth-child(5),
-.officer-grid > :nth-child(6) {
-  grid-column: span 4;
-}
-
-
-
-/* Card container fills grid cell */
 .office-card-container {
+  display: flex;
+  justify-content: center;
   width: 100%;
 }
 
-.office-card-container > * {
-  width: 100%;
+.officer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: transparent;
 }
 
-/* Strip padding so image touches card edges */
-.office-card-container .officer-card {
-  width: 100%;
-  padding: 0;
+.officer-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: #d9d9d9;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+  margin-bottom: 16px;
+  transition: transform .25s ease;
 }
 
-/* Image fills full card width flush */
-.office-card-container .officer-card-image {
+.officer-avatar img {
   width: 100%;
-  margin: 0;
-  padding: 0;
-  line-height: 0;
-  overflow: hidden;
-}
-
-.office-card-container .officer-card-image img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 3;
+  height: 100%;
   object-fit: cover;
-  display: block;
-  transition: transform 0.3s ease;
 }
 
-/* Zoom on hover instead of lifting card */
-.office-card-container .officer-card:hover .officer-card-image img {
-  transform: scale(1.04);
+.officer-card:hover .officer-avatar {
+  transform: translateY(-6px) scale(1.05);
+}
+
+.officer-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 4px 0;
+}
+
+.officer-position {
+  font-size: 13px;
+  color: #dbeafe;
+  margin-bottom: 10px;
+}
+
+.officer-socials {
+  display: flex;
+  gap: 10px;
+  color: white;
+  font-size: 14px;
+}
+
+.officer-socials svg {
+  cursor: pointer;
+  transition: transform .2s;
+}
+
+.officer-socials svg:hover {
+  transform: scale(1.2);
 }
 
 .view-btn {
-  margin-top: 1.5rem;
-  display: inline-block;
-  align-self: center;
+  margin-top: 50px;
+  display: flex;
+  justify-content: center;
 }
 
-/* Tablet */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .officer-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
-  }
-
-  .officer-grid > * {
-    grid-column: span 1 !important;
-  }
-}
-
-/* Mobile */
-@media (max-width: 767px) {
-  .officer-container {
-    padding: 40px 16px;
-  }
-
-  .document-texts {
-    margin-bottom: 24px;
-  }
-
+@media (max-width: 1024px) {
   .officer-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    row-gap: 50px;
   }
 
   .officer-grid > * {
-    grid-column: span 1 !important;
+    grid-column: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .officer-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .officer-avatar {
+    width: 120px;
+    height: 120px;
   }
 }
