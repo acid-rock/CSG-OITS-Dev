@@ -11,12 +11,14 @@ export default function Main() {
     }
   };
 
+  const slides = ['/home1.JPG', '/home2.JPG'];
+
   return (
     <div className='hero-container'>
       <div className='hero-layout'>
         <div className='hero-text'>
           <Typography size='text-lg' color='text-dark'>
-            Online Information and Trasparency System
+            Online Information and Transparency System
           </Typography>
           <Typography
             size='text-md'
@@ -24,8 +26,8 @@ export default function Main() {
             style={{ fontSize: '1rem' }}
           >
             We believe in open communication and accountability. Our mission is
-            to represent student voices and ensure every decision in clever and
-            accesible.
+            to represent student voices and ensure every decision is clear and
+            accessible.
           </Typography>
           <div className='hero-buttons'>
             <Button
@@ -36,10 +38,18 @@ export default function Main() {
             </Button>
           </div>
         </div>
-        <div className='hero-image'>
-          <img src='./home2.JPG' alt='test' />
+
+        <div className='hero-image-container'>
+          <div className='image-carousel-track'>
+            {slides.map((slide, index) => (
+              <div key={index} className='slide'>
+                <img src={slide} alt='' />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
       <div className='wave-image'>
         <img className='wave' src={wave} alt='Wave' />
       </div>
