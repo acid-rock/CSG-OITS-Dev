@@ -11,6 +11,8 @@ export default function Main() {
     }
   };
 
+  const slides = ['/home1.JPG', '/home2.JPG'];
+
   return (
     <div className='hero-container'>
       <div className='hero-layout'>
@@ -23,9 +25,9 @@ export default function Main() {
             color='text-ghost'
             style={{ fontSize: '1rem' }}
           >
-           Driven by open communication and accountability, 
-           our mission is to amplify student voices and ensure every 
-           student government decision is transparent and accessible.
+            We believe in open communication and accountability. Our mission is
+            to represent student voices and ensure every decision is clear and
+            accessible.
           </Typography>
           <div className='hero-buttons'>
             <Button
@@ -36,10 +38,18 @@ export default function Main() {
             </Button>
           </div>
         </div>
-        <div className='hero-image'>
-          <img src='./home2.JPG' alt='test' />
+
+        <div className='hero-image-container'>
+          <div className='image-carousel-track'>
+            {slides.map((slide, index) => (
+              <div key={index} className='slide'>
+                <img src={slide} alt='' />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
       <div className='wave-image'>
         <img className='wave' src={wave} alt='Wave' />
       </div>

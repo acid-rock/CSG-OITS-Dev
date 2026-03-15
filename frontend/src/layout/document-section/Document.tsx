@@ -6,7 +6,6 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import documents from '../../config/documentsConfig.ts';
 import DocumentModal from '../../components/document-modal/DocumentModal.tsx';
-import wave from '../../assets/1.svg'
 
 type DocumentItem = {
   id: string;
@@ -29,20 +28,18 @@ export default function Document() {
 
   const scroll = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  };
 
   return (
     <div className='document-container'>
       <div className='document-layout'>
-        <div className='wave-image'>
-          <img className='wave' src={wave} alt='Wave' />
-        </div>
         <div className='document-texts'>
           <Typography size='text-md' color='text-white'>
             Comprehensive Document Library
           </Typography>
           <Typography size='text-sm' color='text-white'>
-            Explore our comprehensive library of official documents, memos, and reports.
+            Explore our comprehensive library of official documents, memos, and
+            reports.
           </Typography>
         </div>
 

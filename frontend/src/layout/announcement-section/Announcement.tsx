@@ -19,9 +19,9 @@ export default function Announcement() {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
         if (prev + 1 >= eventData.length) {
-          return 0; 
+          return 0;
         }
-        return prev + 1; 
+        return prev + 1;
       });
     }, 5000);
 

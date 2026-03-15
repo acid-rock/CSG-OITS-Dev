@@ -33,7 +33,6 @@ export default function AnnouncementCard({
 }: AnnouncementCardProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Use items array if provided, otherwise use individual props
   const displayItems =
     items.length > 0 ? items : [{ title, description, image, date }];
   const currentItem = displayItems[currentIndex];
@@ -49,7 +48,6 @@ export default function AnnouncementCard({
   }, [displayItems.length]);
 
   const handleLearnMore = () => {
-    // Learn more function
     console.log('Learn more clicked for:', currentItem.title);
   };
 
@@ -68,20 +66,24 @@ export default function AnnouncementCard({
       </div>
 
       <div className='site-announce-card-content'>
-        <h3 className='site-announce-card-title'>{currentItem.title}</h3>
-        <p className='site-announce-card-date'>{currentItem.date}</p>
-        <p className='site-announce-card-description'>
-          {currentItem.description}
-        </p>
+        <div className='site-announce-card-top'>
+          <h3 className='site-announce-card-title'>{currentItem.title}</h3>
+          <p className='site-announce-card-date'>{currentItem.date}</p>
+        </div>
 
-        <Button
-          variant='primary'
-          id='learnmore'
-          onClick={handleLearnMore}
-          style={{ padding: '.75rem' }}
-        >
-          Learn More
-        </Button>
+        <div className='site-announce-card-bottom'>
+          <p className='site-announce-card-description'>
+            {currentItem.description}
+          </p>
+          <Button
+            variant='primary'
+            id='learnmore'
+            onClick={handleLearnMore}
+            style={{ padding: '.75rem' }}
+          >
+            Learn More
+          </Button>
+        </div>
       </div>
     </div>
   );

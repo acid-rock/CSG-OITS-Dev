@@ -8,7 +8,7 @@ type DocumentCardProps = {
   date?: string;
   category?: string;
   variant?: 'default' | 'outlined' | 'elevated';
-  onSelect?: () => void; 
+  onSelect?: () => void;
   onView?: () => void;
   className?: string;
   style?: React.CSSProperties;
@@ -38,12 +38,12 @@ export default function DocumentCard({
         {description && (
           <p className='document-card-description'>{description}</p>
         )}
-        {term && (<p className='document-card-term'>{term}</p>)}
+        {term && <p className='document-card-term'>{term}</p>}
       </div>
       <button
         className='document-card-button'
         onClick={(e) => {
-          e.stopPropagation(); 
+          e.stopPropagation();
           onView?.();
         }}
       >

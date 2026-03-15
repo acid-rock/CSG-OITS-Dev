@@ -54,7 +54,8 @@ export default function BulletinDocument() {
           Documents
         </Typography>
         <Typography size='text-sm' color='text-ghost'>
-          Access official records, resolutions, and proceedings of the Central Student Government.
+          Access official records, resolutions, and proceedings of the Central
+          Student Government.
         </Typography>
       </div>
 
@@ -91,6 +92,7 @@ export default function BulletinDocument() {
                   title={doc.title}
                   description={doc.description}
                   date={doc.date}
+                  term={doc.term}
                   onSelect={() => handleSelect(doc)}
                   onView={() => handleView(doc)}
                 />
