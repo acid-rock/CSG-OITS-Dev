@@ -10,6 +10,11 @@ export const buttonConfig = [
     icon: <img src='/document.png' alt='Document' width={18} height={18} />,
   },
   {
+    label: 'Events',
+    name: 'events',
+    icon: <img src='/document.png' alt='Document' width={18} height={18} />,
+  },
+  {
     label: 'Document',
     name: 'documents',
     icon: <img src='/document.png' alt='Document' width={18} height={18} />,
