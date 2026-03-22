@@ -24,6 +24,10 @@
   color: var(--text-muted);
 }
 
+.text-white{
+  color: white;
+}
+
 /*font weight*/
 .text-thin {
   font-weight: 100;

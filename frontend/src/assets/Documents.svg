@@ -1,0 +1,13 @@
+<svg width="1440" height="699" viewBox="0 0 1440 699" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<rect width="1440" height="699" fill="#0089FF"/>
+<rect width="1440" height="699" fill="url(#pattern0_0_237)" fill-opacity="0.09"/>
+<defs>
+<pattern id="pattern0_0_237" patternUnits="userSpaceOnUse" patternTransform="matrix(547.529 0 0 280.043 0 0)" preserveAspectRatio="none" viewBox="0 0 1403.92 718.06" width="1" height="1">
+<use xlink:href="#pattern0_0_237_inner" transform="translate(0 -718.06)"/>
+<use xlink:href="#pattern0_0_237_inner" transform="translate(701.96 -359.03)"/>
+<g id="pattern0_0_237_inner">
+<ellipse cx="109" cy="111.5" rx="109" ry="111.5" fill="black"/>
+</g>
+<use xlink:href="#pattern0_0_237_inner" transform="translate(701.96 359.03)"/>
+</pattern></defs>
+</svg>

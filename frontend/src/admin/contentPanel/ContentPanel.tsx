@@ -6,8 +6,7 @@ import Documents from '../panel/documents/Document';
 import Contributor from '../panel/contributors/Contributor';
 import Audit from '../panel/auditlog/Auditlog';
 import Settings from '../panel/settings/Settings';
-
-
+import Eventpanel from '../panel/events/Eventpanel';
 
 const panel = [
   {
@@ -18,6 +17,7 @@ const panel = [
     name: 'announcement',
     content: <Announcement />,
   },
+  { name: 'events', content: <Eventpanel /> },
   {
     name: 'documents',
     content: <Documents />,

@@ -2,7 +2,7 @@ import './typography.css';
 
 type typographyType = {
   size?: string;
-  color: 'text-dark' | 'text-ghost' | 'text-primary' | 'text-nonbold';
+  color: 'text-dark' | 'text-ghost' | 'text-primary' | 'text-nonbold' | 'text-white';
   style?: React.CSSProperties;
   children: React.ReactNode;
 };

@@ -10,7 +10,6 @@
   position: relative;
 }
 
-/* ── Header ── */
 .form-header {
   margin-bottom: 1.75rem;
   padding-bottom: 1rem;
@@ -24,7 +23,6 @@
   letter-spacing: -0.3px;
 }
 
-/* ── Grid layout ── */
 .form-layout {
   display: grid;
   grid-template-columns: 1fr 260px;
@@ -32,7 +30,6 @@
   align-items: start;
 }
 
-/* ── Left: fields ── */
 .form-fields {
   display: flex;
   flex-direction: column;
@@ -87,7 +84,6 @@
   line-height: 1.55;
 }
 
-/* ── Right: upload area ── */
 .image-upload {
   display: flex;
   flex-direction: column;
@@ -148,7 +144,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.65rem;
+  padding: 1rem;
   color: #9ab3cc;
   pointer-events: none;
 }
@@ -180,12 +176,10 @@
   font-weight: 600;
 }
 
-/* Hidden file input */
 .file-input-hidden {
   display: none;
 }
 
-/* ── PDF preview state ── */
 .pdf-preview {
   display: flex;
   flex-direction: column;
@@ -221,7 +215,6 @@
   border-color: #5396d5;
 }
 
-/* ── Form actions ── */
 .form-actions {
   grid-column: 1 / -1;
   display: flex;
@@ -254,7 +247,6 @@
   color: #444;
 }
 
-/* Post / Submit — matches "Add Document" blue */
 .btn-submit {
   background: #5396d5;
   color: #fff;
@@ -278,7 +270,6 @@
   background: #357abd;
 }
 
-/* ── PDF Selector Modal ── */
 .pdf-selector-overlay {
   position: fixed;
   top: 0;
@@ -326,7 +317,57 @@
   padding: 1rem;
 }
 
-/* ── Responsive ── */
+/* ── Events multi-file list ── */
+.events-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  max-height: 190px;
+  overflow-y: auto;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.events-file-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: #f0f7ff;
+  border-radius: 6px;
+  border: 1px solid #c8d9f0;
+}
+
+.events-file-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.events-file-name {
+  font-size: 0.8rem;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── File count hint ── */
+.form-file-hint {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.form-file-hint--warn {
+  color: #f59e0b;
+}
+
+.form-file-hint--ok {
+  color: #2e9e5b;
+}
+
 @media (max-width: 768px) {
   .form-container {
     width: 100%;

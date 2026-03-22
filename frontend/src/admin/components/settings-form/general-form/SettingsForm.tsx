@@ -131,7 +131,6 @@ const SettingsForm = ({ setEdit }: SettingsFormProps) => {
           </button>
         </div>
       </form>
-
       {confirmModal && (
         <ConfimationModal
           onClose={() => setConfirmModal(false)}

@@ -1,4 +1,5 @@
 .announcement-container {
+  background-image: url('../../assets/bg1.svg');
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -9,7 +10,6 @@
 .announcement-layout {
   display: flex;
   flex-direction: column;
-  max-width: 1400px;
   width: 100%;
   align-items: center;
   justify-content: center;
@@ -20,5 +20,17 @@
 .announcement-content {
   display: flex;
   height: 500px;
-  width: 80vw;
+  width: 75vw;
+}
+
+.wave-image {
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.wave {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
 }

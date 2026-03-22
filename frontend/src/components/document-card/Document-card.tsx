@@ -4,10 +4,12 @@ type DocumentCardProps = {
   id?: string;
   title?: string;
   description?: string;
+  term?: string;
   date?: string;
+  category?: string;
   variant?: 'default' | 'outlined' | 'elevated';
-  onSelect?: () => void; // clicking the card → updates preview
-  onView?: () => void; // clicking "View" → opens modal
+  onSelect?: () => void;
+  onView?: () => void;
   className?: string;
   style?: React.CSSProperties;
 };
@@ -16,7 +18,8 @@ export default function DocumentCard({
   id,
   title,
   description,
-  date,
+  term,
+  category,
   variant = 'default',
   onSelect,
   onView,
@@ -30,16 +33,17 @@ export default function DocumentCard({
       onClick={onSelect}
     >
       <div className='document-card-content'>
+        {category && <h4 className='document-card-category'>{category}</h4>}
         {title && <h3 className='document-card-title'>{title}</h3>}
-        {date && <p className='document-card-date'>{date}</p>}
         {description && (
           <p className='document-card-description'>{description}</p>
         )}
+        {term && <p className='document-card-term'>{term}</p>}
       </div>
       <button
         className='document-card-button'
         onClick={(e) => {
-          e.stopPropagation(); // prevent card's onSelect from firing
+          e.stopPropagation();
           onView?.();
         }}
       >

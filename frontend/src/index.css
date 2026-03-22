@@ -45,7 +45,8 @@ html {
 
   /*font style*/
   /* --font-body: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; */
-  --font-body: 'Roboto', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-body:
+    'Roboto', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-heading: 'Montserrat', sans-serif;
 
   font-synthesis: none;
@@ -61,17 +62,43 @@ body {
   background-color: rgb(255, 255, 255);
   transition: all 0.75s ease-in-out;
   overflow-x: hidden;
+  font-family: var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
 }
+
 p,
+span,
+a,
+li,
+label,
 button,
 input,
 textarea,
-select {
+select,
+div,
+table,
+th,
+td {
   font-family: var(--font-body);
+}
+
+/* Reset input styles for guest pages */
+input,
+textarea,
+select {
+  background-color: #fff;
+  color: #0f172a;
+  border: 1px solid #e0e0e0;
 }

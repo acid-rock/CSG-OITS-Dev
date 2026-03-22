@@ -2,44 +2,39 @@
   display: flex;
   flex-direction: column;
   background: white;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.401);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   max-width: 360px;
+  transition: box-shadow 0.2s ease;
 }
 
-.document-card-image {
-  background: #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px;
-  min-height: 140px;
-}
-
-.document-card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.document-placeholder {
-  width: 60px;
-  height: 60px;
-  background: #d1d5db;
-  border-radius: 4px;
+.document-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .document-card-content {
-  padding: 20px;
+  padding: 20px 20px 12px 20px;
   text-align: left;
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.document-card-category {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #5b8def;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .document-card-title {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 600;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
   color: #111827;
   line-height: 1.4;
   overflow: hidden;
@@ -50,26 +45,27 @@
 }
 
 .document-card-description {
-  margin: 0 0 8px 0;
-  font-size: 14px;
+  margin: 0;
+  font-size: 13px;
   color: #6b7280;
-  line-height: 1.5;
+  line-height: 1.6;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
 }
 
-.document-card-description.single-line {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.document-card-term {
+  margin: 0;
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
 }
 
 .document-card-date {
-  margin: 0 0 8px 0;
-  font-size: 12px;
+  margin: 0;
+  font-size: 11px;
   color: #9ca3af;
 }
 
@@ -77,22 +73,24 @@
   margin: 0 20px 20px 20px;
   padding: 10px;
   background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5b8def;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  letter-spacing: 0.03em;
 }
 
 .document-card-button:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
+  background: #5b8def;
+  border-color: #5b8def;
+  color: white;
 }
 
 .document-card-button:active {
-  background: #f3f4f6;
+  background: #4a7de0;
 }
 
 .document-card.outlined {

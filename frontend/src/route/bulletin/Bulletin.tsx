@@ -1,5 +1,5 @@
-import BulletinDocuments from "../../bulletin-layouts/documents/BulletinDocuments";
-import LatestUpdates from "../../bulletin-layouts/latest-updates/LatestUpdates";
+import BulletinDocuments from '../../bulletin-layouts/documents/BulletinDocuments';
+import LatestUpdates from '../../bulletin-layouts/latest-updates/LatestUpdates';
 
 const Bulletin = () => {
   return (

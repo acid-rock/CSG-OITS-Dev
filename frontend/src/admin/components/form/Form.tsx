@@ -4,7 +4,7 @@ import type { Box } from '../pdf-selector-components/pdf-selector';
 import PdfSelector from '../pdf-selector-components/pdf-selector';
 
 interface FormProps {
-  forType: 'announcement' | 'document';
+  forType: 'announcement' | 'document' | 'events';
   id?: string | null;
   initialTitle?: string;
   initialDescription?: string;
@@ -21,12 +21,12 @@ const Form = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [showPdfSelector, setShowPdfSelector] = useState(false);
-
   const [pdf, setPdf] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [selectedBoxes, setSelectedBoxes] = useState<Box[]>([]);
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
+  const [eventFiles, setEventFiles] = useState<File[]>([]);
 
   const url =
     forType === 'announcement'
@@ -40,9 +40,10 @@ const Form = ({
     formData.append('title', title);
     formData.append('description', description);
 
-    if (pdf) {
+    if (forType === 'events') {
+      eventFiles.forEach((file) => formData.append('files', file));
+    } else if (pdf) {
       formData.append('file', pdf);
-      // Only send boxes for documents — announcements skip the selector
       if (forType === 'document') {
         formData.append('boxes', JSON.stringify(selectedBoxes));
       }
@@ -55,29 +56,30 @@ const Form = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = e.target.files;
+    if (!files) return;
+
+    if (forType === 'events') {
+      setEventFiles(Array.from(files));
+      return;
+    }
+
+    const file = files[0];
+
     if (file) {
       if (file.type === 'application/pdf') {
         setPreview(file.name);
         setPdf(file);
         setPdfUrl(URL.createObjectURL(file));
-        // Only open the PDF box selector for documents, not announcements
-        if (forType === 'document') {
-          setShowPdfSelector(true);
-        }
+        setShowPdfSelector(true);
       } else {
         const reader = new FileReader();
-        reader.onloadend = () => setPreview(reader.result as string);
         reader.readAsDataURL(file);
+        reader.onloadend = () => setPreview(reader.result as string);
         setPdf(null);
         setPdfUrl(null);
         setShowPdfSelector(false);
       }
-    } else {
-      setPreview(null);
-      setPdf(null);
-      setPdfUrl(null);
-      setShowPdfSelector(false);
     }
   };
 
@@ -91,7 +93,6 @@ const Form = ({
         <h2>{id ? 'Update File' : 'Add New File'}</h2>
       </div>
 
-      {/* PDF Selector Modal — documents only */}
       {forType === 'document' && showPdfSelector && pdfUrl && (
         <div className='pdf-selector-overlay'>
           <div className='pdf-selector-modal'>
@@ -138,58 +139,110 @@ const Form = ({
         </div>
 
         <div className='image-upload'>
-          <label>{forType === 'announcement' ? 'Image' : 'File'}</label>
-          <div
-            className={`image-preview${preview ? ' has-image' : ''}`}
-            id='imagePreview'
-            onClick={handleImageClick}
-          >
-            {!preview ? (
-              <div className='image-placeholder'>
-                <div className='upload-icon'>📁</div>
-                <div className='upload-text'>
-                  <strong>Click to upload</strong>
-                  <br />
-                  {forType === 'announcement' ? 'PNG, JPG, JPEG' : 'PDF files'}
+          <label>
+            {forType === 'announcement'
+              ? 'Image'
+              : forType === 'events'
+                ? 'Images'
+                : 'File'}
+          </label>
+
+          {forType === 'events' ? (
+            /* ── Events: multi-file list, no image preview ── */
+            <div
+              className={`image-preview${eventFiles.length > 0 ? ' has-image' : ''}`}
+              onClick={handleImageClick}
+            >
+              {eventFiles.length === 0 ? (
+                <div className='image-placeholder'>
+                  <div className='upload-icon'>📁</div>
+                  <div className='upload-text'>
+                    <strong>Click to upload</strong>
+                    <br />
+                    PNG, JPG, JPEG (min. 5 images)
+                  </div>
                 </div>
-              </div>
-            ) : preview?.endsWith('.pdf') ? (
-              <div className='pdf-preview'>
-                <div className='upload-icon'>📄</div>
-                <div className='upload-text'>{preview}</div>
-                {/* Edit selections button only shown for documents */}
-                {forType === 'document' && (
-                  <>
-                    {selectedBoxes.length > 0 && (
-                      <div className='pdf-selected-count'>
-                        ✓ {selectedBoxes.length} area(s) selected
-                      </div>
-                    )}
-                    <button
-                      type='button'
-                      className='btn btn-edit-selections'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowPdfSelector(true);
-                      }}
-                    >
-                      Edit selections
-                    </button>
-                  </>
-                )}
-              </div>
-            ) : (
-              <img id='previewImage' alt='Preview' src={preview} />
-            )}
-          </div>
+              ) : (
+                <div className='events-file-list'>
+                  {eventFiles.map((file, i) => (
+                    <div key={i} className='events-file-list-item'>
+                      <span className='events-file-name'>{file.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ── Announcement / Document: single file with image preview ── */
+            <div
+              className={`image-preview${preview ? ' has-image' : ''}`}
+              id='imagePreview'
+              onClick={handleImageClick}
+            >
+              {!preview ? (
+                <div className='image-placeholder'>
+                  <div className='upload-icon'>📁</div>
+                  <div className='upload-text'>
+                    <strong>Click to upload</strong>
+                    <br />
+                    {forType === 'announcement'
+                      ? 'PNG, JPG, JPEG'
+                      : 'PDF files'}
+                  </div>
+                </div>
+              ) : preview?.endsWith('.pdf') ? (
+                <div className='pdf-preview'>
+                  <div className='upload-icon'>📄</div>
+                  <div className='upload-text'>{preview}</div>
+                  {forType === 'document' && (
+                    <>
+                      {selectedBoxes.length > 0 && (
+                        <div className='pdf-selected-count'>
+                          ✓ {selectedBoxes.length} area(s) selected
+                        </div>
+                      )}
+                      <button
+                        type='button'
+                        className='btn btn-edit-selections'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowPdfSelector(true);
+                        }}
+                      >
+                        Edit selections
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <img id='previewImage' alt='Preview' src={preview} />
+              )}
+            </div>
+          )}
+
           <input
             type='file'
             ref={fileInputRef}
+            multiple={forType === 'events'}
             title='Select a file to upload'
-            accept={forType === 'announcement' ? 'image/*' : 'application/pdf'}
+            accept={
+              forType === 'announcement'
+                ? 'image/*'
+                : forType === 'events'
+                  ? 'image/*'
+                  : 'application/pdf'
+            }
             onChange={handleFileChange}
             className='file-input-hidden'
           />
+
+          {/* Minimum images hint — events only */}
+          {forType === 'events' && (
+            <p className='form-file-hint'>
+              {eventFiles.length} image{eventFiles.length !== 1 ? 's' : ''}{' '}
+              selected
+            </p>
+          )}
         </div>
 
         <div className='form-actions'>

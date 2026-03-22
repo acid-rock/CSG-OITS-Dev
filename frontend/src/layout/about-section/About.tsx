@@ -1,5 +1,6 @@
 import Typography from '../../components/typography/Typography';
 import './about.css';
+import wave from '../../assets/3.svg';
 
 export default function About() {
   return (
@@ -11,7 +12,8 @@ export default function About() {
               About
             </Typography>
             <Typography size='text-light' color='text-ghost'>
-              Learn more about Central Student Goverment
+              Get to know the Central Student Government, our history, and our
+              mission.
             </Typography>
           </div>
         </div>
@@ -19,7 +21,7 @@ export default function About() {
           <div className='about-content-sect1'>
             <div className='about-title'>
               <h1>
-                CENTRAL STUDENT <br></br> GOVERMENT
+                CENTRAL STUDENT <br></br> GOVERNMENT
               </h1>
             </div>
 
@@ -64,6 +66,9 @@ export default function About() {
             </div>
           </div>
         </div>
+      </div>{' '}
+      <div className='wave-image'>
+        <img className='wave' src={wave} alt='Wave' />
       </div>
     </section>
   );
