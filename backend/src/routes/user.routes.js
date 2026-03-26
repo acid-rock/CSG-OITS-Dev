@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { supabase, anonSupabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
+import ApiError from "../lib/apiError.js";
 
 const router = Router();
 
@@ -47,6 +48,7 @@ router.post(
   }),
 );
 
+// TODO: Fix error handling. Returns 500 when signInWithPassword fails.
 router.post(
   "/login",
   asyncHandler(async (req, res) => {
@@ -65,15 +67,15 @@ router.post(
 
     res.cookie("sb_access_token", data.session.access_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: false, // NOTE TO SELF: Change to "true" in production
+      sameSite: "lax", // NOTE TO SELF: Change to "none" in production
       maxAge: data.session.expires_in * 1000,
     });
 
     res.cookie("sb_refresh_token", data.session.refresh_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: false, // NOTE TO SELF: Change to "true" in production
+      sameSite: "lax", // NOTE TO SELF: Change to "none" in production
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
