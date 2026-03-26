@@ -13,6 +13,9 @@ import Officers from "./route/officers/Officers";
 import Login from "./admin/admin-loginpage/login/Login";
 import Forgot from "./admin/admin-loginpage/forgot/Forgot";
 import AdminPage from "./admin/AdminPage";
+import axios from "axios";
+
+axios.defaults.withCredentials = true;
 
 const router = createBrowserRouter([
   // Guest Routes
