@@ -215,6 +215,9 @@
 
 /* Mobile */
 @media (max-width: 768px) {
+  .footer-container{
+    padding: 1rem;
+  }
   .footer-main {
     padding: 40px 16px 30px;
   }

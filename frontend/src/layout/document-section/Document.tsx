@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import documents from '../../config/documentsConfig.ts';
 import DocumentModal from '../../components/document-modal/DocumentModal.tsx';
+import wave from '../../assets/1.svg'
 
 type DocumentItem = {
   id: string;
@@ -32,6 +33,9 @@ export default function Document() {
 
   return (
     <div className='document-container'>
+      <div className='document-wave'>
+        <img className='wave' src={wave} alt='Wave' />
+      </div>
       <div className='document-layout'>
         <div className='document-texts'>
           <Typography size='text-md' color='text-white'>

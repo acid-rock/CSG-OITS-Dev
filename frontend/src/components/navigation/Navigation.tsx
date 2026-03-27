@@ -43,8 +43,10 @@ export default function Navigation() {
       <div className='navigation-layout'>
         {/* Logo Section */}
         <div className='nav-left'>
-          <img className='logo' src={logo} alt='CSG Logo' />
-          <Typography color='text-dark'>Central Student Government</Typography>
+          <a className='nav-left' href="/">
+            <img className='logo' src={logo} alt='CSG Logo' />
+            <Typography color='text-dark'> Central Student Government </Typography>
+          </a>
         </div>
 
         {/* Desktop Navigation */}

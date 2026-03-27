@@ -2,8 +2,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: auto;
   background-image: url('../../assets/Events.svg');
+}
+
+.event-wave {
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .event-layout {
