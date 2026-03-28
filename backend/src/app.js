@@ -29,7 +29,7 @@ app.set("trust proxy", 1);
 app.use(helmet());
 app.use(
   cors({
-    origin: "*", // TODO: Change to FRONTEND_URL when in production.
+    origin: "http://localhost:5173", // TODO: Change to FRONTEND_URL when in production.
     credentials: true,
   }),
 );
