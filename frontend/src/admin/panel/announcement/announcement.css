@@ -258,23 +258,11 @@
   cursor: pointer;
   display: inline-block;
   vertical-align: middle;
-  opacity: 0;
   transform: translateY(2px);
   transition:
     opacity 0.18s ease,
     transform 0.18s ease,
     filter 0.15s;
-}
-
-/* Show icons when the row is hovered */
-.announce-file-table tbody tr:hover .announce-file-btn img {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.announce-file-btn img:hover {
-  filter: brightness(0.6);
-  transform: scale(1.12);
 }
 
 /* Scrollbar */

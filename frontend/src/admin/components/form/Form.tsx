@@ -7,6 +7,7 @@ interface FormProps {
   forType: 'announcement' | 'document' | 'events';
   id?: string | null;
   initialTitle?: string;
+  Images?: string[]; //temporary change to imageId
   initialDescription?: string;
   setOpen: (open: boolean) => void;
 }
@@ -15,6 +16,7 @@ const Form = ({
   forType,
   id,
   initialTitle = '',
+  Images,
   initialDescription = '',
   setOpen,
 }: FormProps) => {
@@ -24,6 +26,7 @@ const Form = ({
   const [pdf, setPdf] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [selectedBoxes, setSelectedBoxes] = useState<Box[]>([]);
+
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [eventFiles, setEventFiles] = useState<File[]>([]);
@@ -42,11 +45,10 @@ const Form = ({
 
     if (forType === 'events') {
       eventFiles.forEach((file) => formData.append('files', file));
-    } else if (pdf) {
+    }
+
+    if (pdf && forType === 'document') {
       formData.append('file', pdf);
-      if (forType === 'document') {
-        formData.append('boxes', JSON.stringify(selectedBoxes));
-      }
     }
 
     fetch(url, {
@@ -153,7 +155,7 @@ const Form = ({
               className={`image-preview${eventFiles.length > 0 ? ' has-image' : ''}`}
               onClick={handleImageClick}
             >
-              {eventFiles.length === 0 ? (
+              {eventFiles.length === 0 && !Images?.length ? (
                 <div className='image-placeholder'>
                   <div className='upload-icon'>📁</div>
                   <div className='upload-text'>
@@ -164,11 +166,17 @@ const Form = ({
                 </div>
               ) : (
                 <div className='events-file-list'>
-                  {eventFiles.map((file, i) => (
-                    <div key={i} className='events-file-list-item'>
-                      <span className='events-file-name'>{file.name}</span>
-                    </div>
-                  ))}
+                  {eventFiles.length > 0
+                    ? eventFiles.map((file, i) => (
+                        <div key={i} className='events-file-list-item'>
+                          <span className='events-file-name'>{file.name}</span>
+                        </div>
+                      ))
+                    : Images?.map((file, i) => (
+                        <div key={i} className='events-file-list-item'>
+                          <span className='events-file-name'>{file}</span>
+                        </div>
+                      ))}
                 </div>
               )}
             </div>

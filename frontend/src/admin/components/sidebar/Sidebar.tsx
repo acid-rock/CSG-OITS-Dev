@@ -11,11 +11,6 @@ const Sidebar = ({ panel, setPanel }: SidebarProps) => {
     <div className='sidebar-container'>
       <div className='sidebar-top'>
         <div className='sidebar-details'>
-          <img
-            src='/CSG_logo.svg'
-            alt='CSG Logo'
-            className='sidebar-logo-img'
-          />
           <div className='sidebar-details-text'>
             <span>Online Information</span>
             <span className='subtitle'>Transparency System</span>
@@ -35,7 +30,11 @@ const Sidebar = ({ panel, setPanel }: SidebarProps) => {
         </div>
       </div>
       <div className='sidebar-logout'>
-        <h4>Welcome Admin</h4>
+          <img
+            src='/CSG_logo.svg'
+            alt='CSG Logo'
+            className='sidebar-logo-img'
+          />
         <button className='logout-button'>
           <img src='/logout.png' alt='' />
           Log Out
