@@ -30,10 +30,10 @@ export default function Events() {
 
   return (
     <div className='event-container'>
+      <div className='event-wave'>
+        <img className='wave' src={wave} alt='Wave' />
+      </div>
       <div className='event-layout'>
-        <div className='event-wave'>
-          <img className='wave' src={wave} alt='Wave' />
-        </div>
         <div className='event-texts'>
           <Typography size='text-md' color='text-white'>
             Events

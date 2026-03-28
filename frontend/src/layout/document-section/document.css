@@ -3,35 +3,27 @@
   background-image: url("../../assets/Documents.svg");
   min-height: 100vh;
   padding: 0 0 2rem 0;
-}
-
-.document-layout {
-  padding: 10rem 2rem 1rem 2rem;
-margin-top: clamp(-60px, -10vw, -120px);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  margin: 0;
 }
 
 .document-wave {
   width: 100%;
-  position: relative;
   line-height: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .wave {
   width: 100%;
-  height: 220px;
+  height: auto;
   display: block;
-  object-fit: cover;
 }
 
-/* DESKTOP */
 .document-layout {
   max-width: 1400px;
   width: 100%;
-  margin: -120px auto 0;
+  margin: 0 auto;
+  padding: 6rem 2rem 1rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -67,7 +59,6 @@ margin-top: clamp(-60px, -10vw, -120px);
   margin-top: 0.5rem;
 }
 
-/* TABLET */
 @media (max-width: 1024px) {
   .document-container {
     min-height: auto;
@@ -75,35 +66,27 @@ margin-top: clamp(-60px, -10vw, -120px);
     padding-right: 0;
   }
 
-  .wave {
-    height: 180px;
-  }
-
   .document-layout {
-    margin-top: -100px;
+    padding: 5rem 2rem 1rem 2rem;
     gap: 1.4rem;
   }
 
   .document-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+    gap: 20px;
+    max-width: 600px;
+    margin: 0 auto;
   }
 }
 
-/* MOBILE */
 @media (max-width: 768px) {
   .document-container {
-    padding: 40px 16px;
+    padding: 0 0 40px 0;
     min-height: auto;
   }
 
-  .wave {
-    height: 140px;
-  }
-
   .document-layout {
-    margin-top: -80px;
-    padding: 1.5rem 1rem;
+    padding: 4rem 1rem 1.5rem 1rem;
     gap: 1.2rem;
   }
 
@@ -117,6 +100,7 @@ margin-top: clamp(-60px, -10vw, -120px);
     gap: 20px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    max-width: 100%;
   }
 
   .document-grid::-webkit-scrollbar {
@@ -129,15 +113,13 @@ margin-top: clamp(-60px, -10vw, -120px);
   }
 }
 
-/* SMALL MOBILE */
 @media (max-width: 480px) {
   .document-container {
-    padding: 0;
+    padding: 0 0 2rem 0;
   }
 
   .document-layout {
-    margin-top: -60px;
-    padding-top: 0;
+    padding: 3rem 1rem 1rem 1rem;
   }
 
   .document-grid {

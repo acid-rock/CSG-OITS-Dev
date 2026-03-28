@@ -4,13 +4,23 @@
   justify-content: center;
   min-height: auto;
   background-image: url('../../assets/Events.svg');
+  flex-direction: column;
 }
 
 .event-wave {
-  width: 100vw;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.event-wave img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .event-layout {
@@ -19,6 +29,13 @@
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 1400px;
+  padding: 2rem;
+  position: relative;
+  z-index: 2;
+  margin-top: -2px;
+  background: transparent;
 }
 
 .event-layout .event-texts {
@@ -28,9 +45,14 @@
   text-align: center;
 }
 
-/* ─── Featured two-column card ─── */
-.featured-card {
+.featured-card-wrapper {
+  position: relative;
+  width: 100%;
   max-width: 75rem;
+  padding: 0 3rem;
+}
+
+.featured-card {
   width: 100%;
   max-height: 900px;
   height: 100%;
@@ -39,11 +61,10 @@
   flex-direction: row;
   background: #fff;
   border-radius: 1rem;
-  overflow: visible;
+  overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
 }
 
-/* ─── Left image panel ─── */
 .featured-image-wrap {
   flex: 0 0 600px;
   height: 500px;
@@ -54,11 +75,10 @@
 .featured-image {
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: cover;
   display: block;
 }
 
-/* ─── Right content panel ─── */
 .featured-content {
   flex: 1;
   display: flex;
@@ -116,7 +136,6 @@
   background: #1d4ed8;
 }
 
-/* ─── Prev / Next arrows ─── */
 .featured-arrow {
   position: absolute;
   top: 50%;
@@ -148,13 +167,13 @@
 }
 
 .featured-arrow--left {
-  left: -1.75rem;
-}
-.featured-arrow--right {
-  right: -1.75rem;
+  left: 0;
 }
 
-/* ─── Dot indicators ─── */
+.featured-arrow--right {
+  right: 0;
+}
+
 .dot-indicators {
   display: flex;
   gap: 1rem;
@@ -185,11 +204,14 @@
   background-color: var(--primary-blue, #2563eb);
 }
 
-/* ─── Mobile ─── */
 @media (max-width: 900px) {
+  .featured-card-wrapper {
+    padding: 0 1rem;
+  }
+
   .featured-card {
     flex-direction: column;
-    width: 92%;
+    width: 100%;
   }
 
   .featured-image-wrap {
@@ -206,9 +228,10 @@
   }
 
   .featured-arrow--left {
-    left: 0.5rem;
+    left: -0.5rem;
   }
+
   .featured-arrow--right {
-    right: 0.5rem;
+    right: -0.5rem;
   }
 }
