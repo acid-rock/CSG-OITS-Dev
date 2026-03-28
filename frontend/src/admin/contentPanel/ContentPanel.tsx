@@ -7,6 +7,7 @@ import Contributor from '../panel/contributors/Contributor';
 import Audit from '../panel/auditlog/Auditlog';
 import Settings from '../panel/settings/Settings';
 import Eventpanel from '../panel/events/Eventpanel';
+import Inventory from '../panel/inventory/Inventory';
 
 const panel = [
   {
@@ -25,6 +26,10 @@ const panel = [
   {
     name: 'auditlog',
     content: <Audit />,
+  },
+  {
+    name: 'inventory',
+    content: <Inventory />
   },
   {
     name: 'contributors',

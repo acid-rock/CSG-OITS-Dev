@@ -4,7 +4,7 @@ import type { Box } from '../pdf-selector-components/pdf-selector';
 import PdfSelector from '../pdf-selector-components/pdf-selector';
 
 interface FormProps {
-  forType: 'announcement' | 'document' | 'events';
+  forType: 'announcement' | 'document' | 'events' | 'inventory';
   id?: string | null;
   initialTitle?: string;
   Images?: string[]; //temporary change to imageId
