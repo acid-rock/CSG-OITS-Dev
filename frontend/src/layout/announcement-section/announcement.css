@@ -28,10 +28,9 @@
 
 /* Content */
 .announcement-content {
-  display: flex;
+  max-width: 1000px;
+  min-height: 400px;
   width: 100%;
-  max-width: 900px;
-  min-height: 300px;
   height: auto;
   align-items: center;
   justify-content: center;

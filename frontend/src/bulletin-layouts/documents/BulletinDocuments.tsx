@@ -82,6 +82,16 @@ export default function BulletinDocument() {
             </nav>
           </aside>
 
+          <div className='document-search-wrapper'>
+            <input
+              className='document-search-input'
+              type='text'
+              placeholder='Search announcements…'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
           {/* Document Grid */}
           <main className='bulletin-document-content'>
             <div className='bulletin-document-grid'>

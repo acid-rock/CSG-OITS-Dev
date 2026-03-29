@@ -13,7 +13,7 @@ import Officers from './route/officers/Officers';
 import Login from './admin/admin-loginpage/login/Login';
 import Forgot from './admin/admin-loginpage/forgot/Forgot';
 import AdminPage from './admin/AdminPage';
-import Announcement from './bulletin-layouts/announcement/Announcement';
+import Announcement from './bulletin-layouts/announcement/BulletinAnnouncement';
 
 const router = createBrowserRouter([
   // Guest Routes
@@ -24,7 +24,7 @@ const router = createBrowserRouter([
       { index: true, element: <Homepage /> },
       { path: 'bulletin', element: <Bulletin /> },
       { path: 'officers', element: <Officers /> },
-      {path: 'announcement', element: <Announcement/>}
+      { path: 'announcement', element: <Announcement /> },
     ],
   },
   // Admin Public Routes (Login)

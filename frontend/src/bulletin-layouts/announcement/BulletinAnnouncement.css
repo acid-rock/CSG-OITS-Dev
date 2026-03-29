@@ -1,0 +1,151 @@
+/* ── Page Shell ─────────────────────────────────────────── */
+.announcement-page {
+  min-height: 100vh;
+  background: #f9fafb;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.announcement-header {
+  text-align: center;
+  padding: 52px 24px 28px;
+}
+
+.announcement-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.announcement-header p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+/* ── Search Bar ─────────────────────────────────────────── */
+.announcement-search-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 28px;
+  padding: 0 24px;
+}
+
+.announcement-search-input {
+  width: 360px;
+  padding: 9px 16px;
+  font-size: 13px;
+  color: #111827;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.announcement-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.announcement-search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ── Body Layout ────────────────────────────────────────── */
+.announcement-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+/* ── Sidebar ────────────────────────────────────────────── */
+.announcement-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 20px 16px;
+  position: sticky;
+  top: 24px;
+}
+
+.announcement-sidebar-title {
+  margin: 0 0 12px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.announcement-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.announcement-nav-btn {
+  text-align: left;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 400;
+  background: transparent;
+  color: #4b5563;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.announcement-nav-btn:hover {
+  background: #f3f4f6;
+}
+
+.announcement-nav-btn.active {
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Main Content ───────────────────────────────────────── */
+.announcement-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Card Grid ──────────────────────────────────────────── */
+.announcement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+/* ── Empty State ────────────────────────────────────────── */
+.announcement-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: #9ca3af;
+}
+
+.announcement-empty-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.announcement-empty-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
