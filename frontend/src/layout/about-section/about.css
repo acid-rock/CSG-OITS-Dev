@@ -59,7 +59,7 @@
 .about-wave {
   width: 100%;
   line-height: 0;
-  margin-top: -100px; /* overlap fix */
+  margin-top: -100px;
   position: relative;
   z-index: 1;
 }
@@ -78,8 +78,21 @@
   }
 
   .about-content {
-    grid-template-columns: 1fr; /* stack columns */
+    grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+
+  .about-content > *:nth-child(1) {
+    order: 1;
+  }
+  .about-content > *:nth-child(2) {
+    order: 2;
+  }
+  .about-content > *:nth-child(3) {
+    order: 4;
+  }
+  .about-content > *:nth-child(4) {
+    order: 3;
   }
 
   .about-wave {

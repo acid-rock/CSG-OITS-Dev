@@ -11,6 +11,14 @@
     transform 0.3s ease,
     box-shadow 0.3s ease;
   margin: 0 auto;
+  will-change: transform, box-shadow;
+}
+
+.site-announce-card:focus-within {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
 }
 
 .site-announce-card:hover {
@@ -31,7 +39,8 @@
   width: 50%;
   flex-shrink: 0;
   background: #f5f5f5;
-  min-height: 0; /* allows flex to control height */
+  min-height: 0;
+  aspect-ratio: 16 / 10;
 }
 
 .site-announce-card-image img {
@@ -39,6 +48,15 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  background: linear-gradient(110deg, #f0f0f0 8%, #f8f8f8 18%, #f0f0f0 33%);
+  background-size: 200% 100%;
+  animation: 1.5s shine linear infinite;
+}
+
+@keyframes shine {
+  to {
+    background-position-x: -200%;
+  }
 }
 
 .site-announce-card-content {
@@ -46,7 +64,7 @@
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* more predictable than space-around */
+  justify-content: space-between;
   gap: 0.75rem;
   min-height: 0;
   overflow: hidden;
@@ -78,6 +96,7 @@
   text-align: left;
   align-self: flex-start;
   margin: 0;
+  padding-top: 1rem;
   flex-shrink: 0;
 }
 
@@ -97,6 +116,7 @@
   text-align: justify;
   text-align-last: left;
   margin: 0;
+  padding-top: 0;
   display: -webkit-box;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
@@ -112,7 +132,7 @@
 /* ── Tablet landscape ── */
 @media (max-width: 1024px) {
   .site-announce-card {
-    height: 320px; /* bumped from 280px — gives content more breathing room */
+    height: 320px;
   }
 
   .site-announce-card-content {
@@ -127,12 +147,12 @@
 
   .site-announce-card-description {
     font-size: 0.9rem;
-    -webkit-line-clamp: 3; /* was 4 — too many for 320px height */
+    -webkit-line-clamp: 4;
     line-height: 1.6;
   }
 }
 
-/* ── Tablet portrait / large mobile ── */
+/* ── Tablet portrait  ── */
 @media (max-width: 768px) {
   .site-announce-card {
     flex-direction: column;
@@ -153,7 +173,7 @@
   .site-announce-card-content {
     padding: 1.25rem 1.25rem 1.125rem;
     gap: 0.75rem;
-    justify-content: flex-start; /* natural flow in auto-height layout */
+    justify-content: flex-start;
   }
 
   .site-announce-card-bottom {
@@ -167,7 +187,7 @@
 
   .site-announce-card-description {
     font-size: 0.95rem;
-    -webkit-line-clamp: 4;
+    -webkit-line-clamp: 3;
   }
 }
 
@@ -197,7 +217,7 @@
   }
 }
 
-/* ── Very small screens (iPhone SE, Galaxy A) ── */
+/* ── Very small screens ── */
 @media (max-width: 360px) {
   .site-announce-card-image {
     height: 155px;
@@ -209,5 +229,14 @@
 
   .site-announce-card-title {
     font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-announce-card {
+    transition: none;
+  }
+  .site-announce-card:hover {
+    transform: none;
   }
 }
