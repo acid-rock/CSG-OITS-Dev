@@ -28,9 +28,9 @@ export type Document = {
 
 export type Event = {
   id: string;
+  created_at: string;
   name: string;
   description: string;
-  folder: string;
   date: string;
   images: string[];
 };
