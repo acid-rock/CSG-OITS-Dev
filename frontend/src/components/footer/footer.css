@@ -260,7 +260,7 @@
   }
 
   .footer-links {
-    flex-direction: column;
+    flex-direction: flex;
     gap: 12px;
   }
 
