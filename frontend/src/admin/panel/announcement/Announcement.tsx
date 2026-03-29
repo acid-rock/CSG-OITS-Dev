@@ -1,31 +1,31 @@
-import { useState } from 'react';
-import './announcement.css';
-import { announcementConfig } from './announcementExample';
-import FilterSelect from '../../components/filter/Filter';
-import Form from '../../components/form/Form';
-import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
-import Actionbar from '../../components/action-bar/Actionbar';
+import { useEffect, useState } from "react";
+import "./announcement.css";
+import { getAnnouncements, type Announcement } from "./announcementExample";
+import FilterSelect from "../../components/filter/Filter";
+import Form from "../../components/form/Form";
+import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
+import Actionbar from "../../components/action-bar/Actionbar";
 
-const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
+const filterOptions = ["All", "Today", "This Week", "This Month"];
 const sortOptions = [
-  'Name (A-Z)',
-  'Name (Z-A)',
-  'Date (Newest)',
-  'Date (Oldest)',
+  "Name (A-Z)",
+  "Name (Z-A)",
+  "Date (Newest)",
+  "Date (Oldest)",
 ];
 
 const filterByDate = (date: string, filter: string): boolean => {
-  if (!filter || filter === 'All') return true;
+  if (!filter || filter === "All") return true;
   const fileDate = new Date(date);
   const now = new Date();
-  if (filter === 'Today') return fileDate.toDateString() === now.toDateString();
-  if (filter === 'This Week') {
+  if (filter === "Today") return fileDate.toDateString() === now.toDateString();
+  if (filter === "This Week") {
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
     return fileDate >= startOfWeek;
   }
-  if (filter === 'This Month') {
+  if (filter === "This Month") {
     return (
       fileDate.getMonth() === now.getMonth() &&
       fileDate.getFullYear() === now.getFullYear()
@@ -37,19 +37,47 @@ const filterByDate = (date: string, filter: string): boolean => {
 const Announcement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [id, setId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
   const [active, setActive] = useState<string[]>([]);
-  const [filter, setFilter] = useState<string>('');
-  const [sort, setSort] = useState<string>('');
+  const [filter, setFilter] = useState<string>("");
+  const [sort, setSort] = useState<string>("");
+  const [data, setData] = useState<Announcement[]>([]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      const data = await getAnnouncements();
+      setData(data);
+    };
+
+    fetchItems();
+  }, []);
+
+  const sortedData = [...data].sort((a: Announcement, b: Announcement) => {
+    switch (filter) {
+      case "All":
+      case "A-Z":
+        return a.title.localeCompare(b.title);
+      case "Z-A":
+        return b.title.localeCompare(a.title);
+      case "Date (Newest)":
+        return b.date.getTime() - a.date.getTime();
+      case "Date (Oldest)":
+        return a.date.getTime() - b.date.getTime();
+      default:
+        return 0;
+    }
+  });
+
+  console.log();
 
   const handleActive = (fileName: string) => {
     setActive((prev) =>
       prev.includes(fileName)
         ? prev.filter((name) => name !== fileName)
-        : [...prev, fileName]
+        : [...prev, fileName],
     );
   };
 
@@ -61,45 +89,43 @@ const Announcement = () => {
   };
 
   return (
-    <div className='announce-container'>
-      <div className='announce-header'>
+    <div className="announce-container">
+      <div className="announce-header">
         <span>Announcement</span>
       </div>
 
-      <div className='announce-toolbar'>
-        <span className='announce-file-count'>
-          {announcementConfig.length} Files
-        </span>
-        <div className='announce-toolbar-actions'>
+      <div className="announce-toolbar">
+        <span className="announce-file-count">{data.length} Files</span>
+        <div className="announce-toolbar-actions">
           <FilterSelect
             options={filterOptions}
             value={filter}
             onChange={setFilter}
-            label='Filter'
+            label="Filter"
           />
           <FilterSelect
             options={sortOptions}
             value={sort}
             onChange={setSort}
-            label='Sort'
+            label="Sort"
           />
           <button
-            className='announce-action-btn announce-refresh-btn'
-            title='Refresh'
+            className="announce-action-btn announce-refresh-btn"
+            title="Refresh"
             onClick={handleRefresh}
           >
             <img
-              src='/refresh.png'
-              alt='refresh'
-              className={spinning ? 'announce-spin refresh-img' : 'refresh-img'}
+              src="/refresh.png"
+              alt="refresh"
+              className={spinning ? "announce-spin refresh-img" : "refresh-img"}
             />
           </button>
           <button
-            className='announce-add-btn'
+            className="announce-add-btn"
             onClick={() => {
               setId(null);
-              setEditTitle('');
-              setEditDescription('');
+              setEditTitle("");
+              setEditDescription("");
               setOpen(true);
             }}
           >
@@ -112,39 +138,35 @@ const Announcement = () => {
         <Actionbar
           items={active.length}
           selectedIds={active}
-          source='announcement'
+          source="announcement"
         />
       )}
 
-      <div className='announce-file-table'>
+      <div className="announce-file-table">
         <table>
           <colgroup>
-            <col className='col-checkbox' />
-            <col className='col-image' />
-            <col className='col-filename' />
-            <col className='col-description' />
-            <col className='col-date' />
-            <col className='col-actions' />
+            <col className="col-checkbox" />
+            <col className="col-filename" />
+            <col className="col-description" />
+            <col className="col-date" />
+            <col className="col-actions" />
           </colgroup>
           <thead>
-            <tr className='announce-table-header-light'>
+            <tr className="announce-table-header-light">
               <th>
                 <input
-                  type='checkbox'
-                  title='Select All'
-                  checked={active.length === announcementConfig.length}
+                  type="checkbox"
+                  title="Select All"
+                  checked={active.length === data.length}
                   onChange={() => {
-                    if (active.length === announcementConfig.length) {
+                    if (active.length === data.length) {
                       setActive([]);
                     } else {
-                      setActive(
-                        announcementConfig.map((file) => file.fileName)
-                      );
+                      setActive(data.map((file) => file.title));
                     }
                   }}
                 />
               </th>
-              <th>Image</th>
               <th>File Name</th>
               <th>Description</th>
               <th>Date</th>
@@ -152,74 +174,56 @@ const Announcement = () => {
             </tr>
           </thead>
           <tbody>
-            {announcementConfig
-              .filter((file) => filterByDate(file.date, filter))
-              .sort((a, b) => {
-                if (sort === 'Name (A-Z)')
-                  return a.fileName.localeCompare(b.fileName);
-                if (sort === 'Name (Z-A)')
-                  return b.fileName.localeCompare(a.fileName);
-                if (sort === 'Date (Newest)')
-                  return (
-                    new Date(b.date).getTime() - new Date(a.date).getTime()
-                  );
-                if (sort === 'Date (Oldest)')
-                  return (
-                    new Date(a.date).getTime() - new Date(b.date).getTime()
-                  );
-                return 0;
-              })
-              .map((file, idx) => (
-                <tr
-                  key={idx}
-                  className={`announce-table-row ${active.includes(file.fileName) ? 'announce-active' : ''}`}
-                >
-                  <td>
-                    <input
-                      className='checkbox'
-                      type='checkbox'
-                      title={`Select ${file.fileName}`}
-                      checked={active.includes(file.fileName)}
-                      onChange={() => handleActive(file.fileName)}
+            {sortedData.map((file, idx) => (
+              <tr
+                key={idx}
+                className={`announce-table-row ${active.includes(file.title) ? "announce-active" : ""}`}
+              >
+                <td>
+                  <input
+                    className="checkbox"
+                    type="checkbox"
+                    title={`Select ${file.title}`}
+                    checked={active.includes(file.title)}
+                    onChange={() => handleActive(file.title)}
+                  />
+                </td>
+                <td>{file.title}</td>
+                <td>{file.content}</td>
+                <td>{file.date.toLocaleString()}</td>
+                <td className="announce-file-btn">
+                  <div className="announce-file-btn-inner">
+                    <img
+                      src="/bin.png"
+                      alt="Delete"
+                      onClick={() => {
+                        setId(file.title);
+                        setIsModalOpen(true);
+                      }}
                     />
-                  </td>
-                  <td>{file.imageName}</td>
-                  <td>{file.fileName}</td>
-                  <td>{file.description}</td>
-                  <td>{file.date}</td>
-                  <td className='announce-file-btn'>
-                    <div className='announce-file-btn-inner'>
-                      <img
-                        src='/bin.png'
-                        alt='Delete'
-                        onClick={() => {
-                          setId(file.fileName);
-                          setIsModalOpen(true);
-                        }}
-                      />
-                      <img
-                        src='/edit.png'
-                        alt='Edit'
-                        onClick={() => {
-                          setId(file.fileName);
-                          setEditTitle(file.fileName);
-                          setEditDescription(file.description);
-                          setOpen(true);
-                        }}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    <img
+                      src="/edit.png"
+                      alt="Edit"
+                      onClick={() => {
+                        setId(file.id);
+                        setEditTitle(file.title);
+                        setEditDescription(file.content);
+                        setOpen(true);
+                      }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
       {isModalOpen && (
-        <div className='announce-modal-position'>
+        <div className="announce-modal-position">
           <DeleteModal
             isOpen={isModalOpen}
-            source='announcement'
+            source="announcement"
             id={id}
             onClose={() => setIsModalOpen(false)}
             onConfirm={() => setActive((prev) => prev.filter((a) => a !== id))}
@@ -228,9 +232,9 @@ const Announcement = () => {
       )}
 
       {open && (
-        <div className='announce-form-position'>
+        <div className="announce-form-position">
           <Form
-            forType='announcement'
+            forType="announcement"
             id={id}
             initialTitle={editTitle}
             initialDescription={editDescription}

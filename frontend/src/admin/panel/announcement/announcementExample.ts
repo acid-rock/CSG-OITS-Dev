@@ -1,80 +1,29 @@
-export const announcementConfig = [
-  {
-    fileName: 'System Maintenance',
-    imageName: 'maintenance.png',
-    description: 'Scheduled maintenance on Feb 2, 2026.',
-    date: 'Feb 2, 2026',
-  },
-  {
-    fileName: 'New Feature Release',
-    imageName: 'feature.png',
-    description: 'Introducing dashboard analytics.',
-    date: 'Jan 28, 2026',
-  },
-  {
-    fileName: 'Policy Update',
-    imageName: 'policy.png',
-    description: 'Updated privacy policy effective immediately.',
-    date: 'Jan 20, 2026',
-  },
-  {
-    fileName: 'Holiday Notice',
-    imageName: 'holiday.png',
-    description: 'Office closed on Feb 10, 2026.',
-    date: 'Jan 18, 2026',
-  },
-  {
-    fileName: 'Holiday Notice',
-    imageName: 'holiday.png',
-    description: 'Office closed on Feb 10, 2026.',
-    date: 'Jan 18, 2026',
-  },
-  {
-    fileName: 'Holiday Notice',
-    imageName: 'holiday.png',
-    description: 'Office closed on Feb 10, 2026.',
-    date: 'Jan 18, 2026',
-  },
-  {
-    fileName: 'Holiday Notice',
-    imageName: 'holiday.png',
-    description: 'Office closed on Feb 10, 2026.',
-    date: 'Jan 18, 2026',
-  },
-  {
-    fileName: 'Holiday Notice',
-    imageName: 'holiday.png',
-    description: 'Office closed on Feb 10, 2026.',
-    date: 'Jan 18, 2026',
-  },
-  {
-    fileName: 'Holiday Notice',
-    imageName: 'holiday.png',
-    description: 'Office closed on Feb 10, 2026.',
-    date: 'Jan 18, 2026',
-  },
-  {
-    fileName: 'Holiday Notice',
-    imageName: 'holiday.png',
-    description: 'Office closed on Feb 10, 2026.',
-    date: 'Jan 18, 2026',
-  },
-  {
-    fileName: 'New Feature Release',
-    imageName: 'feature.png',
-    description: 'Introducing dashboard analytics.',
-    date: 'Jan 28, 2026',
-  },
-  {
-    fileName: 'New Feature Release',
-    imageName: 'feature.png',
-    description: 'Introducing dashboard analytics.',
-    date: 'Jan 28, 2026',
-  },
-  {
-    fileName: 'New Feature Release',
-    imageName: 'feature.png',
-    description: 'Introducing dashboard analytics.',
-    date: 'Jan 28, 2026',
-  },
-];
+import axios from "axios";
+
+export type Announcement = {
+  id: string;
+  imgUrl: string;
+  title: string;
+  content: string;
+  date: Date;
+};
+
+export async function getAnnouncements() {
+  const { data } = await axios.get(
+    "http://localhost:5050/api/v1/announcements/",
+  );
+
+  const dataWithFormattedDates = data.map((d: any) => {
+    const date = new Date(d.date);
+    return {
+      ...d,
+      date: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    };
+  });
+
+  return dataWithFormattedDates;
+}
