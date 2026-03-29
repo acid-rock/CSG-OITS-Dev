@@ -18,10 +18,12 @@ type DocumentItem = {
 };
 
 export default function BulletinDocument() {
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDocument, setSelectedDocument] = useState<DocumentItem>(
     documents[0]
   );
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const uniqueCategories = Array.from(
@@ -33,10 +35,16 @@ export default function BulletinDocument() {
     ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
   ];
 
-  const filteredDocuments =
-    selectedCategory === 'all'
-      ? documents
-      : documents.filter((doc) => doc.category === selectedCategory);
+  const filteredDocuments = documents.filter((doc) => {
+    const matchCategory =
+      selectedCategory === 'all' || selectedCategory === doc.category;
+
+    const matchSearch = doc.title
+      ?.toLocaleLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    return matchSearch && matchCategory;
+  });
 
   const handleSelect = (doc: DocumentItem) => {
     setSelectedDocument(doc);
@@ -60,12 +68,14 @@ export default function BulletinDocument() {
       </div>
 
       <div className='bulletin-document-layout-wrapper'>
+        
         <div className='bulletin-document-layout'>
           {/* Sidebar Navigation */}
           <aside className='bulletin-document-navigation'>
             <Typography size='text-sm' color='text-dark'>
               Categories
             </Typography>
+
             <nav className='bulletin-nav-menu'>
               {categories.map((category) => (
                 <button
@@ -81,16 +91,6 @@ export default function BulletinDocument() {
               ))}
             </nav>
           </aside>
-
-          <div className='document-search-wrapper'>
-            <input
-              className='document-search-input'
-              type='text'
-              placeholder='Search announcements…'
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
 
           {/* Document Grid */}
           <main className='bulletin-document-content'>

@@ -51,6 +51,7 @@ const BulletinAnnouncement = () => {
             <div className='announcement-grid'>
               {filtered.map((item) => (
                 <BulletinCard
+                  id={item.id}
                   title={item.title}
                   description={item.description}
                   image={item.image}

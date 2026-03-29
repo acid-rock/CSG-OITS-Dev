@@ -1,6 +1,7 @@
 import './bulletincard.css';
 
 type BulletinCardProps = {
+  id: number;
   title?: string;
   description?: string;
   image?: string;

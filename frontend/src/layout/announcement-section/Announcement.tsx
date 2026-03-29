@@ -4,6 +4,8 @@ import Typography from '../../components/typography/Typography';
 import AnnouncementCard from '../../components/announcement-card/Announcement-card';
 import './announcement.css';
 import Modal from '../../components/modal/Modal';
+import Button from '../../components/button/Button';
+import { Link } from 'react-router-dom';
 
 export default function Announcement() {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
@@ -28,8 +30,11 @@ export default function Announcement() {
     return () => clearInterval(interval);
   }, []);
 
-  const currentEvent = eventData[currentSlide];
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
+  const currentEvent = eventData[currentSlide];
   return (
     <section className='announcement-container'>
       <div className='announcement-layout'>
@@ -54,6 +59,18 @@ export default function Announcement() {
               onClick={() => handleCardClick(currentEvent)}
             />
           )}
+        </div>
+
+        <div className='view-btn'>
+          <Button variant='primary'>
+            <Link
+              to='/announcement'
+              style={{ textDecoration: 'none', color: 'white' }}
+              onClick={scroll}
+            >
+              VIEW ALL
+            </Link>
+          </Button>
         </div>
       </div>
 
