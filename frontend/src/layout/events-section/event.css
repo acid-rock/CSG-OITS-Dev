@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   min-height: auto;
-  background-image: url('../../assets/Events.svg');
+  background-image: url("../../assets/Events.svg");
   flex-direction: column;
 }
 
@@ -136,6 +136,7 @@
   background: #1d4ed8;
 }
 
+/* Desktop Arrows */
 .featured-arrow {
   position: absolute;
   top: 50%;
@@ -174,6 +175,35 @@
   right: 0;
 }
 
+/* Mobile Navigation Controls */
+.mobile-nav-controls {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background-color: #e8e8e88e;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+}
+
+.featured-arrow--mobile {
+  position: static;
+  transform: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.featured-arrow--mobile:hover {
+  transform: scale(1.1);
+}
+
+.featured-arrow--mobile:disabled {
+  transform: none;
+}
+
+/* Dot indicators */
 .dot-indicators {
   display: flex;
   gap: 1rem;
@@ -182,6 +212,12 @@
   padding: 0.75rem;
   margin-bottom: 1rem;
   border-radius: 1rem;
+}
+
+.mobile-nav-controls .dot-indicators {
+  margin-bottom: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .dot {
@@ -204,9 +240,15 @@
   background-color: var(--primary-blue, #2563eb);
 }
 
+/* Desktop Only Utility */
+.desktop-only {
+  display: flex;
+}
+
+/* Mobile Responsive */
 @media (max-width: 900px) {
   .featured-card-wrapper {
-    padding: 0 1rem;
+    padding: 0;
   }
 
   .featured-card {
@@ -227,11 +269,21 @@
     border-radius: 0 0 1rem 1rem;
   }
 
-  .featured-arrow--left {
-    left: -0.5rem;
+  .desktop-only {
+    display: none;
   }
 
-  .featured-arrow--right {
-    right: -0.5rem;
+  .mobile-nav-controls {
+    display: flex;
+  }
+
+  .event-layout > .dot-indicators {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .mobile-nav-controls {
+    display: none;
   }
 }
