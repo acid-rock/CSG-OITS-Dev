@@ -15,6 +15,7 @@
     "axios": "^1.13.6",
     "chart.js": "^4.5.1",
     "lucide-react": "^0.555.0",
+    "luxon": "^3.7.2",
     "pdfjs-dist": "^5.4.624",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/luxon": "^3.7.1",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",

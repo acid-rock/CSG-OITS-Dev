@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./Eventpanel.css";
-import {} from "../announcement/announcementExample";
 import FilterSelect from "../../components/filter/Filter";
 import Form from "../../components/form/Form";
 import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
 import Actionbar from "../../components/action-bar/Actionbar";
+import fetchEvents from "../../../config/eventConfig";
+import { type Event } from "../../../root-layout/Root-layout.tsx";
 
 const filterOptions = ["All", "Today", "This Week", "This Month"];
 const sortOptions = [
@@ -44,6 +45,14 @@ const Eventpanel = () => {
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>("");
   const [sort, setSort] = useState<string>("");
+  const [data, setData] = useState<Event[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetchEvents();
+      setData(data);
+    };
+  }, []);
 
   const handleActive = (fileName: string) => {
     setActive((prev) =>

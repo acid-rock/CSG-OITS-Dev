@@ -9,7 +9,7 @@ import fetchEvents from "../config/eventConfig";
 import fetchOfficers from "../config/officerConfig";
 
 /*This holds the root-layout to ensure the navigation and Footer to show in all route*/
-type Announcement = {
+export type Announcement = {
   id: string;
   imgUrl: string;
   title: string;
@@ -26,7 +26,7 @@ export type Document = {
   date: string;
 };
 
-type Event = {
+export type Event = {
   id: string;
   name: string;
   description: string;

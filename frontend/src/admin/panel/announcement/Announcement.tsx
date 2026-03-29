@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./announcement.css";
-import { getAnnouncements, type Announcement } from "./announcementExample";
 import FilterSelect from "../../components/filter/Filter";
 import Form from "../../components/form/Form";
 import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
 import Actionbar from "../../components/action-bar/Actionbar";
+import { type Announcement } from "../../../root-layout/Root-layout.tsx";
+import getAnnouncements from "../../../config/bulletinConfig.ts";
+import { DateTime } from "luxon";
 
 const filterOptions = ["All", "Today", "This Week", "This Month"];
 const sortOptions = [
@@ -14,26 +16,6 @@ const sortOptions = [
   "Date (Oldest)",
 ];
 
-const filterByDate = (date: string, filter: string): boolean => {
-  if (!filter || filter === "All") return true;
-  const fileDate = new Date(date);
-  const now = new Date();
-  if (filter === "Today") return fileDate.toDateString() === now.toDateString();
-  if (filter === "This Week") {
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-    return fileDate >= startOfWeek;
-  }
-  if (filter === "This Month") {
-    return (
-      fileDate.getMonth() === now.getMonth() &&
-      fileDate.getFullYear() === now.getFullYear()
-    );
-  }
-  return true;
-};
-
 const Announcement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [id, setId] = useState<string | null>(null);
@@ -42,7 +24,7 @@ const Announcement = () => {
   const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
   const [active, setActive] = useState<string[]>([]);
-  const [filter, setFilter] = useState<string>("");
+  const [filter, setFilter] = useState<string>("All");
   const [sort, setSort] = useState<string>("");
   const [data, setData] = useState<Announcement[]>([]);
 
@@ -55,23 +37,51 @@ const Announcement = () => {
     fetchItems();
   }, []);
 
-  const sortedData = [...data].sort((a: Announcement, b: Announcement) => {
-    switch (filter) {
-      case "All":
-      case "A-Z":
-        return a.title.localeCompare(b.title);
-      case "Z-A":
-        return b.title.localeCompare(a.title);
-      case "Date (Newest)":
-        return b.date.getTime() - a.date.getTime();
-      case "Date (Oldest)":
-        return a.date.getTime() - b.date.getTime();
-      default:
-        return 0;
-    }
-  });
+  const modifiedData = useMemo(() => {
+    const now = DateTime.local();
+    const filteredData = data.filter((announcement) => {
+      let announcementDate;
+      switch (filter) {
+        case "All":
+          return true;
+        case "Today":
+          announcementDate = DateTime.fromISO(announcement.date);
+          return announcementDate.hasSame(now, "day");
 
-  console.log();
+        case "This Week":
+          const lastWeek = now.minus({ days: 7 });
+          announcementDate = DateTime.fromISO(announcement.date);
+          return announcementDate >= lastWeek && announcementDate <= now;
+
+        case "This Month":
+          const lastMonth = now.minus({ months: 1 });
+          announcementDate = DateTime.fromISO(announcement.date);
+          return announcementDate >= lastMonth && announcementDate <= now;
+
+        default:
+          return false;
+      }
+    });
+
+    const sortedData = [...filteredData].sort(
+      (a: Announcement, b: Announcement) => {
+        switch (sort) {
+          case "Name (A-Z)":
+            return a.title.localeCompare(b.title);
+          case "Name (Z-A)":
+            return b.title.localeCompare(a.title);
+          case "Date (Newest)":
+            return new Date(b.date).getTime() - new Date(a.date).getTime();
+          case "Date (Oldest)":
+            return new Date(a.date).getTime() - new Date(b.date).getTime();
+          default:
+            return 0;
+        }
+      },
+    );
+
+    return sortedData;
+  }, [data, filter, sort]);
 
   const handleActive = (fileName: string) => {
     setActive((prev) =>
@@ -95,7 +105,7 @@ const Announcement = () => {
       </div>
 
       <div className="announce-toolbar">
-        <span className="announce-file-count">{data.length} Files</span>
+        <span className="announce-file-count">{modifiedData.length} Files</span>
         <div className="announce-toolbar-actions">
           <FilterSelect
             options={filterOptions}
@@ -174,7 +184,7 @@ const Announcement = () => {
             </tr>
           </thead>
           <tbody>
-            {sortedData.map((file, idx) => (
+            {modifiedData.map((file, idx) => (
               <tr
                 key={idx}
                 className={`announce-table-row ${active.includes(file.title) ? "announce-active" : ""}`}

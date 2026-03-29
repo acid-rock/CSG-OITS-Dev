@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "./document.css";
-import {} from "../announcement/announcementExample";
 import FilterSelect from "../../components/filter/Filter";
 import Form from "../../components/form/Form";
 import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
