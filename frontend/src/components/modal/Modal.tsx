@@ -6,7 +6,7 @@ interface ModalProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   imageSrc: string;
   imageAlt: string;
-  date: string;
+  date?: string;
   title: string;
   description: string;
   type?: string;
