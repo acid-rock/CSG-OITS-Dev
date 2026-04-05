@@ -1,24 +1,35 @@
 .document-container {
   background-color: #fcfcfc;
-  background-image: url(../../assets/Documents.svg);
+  background-image: url("../../assets/Documents.svg");
   min-height: 100vh;
-  display: flex;
-  align-items: center;
+  padding: 0 0 2rem 0;
+  margin: 0;
+}
+
+.document-wave {
+  width: 100%;
+  line-height: 0;
   position: relative;
+  z-index: 1;
+}
+
+.wave {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .document-layout {
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+  padding: 6rem 2rem 1rem 2rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  gap: 2rem;
-  padding: 3rem 1rem;
+  gap: 1.5rem;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .document-header {
@@ -26,21 +37,14 @@
   width: 100%;
 }
 
-.document-header > *:first-child {
-  margin-bottom: 8px;
-}
-
 .document-texts {
   text-align: center;
-}
-
-.document-texts > *:first-child {
-  margin-bottom: 12px;
+  max-width: 800px;
 }
 
 .document-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 32px;
   width: 100%;
   max-width: 1200px;
@@ -50,6 +54,7 @@
 }
 
 .document-grid > * {
+  width: 100%;
   height: 100%;
 }
 
@@ -59,35 +64,46 @@
 
 @media (max-width: 1024px) {
   .document-container {
-    padding: 50px 20px;
+    min-height: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .document-layout {
+    padding: 5rem 2rem 1rem 2rem;
+    gap: 1.4rem;
   }
 
   .document-grid {
-    gap: 24px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 600px;
+    margin: 0 auto;
   }
 }
 
 @media (max-width: 768px) {
   .document-container {
-    padding: 40px 16px;
-    overflow-x: hidden;
+    padding: 0 0 40px 0;
+    min-height: auto;
+  }
+
+  .document-layout {
+    padding: 4rem 1rem 1.5rem 1rem;
+    gap: 1.2rem;
   }
 
   .document-texts {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
   }
 
   .document-grid {
     display: flex;
-    flex-direction: row;
     overflow-x: auto;
-    overflow-y: hidden;
     gap: 20px;
-    max-width: 100%;
-    justify-items: flex-start;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    -ms-overflow-style: none;
+    max-width: 100%;
   }
 
   .document-grid::-webkit-scrollbar {
@@ -95,23 +111,21 @@
   }
 
   .document-grid > * {
-    flex: 0 0 250px;
-    min-width: 250px;
-    height: auto;
+    flex: 0 0 220px;
+    min-width: 220px;
   }
 }
 
 @media (max-width: 480px) {
   .document-container {
-    padding: 30px 12px;
+    padding: 0 0 2rem 0;
+  }
+
+  .document-layout {
+    padding: 3rem 1rem 1rem 1rem;
   }
 
   .document-grid {
     gap: 16px;
-  }
-
-  .document-grid > * {
-    flex: 0 0 220px;
-    min-width: 220px;
   }
 }

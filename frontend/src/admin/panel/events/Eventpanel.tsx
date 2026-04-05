@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './Eventpanel.css';
-import { announcementConfig } from '../announcement/announcementExample';
+import { eventData } from './EventExample';
 import FilterSelect from '../../components/filter/Filter';
 import Form from '../../components/form/Form';
 import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
@@ -34,16 +34,28 @@ const filterByDate = (date: string, filter: string): boolean => {
   return true;
 };
 
+type eventData = {
+  fileName: string;
+  description: string;
+  selectedImages: string[];
+  date: string;
+};
+
 const Eventpanel = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [openModalForm, setOpenModalForm] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [id, setId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
+
+  //filter and selection of events
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [sort, setSort] = useState<string>('');
+
+  //for modal data
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [images, setEditImages] = useState<string[]>([]);
 
   const handleActive = (fileName: string) => {
     setActive((prev) =>
@@ -60,16 +72,21 @@ const Eventpanel = () => {
     }, 600);
   };
 
+  const editData = (file: eventData) => {
+    setId(file.fileName);
+    setEditTitle(file.fileName);
+    setEditDescription(file.description);
+    setEditImages(file.selectedImages);
+    setOpenModalForm(true);
+  };
+
   return (
     <div className='events-container'>
       <div className='events-header'>
         <span>Events</span>
       </div>
-
       <div className='events-toolbar'>
-        <span className='events-file-count'>
-          {announcementConfig.length} Files
-        </span>
+        <span className='events-file-count'>{eventData.length} Files</span>
         <div className='events-toolbar-actions'>
           <FilterSelect
             options={filterOptions}
@@ -100,14 +117,13 @@ const Eventpanel = () => {
               setId(null);
               setEditTitle('');
               setEditDescription('');
-              setOpen(true);
+              setOpenModalForm(true);
             }}
           >
             Add Document
           </button>
         </div>
       </div>
-
       {active.length >= 3 && (
         <Actionbar
           items={active.length}
@@ -115,7 +131,6 @@ const Eventpanel = () => {
           source='announcement'
         />
       )}
-
       <div className='events-file-table'>
         <table>
           <colgroup>
@@ -132,19 +147,17 @@ const Eventpanel = () => {
                 <input
                   type='checkbox'
                   title='Select All'
-                  checked={active.length === announcementConfig.length}
+                  checked={active.length === eventData.length}
                   onChange={() => {
-                    if (active.length === announcementConfig.length) {
+                    if (active.length === eventData.length) {
                       setActive([]);
                     } else {
-                      setActive(
-                        announcementConfig.map((file) => file.fileName)
-                      );
+                      setActive(eventData.map((file) => file.fileName));
                     }
                   }}
                 />
               </th>
-              <th>Image</th>
+              <th>title</th>
               <th>Selected Images</th>
               <th>Description</th>
               <th>Date</th>
@@ -152,7 +165,7 @@ const Eventpanel = () => {
             </tr>
           </thead>
           <tbody>
-            {announcementConfig
+            {eventData
               .filter((file) => filterByDate(file.date, filter))
               .sort((a, b) => {
                 if (sort === 'Name (A-Z)')
@@ -183,8 +196,8 @@ const Eventpanel = () => {
                       onChange={() => handleActive(file.fileName)}
                     />
                   </td>
-                  <td>{file.imageName}</td>
                   <td>{file.fileName}</td>
+                  <td>{file.selectedImages.length}</td>
                   <td>{file.description}</td>
                   <td>{file.date}</td>
                   <td className='events-file-btn'>
@@ -194,18 +207,13 @@ const Eventpanel = () => {
                         alt='Delete'
                         onClick={() => {
                           setId(file.fileName);
-                          setIsModalOpen(true);
+                          setOpenDeleteModal(true);
                         }}
                       />
                       <img
                         src='/edit.png'
                         alt='Edit'
-                        onClick={() => {
-                          setId(file.fileName);
-                          setEditTitle(file.fileName);
-                          setEditDescription(file.description);
-                          setOpen(true);
-                        }}
+                        onClick={() => editData(file)}
                       />
                     </div>
                   </td>
@@ -214,27 +222,28 @@ const Eventpanel = () => {
           </tbody>
         </table>
       </div>
-
-      {isModalOpen && (
+      {openDeleteModal && (
         <div className='events-modal-position'>
           <DeleteModal
-            isOpen={isModalOpen}
+            isOpen={openDeleteModal}
             source='announcement'
             id={id}
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => setOpenDeleteModal(false)}
             onConfirm={() => setActive((prev) => prev.filter((a) => a !== id))}
           />
         </div>
       )}
 
-      {open && (
+      {openModalForm && (
+        //modal to edit the event by sending the state data selected//
         <div className='events-form-position'>
           <Form
             forType='events'
             id={id}
+            Images={images}
             initialTitle={editTitle}
             initialDescription={editDescription}
-            setOpen={setOpen}
+            setOpen={setOpenModalForm}
           />
         </div>
       )}

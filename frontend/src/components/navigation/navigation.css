@@ -10,32 +10,38 @@
 .navigation-layout {
   display: flex;
   align-items: center;
-  justify-content: space-between; 
+  justify-content: space-between;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1rem 2rem;           
+  padding: 1rem 2rem;
+  gap: 1rem;
 }
 
-/* Navigation Sections */ 
+/* Navigation Sections */
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 1.25rem;                
-  flex-shrink: 20;               
+  gap: 1.25rem;
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
 }
 
 .nav-center {
   display: flex;
   align-items: center;
-  gap: 0.5rem;          
-  margin-left: auto;    
-  margin-right: 0;      
-  flex: none;           
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
 }
 
 .nav-desktop {
   display: flex;
-  justify-content: flex-end;    
+  justify-content: flex-end;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Logo */
@@ -44,44 +50,89 @@
   height: auto;
 }
 
-/* Typography Override for Navigation */
+/* Typography */
 .nav-left p {
   color: var(--primary-blue);
   font-weight: 700;
   white-space: nowrap;
+  font-size: 1rem;
 }
 
-/* Hamburger Menu */
+/* Desktop nav links */
+.nav-desktop a {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Active Indicator ─── */
+.nav-item-wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Blue underline — desktop */
+.nav-item-wrapper::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background-color: var(--primary-blue);
+  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+
+.nav-item-wrapper.active::after {
+  transform: scaleX(1);
+}
+
+/* Blue left border — mobile */
+.nav-item-wrapper.mobile {
+  width: 100%;
+  border-left: 3px solid transparent;
+  padding-left: 0.5rem;
+  border-radius: 0 4px 4px 0;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.nav-item-wrapper.mobile::after {
+  display: none; /* disable the pseudo-element for mobile */
+}
+
+.nav-item-wrapper.mobile.active {
+  border-left-color: var(--primary-blue);
+  background-color: rgba(var(--primary-blue-rgb, 30, 80, 200), 0.06);
+}
+
+/* ─── Hamburger ─── */
 .hamburger-menu {
   display: none;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.25rem;
-  color: var(--primary-blue);
-  transition: transform 0.2s ease;
-}
-
-.hamburger-menu:hover {
-  transform: scale(1.1);
-}
-
-.hamburger-menu:active {
-  transform: scale(0.95);
 }
 
 .hamburger-menu span {
-  width: 100%;
   height: 3px;
+  width: 100%;
   background-color: var(--primary-blue);
   border-radius: 2px;
   transition: all 0.3s ease;
 }
 
 .hamburger-menu.active span:nth-child(1) {
-  transform: rotate(45deg) translate(8px, 8px);
+  transform: rotate(45deg) translate(5px, 5px);
 }
 
 .hamburger-menu.active span:nth-child(2) {
@@ -89,10 +140,10 @@
 }
 
 .hamburger-menu.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(8px, -8px);
+  transform: rotate(-45deg) translate(5px, -5px);
 }
 
-/* Mobile Menu */
+/* ─── Mobile Menu ─── */
 .mobile-menu {
   position: absolute;
   top: 100%;
@@ -122,24 +173,22 @@
   padding: 1rem;
 }
 
-/* Desktop Only Elements */
-.nav-desktop {
-  display: flex;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .nav-desktop {
-    display: none;
-  }
-
-  .hamburger-menu {
-    display: flex;
-  }
-
+/* ─── Tablet ─── */
+@media (max-width: 1024px) {
   .navigation-layout {
-    padding: 0.75rem 1rem;
-    gap: 1rem;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .nav-left {
+    gap: 0.75rem;
+  }
+
+  .nav-center {
+    gap: 0.4rem;
+  }
+
+  .nav-desktop {
+    gap: 0.75rem;
   }
 
   .logo {
@@ -151,6 +200,30 @@
   }
 }
 
+/* ─── Mobile ─── */
+@media (max-width: 900px) {
+  .nav-desktop {
+    display: none;
+  }
+
+  .hamburger-menu {
+    display: flex;
+  }
+
+  .navigation-layout {
+    padding: 0.75rem 1rem;
+  }
+
+  .logo {
+    width: 2.75rem;
+  }
+
+  .nav-left p {
+    font-size: 0.85rem;
+  }
+}
+
+/* ─── Small Mobile ─── */
 @media (max-width: 480px) {
   .navigation-layout {
     padding: 0.5rem 0.75rem;
