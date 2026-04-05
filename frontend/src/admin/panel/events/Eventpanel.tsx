@@ -96,6 +96,8 @@ const Eventpanel = () => {
     return sortedData;
   }, [data, filter, sort]);
 
+  console.log(modifiedData);
+
   return (
     <div className="events-container">
       <div className="events-header">
@@ -199,7 +201,7 @@ const Eventpanel = () => {
                   />
                 </td>
                 <td>{file.name}</td>
-                <td>{file.images.length}</td>
+                <td>{file.images?.length}</td>
                 <td>{file.description}</td>
                 <td>{DateTime.fromISO(file.date).toFormat("MMM d, yyyy")}</td>
                 <td className="events-file-btn">

@@ -1,71 +1,55 @@
-import DocumentCard from '../../components/document-card/Document-card';
-import Typography from '../../components/typography/Typography';
-import './document.css';
-import Button from '../../components/button/Button';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import documents from '../../config/documentsConfig.ts';
-import DocumentModal from '../../components/document-modal/DocumentModal.tsx';
-
-type DocumentItem = {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  date?: string;
-  url?: string;
-  memoSrc?: string;
-};
+import DocumentCard from "../../components/document-card/Document-card";
+import Typography from "../../components/typography/Typography";
+import "./document.css";
+import Button from "../../components/button/Button";
+import { Link, useOutletContext } from "react-router-dom";
+import { useState } from "react";
+import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
+import type {
+  OutletContext,
+  Document,
+} from "../../root-layout/Root-layout.tsx";
 
 export default function Document() {
-  const [selectedDoc, setSelectedDoc] = useState<DocumentItem | null>(null);
+  const { documents } = useOutletContext<OutletContext>();
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleView = (doc: DocumentItem) => {
+  const handleView = (doc: Document) => {
     setSelectedDoc(doc);
     setIsModalOpen(true);
   };
 
-  const scroll = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
-    <div className='document-container'>
-      <div className='document-layout'>
-        <div className='document-texts'>
-          <Typography size='text-md' color='text-white'>
+    <div className="document-container">
+      <div className="document-layout">
+        <div className="document-texts">
+          <Typography size="text-md" color="text-dark">
             Comprehensive Document Library
           </Typography>
-          <Typography size='text-sm' color='text-white'>
-            Explore our comprehensive library of official documents, memos, and
-            reports.
+          <Typography size="text-sm" color="text-ghost">
+            This is where the documents
           </Typography>
         </div>
 
-        <div className='document-grid'>
+        <div className="document-grid">
           {documents.slice(0, 4).map((docu) => (
             <DocumentCard
               key={docu.id}
               id={docu.id}
-              category={docu.category}
-              title={docu.title}
-              description={docu.description}
-              term={docu.term}
-              date={docu.date}
-              variant='default'
-              onSelect={() => {}}
+              title={docu.description}
+              variant="default"
+              onSelect={() => {}} // no preview panel on this page
               onView={() => handleView(docu)}
             />
           ))}
         </div>
 
-        <div className='view-btn'>
-          <Button variant='primary'>
+        <div className="view-btn">
+          <Button variant="primary">
             <Link
-              to='/bulletin'
-              style={{ textDecoration: 'none', color: 'white' }}
-              onClick={scroll}
+              to="/bulletin"
+              style={{ textDecoration: "none", color: "white" }}
             >
               VIEW ALL
             </Link>
@@ -76,9 +60,9 @@ export default function Document() {
       {isModalOpen && selectedDoc && (
         <DocumentModal
           selected={{
-            title: selectedDoc.title,
-            date: selectedDoc.date ?? '',
-            memoSrc: selectedDoc.url ?? selectedDoc.memoSrc ?? '',
+            title: selectedDoc.name,
+            date: selectedDoc.date ?? "",
+            memoSrc: selectedDoc.url ?? "",
           }}
           onClose={() => {
             setIsModalOpen(false);
