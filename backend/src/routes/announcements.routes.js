@@ -3,6 +3,7 @@ import multer from "multer";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { anonSupabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
+import { auditLogger } from "../middlewares/audit.middleware.js";
 
 const router = Router();
 
@@ -40,9 +41,13 @@ router.get(
 router.post(
   "/add",
   requireAuth,
+  auditLogger(),
   upload.single("image"),
   asyncHandler(async (req, res) => {
     const token = req.token;
+    const ip_address = req.ip;
+    const user_agent = req.headers["user-agent"];
+    const imgPath = `${data[0].id}.jpg`;
     const { title, content } = req.body;
 
     const userSupabase = createUserClient(token);
@@ -53,6 +58,9 @@ router.post(
           title: title,
           content: content,
           owner_id: req.user.sub,
+          image: imgPath,
+          ip_address,
+          user_agent,
         },
         { onConflict: "title" },
       )
@@ -60,7 +68,6 @@ router.post(
 
     if (error) throw new Error(error.message);
 
-    const imgPath = `${data[0].id}.jpg`;
     const { data: imgData, error: uploadError } = await userSupabase.storage
       .from("bulletin")
       .upload(imgPath, req.file.buffer, {
@@ -79,16 +86,17 @@ router.post(
   requireAuth,
   asyncHandler(async (req, res) => {
     if (!req.body) throw new ApiError(400, "No valid request body is found.");
-    const { id, title, content } = req.body;
+    const { id, title, content, image } = req.body;
     const token = req.token;
 
     const userSupabase = createUserClient(token);
     const { error } = await userSupabase
       .from("bulletin")
       .update({
-        id: id,
-        title: title,
-        content: content,
+        id,
+        title,
+        content,
+        image,
       })
       .eq("id", id);
     if (error) throw new Error(error.message);
@@ -104,12 +112,12 @@ router.delete(
     const token = req.token;
     const userSupabase = createUserClient(token);
 
-    for (const item of req.body) {
-      const imgPath = `${item.id}.jpg`;
+    for (const id of req.body.id) {
+      const imgPath = `${id}.jpg`;
       const { error } = await userSupabase
         .from("bulletin")
         .delete()
-        .eq("id", item.id);
+        .eq("id", id);
       if (error) throw new Error(error.message);
 
       const { data, error: deleteImgError } = await userSupabase.storage
