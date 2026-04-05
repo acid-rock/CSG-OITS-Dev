@@ -1,7 +1,7 @@
 import './document-card.css';
 
 type DocumentCardProps = {
-  id?: string;
+  id: string;
   title?: string;
   description?: string;
   term?: string;

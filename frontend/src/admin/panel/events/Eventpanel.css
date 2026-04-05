@@ -221,6 +221,11 @@
   background: #f8f9fa;
 }
 
+.events-file-table td:nth-child(3) {
+  display: flex;
+  margin-left: 3.5rem;
+}
+
 .events-file-table tbody tr:last-child {
   border-bottom: none;
 }
@@ -251,22 +256,11 @@
   cursor: pointer;
   display: inline-block;
   vertical-align: middle;
-  opacity: 0;
   transform: translateY(2px);
   transition:
     opacity 0.18s ease,
     transform 0.18s ease,
     filter 0.15s;
-}
-
-.events-file-table tbody tr:hover .events-file-btn img {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.events-file-btn img:hover {
-  filter: brightness(0.6);
-  transform: scale(1.12);
 }
 
 .events-file-table table,

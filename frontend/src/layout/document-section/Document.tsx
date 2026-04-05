@@ -4,11 +4,12 @@ import "./document.css";
 import Button from "../../components/button/Button";
 import { Link, useOutletContext } from "react-router-dom";
 import { useState } from "react";
-import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
 import type {
   OutletContext,
   Document,
 } from "../../root-layout/Root-layout.tsx";
+import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
+import wave from "../../assets/1.svg";
 
 export default function Document() {
   const { documents } = useOutletContext<OutletContext>();
@@ -22,9 +23,12 @@ export default function Document() {
 
   return (
     <div className="document-container">
+      <div className="document-wave">
+        <img className="wave" src={wave} alt="Wave" />
+      </div>
       <div className="document-layout">
         <div className="document-texts">
-          <Typography size="text-md" color="text-dark">
+          <Typography size="text-md" color="text-white">
             Comprehensive Document Library
           </Typography>
           <Typography size="text-sm" color="text-ghost">
