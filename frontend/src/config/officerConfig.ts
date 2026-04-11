@@ -6,3 +6,4 @@ export default async function fetchOfficers() {
 
   return data;
 }
+

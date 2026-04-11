@@ -1,117 +1,124 @@
-import { useState, useMemo } from "react";
-import Card from "../../components/event-card/Card";
+import { useState } from "react";
+import eventData from "../../config/eventsConfig";
 import Typography from "../../components/typography/Typography";
 import "./event.css";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import Modal from "../../components/modal/Modal";
-import { useOutletContext } from "react-router-dom";
-import type { OutletContext } from "../../root-layout/Root-layout";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import wave from "../../assets/2.svg";
 
 export default function Events() {
-  const { events } = useOutletContext<OutletContext>();
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [open, setOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null); // Add state for selected event
-  const EVENTS_PER_SLIDE = 4;
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  /*function to take all the event object and group into 4*/
-  const eventSlides = useMemo(() => {
-    const slides = [];
-    for (let i = 0; i < events.length; i += EVENTS_PER_SLIDE) {
-      slides.push(events.slice(i, i + EVENTS_PER_SLIDE));
-    }
-    return slides;
-  }, [events]);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => Math.min(prev + 1, eventSlides.length - 1));
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => Math.max(prev - 1, 0));
-  };
-
-  // Function to handle card click
-  const handleCardClick = (event: any) => {
-    setSelectedEvent(event);
+  const handleCardClick = (index: number) => {
+    setSelectedIndex(index);
     setOpen(true);
   };
 
+  const handleNext = () => {
+    setCurrentSlide((prev) => (prev + 1) % eventData.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentSlide((prev) => (prev - 1 + eventData.length) % eventData.length);
+  };
+
+  const selectedEvent =
+    selectedIndex !== null ? eventData[selectedIndex] : null;
+  const current = eventData[currentSlide];
+
   return (
     <div className="event-container">
+      <div className="event-wave">
+        <img className="wave" src={wave} alt="Wave" />
+      </div>
       <div className="event-layout">
         <div className="event-texts">
-          <Typography size="text-md" color="text-dark">
+          <Typography size="text-md" color="text-white">
             Events
           </Typography>
-          <Typography size="text-sm" color="text-ghost">
-            Explore official events from students government
+
+          <Typography size="text-sm" color="text-white">
+            Discover upcoming events, programs, and initiatives led by the CSG.
           </Typography>
         </div>
 
-        <div className="carousel-wrapper">
-          <div
-            className="carousel-track"
-            style={{
-              transform: `translateX(-${currentSlide * 100}%)`,
-            }}
+        {/* Featured Card */}
+        <div className="featured-card-wrapper">
+          <button
+            className="featured-arrow featured-arrow--left desktop-only"
+            onClick={handlePrev}
+            disabled={currentSlide === 0}
+            aria-label="Previous event"
           >
-            {eventSlides.map((slide, slideIndex) => (
-              <div key={slideIndex} className="carousel-slide">
-                <div className="card-container">
-                  {slide.map((event, index) => (
-                    <div
-                      key={event.id}
-                      className={`card-item-${index}`}
-                      onClick={() => handleCardClick(event)}
-                      style={{ cursor: "pointer" }} // Make it clear it's clickable
-                    >
-                      <Card
-                        title={event.name}
-                        description={event.description}
-                        image={event.images[0]}
-                        date={event.date}
-                        variant="default"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="carousel-controls">
-            <button
-              className="event-button"
-              type="button"
-              onClick={prevSlide}
-              aria-label="Previous slide"
-              title="Previous slide"
-              disabled={currentSlide === 0}
-            >
-              <ChevronLeft size={30} />
-            </button>
-            <button
-              className="event-button"
-              type="button"
-              onClick={nextSlide}
-              aria-label="next slide"
-              title="next slide"
-              disabled={currentSlide === eventSlides.length - 1}
-            >
-              <ChevronRight size={30} />
-            </button>
-          </div>
-          <div className="dot-indicators">
-            {eventSlides.map((_, index) => (
+            <ChevronLeft size={24} />
+          </button>
+
+          <div className="featured-card">
+            {/* Left: Image */}
+            <div className="featured-image-wrap">
+              <img
+                src={current.thumbnail}
+                alt={current.title}
+                className="featured-image"
+              />
+            </div>
+
+            {/* Right: Content */}
+            <div className="featured-content">
+              <h2 className="featured-title">{current.title}</h2>
+              <p className="featured-date">{current.date}</p>
+              <p className="featured-description">{current.description}</p>
               <button
-                key={index}
-                type="button"
-                aria-label={`Go to slide ${index + 1}`}
-                className={`dot ${index === currentSlide ? "active" : ""}`}
-                onClick={() => setCurrentSlide(index)}
+                className="featured-btn"
+                onClick={() => handleCardClick(currentSlide)}
+              >
+                Learn More
+              </button>
+            </div>
+          </div>
+
+          <button
+            className="featured-arrow featured-arrow--right desktop-only"
+            onClick={handleNext}
+            disabled={currentSlide === eventData.length - 1}
+            aria-label="Next event"
+          >
+            <ChevronRight size={24} />
+          </button>
+        </div>
+
+        {/* Mobile Navigation: Arrows + Dots */}
+        <div className="mobile-nav-controls">
+          <button
+            className="featured-arrow featured-arrow--mobile"
+            onClick={handlePrev}
+            disabled={currentSlide === 0}
+            aria-label="Previous event"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <div className="dot-indicators">
+            {eventData.map((_, i) => (
+              <button
+                key={i}
+                className={`dot ${i === currentSlide ? "active" : ""}`}
+                onClick={() => setCurrentSlide(i)}
+                aria-label={`Go to event ${i + 1}`}
               />
             ))}
           </div>
+
+          <button
+            className="featured-arrow featured-arrow--mobile"
+            onClick={handleNext}
+            disabled={currentSlide === eventData.length - 1}
+            aria-label="Next event"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
       </div>
 
@@ -119,12 +126,14 @@ export default function Events() {
         <Modal
           isOpen={open}
           setOpen={setOpen}
-          imageSrc={selectedEvent.images[0]}
-          imageAlt={selectedEvent.name}
+          imageSrc={selectedEvent.thumbnail}
+          imageAlt={selectedEvent.title}
           date={selectedEvent.date}
-          title={selectedEvent.name}
+          title={selectedEvent.title}
           description={selectedEvent.description}
-        ></Modal>
+          type="event"
+          extraImage={selectedEvent.extraImage}
+        />
       )}
     </div>
   );

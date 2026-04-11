@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
-import Typography from "../../components/typography/Typography";
-import AnnouncementCard from "../../components/announcement-card/Announcement-card";
-import "./announcement.css";
-import Modal from "../../components/modal/Modal";
-import { useOutletContext } from "react-router-dom";
-import type { OutletContext } from "../../root-layout/Root-layout";
+import { useEffect, useState } from 'react';
+import eventData from '../../config/eventsConfig';
+import Typography from '../../components/typography/Typography';
+import AnnouncementCard from '../../components/announcement-card/Announcement-card';
+import './announcement.css';
+import Modal from '../../components/modal/Modal';
+import Button from '../../components/button/Button';
+import { Link } from 'react-router-dom';
 
 export default function Announcement() {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const { bulletin } = useOutletContext<OutletContext>();
-  const [selectedEvent, setSelectedEvent] = useState<any>(null); // Add state for selected event
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [open, setOpen] = useState(false);
 
   const handleCardClick = (event: any) => {
@@ -20,42 +20,57 @@ export default function Announcement() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
-        if (prev + 1 >= bulletin.length) {
+        if (prev + 1 >= eventData.length) {
           return 0;
         }
         return prev + 1;
       });
-    }, 5000); // Changes slide every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [bulletin.length]);
+  }, []);
 
-  const currentEvent = bulletin[currentSlide];
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
+  const currentEvent = eventData[currentSlide];
   return (
-    <section className="announcement-container">
-      <div className="announcement-layout">
-        <div className="announcement-texts">
-          <Typography size="text-md" color="text-dark">
-            CSG Bulletin
+    <section className='announcement-container'>
+      <div className='announcement-layout'>
+        <div className='announcement-texts'>
+          <Typography size='text-md' color='text-white'>
+            Announcements
           </Typography>
-          <Typography size="text-sm" color="text-ghost">
+          <Typography size='text-sm' color='text-white'>
             Explore official records from student government proceedings
           </Typography>
         </div>
 
         {/* Slideshow */}
-        <div className="announcement-content">
+        <div className='announcement-content'>
           {currentEvent && (
             <AnnouncementCard
               title={currentEvent.title}
-              description={currentEvent.content}
+              description={currentEvent.description}
               date={currentEvent.date}
-              image={currentEvent.imgUrl}
-              variant="default"
+              image={currentEvent.image}
+              variant='default'
               onClick={() => handleCardClick(currentEvent)}
             />
           )}
+        </div>
+
+        <div className='view-btn'>
+          <Button variant='primary'>
+            <Link
+              to='/announcement'
+              style={{ textDecoration: 'none', color: 'white' }}
+              onClick={scroll}
+            >
+              VIEW ALL
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -63,11 +78,11 @@ export default function Announcement() {
         <Modal
           isOpen={open}
           setOpen={setOpen}
-          imageSrc={selectedEvent.imgUrl}
+          imageSrc={selectedEvent.image}
           imageAlt={selectedEvent.title}
           date={selectedEvent.date}
           title={selectedEvent.title}
-          description={selectedEvent.content}
+          description={selectedEvent.description}
         ></Modal>
       )}
     </section>

@@ -1,6 +1,6 @@
 .latest-container {
   padding: 3rem 1.5rem;
-  font-family: var(--font-body), Arial, sans-serif; /* Use homepage font */
+  font-family: var(--font-body), Arial, sans-serif;
 }
 
 .latest-layout {
@@ -13,7 +13,7 @@
 .latest-content {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 3rem;
   width: 100%;
@@ -24,47 +24,137 @@
   flex-direction: column;
   max-width: 400px;
   gap: 1rem;
-}
-
-.content-text > :nth-child(1),
-.content-text > :nth-child(2) {
-  flex-shrink: 1;
+  flex-shrink: 0;
 }
 
 .content-cards-container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
   flex: 1;
+  max-width: 900px;
 }
 
+/* Card Layout: Left (Title + Category) | Center (Date) | Right (Button) */
 .content-cards {
-  border: 2px solid rgba(128, 128, 128, 0.858);
-  padding: 1rem;
-  border-radius: 1rem;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
   background-color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.cards-link {
-  margin-bottom: 0.75rem;
+.content-cards:hover {
+  border-color: var(--primary-blue, #2196f3);
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.15);
+  transform: translateY(-2px);
 }
 
-.cards-link a {
-  color: #3b82f6;
+/* Left Section: Title and Category */
+.card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0; /* Allow text truncation */
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.card-category {
+  display: inline-block;
+}
+
+.card-category a {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(33, 150, 243, 0.1);
+  color: var(--primary-blue, #2196f3);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-category a:hover {
+  background: var(--primary-blue, #2196f3);
+  color: white;
+}
+
+/* Center Section: Date */
+.card-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  border-left: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  min-width: 120px;
+}
+
+.card-date {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+/* Right Section: View Button */
+.card-right {
+  display: flex;
+  align-items: center;
+}
+
+.card-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.5rem;
+  background: var(--primary-blue, #2196f3);
+  color: white;
   text-decoration: none;
   font-weight: 600;
   font-size: 0.875rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
 }
 
-.cards-link a:hover {
-  text-decoration: underline;
+.card-view-btn:hover {
+  background: #1976d2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
-/* Responsive */
+.card-view-btn:active {
+  transform: translateY(0);
+}
+
+/* Tablet */
 @media (max-width: 968px) {
   .latest-content {
     flex-direction: column;
     gap: 2rem;
+    align-items: center;
   }
 
   .content-text {
@@ -75,14 +165,64 @@
   .content-cards-container {
     width: 100%;
   }
+
+  .content-cards {
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+  }
+
+  .card-center {
+    grid-column: 1;
+    grid-row: 2;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid #e5e7eb;
+    padding: 0.75rem 0 0 0;
+    justify-content: flex-start;
+    min-width: auto;
+  }
+
+  .card-right {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-self: center;
+  }
 }
 
+/* Mobile */
 @media (max-width: 640px) {
   .latest-container {
     padding: 2rem 1rem;
   }
 
   .content-cards {
-    padding: 0.75rem;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .card-left {
+    gap: 0.75rem;
+  }
+
+  .card-title {
+    font-size: 1rem;
+  }
+
+  .card-center {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+    padding: 0.5rem 0;
+  }
+
+  .card-right {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .card-view-btn {
+    width: 100%;
+    text-align: center;
   }
 }

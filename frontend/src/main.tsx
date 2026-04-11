@@ -13,6 +13,11 @@ import Officers from "./route/officers/Officers";
 import Login from "./admin/admin-loginpage/login/Login";
 import Forgot from "./admin/admin-loginpage/forgot/Forgot";
 import AdminPage from "./admin/AdminPage";
+import axios from "axios";
+import Announcement from "./bulletin-layouts/announcement/BulletinAnnouncement";
+
+axios.defaults.withCredentials = true;
+import InventoryBulletin from './bulletin-layouts/inventory/InvetoryBulletin';
 
 const router = createBrowserRouter([
   // Guest Routes
@@ -23,6 +28,8 @@ const router = createBrowserRouter([
       { index: true, element: <Homepage /> },
       { path: "bulletin", element: <Bulletin /> },
       { path: "officers", element: <Officers /> },
+      { path: "announcement", element: <Announcement /> },
+      { path: 'inventory', element: <InventoryBulletin /> },
     ],
   },
   // Admin Public Routes (Login)

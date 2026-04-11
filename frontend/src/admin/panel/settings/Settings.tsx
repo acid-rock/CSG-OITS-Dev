@@ -97,32 +97,6 @@ const Settings = () => {
 
         {/* ── Whitelist ── */}
         <div className='addmin-whitelist-container'>
-          <div className='whitelist-header'>
-            <span>Whitelist</span>
-            <div className='whitelist-toolbar-actions'>
-              <button
-                className='settings-refresh-btn'
-                title='Refresh'
-                onClick={handleRefresh}
-              >
-                <img
-                  src='/refresh.png'
-                  alt='refresh'
-                  className={
-                    spinning ? 'settings-spin refresh-img' : 'refresh-img'
-                  }
-                />
-              </button>
-              <button
-                type='button'
-                className='whitelist-add-btn'
-                onClick={() => setWhitelistForm(!whitelistForm)}
-              >
-                Add Whitelist
-              </button>
-            </div>
-          </div>
-
           <div className='whitelist-table-wrapper'>
             <table>
               <colgroup>

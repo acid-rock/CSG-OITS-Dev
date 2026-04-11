@@ -1,13 +1,12 @@
-import React from "react";
-// import Login from '../../admin-layouts/bin-section/login-section/Login';
+import React from 'react';
+import Login from '../../admin/admin-loginpage/login/Login';
 
 const Bin: React.FC = () => {
-  return (
-    <div className="admin-container">
-      <></>
-    </div>
-  );
+    return (
+        <div className="admin-container">
+            <Login />
+        </div>
+    );
 };
 
 export default Bin;
-

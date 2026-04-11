@@ -10,9 +10,26 @@ export const buttonConfig = [
     icon: <img src='/document.png' alt='Document' width={18} height={18} />,
   },
   {
+    label: 'Events',
+    name: 'events',
+    icon: <img src='/document.png' alt='Document' width={18} height={18} />,  
+  },
+  {
     label: 'Document',
     name: 'documents',
     icon: <img src='/document.png' alt='Document' width={18} height={18} />,
+  },  
+  {
+    label: 'Audit Log',
+    name: 'auditlog',
+    icon: <img src='/document.png' alt='Audit Log' width={18} height={18} />,
+  },
+  {
+    label: 'Inventory',
+    name: 'inventory',
+    icon: (
+      <img src='/user-solid.png' alt='Contributors' width={18} height={18} />
+    ),
   },
   {
     label: 'Contributors',
@@ -20,11 +37,6 @@ export const buttonConfig = [
     icon: (
       <img src='/user-solid.png' alt='Contributors' width={18} height={18} />
     ),
-  },
-  {
-    label: 'Audit Log',
-    name: 'auditlog',
-    icon: <img src='/document.png' alt='Audit Log' width={18} height={18} />,
   },
   {
     label: 'Settings',

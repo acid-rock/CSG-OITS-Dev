@@ -31,7 +31,7 @@ export default function Officer() {
         </div>
 
         <div className="officer-grid">
-          {executives?.slice(0, 6).map((o: Officer) => (
+          {executives?.slice(0, 7).map((o: Officer) => (
             <div key={o.id} className="office-card-container">
               <OfficerCard
                 id={o.full_name}
@@ -101,3 +101,4 @@ export default function Officer() {
     </section>
   );
 }
+

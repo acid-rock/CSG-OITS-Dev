@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabaseClient.js";
+import { createUserClient, supabase } from "../lib/supabaseClient.js";
 import jwt from "jsonwebtoken";
 
 const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
@@ -16,6 +16,7 @@ export async function requireAuth(req, res, next) {
 
     req.user = payload;
     req.token = accessToken;
+    req.supabase = createUserClient(req.token);
     return next();
   } catch (error) {
     if (!refreshToken) {
@@ -44,6 +45,7 @@ export async function requireAuth(req, res, next) {
       });
 
       req.user = data.session.user;
+      req.supabase = createUserClient(req.token);
       next();
     } catch (error) {
       return res.status(403).json({ message: "Invalid refresh token." });

@@ -1,6 +1,6 @@
-import './announcement-card.css';
-import { useState, useEffect } from 'react';
-import Button from '../button/Button';
+import "./announcement-card.css";
+import { useState, useEffect } from "react";
+import Button from "../button/Button";
 
 type AnnouncementCardProps = {
   id?: string;
@@ -8,7 +8,7 @@ type AnnouncementCardProps = {
   description?: string;
   image?: string;
   date?: string;
-  variant?: 'default' | 'outlined' | 'elevated';
+  variant?: "default" | "outlined" | "elevated";
   onClick?: () => void;
   className?: string;
   style?: React.CSSProperties;
@@ -22,18 +22,17 @@ type AnnouncementCardProps = {
 
 export default function AnnouncementCard({
   id,
-  title = '',
-  description = '',
-  image = '',
-  date = '',
-  variant = 'default',
+  title = "",
+  description = "",
+  image = "",
+  date = "",
+  variant = "default",
   onClick,
   style,
   items = [],
 }: AnnouncementCardProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Use items array if provided, otherwise use individual props
   const displayItems =
     items.length > 0 ? items : [{ title, description, image, date }];
   const currentItem = displayItems[currentIndex];
@@ -49,39 +48,42 @@ export default function AnnouncementCard({
   }, [displayItems.length]);
 
   const handleLearnMore = () => {
-    // Learn more function
-    console.log('Learn more clicked for:', currentItem.title);
+    console.log("Learn more clicked for:", currentItem.title);
   };
 
   return (
     <div
       id={id}
-      className={`announce-card ${variant}`}
+      className={`site-announce-card ${variant}`}
       style={style}
       onClick={onClick}
     >
-      <div className='announcement-card-image'>
+      <div className="site-announce-card-image">
         <img
           src={currentItem.image}
-          alt={currentItem.title || 'Announcement'}
+          alt={currentItem.title || "Announcement"}
         />
       </div>
 
-      <div className='announcement-card-content'>
-        <h3 className='announcement-card-title'>{currentItem.title}</h3>
-        <p className='announcement-card-date'>{currentItem.date}</p>
-        <p className='announcement-card-description'>
-          {currentItem.description}
-        </p>
+      <div className="site-announce-card-content">
+        <div className="site-announce-card-top">
+          <h3 className="site-announce-card-title">{currentItem.title}</h3>
+          <p className="site-announce-card-date">{currentItem.date}</p>
+        </div>
 
-        <Button
-          variant='primary'
-          id='learnmore'
-          onClick={handleLearnMore}
-          style={{ padding: '.75rem' }}
-        >
-          Learn More
-        </Button>
+        <div className="site-announce-card-bottom">
+          <p className="site-announce-card-description">
+            {currentItem.description}
+          </p>
+          <Button
+            variant="primary"
+            id="learnmore"
+            onClick={handleLearnMore}
+            style={{ padding: ".75rem" }}
+          >
+            Learn More
+          </Button>
+        </div>
       </div>
     </div>
   );
