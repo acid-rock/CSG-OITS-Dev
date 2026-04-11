@@ -37,6 +37,8 @@ export default function Events() {
     setOpen(true);
   };
 
+  console.log(events)
+
   return (
     <div className="event-container">
       <div className="event-layout">
