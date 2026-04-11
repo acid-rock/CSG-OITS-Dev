@@ -2,8 +2,16 @@
 import './latestupdates.css';
 import Typography from '../../components/typography/Typography';
 import documents from '../../config/documentsConfig';
+import DocumentModal from '../../components/document-modal/DocumentModal';
+import { useState } from 'react';
+import type { DocumentItem } from '../documents/BulletinDocuments';
 
 const LatestUpdates = () => {
+  const [open, setOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<DocumentItem>(
+    documents[0]
+  );
+
   const latest = [...documents]
     .sort((a, b) => Number(b.id) - Number(a.id))
     .slice(0, 3);
@@ -15,6 +23,11 @@ const LatestUpdates = () => {
       day: 'numeric',
       year: 'numeric',
     });
+  };
+
+  const handleOpenModal = (doc: DocumentItem) => {
+    setOpen((prev) => !prev);
+    setSelectedDocument(doc);
   };
 
   return (
@@ -54,15 +67,28 @@ const LatestUpdates = () => {
 
                 {/* Right: View Button */}
                 <div className='card-right'>
-                  <a href={`/bulletin/${doc.id}`} className='card-view-btn'>
+                  <button
+                    className='card-view-btn'
+                    onClick={() => handleOpenModal(doc)}
+                  >
                     View
-                  </a>
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+      {open && (
+        <DocumentModal
+          selected={{
+            title: selectedDocument.title,
+            date: selectedDocument.date ?? '',
+            memoSrc: selectedDocument.url ?? selectedDocument.memoSrc ?? '',
+          }}
+          onClose={() => setOpen(false)}
+        />
+      )}
     </div>
   );
 };

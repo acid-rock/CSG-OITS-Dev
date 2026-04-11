@@ -27,6 +27,10 @@
   text-decoration: none;
 }
 
+.nav-left.text {
+  text-decoration: none;
+}
+
 .nav-center {
   display: flex;
   align-items: center;

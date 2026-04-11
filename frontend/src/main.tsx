@@ -17,6 +17,7 @@ import axios from "axios";
 import Announcement from "./bulletin-layouts/announcement/BulletinAnnouncement";
 
 axios.defaults.withCredentials = true;
+import InventoryBulletin from './bulletin-layouts/inventory/InvetoryBulletin';
 
 const router = createBrowserRouter([
   // Guest Routes
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: "bulletin", element: <Bulletin /> },
       { path: "officers", element: <Officers /> },
       { path: "announcement", element: <Announcement /> },
+      { path: 'inventory', element: <InventoryBulletin /> },
     ],
   },
   // Admin Public Routes (Login)

@@ -7,8 +7,9 @@ interface FormProps {
   forType: "announcement" | "document" | "events" | "inventory";
   id?: string | null;
   initialTitle?: string;
-  Images?: string[]; //temporary change to imageId
+  Images?: string[];
   initialDescription?: string;
+  inventoryQuantity?: number;
   setOpen: (open: boolean) => void;
 }
 
@@ -17,7 +18,8 @@ const Form = ({
   id,
   initialTitle = "",
   Images,
-  initialDescription = "",
+  inventoryQuantity,
+  initialDescription = '',
   setOpen,
 }: FormProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,6 +37,8 @@ const Form = ({
   const undoHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
     setSelectedBoxes((prev) => prev.slice(0, -1));
   };
+  const [quantity, setQuantity] = useState(inventoryQuantity || 0);
+  const [status, setStatus] = useState('in-stock');
 
   const url =
     forType === "announcement"
@@ -46,7 +50,15 @@ const Form = ({
     const formData = new FormData();
 
     formData.append("title", title);
-    formData.append("description", description);
+
+    if (forType !== 'inventory') {
+      formData.append("description", description);
+    }
+
+    if (forType === 'inventory') {
+      formData.append('quantity', quantity.toString());
+      formData.append('status', status);
+    }
 
     if (forType === "events") {
       eventFiles.forEach((file) => formData.append("files", file));
@@ -137,149 +149,188 @@ const Form = ({
         </div>
       )}
 
-      <form className="form-layout" onSubmit={handleSubmit}>
-        <div className="form-fields">
-          <div className="form-group">
-            <label htmlFor="title">Title</label>
+      <form
+        className={`form-layout ${forType === 'inventory' ? 'inventory-form' : ''}`}
+        onSubmit={handleSubmit}
+      >
+        <div className='form-fields'>
+          <div className='form-group'>
+            <label htmlFor='title'>
+              {forType === 'inventory' ? 'Equipment Name' : 'Title'}
+            </label>
             <input
-              type="text"
-              id="title"
-              placeholder="System Maintenance"
-              name="title"
+              type='text'
+              id='title'
+              placeholder={
+                forType === 'inventory'
+                  ? 'e.g., Laptop, Monitor'
+                  : 'System Maintenance'
+              }
+              name='title'
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="type">Type</label>
-            <select>
-              <option value="Value1">Value1</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              placeholder="Scheduled maintenance for system updates..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            ></textarea>
-          </div>
-        </div>
 
-        <div className="image-upload">
-          <label>
-            {forType === "announcement"
-              ? "Image"
-              : forType === "events"
-                ? "Images"
-                : "File"}
-          </label>
-
-          {forType === "events" ? (
-            /* ── Events: multi-file list, no image preview ── */
-            <div
-              className={`image-preview${eventFiles.length > 0 ? " has-image" : ""}`}
-              onClick={handleImageClick}
-            >
-              {eventFiles.length === 0 && !Images?.length ? (
-                <div className="image-placeholder">
-                  <div className="upload-icon">📁</div>
-                  <div className="upload-text">
-                    <strong>Click to upload</strong>
-                    <br />
-                    PNG, JPG, JPEG (min. 5 images)
-                  </div>
-                </div>
-              ) : (
-                <div className="events-file-list">
-                  {eventFiles.length > 0
-                    ? eventFiles.map((file, i) => (
-                        <div key={i} className="events-file-list-item">
-                          <span className="events-file-name">{file.name}</span>
-                        </div>
-                      ))
-                    : Images?.map((file, i) => (
-                        <div key={i} className="events-file-list-item">
-                          <span className="events-file-name">{file}</span>
-                        </div>
-                      ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            /* ── Announcement / Document: single file with image preview ── */
-            <div
-              className={`image-preview${preview ? " has-image" : ""}`}
-              id="imagePreview"
-              onClick={handleImageClick}
-            >
-              {!preview ? (
-                <div className="image-placeholder">
-                  <div className="upload-icon">📁</div>
-                  <div className="upload-text">
-                    <strong>Click to upload</strong>
-                    <br />
-                    {forType === "announcement"
-                      ? "PNG, JPG, JPEG"
-                      : "PDF files"}
-                  </div>
-                </div>
-              ) : preview?.endsWith(".pdf") ? (
-                <div className="pdf-preview">
-                  <div className="upload-icon">📄</div>
-                  <div className="upload-text">{preview}</div>
-                  {forType === "document" && (
-                    <>
-                      {selectedBoxes.length > 0 && (
-                        <div className="pdf-selected-count">
-                          ✓ {selectedBoxes.length} area(s) selected
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        className="btn btn-edit-selections"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowPdfSelector(true);
-                        }}
-                      >
-                        Edit selections
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <img id="previewImage" alt="Preview" src={preview} />
-              )}
+          {forType !== 'inventory' && (
+            <div className='form-group'>
+              <label htmlFor='description'>Description</label>
+              <textarea
+                id='description'
+                name='description'
+                placeholder='Scheduled maintenance for system updates...'
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              ></textarea>
             </div>
           )}
 
-          <input
-            type="file"
-            ref={fileInputRef}
-            multiple={forType === "events"}
-            title="Select a file to upload"
-            accept={
-              forType === "announcement"
-                ? "image/*"
-                : forType === "events"
-                  ? "image/*"
-                  : "application/pdf"
-            }
-            onChange={handleFileChange}
-            className="file-input-hidden"
-          />
+          {forType === 'inventory' && (
+            <div className='inventory-fields'>
+              <div className='form-group'>
+                <label htmlFor='quantity'>Quantity</label>
+                <input
+                  id='quantity'
+                  type='number'
+                  placeholder='0'
+                  min={0}
+                  value={quantity}
+                  name='quantity'
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  className='inventory-input'
+                />
+              </div>
 
-          {/* Minimum images hint — events only */}
-          {forType === "events" && (
-            <p className="form-file-hint">
-              {eventFiles.length} image{eventFiles.length !== 1 ? "s" : ""}{" "}
-              selected
-            </p>
+              <div className='form-group'>
+                <label htmlFor='status'>Status</label>
+                <select
+                  id='status'
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className='inventory-select'
+                >
+                  <option value='in-stock'>In Stock</option>
+                  <option value='out-of-stock'>Out of Stock</option>
+                  <option value='low-stock'>Low Stock</option>
+                </select>
+              </div>
+            </div>
           )}
         </div>
+
+        {forType !== 'inventory' && (
+          <div className='image-upload'>
+            <label>
+              {forType === 'announcement'
+                ? 'Image'
+                : forType === 'events'
+                  ? 'Images'
+                  : 'File'}
+            </label>
+
+            {forType === 'events' ? (
+              <div
+                className={`image-preview${eventFiles.length > 0 ? ' has-image' : ''}`}
+                onClick={handleImageClick}
+              >
+                {eventFiles.length === 0 && !Images?.length ? (
+                  <div className='image-placeholder'>
+                    <div className='upload-icon'>📁</div>
+                    <div className='upload-text'>
+                      <strong>Click to upload</strong>
+                      <br />
+                      PNG, JPG, JPEG (min. 5 images)
+                    </div>
+                  </div>
+                ) : (
+                  <div className='events-file-list'>
+                    {eventFiles.length > 0
+                      ? eventFiles.map((file, i) => (
+                          <div key={i} className='events-file-list-item'>
+                            <span className='events-file-name'>
+                              {file.name}
+                            </span>
+                          </div>
+                        ))
+                      : Images?.map((file, i) => (
+                          <div key={i} className='events-file-list-item'>
+                            <span className='events-file-name'>{file}</span>
+                          </div>
+                        ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div
+                className={`image-preview${preview ? ' has-image' : ''}`}
+                id='imagePreview'
+                onClick={handleImageClick}
+              >
+                {!preview ? (
+                  <div className='image-placeholder'>
+                    <div className='upload-icon'>📁</div>
+                    <div className='upload-text'>
+                      <strong>Click to upload</strong>
+                      <br />
+                      {forType === 'announcement'
+                        ? 'PNG, JPG, JPEG'
+                        : 'PDF files'}
+                    </div>
+                  </div>
+                ) : preview?.endsWith('.pdf') ? (
+                  <div className='pdf-preview'>
+                    <div className='upload-icon'>📄</div>
+                    <div className='upload-text'>{preview}</div>
+                    {forType === 'document' && (
+                      <>
+                        {selectedBoxes.length > 0 && (
+                          <div className='pdf-selected-count'>
+                            ✓ {selectedBoxes.length} area(s) selected
+                          </div>
+                        )}
+                        <button
+                          type='button'
+                          className='btn btn-edit-selections'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowPdfSelector(true);
+                          }}
+                        >
+                          Edit selections
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <img id='previewImage' alt='Preview' src={preview} />
+                )}
+              </div>
+            )}
+
+            <input
+              type='file'
+              ref={fileInputRef}
+              multiple={forType === 'events'}
+              title='Select a file to upload'
+              accept={
+                forType === 'announcement'
+                  ? 'image/*'
+                  : forType === 'events'
+                    ? 'image/*'
+                    : 'application/pdf'
+              }
+              onChange={handleFileChange}
+              className='file-input-hidden'
+            />
+
+            {forType === 'events' && (
+              <p className='form-file-hint'>
+                {eventFiles.length} image{eventFiles.length !== 1 ? 's' : ''}{' '}
+                selected
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="form-actions">
           <button
@@ -299,4 +350,5 @@ const Form = ({
 };
 
 export default Form;
+
 

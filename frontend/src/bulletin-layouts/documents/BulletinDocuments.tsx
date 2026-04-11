@@ -5,7 +5,7 @@ import "./bulletinDocument.css";
 import Typography from "../../components/typography/Typography";
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
 
-type DocumentItem = {
+export type DocumentItem = {
   id: string;
   title: string;
   description: string;
@@ -23,7 +23,6 @@ export default function BulletinDocument() {
   const [selectedDocument, setSelectedDocument] = useState<DocumentItem>(
     documents[0],
   );
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const uniqueCategories = Array.from(
@@ -42,7 +41,6 @@ export default function BulletinDocument() {
     const matchSearch = doc.title
       ?.toLocaleLowerCase()
       .includes(searchQuery.toLowerCase());
-
     return matchSearch && matchCategory;
   });
 
@@ -65,6 +63,17 @@ export default function BulletinDocument() {
           Access official records, resolutions, and proceedings of the Central
           Student Government.
         </Typography>
+      </div>
+
+      {/* Search Bar */}
+      <div className='bulletin-document-search-wrapper'>
+        <input
+          className='bulletin-document-search-input'
+          type='text'
+          placeholder='Search documents…'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
       <div className="bulletin-document-layout-wrapper">

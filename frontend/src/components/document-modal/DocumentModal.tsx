@@ -6,11 +6,13 @@ type DocumentModalProps = {
     date: string;
     memoSrc: string;
   } | null;
+  forType?: 'letter';
   onClose: () => void;
 };
 
 export default function DocumentModal({
   selected,
+  forType,
   onClose,
 }: DocumentModalProps) {
   if (!selected) return null;
@@ -23,7 +25,7 @@ export default function DocumentModal({
         </button>
         <iframe
           className='modal__iframe'
-          src={`${selected.memoSrc}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+          src={`${selected.memoSrc}#toolbar=${forType === 'letter' ? 1 : 0}&navpanes=0&scrollbar=1&view=FitH`}
           title={selected.title}
         />
       </div>

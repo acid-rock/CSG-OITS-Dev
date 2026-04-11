@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import './Inventory.css'
+import './Inventory.css';
 import { inventoryConfig } from './inventoryData';
+import Form from '../../components/form/Form';
 
 const filterByStatus = (status: boolean, filter: string): boolean => {
   if (!filter || filter === 'All') return true;
@@ -14,25 +15,24 @@ const Inventory = () => {
   const [id, setId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editQuantity, setEditQuantity] = useState(0);
-  const [editStatus, setEditStatus] = useState(true);
-  const [open, setOpen] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>('All');
   const [sort, setSort] = useState<string>('Name (A-Z)');
 
   const handleActive = (itemId: string) => {
     setActive((prev) =>
-      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId]
     );
   };
-
 
   return (
     <div className='inventory-container'>
       <div className='inventory-header'>
         <span>Inventory</span>
       </div>
-
       <div className='inventory-toolbar'>
         <span className='inventory-file-count'>
           {inventoryConfig.length} Items
@@ -44,15 +44,13 @@ const Inventory = () => {
               setId(null);
               setEditName('');
               setEditQuantity(0);
-              setEditStatus(true);
-              setOpen(true);
+              setOpenEdit(true);
             }}
           >
             Add Item
           </button>
         </div>
       </div>
-
       <div className='inventory-file-table'>
         <table>
           <colgroup>
@@ -92,8 +90,10 @@ const Inventory = () => {
               .sort((a, b) => {
                 if (sort === 'Name (A-Z)') return a.name.localeCompare(b.name);
                 if (sort === 'Name (Z-A)') return b.name.localeCompare(a.name);
-                if (sort === 'Quantity (High-Low)') return b.quantity - a.quantity;
-                if (sort === 'Quantity (Low-High)') return a.quantity - b.quantity;
+                if (sort === 'Quantity (High-Low)')
+                  return b.quantity - a.quantity;
+                if (sort === 'Quantity (Low-High)')
+                  return a.quantity - b.quantity;
                 return 0;
               })
               .map((item, idx) => (
@@ -131,8 +131,7 @@ const Inventory = () => {
                           setId(item.id);
                           setEditName(item.name);
                           setEditQuantity(item.quantity);
-                          setEditStatus(item.status);
-                          setOpen(true);
+                          setOpenEdit(true);
                         }}
                       />
                     </div>
@@ -142,10 +141,23 @@ const Inventory = () => {
           </tbody>
         </table>
       </div>
-
-    
+      {openEdit && (
+        <div className='inventory-form-position'>
+          <Form
+            forType='inventory'
+            id={id}
+            initialTitle={editName}
+            inventoryQuantity={editQuantity}
+            setOpen={setOpenEdit}
+          />
+        </div>
+      )}
     </div>
   );
 };
 
 export default Inventory;
+
+{
+  /*fix inventory form css and conditional rendering througout the panel*/
+}

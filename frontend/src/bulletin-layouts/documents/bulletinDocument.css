@@ -6,13 +6,45 @@
 
 .bulletin-document-header {
   text-align: center;
-  margin-bottom: 56px;
+  margin-bottom: 24px;
 }
 
 .bulletin-document-header > *:first-child {
   margin-bottom: 8px;
 }
 
+/* ── Search Bar ─────────────────────────────────────────── */
+.bulletin-document-search-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.bulletin-document-search-input {
+  width: 360px;
+  padding: 9px 16px;
+  font-size: 13px;
+  color: #111827;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.bulletin-document-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.bulletin-document-search-input:focus {
+  border-color: #5b8def;
+  box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.1);
+}
+
+/* ── Layout ─────────────────────────────────────────────── */
 .bulletin-document-layout-wrapper {
   display: flex;
   justify-content: center;
@@ -67,7 +99,7 @@
 .bulletin-document-content {
   height: 520px;
   overflow-y: auto;
-  padding: 4px 8px 4px 4px; /* ← breathing room so borders/shadows aren't clipped */
+  padding: 4px 8px 4px 4px;
   overscroll-behavior: contain;
 }
 
@@ -78,9 +110,8 @@
   width: 100%;
 }
 
-/* Force cards to fill grid cell width */
 .bulletin-document-grid > * {
-  max-width: 100%; /* ← overrides document-card's max-width: 360px */
+  max-width: 100%;
   width: 100%;
 }
 
@@ -93,6 +124,27 @@
   border-radius: 4px;
 }
 
+/* ── Empty State ─────────────────────────────────────────── */
+.bulletin-document-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 24px;
+  color: #9ca3af;
+}
+
+.bulletin-document-empty-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.bulletin-document-empty-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .bulletin-document-layout {
     grid-template-columns: 220px 1fr;
@@ -105,6 +157,10 @@
 }
 
 @media (max-width: 768px) {
+  .bulletin-document-search-input {
+    width: 100%;
+  }
+
   .bulletin-document-layout {
     grid-template-columns: 1fr;
   }
