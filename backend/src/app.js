@@ -29,8 +29,7 @@ app.set("trust proxy", 1);
 app.use(helmet());
 app.use(
   cors({
-    // origin: FRONTEND_URL,
-    origin: "http://localhost:5173",
+    origin: FRONTEND_URL,
     credentials: true,
   }),
 );
