@@ -1,6 +1,6 @@
 .site-announce-card {
   width: 100%;
-  height: 470px; /* fixed height — all cards same size */
+  height: 470px;
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid #e5e5e5;
@@ -11,6 +11,14 @@
     transform 0.3s ease,
     box-shadow 0.3s ease;
   margin: 0 auto;
+  will-change: transform, box-shadow;
+}
+
+.site-announce-card:focus-within {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
 }
 
 .site-announce-card:hover {
@@ -31,6 +39,8 @@
   width: 50%;
   flex-shrink: 0;
   background: #f5f5f5;
+  min-height: 0;
+  aspect-ratio: 16 / 10;
 }
 
 .site-announce-card-image img {
@@ -38,15 +48,24 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  background: linear-gradient(110deg, #f0f0f0 8%, #f8f8f8 18%, #f0f0f0 33%);
+  background-size: 200% 100%;
+  animation: 1.5s shine linear infinite;
+}
+
+@keyframes shine {
+  to {
+    background-position-x: -200%;
+  }
 }
 
 .site-announce-card-content {
   flex: 1;
-  padding: 2rem 2rem 1.75rem 2rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 0.75rem;
   min-height: 0;
   overflow: hidden;
 }
@@ -54,7 +73,8 @@
 .site-announce-card-top {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  flex-shrink: 0;
 }
 
 .site-announce-card-title {
@@ -76,12 +96,17 @@
   text-align: left;
   align-self: flex-start;
   margin: 0;
+  padding-top: 1rem;
+  flex-shrink: 0;
 }
 
 .site-announce-card-bottom {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.875rem;
+  flex: 1;
+  min-height: 0;
+  justify-content: flex-end;
 }
 
 .site-announce-card-description {
@@ -91,10 +116,12 @@
   text-align: justify;
   text-align-last: left;
   margin: 0;
+  padding-top: 0;
   display: -webkit-box;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex-shrink: 1;
 }
 
 .site-announce-card-content #learnmore {
@@ -102,29 +129,35 @@
   flex-shrink: 0;
 }
 
+/* ── Tablet landscape ── */
 @media (max-width: 1024px) {
   .site-announce-card {
-    height: 280px;
+    height: 320px;
   }
 
   .site-announce-card-content {
-    padding: 1.75rem 1.75rem 1.5rem 1.75rem;
+    padding: 1.5rem;
+    gap: 0.5rem;
   }
 
   .site-announce-card-title {
-    font-size: 1.5rem;
+    font-size: 1.15rem;
+    -webkit-line-clamp: 2;
   }
 
   .site-announce-card-description {
-    font-size: 1rem;
+    font-size: 0.9rem;
     -webkit-line-clamp: 4;
+    line-height: 1.6;
   }
 }
 
+/* ── Tablet portrait  ── */
 @media (max-width: 768px) {
   .site-announce-card {
     flex-direction: column;
     height: auto;
+    min-height: unset;
   }
 
   .site-announce-card:hover {
@@ -133,15 +166,23 @@
 
   .site-announce-card-image {
     width: 100%;
-    height: 250px;
+    height: 220px;
+    flex-shrink: 0;
   }
 
   .site-announce-card-content {
-    padding: 1.5rem 1.5rem 1.25rem 1.5rem;
+    padding: 1.25rem 1.25rem 1.125rem;
+    gap: 0.75rem;
+    justify-content: flex-start;
+  }
+
+  .site-announce-card-bottom {
+    justify-content: flex-start;
+    flex: unset;
   }
 
   .site-announce-card-title {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
   }
 
   .site-announce-card-description {
@@ -150,24 +191,52 @@
   }
 }
 
+/* ── Mobile ── */
 @media (max-width: 480px) {
   .site-announce-card-image {
-    height: 200px;
+    height: 180px;
   }
 
   .site-announce-card-content {
-    padding: 1.25rem 1.25rem 1rem 1.25rem;
+    padding: 1rem;
+    gap: 0.625rem;
   }
 
   .site-announce-card-title {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
 
   .site-announce-card-date {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
   }
 
   .site-announce-card-description {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    -webkit-line-clamp: 3;
+    line-height: 1.6;
+  }
+}
+
+/* ── Very small screens ── */
+@media (max-width: 360px) {
+  .site-announce-card-image {
+    height: 155px;
+  }
+
+  .site-announce-card-content {
+    padding: 0.875rem;
+  }
+
+  .site-announce-card-title {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-announce-card {
+    transition: none;
+  }
+  .site-announce-card:hover {
+    transform: none;
   }
 }

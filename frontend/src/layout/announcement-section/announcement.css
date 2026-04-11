@@ -1,6 +1,6 @@
 /* Container */
 .announcement-container {
-  background-image: url('../../assets/bg1.svg');
+  background-image: url("../../assets/bg1.svg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -78,7 +78,7 @@
   }
 
   .announcement-content {
-    width: 100%;
+    width: 60%;
     min-height: auto;
   }
 }
