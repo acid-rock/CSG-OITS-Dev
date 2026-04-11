@@ -5,7 +5,7 @@ import './bulletinDocument.css';
 import Typography from '../../components/typography/Typography';
 import DocumentModal from '../../components/document-modal/DocumentModal.tsx';
 
-type DocumentItem = {
+export type DocumentItem = {
   id: string;
   title: string;
   description: string;
@@ -23,7 +23,6 @@ export default function BulletinDocument() {
   const [selectedDocument, setSelectedDocument] = useState<DocumentItem>(
     documents[0]
   );
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const uniqueCategories = Array.from(
@@ -38,11 +37,9 @@ export default function BulletinDocument() {
   const filteredDocuments = documents.filter((doc) => {
     const matchCategory =
       selectedCategory === 'all' || selectedCategory === doc.category;
-
     const matchSearch = doc.title
       ?.toLocaleLowerCase()
       .includes(searchQuery.toLowerCase());
-
     return matchSearch && matchCategory;
   });
 
@@ -67,15 +64,24 @@ export default function BulletinDocument() {
         </Typography>
       </div>
 
+      {/* Search Bar */}
+      <div className='bulletin-document-search-wrapper'>
+        <input
+          className='bulletin-document-search-input'
+          type='text'
+          placeholder='Search documents…'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       <div className='bulletin-document-layout-wrapper'>
-        
         <div className='bulletin-document-layout'>
           {/* Sidebar Navigation */}
           <aside className='bulletin-document-navigation'>
             <Typography size='text-sm' color='text-dark'>
               Categories
             </Typography>
-
             <nav className='bulletin-nav-menu'>
               {categories.map((category) => (
                 <button
@@ -95,18 +101,29 @@ export default function BulletinDocument() {
           {/* Document Grid */}
           <main className='bulletin-document-content'>
             <div className='bulletin-document-grid'>
-              {filteredDocuments.map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  id={doc.id}
-                  title={doc.title}
-                  description={doc.description}
-                  date={doc.date}
-                  term={doc.term}
-                  onSelect={() => handleSelect(doc)}
-                  onView={() => handleView(doc)}
-                />
-              ))}
+              {filteredDocuments.length === 0 ? (
+                <div className='bulletin-document-empty'>
+                  <p className='bulletin-document-empty-title'>
+                    No documents found
+                  </p>
+                  <p className='bulletin-document-empty-sub'>
+                    Try a different search term or category.
+                  </p>
+                </div>
+              ) : (
+                filteredDocuments.map((doc) => (
+                  <DocumentCard
+                    key={doc.id}
+                    id={doc.id}
+                    title={doc.title}
+                    description={doc.description}
+                    date={doc.date}
+                    term={doc.term}
+                    onSelect={() => handleSelect(doc)}
+                    onView={() => handleView(doc)}
+                  />
+                ))
+              )}
             </div>
           </main>
         </div>

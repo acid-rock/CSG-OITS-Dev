@@ -56,7 +56,9 @@
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
 }
 
 .inventory-add-btn:hover {
@@ -123,7 +125,9 @@
   background-color: #fff;
   position: relative;
   display: inline-block;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
 }
 
 .inventory-file-table input[type='checkbox']:checked {
@@ -134,7 +138,7 @@
 .inventory-file-table input[type='checkbox']:checked::after {
   content: '';
   position: absolute;
-  left: 3px;
+  left: 4.5px;
   top: 0px;
   width: 5px;
   height: 9px;
@@ -177,7 +181,10 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  transition: opacity 0.18s ease, transform 0.18s ease, filter 0.15s;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    filter 0.15s;
 }
 
 /* Scrollbar */
@@ -218,6 +225,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   background: rgba(255, 255, 255, 0.3);
 }

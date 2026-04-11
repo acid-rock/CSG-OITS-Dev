@@ -30,6 +30,10 @@
   align-items: start;
 }
 
+.form-layout.inventory-form {
+  grid-template-columns: 1fr;
+}
+
 .form-fields {
   display: flex;
   flex-direction: column;
@@ -381,4 +385,42 @@
   .form-actions {
     grid-column: 1;
   }
+}
+
+/* Inventory Form Styles */
+.form-layout.inventory-form {
+  grid-template-columns: 1fr;
+}
+
+.inventory-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.inventory-input,
+.inventory-select {
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid #e5eaf2;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: #f8fafd;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
+}
+
+.inventory-select {
+  cursor: pointer;
+}
+
+.inventory-input:focus,
+.inventory-select:focus {
+  outline: none;
+  border-color: #5396d5;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(83, 150, 213, 0.12);
 }
