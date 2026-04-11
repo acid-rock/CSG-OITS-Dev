@@ -343,12 +343,17 @@
 
 .events-file-list-item {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.6rem;
   background: #f0f7ff;
   border-radius: 6px;
   border: 1px solid #c8d9f0;
+}
+
+.delete-button-image{
+  width: 30px;
 }
 
 .events-file-icon {

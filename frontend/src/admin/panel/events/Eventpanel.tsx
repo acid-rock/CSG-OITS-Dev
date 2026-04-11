@@ -18,12 +18,13 @@ const sortOptions = [
 
 const Eventpanel = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [active, setActive] = useState<string[]>([]);
   const [id, setId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [images, setImages] = useState<string[]>();
   const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
-  const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>("All");
   const [sort, setSort] = useState<string>("");
   const [data, setData] = useState<Event[]>([]);
@@ -220,6 +221,9 @@ const Eventpanel = () => {
                       onClick={() => {
                         setId(file.id);
                         setEditTitle(file.name);
+                        if(file?.images){
+                          setImages(file.images)
+                        }
                         setEditDescription(file.description);
                         setOpen(true);
                       }}
@@ -249,6 +253,7 @@ const Eventpanel = () => {
           <Form
             forType="events"
             id={id}
+            Images={images}
             initialTitle={editTitle}
             initialDescription={editDescription}
             setOpen={setOpen}

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./form.css";
 import type { Box } from "../pdf-selector-components/pdf-selector";
 import PdfSelector from "../pdf-selector-components/pdf-selector";
@@ -28,7 +28,6 @@ const Form = ({
   const [pdf, setPdf] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [selectedBoxes, setSelectedBoxes] = useState<Box[]>([]);
-
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [eventFiles, setEventFiles] = useState<File[]>([]);
@@ -161,11 +160,7 @@ const Form = ({
             <input
               type='text'
               id='title'
-              placeholder={
-                forType === 'inventory'
-                  ? 'e.g., Laptop, Monitor'
-                  : 'System Maintenance'
-              }
+              placeholder='System Maintenance'
               name='title'
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -254,7 +249,8 @@ const Form = ({
                         ))
                       : Images?.map((file, i) => (
                           <div key={i} className='events-file-list-item'>
-                            <span className='events-file-name'>{file}</span>
+                            <span className='events-file-name'>{file.split("/").pop()}</span>
+                            <img src="/asset/delete.png" alt="delete" className="delete-button-image" />
                           </div>
                         ))}
                   </div>
@@ -325,7 +321,7 @@ const Form = ({
 
             {forType === 'events' && (
               <p className='form-file-hint'>
-                {eventFiles.length} image{eventFiles.length !== 1 ? 's' : ''}{' '}
+                {Images?.length} image{Images?.length !== 1 ? 's' : ''}{' '}
                 selected
               </p>
             )}
