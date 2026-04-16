@@ -1,9 +1,12 @@
 /* Container */
 .announcement-container {
-  background-image: url("../../assets/bg1.svg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: linear-gradient(
+    to bottom,
+    #f4f6fa 0%,
+    #cfd9f3 50%,
+    #4a78e0 80%,
+    #4a78e0 100%
+  );
 
   display: flex;
   flex-direction: column;
@@ -34,19 +37,6 @@
   height: auto;
   align-items: center;
   justify-content: center;
-}
-
-/* Wave */
-.wave-image {
-  width: 100%;
-  margin-top: 2rem;
-}
-
-.wave {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: cover;
 }
 
 /* TABLET */
@@ -87,9 +77,5 @@
 @media (max-width: 480px) {
   .announcement-layout {
     gap: 1.25rem;
-  }
-
-  .wave-image {
-    margin-top: 1.5rem;
   }
 }

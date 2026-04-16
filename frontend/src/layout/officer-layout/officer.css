@@ -1,11 +1,21 @@
 .officer-container {
+  background: linear-gradient(
+    to bottom,
+    #f4f6fa 0%,
+    #cfd9f3 50%,
+    #4a78e0 78%,
+    #4a78e0 92%,
+    #5a6473 100%
+  );
+
+  /*
+  background: linear-gradient( to bottom, #f4f6fa 0%, #cfd9f3 50%, #4a78e0 80%, #4a78e0 100% );
+  */
+
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 80px 20px;
-  background: url("../../assets/officer.svg");
-  background-size: cover;
-  background-position: center;
 }
 
 .officer-layout {
@@ -110,20 +120,20 @@
 .officer-name {
   font-size: 16px;
   font-weight: 600;
-  color: white;
+  color: black;
   margin: 4px 0;
 }
 
 .officer-position {
   font-size: 13px;
-  color: #dbeafe;
+  color: black;
   margin-bottom: 10px;
 }
 
 .officer-socials {
   display: flex;
   gap: 10px;
-  color: white;
+  color: black;
   font-size: 14px;
 }
 

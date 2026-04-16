@@ -1,12 +1,11 @@
-import DocumentCard from '../../components/document-card/Document-card';
-import Typography from '../../components/typography/Typography';
-import './document.css';
-import Button from '../../components/button/Button';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import documents from '../../config/documentsConfig.ts';
-import DocumentModal from '../../components/document-modal/DocumentModal.tsx';
-import wave from '../../assets/1.svg'
+import DocumentCard from "../../components/document-card/Document-card";
+import Typography from "../../components/typography/Typography";
+import "./document.css";
+import Button from "../../components/button/Button";
+import { Link } from "react-router-dom";
+import { useState } from "react";
+import documents from "../../config/documentsConfig.ts";
+import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
 
 type DocumentItem = {
   id: string;
@@ -28,26 +27,23 @@ export default function Document() {
   };
 
   const scroll = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <div className='document-container'>
-      <div className='document-wave'>
-        <img className='wave' src={wave} alt='Wave' />
-      </div>
-      <div className='document-layout'>
-        <div className='document-texts'>
-          <Typography size='text-md' color='text-white'>
+    <div className="document-container">
+      <div className="document-layout">
+        <div className="document-texts">
+          <Typography size="text-md" color="text-dark">
             Comprehensive Document Library
           </Typography>
-          <Typography size='text-sm' color='text-white'>
+          <Typography size="text-sm" color="text-dark">
             Explore our comprehensive library of official documents, memos, and
             reports.
           </Typography>
         </div>
 
-        <div className='document-grid'>
+        <div className="document-grid">
           {documents.slice(0, 4).map((docu) => (
             <DocumentCard
               key={docu.id}
@@ -57,18 +53,18 @@ export default function Document() {
               description={docu.description}
               term={docu.term}
               date={docu.date}
-              variant='default'
+              variant="default"
               onSelect={() => {}}
               onView={() => handleView(docu)}
             />
           ))}
         </div>
 
-        <div className='view-btn'>
-          <Button variant='primary'>
+        <div className="view-btn">
+          <Button variant="primary">
             <Link
-              to='/bulletin'
-              style={{ textDecoration: 'none', color: 'white' }}
+              to="/bulletin"
+              style={{ textDecoration: "none", color: "white" }}
               onClick={scroll}
             >
               VIEW ALL
@@ -81,8 +77,8 @@ export default function Document() {
         <DocumentModal
           selected={{
             title: selectedDoc.title,
-            date: selectedDoc.date ?? '',
-            memoSrc: selectedDoc.url ?? selectedDoc.memoSrc ?? '',
+            date: selectedDoc.date ?? "",
+            memoSrc: selectedDoc.url ?? selectedDoc.memoSrc ?? "",
           }}
           onClose={() => {
             setIsModalOpen(false);

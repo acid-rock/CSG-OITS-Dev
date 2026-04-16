@@ -8,7 +8,7 @@
   max-width: 280px;
   background: transparent !important;
   border: none !important;
-  box-shadow: none !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
 }
 
 .officer-card-image {
@@ -38,13 +38,13 @@
 .officer-card-content h3:first-child {
   font-size: clamp(14px, 2vw, 18px);
   font-weight: 600;
-  color: #fff;
+  color: black;
   margin: 4px 0;
 }
 
 .officer-card-title {
   font-size: clamp(12px, 1.8vw, 14px);
-  color: #fff;
+  color: black;
   margin-bottom: 8px;
 }
 

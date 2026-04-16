@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import eventData from '../../config/eventsConfig';
-import Typography from '../../components/typography/Typography';
-import AnnouncementCard from '../../components/announcement-card/Announcement-card';
-import './announcement.css';
-import Modal from '../../components/modal/Modal';
-import Button from '../../components/button/Button';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import eventData from "../../config/eventsConfig";
+import Typography from "../../components/typography/Typography";
+import AnnouncementCard from "../../components/announcement-card/Announcement-card";
+import "./announcement.css";
+import Modal from "../../components/modal/Modal";
+import Button from "../../components/button/Button";
+import { Link } from "react-router-dom";
 
 export default function Announcement() {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
@@ -31,41 +31,41 @@ export default function Announcement() {
   }, []);
 
   const scroll = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const currentEvent = eventData[currentSlide];
   return (
-    <section className='announcement-container'>
-      <div className='announcement-layout'>
-        <div className='announcement-texts'>
-          <Typography size='text-md' color='text-white'>
+    <section className="announcement-container">
+      <div className="announcement-layout">
+        <div className="announcement-texts">
+          <Typography size="text-md" color="text-dark">
             Announcements
           </Typography>
-          <Typography size='text-sm' color='text-white'>
+          <Typography size="text-sm" color="text-dark">
             Explore official records from student government proceedings
           </Typography>
         </div>
 
         {/* Slideshow */}
-        <div className='announcement-content'>
+        <div className="announcement-content">
           {currentEvent && (
             <AnnouncementCard
               title={currentEvent.title}
               description={currentEvent.description}
               date={currentEvent.date}
               image={currentEvent.image}
-              variant='default'
+              variant="default"
               onClick={() => handleCardClick(currentEvent)}
             />
           )}
         </div>
 
-        <div className='view-btn'>
-          <Button variant='primary'>
+        <div className="view-btn">
+          <Button variant="primary">
             <Link
-              to='/announcement'
-              style={{ textDecoration: 'none', color: 'white' }}
+              to="/announcement"
+              style={{ textDecoration: "none", color: "white" }}
               onClick={scroll}
             >
               VIEW ALL

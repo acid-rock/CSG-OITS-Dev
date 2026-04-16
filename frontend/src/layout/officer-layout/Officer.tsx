@@ -1,26 +1,25 @@
-import OfficerCard from '../../components/officer-card/Officer-card'
-import Typography from '../../components/typography/Typography'
-import officer from '../../config/officerConfig'
-import board from '../../config/boardConfig'
-import { Link } from 'react-router-dom'
-import Button from '../../components/button/Button'
-import './officer.css'
-import adviser from '../../config/adviserConfig'
+import OfficerCard from "../../components/officer-card/Officer-card";
+import Typography from "../../components/typography/Typography";
+import officer from "../../config/officerConfig";
+import board from "../../config/boardConfig";
+import { Link } from "react-router-dom";
+import Button from "../../components/button/Button";
+import "./officer.css";
+import adviser from "../../config/adviserConfig";
 
 export default function Officer() {
   const scroll = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   return (
     <section className="officer-container" id="officers">
       <div className="officer-layout">
-
         <div className="document-texts">
-          <Typography size="text-md" color="text-white">
+          <Typography size="text-md" color="text-dark">
             Executive Officers
           </Typography>
 
-          <Typography size="text-light" color="text-white">
+          <Typography size="text-light" color="text-dark">
             Meet your Executive Officers
           </Typography>
         </div>
@@ -38,11 +37,11 @@ export default function Officer() {
         </div>
 
         <div className="document-texts">
-          <Typography size="text-md" color="text-white">
+          <Typography size="text-md" color="text-dark">
             Board Members
           </Typography>
 
-          <Typography size="text-light" color="text-white">
+          <Typography size="text-light" color="text-dark">
             Meet the Board Members
           </Typography>
         </div>
@@ -60,11 +59,11 @@ export default function Officer() {
         </div>
 
         <div className="document-texts">
-          <Typography size="text-md" color="text-white">
+          <Typography size="text-md" color="text-dark">
             Advisers
           </Typography>
 
-          <Typography size="text-light" color="text-white">
+          <Typography size="text-light" color="text-dark">
             Meet our Advisers
           </Typography>
         </div>
@@ -85,15 +84,14 @@ export default function Officer() {
           <Button variant="primary">
             <Link
               to="/officers"
-              style={{ textDecoration: 'none', color: 'white' }}
+              style={{ textDecoration: "none", color: "white" }}
               onClick={scroll}
             >
               VIEW ALL
             </Link>
           </Button>
         </div>
-
       </div>
     </section>
-  )
+  );
 }

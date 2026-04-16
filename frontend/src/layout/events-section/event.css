@@ -1,26 +1,17 @@
 .event-container {
+  background: linear-gradient(
+    to bottom,
+    #f4f6fa 0%,
+    #cfd9f3 50%,
+    #4a78e0 80%,
+    #4a78e0 100%
+  );
+
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: auto;
-  background-image: url("../../assets/Events.svg");
   flex-direction: column;
-}
-
-.event-wave {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
-  position: relative;
-  z-index: 1;
-}
-
-.event-wave img {
-  width: 100%;
-  height: auto;
-  display: block;
 }
 
 .event-layout {
@@ -30,6 +21,7 @@
   justify-content: center;
   gap: 1.5rem;
   width: 100%;
+  height: 100vh;
   max-width: 1400px;
   padding: 2rem;
   position: relative;
