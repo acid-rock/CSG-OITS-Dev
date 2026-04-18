@@ -4,67 +4,50 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-top: 5rem;
   position: relative;
   overflow: hidden;
 }
 
-/* LAYOUT */
-.about-layout {
-  display: flex;
-  flex-direction: column;
-  max-width: 1400px;
+.about-carousel {
+  overflow: hidden;
   width: 100%;
-  align-items: center;
-  justify-content: center;
   position: relative;
-  z-index: 2;
 }
 
-/* TEXT CENTERING */
-.about-text-layout {
-  text-align: center;
+.about-carousel-track {
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease-in-out;
 }
 
-/* CONTENT GRID */
-.about-content {
-  display: grid;
+.about-slide {
+  min-width: 100%;
   width: 100%;
-  gap: 2rem;
-  margin: 2rem auto;
-  grid-template-columns: 1fr 1fr;
+  flex-shrink: 0;
 }
 
-.about-content-image img {
-  border-radius: 12px;
-  max-width: 100%;
-  height: auto;
+.about-carousel-btn {
+  position: absolute;
+  top: 50%;
+  background-color: none;
+  transform: translateY(-50%);
+  color: white;
+  padding: 6px 10px;
+  border: none;
+  cursor: pointer;
 }
 
-/* TITLES */
-.about-title h1 {
-  font-size: clamp(28px, 5vw, 52px);
-  line-height: clamp(2.5rem, 6vw, 4rem);
+.about-carousel-btn.left {
+  left: 10px;
 }
 
-.about-content-text h1 {
-  margin: 0;
-  text-align: justify;
-  font-weight: normal;
-  font-size: clamp(16px, 2.5vw, 24px);
-  line-height: clamp(1.6rem, 3vw, 2rem);
+.about-carousel-btn.right {
+  right: 10px;
 }
 
 /* WAVE */
-.about-wave {
-  width: 100%;
-  line-height: 0;
-  margin-top: -100px;
-  position: relative;
-  z-index: 1;
-}
-
 .wave {
+  margin-top: 10rem;
   width: 100%;
   height: 200px;
   display: block;
@@ -73,32 +56,6 @@
 
 /* TABLET */
 @media (max-width: 1024px) {
-  .about-layout {
-    padding: 0 20px;
-  }
-
-  .about-content {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .about-content > *:nth-child(1) {
-    order: 1;
-  }
-  .about-content > *:nth-child(2) {
-    order: 2;
-  }
-  .about-content > *:nth-child(3) {
-    order: 4;
-  }
-  .about-content > *:nth-child(4) {
-    order: 3;
-  }
-
-  .about-wave {
-    margin-top: -70px;
-  }
-
   .wave {
     height: 160px;
   }
@@ -106,18 +63,6 @@
 
 /* MOBILE */
 @media (max-width: 768px) {
-  .about-layout {
-    padding: 0 16px;
-  }
-
-  .about-content {
-    gap: 1.2rem;
-  }
-
-  .about-wave {
-    margin-top: -50px;
-  }
-
   .wave {
     height: 130px;
   }
@@ -125,18 +70,6 @@
 
 /* SMALL MOBILE */
 @media (max-width: 480px) {
-  .about-layout {
-    padding: 0 12px;
-  }
-
-  .about-content {
-    gap: 1rem;
-  }
-
-  .about-wave {
-    margin-top: -40px;
-  }
-
   .wave {
     height: 110px;
   }

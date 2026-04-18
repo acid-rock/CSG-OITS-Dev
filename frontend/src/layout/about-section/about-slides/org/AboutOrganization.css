@@ -1,0 +1,158 @@
+/* AboutOrganization.css */
+
+.about-organization-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 0 10rem;
+}
+
+.about-texts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+/* ── Sidebar ── */
+
+.organization-main {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.organization-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  flex: 1;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 24px 20px;
+  box-shadow: 0 2px 12px rgba(24, 94, 165, 0.372);
+}
+
+.organization-details {
+  display: flex;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.organization-details img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #85b7eb;
+  background: #b5d4f4;
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.organization-details.active img {
+  border-color: #185fa5;
+}
+
+.organization-details span {
+  font-size: 15px;
+  font-weight: 500;
+  color: #0c447c;
+}
+
+/* ── Overview panel ── */
+
+.organization-overview {
+  background: #ffffff;
+  max-width: 400px;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(24, 94, 165, 0.396);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.overview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #b5d4f4;
+  font-size: 14px;
+}
+
+.overview-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #e6f1fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.overview-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.overview-logo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #185fa5;
+  background: #b5d4f4;
+}
+
+.overview-name {
+  font-size: 22px;
+  font-weight: 600;
+  color: #0c447c;
+  margin: 0;
+  text-align: center;
+}
+
+.overview-details {
+  font-size: 14px;
+  color: #378add;
+  margin: 0;
+  text-align: center;
+  line-height: 1.7;
+  max-width: 480px;
+}
+
+.overview-badge {
+  display: inline-block;
+  background: #e6f1fb;
+  color: #185fa5;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 0.5px solid #85b7eb;
+}
+
+.overview-divider {
+  width: 100%;
+  height: 0.5px;
+  background: #b5d4f4;
+  margin: 4px 0;
+}

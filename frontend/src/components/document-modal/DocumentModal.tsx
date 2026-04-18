@@ -5,7 +5,7 @@ type DocumentModalProps = {
     title: string;
     date: string;
     memoSrc: string;
-  } | null;
+  };
   forType?: 'letter';
   onClose: () => void;
 };

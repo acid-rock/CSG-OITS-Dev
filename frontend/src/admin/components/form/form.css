@@ -160,6 +160,21 @@
   display: none;
 }
 
+.document-type-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.document-type-selection select {
+  border-color: #5396d5;
+}
+
 .upload-icon {
   width: 52px;
   height: 52px;
@@ -352,7 +367,7 @@
   border: 1px solid #c8d9f0;
 }
 
-.delete-button-image{
+.delete-button-image {
   width: 30px;
 }
 

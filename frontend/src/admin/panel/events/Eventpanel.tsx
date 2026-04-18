@@ -1,32 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
-import "./Eventpanel.css";
-import FilterSelect from "../../components/filter/Filter";
-import Form from "../../components/form/Form";
-import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
-import Actionbar from "../../components/action-bar/Actionbar";
-import fetchEvents from "../../../config/eventConfig";
-import { type Event } from "../../../root-layout/Root-layout.tsx";
-import { DateTime } from "luxon";
+import { useEffect, useMemo, useState } from 'react';
+import './Eventpanel.css';
+import FilterSelect from '../../components/filter/Filter';
+import Form from '../../components/form/Form';
+import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
+import Actionbar from '../../components/action-bar/Actionbar';
+import fetchEvents from '../../../config/eventConfig';
+import { type Event } from '../../../root-layout/Root-layout.tsx';
+import { DateTime } from 'luxon';
 
-const filterOptions = ["All", "Today", "This Week", "This Month"];
+const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
 const sortOptions = [
-  "Name (A-Z)",
-  "Name (Z-A)",
-  "Date (Newest)",
-  "Date (Oldest)",
+  'Name (A-Z)',
+  'Name (Z-A)',
+  'Date (Newest)',
+  'Date (Oldest)',
 ];
 
 const Eventpanel = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [active, setActive] = useState<string[]>([]);
   const [id, setId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [images, setImages] = useState<string[]>();
   const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
-  const [filter, setFilter] = useState<string>("All");
-  const [sort, setSort] = useState<string>("");
+  const [filter, setFilter] = useState<string>('All');
+  const [sort, setSort] = useState<string>('');
   const [data, setData] = useState<Event[]>([]);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const Eventpanel = () => {
     setActive((prev) =>
       prev.includes(fileName)
         ? prev.filter((name) => name !== fileName)
-        : [...prev, fileName],
+        : [...prev, fileName]
     );
   };
 
@@ -58,18 +58,18 @@ const Eventpanel = () => {
     const filteredData = data.filter((event) => {
       let eventDate;
       switch (filter) {
-        case "All":
+        case 'All':
           return true;
-        case "Today":
+        case 'Today':
           eventDate = DateTime.fromISO(event.date);
-          return eventDate.hasSame(now, "day");
+          return eventDate.hasSame(now, 'day');
 
-        case "This Week":
+        case 'This Week':
           const lastWeek = now.minus({ days: 7 });
           eventDate = DateTime.fromISO(event.date);
           return eventDate >= lastWeek && eventDate <= now;
 
-        case "This Month":
+        case 'This Month':
           const lastMonth = now.minus({ months: 1 });
           eventDate = DateTime.fromISO(event.date);
           return eventDate >= lastMonth && eventDate <= now;
@@ -81,13 +81,13 @@ const Eventpanel = () => {
 
     const sortedData = [...filteredData].sort((a: Event, b: Event) => {
       switch (sort) {
-        case "Name (A-Z)":
+        case 'Name (A-Z)':
           return a.name.localeCompare(b.name);
-        case "Name (Z-A)":
+        case 'Name (Z-A)':
           return b.name.localeCompare(a.name);
-        case "Date (Newest)":
+        case 'Date (Newest)':
           return new Date(b.date).getTime() - new Date(a.date).getTime();
-        case "Date (Oldest)":
+        case 'Date (Oldest)':
           return new Date(a.date).getTime() - new Date(b.date).getTime();
         default:
           return 0;
@@ -100,43 +100,43 @@ const Eventpanel = () => {
   console.log(modifiedData);
 
   return (
-    <div className="events-container">
-      <div className="events-header">
+    <div className='events-container'>
+      <div className='events-header'>
         <span>Events</span>
       </div>
 
-      <div className="events-toolbar">
-        <span className="events-file-count">{data.length} Files</span>
-        <div className="events-toolbar-actions">
+      <div className='events-toolbar'>
+        <span className='events-file-count'>{data.length} Files</span>
+        <div className='events-toolbar-actions'>
           <FilterSelect
             options={filterOptions}
             value={filter}
             onChange={setFilter}
-            label="Filter"
+            label='Filter'
           />
           <FilterSelect
             options={sortOptions}
             value={sort}
             onChange={setSort}
-            label="Sort"
+            label='Sort'
           />
           <button
-            className="events-action-btn events-refresh-btn"
-            title="Refresh"
+            className='events-action-btn events-refresh-btn'
+            title='Refresh'
             onClick={handleRefresh}
           >
             <img
-              src="/refresh.png"
-              alt="refresh"
-              className={spinning ? "events-spin refresh-img" : "refresh-img"}
+              src='/refresh.png'
+              alt='refresh'
+              className={spinning ? 'events-spin refresh-img' : 'refresh-img'}
             />
           </button>
           <button
-            className="events-add-btn"
+            className='events-add-btn'
             onClick={() => {
               setId(null);
-              setEditTitle("");
-              setEditDescription("");
+              setEditTitle('');
+              setEditDescription('');
               setOpen(true);
             }}
           >
@@ -149,26 +149,26 @@ const Eventpanel = () => {
         <Actionbar
           items={active.length}
           selectedIds={active}
-          source="announcement"
+          source='announcement'
         />
       )}
 
-      <div className="events-file-table">
+      <div className='events-file-table'>
         <table>
           <colgroup>
-            <col className="col-checkbox" />
-            <col className="col-image" />
-            <col className="col-filename" />
-            <col className="col-description" />
-            <col className="col-date" />
-            <col className="col-actions" />
+            <col className='col-checkbox' />
+            <col className='col-image' />
+            <col className='col-filename' />
+            <col className='col-description' />
+            <col className='col-date' />
+            <col className='col-actions' />
           </colgroup>
           <thead>
-            <tr className="events-table-header-light">
+            <tr className='events-table-header-light'>
               <th>
                 <input
-                  type="checkbox"
-                  title="Select All"
+                  type='checkbox'
+                  title='Select All'
                   checked={active.length === modifiedData.length}
                   onChange={() => {
                     if (active.length === modifiedData.length) {
@@ -190,12 +190,12 @@ const Eventpanel = () => {
             {modifiedData.map((file, idx) => (
               <tr
                 key={idx}
-                className={`events-table-row ${active.includes(file.name) ? "events-active" : ""}`}
+                className={`events-table-row ${active.includes(file.name) ? 'events-active' : ''}`}
               >
                 <td>
                   <input
-                    className="checkbox"
-                    type="checkbox"
+                    className='checkbox'
+                    type='checkbox'
                     title={`Select ${file.name}`}
                     checked={active.includes(file.name)}
                     onChange={() => handleActive(file.name)}
@@ -204,25 +204,25 @@ const Eventpanel = () => {
                 <td>{file.name}</td>
                 <td>{file.images?.length}</td>
                 <td>{file.description}</td>
-                <td>{DateTime.fromISO(file.date).toFormat("MMM d, yyyy")}</td>
-                <td className="events-file-btn">
-                  <div className="events-file-btn-inner">
+                <td>{DateTime.fromISO(file.date).toFormat('MMM d, yyyy')}</td>
+                <td className='events-file-btn'>
+                  <div className='events-file-btn-inner'>
                     <img
-                      src="/bin.png"
-                      alt="Delete"
+                      src='/bin.png'
+                      alt='Delete'
                       onClick={() => {
                         setId(file.id);
                         setIsModalOpen(true);
                       }}
                     />
                     <img
-                      src="/edit.png"
-                      alt="Edit"
+                      src='/edit.png'
+                      alt='Edit'
                       onClick={() => {
                         setId(file.id);
                         setEditTitle(file.name);
-                        if(file?.images){
-                          setImages(file.images)
+                        if (file?.images) {
+                          setImages(file.images);
                         }
                         setEditDescription(file.description);
                         setOpen(true);
@@ -237,10 +237,10 @@ const Eventpanel = () => {
       </div>
 
       {isModalOpen && (
-        <div className="events-modal-position">
+        <div className='events-modal-position'>
           <DeleteModal
             isOpen={isModalOpen}
-            source="announcement"
+            source='announcement'
             id={id}
             onClose={() => setIsModalOpen(false)}
             onConfirm={() => setActive((prev) => prev.filter((a) => a !== id))}
@@ -249,9 +249,9 @@ const Eventpanel = () => {
       )}
 
       {open && (
-        <div className="events-form-position">
+        <div className='events-form-position'>
           <Form
-            forType="events"
+            forType='events'
             id={id}
             Images={images}
             initialTitle={editTitle}

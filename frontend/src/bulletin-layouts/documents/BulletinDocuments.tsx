@@ -1,9 +1,9 @@
-import { useState } from "react";
-import DocumentCard from "../../components/document-card/Document-card";
-import documents from "../../config/documentsConfig.ts";
-import "./bulletinDocument.css";
-import Typography from "../../components/typography/Typography";
-import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
+import { useEffect, useState } from 'react';
+import DocumentCard from '../../components/document-card/Document-card';
+import './bulletinDocument.css';
+import Typography from '../../components/typography/Typography';
+import DocumentModal from '../../components/document-modal/DocumentModal.tsx';
+import fetchDocuments from '../../config/documentsConfig.ts';
 
 export type DocumentItem = {
   id: string;
@@ -14,30 +14,44 @@ export type DocumentItem = {
   url?: string;
   size?: string;
   type?: string;
+  term: string;
   memoSrc?: string;
 };
 
 export default function BulletinDocument() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedDocument, setSelectedDocument] = useState<DocumentItem>(
-    documents[0],
-  );
+  const [searchQuery, setSearchQuery] = useState('');
+  const [documents, setDocuments] = useState<DocumentItem[]>();
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedDocument, setSelectedDocument] = useState<DocumentItem>();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await fetchDocuments();
+
+      if (!res) {
+        console.log('failed to fetch documents');
+        return;
+      }
+
+      setDocuments(res);
+    };
+
+    fetchData();
+  }, []);
+
   const uniqueCategories = Array.from(
-    new Set(documents.map((doc) => doc.category)),
+    new Set(documents?.map((doc: DocumentItem) => doc.category))
   );
 
   const categories = [
-    { id: "all", label: "All Documents" },
+    { id: 'all', label: 'All Documents' },
     ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
   ];
 
-  const filteredDocuments = documents.filter((doc) => {
+  const filteredDocuments = documents?.filter((doc) => {
     const matchCategory =
-      selectedCategory === "all" || selectedCategory === doc.category;
-
+      selectedCategory === 'all' || selectedCategory === doc.category;
     const matchSearch = doc.title
       ?.toLocaleLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -54,12 +68,12 @@ export default function BulletinDocument() {
   };
 
   return (
-    <section id="documents" className="bulletin-document-container">
-      <div className="bulletin-document-header">
-        <Typography size="text-md" color="text-dark">
+    <section id='documents' className='bulletin-document-container'>
+      <div className='bulletin-document-header'>
+        <Typography size='text-md' color='text-dark'>
           Documents
         </Typography>
-        <Typography size="text-sm" color="text-ghost">
+        <Typography size='text-sm' color='text-ghost'>
           Access official records, resolutions, and proceedings of the Central
           Student Government.
         </Typography>
@@ -76,21 +90,20 @@ export default function BulletinDocument() {
         />
       </div>
 
-      <div className="bulletin-document-layout-wrapper">
-        <div className="bulletin-document-layout">
+      <div className='bulletin-document-layout-wrapper'>
+        <div className='bulletin-document-layout'>
           {/* Sidebar Navigation */}
-          <aside className="bulletin-document-navigation">
-            <Typography size="text-sm" color="text-dark">
+          <aside className='bulletin-document-navigation'>
+            <Typography size='text-sm' color='text-dark'>
               Categories
             </Typography>
-
-            <nav className="bulletin-nav-menu">
+            <nav className='bulletin-nav-menu'>
               {categories.map((category) => (
                 <button
                   key={category.id}
-                  type="button"
+                  type='button'
                   className={`bulletin-nav-item ${
-                    selectedCategory === category.id ? "active" : ""
+                    selectedCategory === category.id ? 'active' : ''
                   }`}
                   onClick={() => setSelectedCategory(category.id)}
                 >
@@ -101,32 +114,43 @@ export default function BulletinDocument() {
           </aside>
 
           {/* Document Grid */}
-          <main className="bulletin-document-content">
-            <div className="bulletin-document-grid">
-              {filteredDocuments.map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  id={doc.id}
-                  title={doc.title}
-                  description={doc.description}
-                  date={doc.date}
-                  term={doc.term}
-                  onSelect={() => handleSelect(doc)}
-                  onView={() => handleView(doc)}
-                />
-              ))}
+          <main className='bulletin-document-content'>
+            <div className='bulletin-document-grid'>
+              {filteredDocuments?.length === 0 ? (
+                <div className='bulletin-document-empty'>
+                  <p className='bulletin-document-empty-title'>
+                    No documents found
+                  </p>
+                  <p className='bulletin-document-empty-sub'>
+                    Try a different search term or category.
+                  </p>
+                </div>
+              ) : (
+                filteredDocuments?.map((doc) => (
+                  <DocumentCard
+                    key={doc.id}
+                    id={doc.id}
+                    title={doc.title}
+                    description={doc.description}
+                    date={doc.date}
+                    term={doc.term}
+                    onSelect={() => handleSelect(doc)}
+                    onView={() => handleView(doc)}
+                  />
+                ))
+              )}
             </div>
           </main>
         </div>
       </div>
 
       {/* Modal */}
-      {isModalOpen && (
+      {isModalOpen && selectedDocument && (
         <DocumentModal
           selected={{
             title: selectedDocument.title,
-            date: selectedDocument.date ?? "",
-            memoSrc: selectedDocument.url ?? selectedDocument.memoSrc ?? "",
+            date: selectedDocument?.date ?? '',
+            memoSrc: selectedDocument?.url ?? selectedDocument?.memoSrc ?? '',
           }}
           onClose={() => setIsModalOpen(false)}
         />
