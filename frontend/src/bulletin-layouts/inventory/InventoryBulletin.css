@@ -1,59 +1,119 @@
 .inventory-bulletin-container {
   display: flex;
   flex-direction: column;
-  height: 97vh;
-  border-radius: 1rem;
-  overflow: hidden;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 2rem;
+  box-sizing: border-box;
 }
+
+/* ── Header ── */
 
 .inventory-header {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  flex-shrink: 0;
-  padding: 1rem 1.5rem;
-  margin-top: 3rem;
+  padding: 1.5rem 1.5rem 1rem;
+  gap: 6px;
 }
 
 .inventory-header h1 {
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 2rem;
   margin: 0;
+  color: #0c447c;
+  letter-spacing: -0.5px;
 }
 
 .inventory-header p {
-  font-size: 0.9rem;
-  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  margin: 0;
+  color: #378add;
 }
+
+/* ── Letter container ── */
 
 .letter-container {
-  width: 30px;
+  width: 100%;
 }
 
+/* ── Main content ── */
+
 .inventory-main-content {
-  background-color: #fff;
-  border-radius: 0.5rem;
+  background: #ffffff;
+  border-radius: 14px;
   max-height: 75vh;
+  width: 100%;
+  max-width: 1100px;
   overflow: auto;
-  margin: 1rem 1.5rem;
-  border: 1px solid #3c92fc;
+  margin: 1rem 0;
+  border: 0.5px solid #b5d4f4;
+  box-shadow: 0 4px 20px rgba(24, 95, 165, 0.08);
+  scrollbar-width: thin;
+  scrollbar-color: #b5d4f4 #f0f6ff;
 }
+
+/* ── Toolbar ── */
+
+.inventory-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.5rem;
+  border-bottom: 0.5px solid #b5d4f4;
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.inventory-toolbar-label {
+  font-size: 0.8rem;
+  color: #378add;
+  margin: 0;
+  font-weight: 500;
+}
+
+.print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  background: #185fa5;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.1s;
+  letter-spacing: 0.2px;
+}
+
+.print-btn:hover {
+  background: #0c447c;
+}
+
+.print-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── Table ── */
 
 .inventory-main-content table {
   width: 100%;
   border-collapse: collapse;
   font-family: inherit;
-  background: #fff;
-  font-size: 0.9rem;
-  border-radius: 0.5rem;
+  background: #ffffff;
+  font-size: 0.85rem;
   table-layout: fixed;
-  display: table;
 }
 
 .inventory-main-content thead {
-  display: table-header-group;
-  background: #daeaf9;
+  background: #e6f1fb;
 }
 
 .inventory-main-content tbody {
@@ -66,98 +126,135 @@
 
 .inventory-main-content th,
 .inventory-main-content td {
-  padding: 0.85rem 1.25rem;
-  text-align: left;
+  padding: 1rem 1.5rem;
+  text-align: center;
   display: table-cell;
   vertical-align: middle;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   box-sizing: border-box;
+  width: 33.33%;
 }
 
 .inventory-main-content th {
-  background: #daeaf9;
-  color: #1a3a5c;
-  font-weight: 700;
-  font-size: 0.8rem;
+  background: #e6f1fb;
+  color: #0c447c;
+  font-weight: 600;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid #a8ccee;
+  letter-spacing: 0.8px;
+  border-bottom: 0.5px solid #b5d4f4;
   position: sticky;
-  top: 0;
+  top: 57px;
   z-index: 10;
 }
 
 .inventory-main-content td {
-  background: #fff;
-  color: #2c5282;
-  font-size: 0.85rem;
+  background: #ffffff;
+  color: #185fa5;
+  font-size: 0.9rem;
 }
 
 .inventory-main-content tbody tr {
-  border-bottom: 1px solid #e4f0fb;
-  transition: background 0.2s ease;
+  border-bottom: 0.5px solid #e6f1fb;
+  transition: background 0.15s ease;
 }
 
 .inventory-main-content tbody tr:hover {
-  background: #eef6ff;
+  background: #f0f7ff;
 }
 
 .inventory-main-content tbody tr:hover td {
-  background: #eef6ff;
+  background: #f0f7ff;
 }
 
 .inventory-main-content tbody tr:last-child {
   border-bottom: none;
 }
 
-/* Image inside td */
-.inventory-main-content td img {
-  width: 60px;
-  height: 60px;
+/* ── Equipment cell ── */
+
+.item-cell {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.item-image {
+  width: 42px;
+  height: 42px;
   object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #c2d9f5;
-  display: block;
+  border-radius: 8px;
+  border: 0.5px solid #b5d4f4;
+  background: #e6f1fb;
+  flex-shrink: 0;
 }
 
-/* Column widths */
-.inventory-main-content th:nth-child(1),
-.inventory-main-content td:nth-child(1) {
-  width: 40%;
+.item-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #0c447c;
+  margin: 0;
+  text-align: left;
 }
 
-.inventory-main-content th:nth-child(2),
-.inventory-main-content td:nth-child(2) {
-  width: 30%;
-  text-align: center;
+/* ── Status badges ── */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
-.inventory-main-content th:nth-child(3),
-.inventory-main-content td:nth-child(3) {
-  width: 30%;
-  text-align: center;
+.status-badge.available {
+  background: #e6f9f1;
+  color: #0e7a4e;
+  border: 0.5px solid #6fcba4;
 }
 
-/* Scrollbar */
-.inventory-main-content {
-  scrollbar-width: thin;
-  scrollbar-color: #a8ccee #f0f6ff;
+.status-badge.unavailable {
+  background: #fef0f0;
+  color: #b91c1c;
+  border: 0.5px solid #f5a0a0;
 }
+
+.status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-badge.available .status-dot {
+  background: #0e7a4e;
+}
+
+.status-badge.unavailable .status-dot {
+  background: #b91c1c;
+}
+
+/* ── Scrollbar ── */
 
 .inventory-main-content::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+  height: 6px;
+  width: 6px;
   background: #f0f6ff;
   border-radius: 8px;
 }
 
 .inventory-main-content::-webkit-scrollbar-thumb {
-  background: #a8ccee;
+  background: #b5d4f4;
   border-radius: 8px;
 }
 
 .inventory-main-content::-webkit-scrollbar-thumb:hover {
-  background: #5396d5;
+  background: #378add;
 }

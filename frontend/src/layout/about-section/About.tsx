@@ -3,6 +3,7 @@ import wave from '../../assets/3.svg';
 import AboutContent from './about-slides/main/AboutContent';
 import { useState } from 'react';
 import AboutOrganization from './about-slides/org/AboutOrganization';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function About() {
   const [index, setIndex] = useState(0);
@@ -30,12 +31,22 @@ export default function About() {
           </div>
         </div>
 
-        <button onClick={prev} className='about-carousel-btn left'>
-          ◀
+        <button
+          type='button'
+          onClick={prev}
+          className='about-carousel-btn left'
+          aria-label='Previous slide'
+        >
+          <ChevronLeft />
         </button>
 
-        <button onClick={next} className='about-carousel-btn right'>
-          ▶
+        <button
+          type='button'
+          onClick={next}
+          className='about-carousel-btn right'
+          aria-label='Next slide'
+        >
+          <ChevronRight />
         </button>
       </div>
       <div className='wave-image'>

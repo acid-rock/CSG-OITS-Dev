@@ -7,6 +7,7 @@
   justify-content: center;
   gap: 24px;
   padding: 0 10rem;
+  width: 100%;
 }
 
 .about-texts {
@@ -27,9 +28,10 @@
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: flex-start;
   flex: 1;
-  gap: 12px;
+  gap: 30px;
   background: #ffffff;
   border-radius: 14px;
   padding: 24px 20px;
@@ -40,6 +42,7 @@
   display: flex;
   cursor: pointer;
   border: 2px solid transparent;
+
   transition:
     background 0.15s,
     border-color 0.15s,
@@ -74,14 +77,14 @@
 /* ── Overview panel ── */
 
 .organization-overview {
-  background: #ffffff;
-  max-width: 400px;
-  border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(24, 94, 165, 0.396);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: #ffffff;
+  max-width: 400px;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(24, 94, 165, 0.396);
   padding: 40px;
 }
 
@@ -109,13 +112,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 3rem;
   width: 100%;
 }
 
 .overview-logo {
-  width: 120px;
-  height: 120px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #185fa5;
