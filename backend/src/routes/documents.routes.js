@@ -6,6 +6,7 @@ import { requireAuth } from "../middlewares/auth.middleware.js";
 import FormData from "form-data";
 import "dotenv/config";
 import asyncHandler from "express-async-handler";
+import ApiError from "../lib/apiError.js";
 
 const REDACT_URL = process.env.PDF_REDACT_URL || "";
 
@@ -18,6 +19,7 @@ const upload = multer({
 
 const router = Router();
 
+// GET all documents with their public URLs and metadata
 router.get(
   "/",
   asyncHandler(async (req, res) => {
@@ -48,6 +50,7 @@ router.get(
   }),
 );
 
+// INSERT new document with file upload and redaction
 router.post(
   "/add",
   upload.single("file"),
@@ -130,12 +133,13 @@ router.post(
   }),
 );
 
+// UPDATE document metadata and optionally replace file (with redaction)
 router.post(
   "/edit",
   requireAuth,
   asyncHandler(async (req, res) => {
     const token = req.token;
-    const { name, description, type, id, file } = req.body;
+    const { name, description, type, id } = req.body;
 
     if (!name || !description || !type || !id) {
       throw new ApiError(400, "All fields are required.");
@@ -146,9 +150,22 @@ router.post(
     const { data: oldFile, error: fetchError } = await userSupabase
       .from("documents")
       .select()
-      .eq("id", id);
-
+      .eq("id", id)
+      .single();
     if (fetchError) throw new Error(fetchError.message);
+
+    if (!oldFile?.file_path) throw new Error("Invalid file path.");
+    const oldPath = oldFile.file_path;
+
+    const { error: copyError } = await userSupabase.storage
+      .from("documents")
+      .copy(oldPath, filepath);
+    if (copyError) throw new Error(copyError.message);
+
+    const { error: deleteError } = await userSupabase.storage
+      .from("documents")
+      .remove([oldPath]);
+    if (deleteError) throw new Error(deleteError.message);
 
     const { error: updateError } = await userSupabase
       .from("documents")
@@ -160,47 +177,44 @@ router.post(
 
     if (updateError) throw new Error(updateError.message);
 
-    const { error: copyError } = await userSupabase.storage
-      .from("documents")
-      .copy(oldFile[0].file_path, filepath);
-    const { error: deleteError } = await userSupabase.storage
-      .from("documents")
-      .remove([oldFile[0].file_path]);
-
-    if (copyError) throw new Error(copyError.message);
-    if (deleteError) throw new Error(deleteError.message);
-
-    if (error) throw new Error(error.message);
-
     return res.sendStatus(200);
   }),
 );
 
+// DELETE document(s) and their thumbnails
 router.delete(
   "/delete",
   requireAuth,
   asyncHandler(async (req, res) => {
     if (!req.body) throw new ApiError(404, "No valid request body is found.");
 
+    // Support both single ID and array of IDs for deletion
+    const ids = Array.isArray(req.body) ? req.body : [req.body];
     const token = req.token;
     const userSupabase = createUserClient(token);
-    const filepaths = req.body.map((item) => {
-      return item.name;
-    });
+    const { data: files, error: fetchError } = await userSupabase
+      .from("documents")
+      .select()
+      .in("id", ids);
+    if (fetchError) throw new Error(fetchError.message);
+    const filePaths = files.map((file) => file.file_path);
+    const thumbnailPaths = files.map((file) => `thumbnails/${file.id}.png`);
 
-    for (const document of req.body) {
-      const { error: deleteRowError } = await userSupabase
-        .from("documents")
-        .delete()
-        .eq("id", document.id);
-      if (deleteRowError) throw new Error(deleteRowError.message);
+    const { error: deleteError } = await userSupabase.storage
+      .from("documents")
+      .remove(filePaths);
+    if (deleteError) throw new Error(deleteError.message);
 
-      const { error: deleteFileError } = await userSupabase.storage
-        .from("documents")
-        .remove(filepaths);
+    const { error: thumbnailDeleteError } = await userSupabase.storage
+      .from("thumbnails")
+      .remove(thumbnailPaths);
+    if (thumbnailDeleteError) throw new Error(thumbnailDeleteError.message);
 
-      if (deleteFileError) throw new Error(deleteFileError.message);
-    }
+    const { error: tableError } = await userSupabase
+      .from("documents")
+      .delete()
+      .in("id", ids);
+    if (tableError) throw new Error(tableError.message);
 
     return res.send(200);
   }),
