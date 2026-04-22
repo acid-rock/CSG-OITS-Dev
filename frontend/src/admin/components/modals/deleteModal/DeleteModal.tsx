@@ -1,3 +1,4 @@
+import axios from 'axios';
 import './deleteModal.css';
 
 type DeleteSource = 'announcement' | 'document' | 'settings';
@@ -12,23 +13,29 @@ interface DeleteModalProps {
   message?: string;
 }
 
-const sourceConfig: Record<
-  DeleteSource,
-  { endpoint: (id: string) => string; label: string }
-> = {
-  announcement: {
-    endpoint: (id) => `/api/announcement/delete/${id}`,
-    label: 'announcement',
-  },
-  document: {
-    endpoint: (id) => `/api/document/delete/${id}`,
-    label: 'document',
-  },
-  settings: {
-    endpoint: (id) => `/api/whitelist/delete/${id}`,
-    label: 'user from whitelist',
-  },
-};
+const API_URL = import.meta.env.VITE_API_URL;
+
+const config = (source: string) => {
+  switch (source) {
+    case "announcement":
+      return {
+        url: `${API_URL}/announcements/delete`,
+        label: "announcement",
+      }
+    case "document":
+      return {
+        url: `${API_URL}/documents/delete`,
+        label: "document",
+      }
+    case "settings":
+      return {
+        url: `${API_URL}/settings/delete`,
+        label: "settings",
+      }
+    default:
+      throw new Error("Invalid source type");
+  }
+}
 
 const DeleteModal = ({
   isOpen,
@@ -41,24 +48,15 @@ const DeleteModal = ({
 }: DeleteModalProps) => {
   if (!isOpen) return null;
 
-  const handleConfirm = () => {
-    if (!id) return;
-
-    const { endpoint } = sourceConfig[source];
-
-    fetch(endpoint(id), { method: 'DELETE' })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(`Delete [${source}] success:`, data);
-        onConfirm?.();
-        onClose();
-      })
-      .catch((err) => {
-        console.error(`Delete [${source}] error:`, err);
-      });
+  const handleConfirm = async () => {
+    const response = await axios.delete(config(source).url, { data: [ id ] });
+    if (response.status === 200) {
+      onClose();
+      if (onConfirm) {
+        onConfirm();
+      }
+    }
   };
-
-  const config = sourceConfig[source];
 
   return (
     <div className='admin-delete-overlay' onClick={onClose}>
@@ -91,7 +89,7 @@ const DeleteModal = ({
             {id && (
               <span className='admin-delete-target'>
                 {' '}
-                You are deleting <strong>{config.label}</strong>: <em>{id}</em>
+                You are deleting <strong>{config(source).label}</strong>: <em>{id}</em>
               </span>
             )}
           </p>

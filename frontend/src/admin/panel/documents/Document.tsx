@@ -25,6 +25,7 @@ const Documents = () => {
   const [id, setId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editCategory, setEditCategory] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [data, setData] = useState<Document[]>([]);
 
@@ -136,6 +137,7 @@ const Documents = () => {
               setId(null);
               setEditTitle("");
               setEditDescription("");
+              setEditCategory("");
               setOpen(true);
             }}
           >
@@ -173,13 +175,13 @@ const Documents = () => {
                     if (active.length === modifiedData.length) {
                       setActive([]);
                     } else {
-                      setActive(modifiedData.map((file) => file.name));
+                      setActive(modifiedData.map((file) => file.id));
                     }
                   }}
                 />
               </th>
-              <th>Image</th>
               <th>File Name</th>
+              <th>Description</th>
               <th>Category</th>
               <th>Date</th>
               <th>Actions</th>
@@ -189,18 +191,18 @@ const Documents = () => {
             {modifiedData.map((file, idx) => (
               <tr
                 key={idx}
-                className={`docs-table-row ${active.includes(file.description) ? "docs-active" : ""}`}
+                className={`docs-table-row ${active.includes(file.id) ? "docs-active" : ""}`}
               >
                 <td>
                   <input
                     className="checkbox"
                     type="checkbox"
-                    title={`Select ${file.description}`}
-                    checked={active.includes(file.description)}
-                    onChange={() => handleActive(file.description)}
+                    title={`Select ${file.name}`}
+                    checked={active.includes(file.id)}
+                    onChange={() => handleActive(file.id)}
                   />
                 </td>
-                <td>{file.url}</td>
+                <td>{file.name.split("/")[1]}</td>
                 <td>{file.description}</td>
                 <td>{file.category}</td>
                 <td>{DateTime.fromISO(file.date).toFormat("MMM d, yyyy")}</td>
@@ -219,8 +221,9 @@ const Documents = () => {
                       alt="Edit"
                       onClick={() => {
                         setId(file.id);
-                        setEditTitle(file.description);
-                        setEditDescription(file.category);
+                        setEditTitle(file.name);
+                        setEditDescription(file.description);
+                        setEditCategory(file.category);
                         setOpen(true);
                       }}
                     />
@@ -239,6 +242,7 @@ const Documents = () => {
             id={id}
             initialTitle={editTitle}
             initialDescription={editDescription}
+            initialCategory={editCategory}
             setOpen={setOpen}
           />
         </div>

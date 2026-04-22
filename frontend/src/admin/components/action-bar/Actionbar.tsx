@@ -1,3 +1,4 @@
+import axios from 'axios';
 import './actionbar.css';
 
 type ActionbarSource = 'announcement' | 'document';
@@ -8,41 +9,32 @@ interface ActionbarProps {
   source: ActionbarSource;
 }
 
-const Actionbar = ({ items, selectedIds, source }: ActionbarProps) => {
-  const handleDelete = () => {
-    // TODO: connect to API
-    console.log(`[${source}] Delete:`, selectedIds);
-    // fetch(`/api/${source}/delete/bulk`, {
-    //   method: 'DELETE',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ ids: selectedIds }),
-    // });
-  };
+const API_URL = import.meta.env.VITE_API_URL;
 
-  const handleMove = () => {
-    // TODO: connect to API
-    console.log(`[${source}] Move:`, selectedIds);
-    // fetch(`/api/${source}/move`, {
-    //   method: 'PATCH',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ ids: selectedIds }),
-    // });
+const url = (source: string) => {
+  switch (source) {
+    case "announcement":
+      return `${API_URL}/announcements/delete`;
+    case "document":
+      return `${API_URL}/documents/delete`;
+    default:
+      throw new Error("Invalid source type");
+  }
+}
+
+const Actionbar = ({ items, selectedIds, source }: ActionbarProps) => {
+
+  const handleDelete = async () => {
+    const response = await axios.delete(url(source), { data: [selectedIds] });
+    if (response.status === 200) {
+      window.location.reload();
+    }
   };
 
   const handleArchive = () => {
     // TODO: connect to API
     console.log(`[${source}] Archive:`, selectedIds);
     // fetch(`/api/${source}/archive`, {
-    //   method: 'PATCH',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ ids: selectedIds }),
-    // });
-  };
-
-  const handleApprove = () => {
-    // TODO: connect to API
-    console.log(`[${source}] Approve:`, selectedIds);
-    // fetch(`/api/${source}/approve`, {
     //   method: 'PATCH',
     //   headers: { 'Content-Type': 'application/json' },
     //   body: JSON.stringify({ ids: selectedIds }),
@@ -62,19 +54,9 @@ const Actionbar = ({ items, selectedIds, source }: ActionbarProps) => {
         Delete Selected
       </button>
 
-      <button className='actionbar-btn btn-move' onClick={handleMove}>
-        <img src='./folder.png' alt='move' className='btn-img' />
-        Move
-      </button>
-
       <button className='actionbar-btn btn-archive' onClick={handleArchive}>
         <img src='./archive.png' alt='archive' className='btn-img' />
         Archive
-      </button>
-
-      <button className='actionbar-btn btn-approve' onClick={handleApprove}>
-        <img src='./check.png' alt='approve' className='btn-img' />
-        Approve
       </button>
     </div>
   );

@@ -1,7 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import './form.css';
 import type { Box } from '../pdf-selector-components/pdf-selector';
 import PdfSelector from '../pdf-selector-components/pdf-selector';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL
 
 interface FormProps {
   forType: 'announcement' | 'document' | 'events' | 'inventory';
@@ -9,6 +12,7 @@ interface FormProps {
   initialTitle?: string;
   Images?: string[];
   initialDescription?: string;
+  initialCategory?: string;
   inventoryQuantity?: number;
   setOpen: (open: boolean) => void;
 }
@@ -20,57 +24,72 @@ const Form = ({
   Images,
   inventoryQuantity,
   initialDescription = '',
+  initialCategory = '',
   setOpen,
 }: FormProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [type, setType] = useState<string>(initialCategory || "activity-proposal");
   const [preview, setPreview] = useState<string | null>(null);
   const [showPdfSelector, setShowPdfSelector] = useState(false);
   const [pdf, setPdf] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [selectedBoxes, setSelectedBoxes] = useState<Box[]>([]);
-  const [title, setTitle] = useState(initialTitle);
+  const [title, setTitle] = useState(initialTitle.split(".")[0].split("/")[1] || "");
   const [description, setDescription] = useState(initialDescription);
   const [eventFiles, setEventFiles] = useState<File[]>([]);
 
   // Helpers
-  const undoHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const undoHandler = () => {
     setSelectedBoxes((prev) => prev.slice(0, -1));
   };
   const [quantity, setQuantity] = useState(inventoryQuantity || 0);
   const [status, setStatus] = useState('in-stock');
 
-  const url =
-    forType === 'announcement'
-      ? `/api/announcement/${id ? `update/${id}` : 'upload'}`
-      : `/api/document/${id ? `update/${id}` : 'upload'}`;
+  useEffect(() => {
+    const category = initialCategory.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+    if (id && forType === 'document' && initialCategory) {
+      setType(category);
+    }
+  }, [id, forType, initialCategory]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData();
-
-    formData.append('title', title);
+    const url = id ? `${API_URL}/documents/edit` : `${API_URL}/documents/add`;
 
     if (forType !== 'inventory') {
-      formData.append('description', description);
     }
 
     if (forType === 'inventory') {
-      formData.append('quantity', quantity.toString());
-      formData.append('status', status);
     }
 
     if (forType === 'events') {
-      eventFiles.forEach((file) => formData.append('files', file));
     }
 
     if (pdf && forType === 'document') {
+      formData.append("name", title)
+      formData.append("description", description)
+      formData.append("boxes", JSON.stringify(selectedBoxes))
+      formData.append("type", type);
       formData.append('file', pdf);
-    }
 
-    fetch(url, {
-      method: 'POST',
-      body: formData,
-    });
+      console.log(formData.get("type"))
+
+      const response = await axios.post(url, formData)
+      if (response.status === 200) {
+        setOpen(false);
+      }
+      
+    } else if (!pdf && forType === 'document' && id) {
+      const payload = {
+        id: id, name: title, description, type
+      }
+
+      const response = await axios.post(url, payload)
+      if (response.status === 200) {
+        setOpen(false);
+      }
+    } 
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,6 +123,10 @@ const Form = ({
   const handleImageClick = () => {
     fileInputRef.current?.click();
   };
+
+  function typeChangeHandler(e: React.ChangeEvent<HTMLSelectElement, HTMLSelectElement>): void {
+    setType(e.target.value);
+  }
 
   return (
     <div className='form-container'>
@@ -149,23 +172,44 @@ const Form = ({
       )}
 
       <form
-        className={`form-layout ${forType === 'inventory' ? 'inventory-form' : ''}`}
+        className={`${!id ? 'form-layout': 'display: flex'} ${forType === 'inventory' ? 'inventory-form' : ''}`}
         onSubmit={handleSubmit}
       >
         <div className='form-fields'>
           <div className='form-group'>
             <label htmlFor='title'>
-              {forType === 'inventory' ? 'Equipment Name' : 'Title'}
+              {forType === 'inventory' ? 'Equipment Name' : 'Name'}
             </label>
             <input
               type='text'
               id='title'
-              placeholder='System Maintenance'
+              placeholder='File name goes here...'
               name='title'
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
+
+          {id && forType === "document" && (
+            <div className="form-group">
+              <label>Type</label>
+              <select name='document' id='document-type' value={type} onChange={typeChangeHandler}>
+                <option value='activity-proposal'>Activity Proposal</option>
+                <option value='resolution'>Resolution</option>
+                <option value='project-proposal'>Project Proposal</option>
+                <option value='accomplishment-report'>
+                  Accomplishment Report
+                </option>
+                <option value='financial-statement'>Financial Statement</option>
+                <option value='sponsorship-letter'>Sponsorship Letter</option>
+                <option value='excuse-letter'>Excuse Letter</option>
+                <option value='office-memorandum'>Office Memorandum</option>
+                <option value='minutes-of-the-meeting'>
+                  Minutes of the Meeting
+                </option>
+              </select>
+            </div>
+          )}
 
           {forType !== 'inventory' && (
             <div className='form-group'>
@@ -173,7 +217,7 @@ const Form = ({
               <textarea
                 id='description'
                 name='description'
-                placeholder='Scheduled maintenance for system updates...'
+                placeholder='Long name goes here...'
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               ></textarea>
@@ -213,7 +257,7 @@ const Form = ({
           )}
         </div>
 
-        {forType !== 'inventory' && (
+        {forType !== 'inventory' && !id &&(
           <div className='image-upload'>
             <label>
               {forType === 'announcement'
@@ -330,20 +374,19 @@ const Form = ({
 
             <div className='document-type-selection'>
               <label htmlFor='document-type'>Document type:</label>
-              <select name='document' id='document-type'>
-                <option value='activity-proposal'>Activity proposal</option>
+              <select name='document' id='document-type' value={type} onChange={typeChangeHandler}>
+                <option value='activity-proposal'>Activity Proposal</option>
                 <option value='resolution'>Resolution</option>
-                <option value='project-proposal'>Project proposal</option>
+                <option value='project-proposal'>Project Proposal</option>
                 <option value='accomplishment-report'>
-                  Accomplishment report
+                  Accomplishment Report
                 </option>
-                <option value='financial-statement'>Financial statement</option>
-                <option value='sponsorship-letter'>Sponsorship letter</option>
-                <option value='excuse-letter'>Excuse letter</option>
-                <option value='office-memorandum'>Office memorandum</option>
-                <option value='excuse-letter'>Excuse letter</option>
+                <option value='financial-statement'>Financial Statement</option>
+                <option value='sponsorship-letter'>Sponsorship Letter</option>
+                <option value='excuse-letter'>Excuse Letter</option>
+                <option value='office-memorandum'>Office Memorandum</option>
                 <option value='minutes-of-the-meeting'>
-                  Minutes of the meeting
+                  Minutes of the Meeting
                 </option>
               </select>
             </div>
