@@ -18,6 +18,7 @@ export type Announcement = {
 };
 
 export type Document = {
+  is_archived: boolean;
   id: string;
   name: string;
   description: string;

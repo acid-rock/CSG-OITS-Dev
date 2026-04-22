@@ -28,6 +28,8 @@ const Documents = () => {
   const [editCategory, setEditCategory] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [data, setData] = useState<Document[]>([]);
+  const [archivedOpen, setArchivedOpen] = useState(false);
+  const [activeArchived, setActiveArchived] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,6 +48,14 @@ const Documents = () => {
     );
   };
 
+  const handleActiveArchived = (fileId: string) => {
+    setActiveArchived((prev) =>
+      prev.includes(fileId)
+        ? prev.filter((id) => id !== fileId)
+        : [...prev, fileId],
+    );
+  };
+
   const handleRefresh = () => {
     setSpinning(true);
     setTimeout(() => {
@@ -53,9 +63,18 @@ const Documents = () => {
     }, 600);
   };
 
+  const archivedData = data.filter((doc) => doc.is_archived);
+  const sortedArchivedData = [...archivedData].sort(
+    (a: Document, b: Document) => {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    },
+  );
+
   const modifiedData = useMemo(() => {
+    const nonArchivedData = data.filter((doc) => !doc.is_archived);
+
     const now = DateTime.local();
-    const filteredData = data.filter((doc) => {
+    const filteredData = nonArchivedData.filter((doc) => {
       let docDate;
       switch (filter) {
         case "All":
@@ -146,7 +165,7 @@ const Documents = () => {
         </div>
       </div>
 
-      {active.length >= 3 && (
+      {active.length > 0 && (
         <Actionbar
           items={active.length}
           selectedIds={active}
@@ -255,9 +274,135 @@ const Documents = () => {
             source="document"
             id={id}
             onClose={() => setIsModalOpen(false)}
-            onConfirm={() => setActive((prev) => prev.filter((a) => a !== id))}
+            onConfirm={() => {
+              setActive((prev) => prev.filter((a) => a !== id));
+              setActiveArchived((prev) => prev.filter((a) => a !== id));
+            }}
           />
         </div>
+      )}
+
+      <div className="docs-header" style={{ marginTop: "40px" }}>
+        <button
+          onClick={() => setArchivedOpen(!archivedOpen)}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "inherit",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: 0,
+          }}
+        >
+          <span>{archivedOpen ? "▼" : "▶"}</span>
+          <span>Archived Documents ({sortedArchivedData.length})</span>
+        </button>
+      </div>
+
+      {archivedOpen && (
+        <>
+          {activeArchived.length > 0 && (
+            <Actionbar
+              items={activeArchived.length}
+              selectedIds={activeArchived}
+              source="document"
+              isArchived={true}
+            />
+          )}
+
+          <div className="docs-file-table">
+            <table>
+              <colgroup>
+                <col className="col-checkbox" />
+                <col className="col-image" />
+                <col className="col-filename" />
+                <col className="col-description" />
+                <col className="col-date" />
+                <col className="col-actions" />
+              </colgroup>
+              <thead>
+                <tr className="docs-table-header-light">
+                  <th>
+                    <input
+                      type="checkbox"
+                      title="Select All Archived"
+                      checked={
+                        activeArchived.length === sortedArchivedData.length &&
+                        sortedArchivedData.length > 0
+                      }
+                      onChange={() => {
+                        if (
+                          activeArchived.length === sortedArchivedData.length
+                        ) {
+                          setActiveArchived([]);
+                        } else {
+                          setActiveArchived(
+                            sortedArchivedData.map((file) => file.id),
+                          );
+                        }
+                      }}
+                      disabled={sortedArchivedData.length === 0}
+                    />
+                  </th>
+                  <th>File Name</th>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedArchivedData.length > 0 ? (
+                  sortedArchivedData.map((file, idx) => (
+                    <tr
+                      key={idx}
+                      className={`docs-table-row ${activeArchived.includes(file.id) ? "docs-active" : ""}`}
+                    >
+                      <td>
+                        <input
+                          className="checkbox"
+                          type="checkbox"
+                          title={`Select ${file.name}`}
+                          checked={activeArchived.includes(file.id)}
+                          onChange={() => handleActiveArchived(file.id)}
+                        />
+                      </td>
+                      <td>{file.name.split("/")[1]}</td>
+                      <td>{file.description}</td>
+                      <td>{file.category}</td>
+                      <td>
+                        {DateTime.fromISO(file.date).toFormat("MMM d, yyyy")}
+                      </td>
+                      <td className="docs-file-btn">
+                        <div className="docs-file-btn-inner">
+                          <img
+                            src="/bin.png"
+                            alt="Delete"
+                            onClick={() => {
+                              setId(file.id);
+                              setIsModalOpen(true);
+                            }}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      style={{ textAlign: "center", padding: "20px" }}
+                    >
+                      No archived documents
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
