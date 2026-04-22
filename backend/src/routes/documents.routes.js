@@ -41,6 +41,7 @@ router.get(
         name: file.file_path,
         description: file.description,
         category: file.file_path.split("/")[0],
+        is_archived: file.is_archived,
         url: data.publicUrl,
         thumbnail: thumbnail,
       };
@@ -216,6 +217,101 @@ router.delete(
       .in("id", ids);
     if (tableError) throw new Error(tableError.message);
 
+    return res.send(200);
+  }),
+);
+
+// ARCHIVE document(s) by setting an "archived" flag in the database and moving the file to an archive location
+router.post(
+  "/archive",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    if (!req.body) throw new ApiError(404, "No valid request body is found.");
+
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    // Support both single ID and array of IDs for archiving
+    const ids = req.body.ids ? req.body.ids : [];
+
+    // Select affected entries
+    const { data: files, error: fetchError } = await userSupabase
+      .from("documents")
+      .select("*")
+      .in("id", ids);
+    if (fetchError) throw new Error(fetchError.message);
+
+    // Move files to "archived" folder in storage
+    for (const file of files) {
+      const newPath = `archive/${file.file_path}`;
+      const { error: copyError } = await userSupabase.storage
+        .from("documents")
+        .copy(file.file_path, newPath);
+      if (copyError) throw new Error(copyError.message);
+
+      const { error: deleteError } = await userSupabase.storage
+        .from("documents")
+        .remove([file.file_path]);
+      if (deleteError) throw new Error(deleteError.message);
+
+      // Update respective database entries to set "archived" flag and new file path
+      const { error: updateError } = await userSupabase
+        .from("documents")
+        .update({
+          file_path: newPath,
+          is_archived: true,
+        })
+        .eq("id", file.id);
+      if (updateError) throw new Error(updateError.message);
+    }
+
+    return res.send(200);
+  }),
+);
+
+// UNARCHIVE document(s) by unsetting the "archived" flag in the database and moving the file back to the active location
+router.post(
+  "/unarchive",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    if (!req.body) throw new ApiError(404, "No valid request body is found.");
+
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    // Support both single ID and array of IDs for unarchiving
+    const ids = req.body.ids ? req.body.ids : [];
+
+    // Select affected entries
+    const { data: files, error: fetchError } = await userSupabase
+      .from("documents")
+      .select("*")
+      .in("id", ids);
+    if (fetchError) throw new Error(fetchError.message);
+
+    // Move files back to active folder in storage
+    for (const file of files) {
+      const newPath = file.file_path.replace("archive/", "");
+      const { error: copyError } = await userSupabase.storage
+        .from("documents")
+        .copy(file.file_path, newPath);
+      if (copyError) throw new Error(copyError.message);
+
+      const { error: deleteError } = await userSupabase.storage
+        .from("documents")
+        .remove([file.file_path]);
+      if (deleteError) throw new Error(deleteError.message);
+
+      // Update respective database entries to set "unarchived" flag and new file path
+      const { error: updateError } = await userSupabase
+        .from("documents")
+        .update({
+          file_path: newPath,
+          is_archived: false,
+        })
+        .eq("id", file.id);
+      if (updateError) throw new Error(updateError.message);
+    }
     return res.send(200);
   }),
 );
