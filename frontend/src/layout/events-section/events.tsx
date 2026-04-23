@@ -31,7 +31,7 @@ export default function Events() {
     <div className="event-container">
       <div className="event-layout">
         <div className="event-texts">
-          <Typography size="text-md" color="text-dark">
+          <Typography size="text-lg" color="text-dark">
             Events
           </Typography>
 
