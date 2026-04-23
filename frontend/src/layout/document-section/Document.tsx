@@ -34,7 +34,7 @@ export default function Document() {
     <div className="document-container">
       <div className="document-layout">
         <div className="document-texts">
-          <Typography size="text-md" color="text-dark">
+          <Typography size="text-lg" color="text-dark">
             Comprehensive Document Library
           </Typography>
           <Typography size="text-sm" color="text-dark">
