@@ -7,7 +7,7 @@ export default function About() {
       <div className="about-layout">
         <div className="about-text-layout">
           <div className="about-texts">
-            <Typography size="text-md" color="text-dark">
+            <Typography size="text-lg" color="text-dark">
               About
             </Typography>
             <Typography size="text-sm" color="text-dark">
