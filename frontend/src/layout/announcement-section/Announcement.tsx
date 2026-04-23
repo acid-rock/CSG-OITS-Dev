@@ -39,7 +39,7 @@ export default function Announcement() {
     <section className="announcement-container">
       <div className="announcement-layout">
         <div className="announcement-texts">
-          <Typography size="text-md" color="text-dark">
+          <Typography size="text-lg" color="text-dark">
             Announcements
           </Typography>
           <Typography size="text-sm" color="text-dark">
