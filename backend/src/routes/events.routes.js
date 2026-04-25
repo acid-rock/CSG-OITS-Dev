@@ -118,7 +118,6 @@ router.post(
   requireAuth,
   auditLogger(),
   asyncHandler(async (req, res) => {
-    console.log(req.headers);
     const { id, name, description, date } = req.body;
     const token = req.token;
     const supabase = createUserClient(token);

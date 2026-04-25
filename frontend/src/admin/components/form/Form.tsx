@@ -14,6 +14,7 @@ interface FormProps {
   initialDescription?: string;
   initialCategory?: string;
   inventoryQuantity?: number;
+  eventDateHappened?: string;
   setOpen: (open: boolean) => void;
 }
 
@@ -22,6 +23,7 @@ const Form = ({
   id,
   initialTitle = "",
   Images,
+  eventDateHappened = "",
   inventoryQuantity,
   initialDescription = "",
   initialCategory = "",
@@ -37,13 +39,15 @@ const Form = ({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [selectedBoxes, setSelectedBoxes] = useState<Box[]>([]);
   const [title, setTitle] = useState(
-    initialTitle.split(".")[0].split("/")[1] || "",
+    forType === "document"
+      ? initialTitle.split(".")[0].split("/")[1] || ""
+      : initialTitle,
   );
   const [description, setDescription] = useState(initialDescription);
   const [eventFiles, setEventFiles] = useState<File[]>([]);
   const [quantity, setQuantity] = useState(inventoryQuantity || 0);
   const [status, setStatus] = useState("in-stock");
-  const [dateHappened, setDateHappened] = useState("");
+  const [dateHappened, setDateHappened] = useState(eventDateHappened);
 
   // Helpers
   const undoHandler = () => {
@@ -68,7 +72,7 @@ const Form = ({
     if (forType === "inventory") {
     }
 
-    if (forType === "events") {
+    if (!id && forType === "events") {
       formData.append("name", title);
       formData.append("description", description);
       formData.append("date_happened", dateHappened);
@@ -81,6 +85,20 @@ const Form = ({
         id ? `${API_URL}/events/edit` : `${API_URL}/events/add`,
         formData,
       );
+      if (response.status === 200) {
+        setOpen(false);
+        window.location.reload();
+      }
+    } else if (id && forType === "events") {
+      const payload = {
+        id,
+        name: title,
+        description,
+        date_happened: dateHappened,
+        existingImages: Images,
+      };
+
+      const response = await axios.post(`${API_URL}/events/edit`, payload);
       if (response.status === 200) {
         setOpen(false);
         window.location.reload();
