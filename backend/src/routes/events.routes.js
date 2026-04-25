@@ -57,33 +57,57 @@ router.post(
   requireAuth,
   auditLogger(),
   asyncHandler(async (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, date_happened } = req.body;
     const images = req.files;
     const token = req.token;
     const supabase = createUserClient(token);
+    const imageTable = supabase.from("event_images");
     const eventBucket = supabase.storage.from("events");
     const ip_address = req.ip;
     const user_agent = req.headers["user-agent"];
 
-    // NOTE TO SELF: Add date-happened.
+    // Insert event
     const { data: eventData, error: eventError } = await supabase
       .from("events")
-      .upsert(
-        { name, description, ip_address, user_agent },
-        { onConflict: "name" },
-      )
-      .select();
+      .insert({ name, description, date_happened })
+      .select()
+      .single();
     if (eventError) throw new Error(eventError.message);
 
-    for (let i = 0; i < images.length; i++) {
-      const filename = `${eventData[0].id}/${i}.jpg`;
-      const buffer = images[i].buffer;
+    // Insert images to table
+    const imageList = images.map((img) => {
+      const imageId = crypto.randomUUID();
+      const path = `${eventData.id}/${imageId}`;
 
-      const { data, error } = await eventBucket.upload(filename, buffer, {
-        contentType: images[i].mimetype,
-      });
-      if (error) throw new Error(error.message);
-    }
+      return {
+        id: imageId,
+        event_id: eventData.id,
+        path: path,
+        size: img.size,
+        mimetype: img.mimetype,
+        image: img.buffer,
+      };
+    });
+
+    const { data: insertData, error: insertError } = await imageTable
+      .insert(imageList.map(({ image, ...rest }) => rest))
+      .select();
+    if (insertError) throw new Error(insertError.message);
+
+    // Upload images to bucket
+    const { error: bucketError } = await Promise.all(
+      images.map(async (img, i) => {
+        const { error } = await eventBucket.upload(
+          imageList[i].path,
+          img.buffer,
+          {
+            contentType: img.mimetype,
+          },
+        );
+        return error;
+      }),
+    );
+    if (bucketError) throw new Error(bucketError.message);
 
     return res.send(200);
   }),
