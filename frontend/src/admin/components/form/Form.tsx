@@ -41,13 +41,14 @@ const Form = ({
   );
   const [description, setDescription] = useState(initialDescription);
   const [eventFiles, setEventFiles] = useState<File[]>([]);
+  const [quantity, setQuantity] = useState(inventoryQuantity || 0);
+  const [status, setStatus] = useState("in-stock");
+  const [dateHappened, setDateHappened] = useState("");
 
   // Helpers
   const undoHandler = () => {
     setSelectedBoxes((prev) => prev.slice(0, -1));
   };
-  const [quantity, setQuantity] = useState(inventoryQuantity || 0);
-  const [status, setStatus] = useState("in-stock");
 
   useEffect(() => {
     const category = initialCategory
@@ -64,13 +65,26 @@ const Form = ({
     const formData = new FormData();
     const url = id ? `${API_URL}/documents/edit` : `${API_URL}/documents/add`;
 
-    if (forType !== "inventory") {
-    }
-
     if (forType === "inventory") {
     }
 
     if (forType === "events") {
+      formData.append("name", title);
+      formData.append("description", description);
+      formData.append("date_happened", dateHappened);
+      eventFiles.forEach((file) => formData.append("images", file));
+      if (Images) {
+        formData.append("existingImages", JSON.stringify(Images));
+      }
+
+      const response = await axios.post(
+        id ? `${API_URL}/events/edit` : `${API_URL}/events/add`,
+        formData,
+      );
+      if (response.status === 200) {
+        setOpen(false);
+        window.location.reload();
+      }
     }
 
     if (pdf && forType === "document") {
@@ -229,6 +243,19 @@ const Form = ({
             </div>
           )}
 
+          {forType === "events" && (
+            <div className="form-group">
+              <label htmlFor="date">Date Happened</label>
+              <input
+                type="date"
+                id="date"
+                name="date"
+                value={dateHappened}
+                onChange={(e) => setDateHappened(e.target.value)}
+              />
+            </div>
+          )}
+
           {forType !== "inventory" && (
             <div className="form-group">
               <label htmlFor="description">Description</label>
@@ -384,35 +411,39 @@ const Form = ({
               onChange={handleFileChange}
               className="file-input-hidden"
             />
-            {forType === "events" && (
+            {forType === "events" && Images && (
               <p className="form-file-hint">
                 {Images?.length} image{Images?.length !== 1 ? "s" : ""} selected
               </p>
             )}
 
-            <div className="document-type-selection">
-              <label htmlFor="document-type">Document type:</label>
-              <select
-                name="document"
-                id="document-type"
-                value={type}
-                onChange={typeChangeHandler}
-              >
-                <option value="activity-proposal">Activity Proposal</option>
-                <option value="resolution">Resolution</option>
-                <option value="project-proposal">Project Proposal</option>
-                <option value="accomplishment-report">
-                  Accomplishment Report
-                </option>
-                <option value="financial-statement">Financial Statement</option>
-                <option value="sponsorship-letter">Sponsorship Letter</option>
-                <option value="excuse-letter">Excuse Letter</option>
-                <option value="office-memorandum">Office Memorandum</option>
-                <option value="minutes-of-the-meeting">
-                  Minutes of the Meeting
-                </option>
-              </select>
-            </div>
+            {forType === "document" && (
+              <div className="document-type-selection">
+                <label htmlFor="document-type">Document type:</label>
+                <select
+                  name="document"
+                  id="document-type"
+                  value={type}
+                  onChange={typeChangeHandler}
+                >
+                  <option value="activity-proposal">Activity Proposal</option>
+                  <option value="resolution">Resolution</option>
+                  <option value="project-proposal">Project Proposal</option>
+                  <option value="accomplishment-report">
+                    Accomplishment Report
+                  </option>
+                  <option value="financial-statement">
+                    Financial Statement
+                  </option>
+                  <option value="sponsorship-letter">Sponsorship Letter</option>
+                  <option value="excuse-letter">Excuse Letter</option>
+                  <option value="office-memorandum">Office Memorandum</option>
+                  <option value="minutes-of-the-meeting">
+                    Minutes of the Meeting
+                  </option>
+                </select>
+              </div>
+            )}
           </div>
         )}
 
