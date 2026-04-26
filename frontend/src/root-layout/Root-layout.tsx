@@ -28,6 +28,7 @@ export type Document = {
 };
 
 export type Event = {
+  is_archived: boolean;
   id: string;
   created_at: string;
   name: string;

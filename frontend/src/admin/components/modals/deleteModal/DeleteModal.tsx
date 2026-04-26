@@ -1,7 +1,7 @@
-import axios from 'axios';
-import './deleteModal.css';
+import axios from "axios";
+import "./deleteModal.css";
 
-type DeleteSource = 'announcement' | 'document' | 'settings';
+type DeleteSource = "announcement" | "document" | "settings" | "events";
 
 interface DeleteModalProps {
   isOpen: boolean;
@@ -21,21 +21,26 @@ const config = (source: string) => {
       return {
         url: `${API_URL}/announcements/delete`,
         label: "announcement",
-      }
+      };
     case "document":
       return {
         url: `${API_URL}/documents/delete`,
         label: "document",
-      }
+      };
     case "settings":
       return {
         url: `${API_URL}/settings/delete`,
         label: "settings",
-      }
+      };
+    case "events":
+      return {
+        url: `${API_URL}/events/delete`,
+        label: "event",
+      };
     default:
       throw new Error("Invalid source type");
   }
-}
+};
 
 const DeleteModal = ({
   isOpen,
@@ -43,15 +48,16 @@ const DeleteModal = ({
   onConfirm,
   source,
   id,
-  title = 'Delete',
+  title = "Delete",
   message = "This action can't be undone. Please confirm if you want to proceed.",
 }: DeleteModalProps) => {
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
-    const response = await axios.delete(config(source).url, { data: [ id ] });
+    const response = await axios.delete(config(source).url, { data: [id] });
     if (response.status === 200) {
       onClose();
+      window.location.reload();
       if (onConfirm) {
         onConfirm();
       }
@@ -59,51 +65,52 @@ const DeleteModal = ({
   };
 
   return (
-    <div className='admin-delete-overlay' onClick={onClose}>
+    <div className="admin-delete-overlay" onClick={onClose}>
       <div
-        className='admin-delete-container'
+        className="admin-delete-container"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className='admin-delete-content'>
-          <div className='admin-delete-icon'>
-            <svg width='60' height='60' viewBox='0 0 60 60' fill='none'>
+        <div className="admin-delete-content">
+          <div className="admin-delete-icon">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
               <path
-                d='M30 5L5 50H55L30 5Z'
-                fill='#FF9F66'
-                stroke='#FF9F66'
-                strokeWidth='2'
+                d="M30 5L5 50H55L30 5Z"
+                fill="#FF9F66"
+                stroke="#FF9F66"
+                strokeWidth="2"
               />
               <path
-                d='M30 20V32M30 38V40'
-                stroke='white'
-                strokeWidth='3'
-                strokeLinecap='round'
+                d="M30 20V32M30 38V40"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
               />
             </svg>
           </div>
 
-          <h2 className='admin-delete-title'>{title}</h2>
+          <h2 className="admin-delete-title">{title}</h2>
 
-          <p className='admin-delete-message'>
+          <p className="admin-delete-message">
             {message}
             {id && (
-              <span className='admin-delete-target'>
-                {' '}
-                You are deleting <strong>{config(source).label}</strong>: <em>{id}</em>
+              <span className="admin-delete-target">
+                {" "}
+                You are deleting <strong>{config(source).label}</strong>:{" "}
+                <em>{id}</em>
               </span>
             )}
           </p>
 
-          <div className='admin-delete-actions'>
+          <div className="admin-delete-actions">
             <button
-              className='admin-delete-btn admin-delete-btn--confirm'
+              className="admin-delete-btn admin-delete-btn--confirm"
               onClick={handleConfirm}
               disabled={!id}
             >
               Delete
             </button>
             <button
-              className='admin-delete-btn admin-delete-btn--cancel'
+              className="admin-delete-btn admin-delete-btn--cancel"
               onClick={onClose}
             >
               Cancel

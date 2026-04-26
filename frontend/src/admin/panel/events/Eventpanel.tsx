@@ -29,6 +29,8 @@ const Eventpanel = () => {
   const [sort, setSort] = useState<string>("");
   const [data, setData] = useState<Event[]>([]);
   const [editDate, setEditDate] = useState<string>("");
+  const [archivedOpen, setArchivedOpen] = useState(false);
+  const [activeArchived, setActiveArchived] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,11 +41,19 @@ const Eventpanel = () => {
     fetchData();
   }, []);
 
-  const handleActive = (fileName: string) => {
+  const handleActive = (fileId: string) => {
     setActive((prev) =>
-      prev.includes(fileName)
-        ? prev.filter((name) => name !== fileName)
-        : [...prev, fileName],
+      prev.includes(fileId)
+        ? prev.filter((id) => id !== fileId)
+        : [...prev, fileId],
+    );
+  };
+
+  const handleActiveArchived = (fileId: string) => {
+    setActiveArchived((prev) =>
+      prev.includes(fileId)
+        ? prev.filter((id) => id !== fileId)
+        : [...prev, fileId],
     );
   };
 
@@ -98,7 +108,10 @@ const Eventpanel = () => {
     return sortedData;
   }, [data, filter, sort]);
 
-  console.log(modifiedData);
+  const archivedData = data.filter((event) => event.is_archived);
+  const sortedArchivedData = [...archivedData].sort((a: Event, b: Event) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
 
   return (
     <div className="events-container">
@@ -107,7 +120,7 @@ const Eventpanel = () => {
       </div>
 
       <div className="events-toolbar">
-        <span className="events-file-count">{data.length} Files</span>
+        <span className="events-file-count">{modifiedData.length} Files</span>
         <div className="events-toolbar-actions">
           <FilterSelect
             options={filterOptions}
@@ -148,12 +161,8 @@ const Eventpanel = () => {
         </div>
       </div>
 
-      {active.length >= 3 && (
-        <Actionbar
-          items={active.length}
-          selectedIds={active}
-          source="announcement"
-        />
+      {active.length > 0 && (
+        <Actionbar items={active.length} selectedIds={active} source="events" />
       )}
 
       <div className="events-file-table">
@@ -177,7 +186,7 @@ const Eventpanel = () => {
                     if (active.length === modifiedData.length) {
                       setActive([]);
                     } else {
-                      setActive(modifiedData.map((file) => file.name));
+                      setActive(modifiedData.map((file) => file.id));
                     }
                   }}
                 />
@@ -190,52 +199,54 @@ const Eventpanel = () => {
             </tr>
           </thead>
           <tbody>
-            {modifiedData.map((file, idx) => (
-              <tr
-                key={idx}
-                className={`events-table-row ${active.includes(file.name) ? "events-active" : ""}`}
-              >
-                <td>
-                  <input
-                    className="checkbox"
-                    type="checkbox"
-                    title={`Select ${file.name}`}
-                    checked={active.includes(file.name)}
-                    onChange={() => handleActive(file.name)}
-                  />
-                </td>
-                <td>{file.name}</td>
-                <td>{file.images?.length}</td>
-                <td>{file.description}</td>
-                <td>{DateTime.fromISO(file.date).toFormat("MMM d, yyyy")}</td>
-                <td className="events-file-btn">
-                  <div className="events-file-btn-inner">
-                    <img
-                      src="/bin.png"
-                      alt="Delete"
-                      onClick={() => {
-                        setId(file.id);
-                        setIsModalOpen(true);
-                      }}
+            {modifiedData
+              .filter((file) => !file.is_archived)
+              .map((file, idx) => (
+                <tr
+                  key={idx}
+                  className={`events-table-row ${active.includes(file.id) ? "events-active" : ""}`}
+                >
+                  <td>
+                    <input
+                      className="checkbox"
+                      type="checkbox"
+                      title={`Select ${file.name}`}
+                      checked={active.includes(file.id)}
+                      onChange={() => handleActive(file.id)}
                     />
-                    <img
-                      src="/edit.png"
-                      alt="Edit"
-                      onClick={() => {
-                        setId(file.id);
-                        setEditTitle(file.name);
-                        setEditDate(file.date);
-                        if (file?.images) {
-                          setImages(file.images);
-                        }
-                        setEditDescription(file.description);
-                        setOpen(true);
-                      }}
-                    />
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td>{file.name}</td>
+                  <td>{file.images?.length}</td>
+                  <td>{file.description}</td>
+                  <td>{DateTime.fromISO(file.date).toFormat("MMM d, yyyy")}</td>
+                  <td className="events-file-btn">
+                    <div className="events-file-btn-inner">
+                      <img
+                        src="/bin.png"
+                        alt="Delete"
+                        onClick={() => {
+                          setId(file.id);
+                          setIsModalOpen(true);
+                        }}
+                      />
+                      <img
+                        src="/edit.png"
+                        alt="Edit"
+                        onClick={() => {
+                          setId(file.id);
+                          setEditTitle(file.name);
+                          setEditDate(file.date);
+                          if (file?.images) {
+                            setImages(file.images);
+                          }
+                          setEditDescription(file.description);
+                          setOpen(true);
+                        }}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
@@ -244,10 +255,13 @@ const Eventpanel = () => {
         <div className="events-modal-position">
           <DeleteModal
             isOpen={isModalOpen}
-            source="announcement"
+            source="events"
             id={id}
             onClose={() => setIsModalOpen(false)}
-            onConfirm={() => setActive((prev) => prev.filter((a) => a !== id))}
+            onConfirm={() => {
+              setActive((prev) => prev.filter((a) => a !== id));
+              setActiveArchived((prev) => prev.filter((a) => a !== id));
+            }}
           />
         </div>
       )}
@@ -264,6 +278,129 @@ const Eventpanel = () => {
             setOpen={setOpen}
           />
         </div>
+      )}
+
+      <div className="events-header" style={{ marginTop: "40px" }}>
+        <button
+          onClick={() => setArchivedOpen(!archivedOpen)}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "inherit",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: 0,
+          }}
+        >
+          <span>{archivedOpen ? "▼" : "▶"}</span>
+          <span>Archived Events ({sortedArchivedData.length})</span>
+        </button>
+      </div>
+
+      {archivedOpen && (
+        <>
+          {activeArchived.length > 0 && (
+            <Actionbar
+              items={activeArchived.length}
+              selectedIds={activeArchived}
+              source="events"
+              isArchived={true}
+            />
+          )}
+
+          <div className="events-file-table">
+            <table>
+              <colgroup>
+                <col className="col-checkbox" />
+                <col className="col-image" />
+                <col className="col-filename" />
+                <col className="col-description" />
+                <col className="col-date" />
+                <col className="col-actions" />
+              </colgroup>
+              <thead>
+                <tr className="events-table-header-light">
+                  <th>
+                    <input
+                      type="checkbox"
+                      title="Select All Archived"
+                      checked={
+                        activeArchived.length === sortedArchivedData.length &&
+                        sortedArchivedData.length > 0
+                      }
+                      onChange={() => {
+                        if (
+                          activeArchived.length === sortedArchivedData.length
+                        ) {
+                          setActiveArchived([]);
+                        } else {
+                          setActiveArchived(
+                            sortedArchivedData.map((file) => file.id),
+                          );
+                        }
+                      }}
+                      disabled={sortedArchivedData.length === 0}
+                    />
+                  </th>
+                  <th>Title</th>
+                  <th>Selected Images</th>
+                  <th>Description</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedArchivedData.length > 0 ? (
+                  sortedArchivedData.map((file, idx) => (
+                    <tr
+                      key={idx}
+                      className={`events-table-row ${activeArchived.includes(file.id) ? "events-active" : ""}`}
+                    >
+                      <td>
+                        <input
+                          className="checkbox"
+                          type="checkbox"
+                          title={`Select ${file.name}`}
+                          checked={activeArchived.includes(file.id)}
+                          onChange={() => handleActiveArchived(file.id)}
+                        />
+                      </td>
+                      <td>{file.name}</td>
+                      <td>{file.images?.length}</td>
+                      <td>{file.description}</td>
+                      <td>
+                        {DateTime.fromISO(file.date).toFormat("MMM d, yyyy")}
+                      </td>
+                      <td className="events-file-btn">
+                        <div className="events-file-btn-inner">
+                          <img
+                            src="/bin.png"
+                            alt="Delete"
+                            onClick={() => {
+                              setId(file.id);
+                              setIsModalOpen(true);
+                            }}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      style={{ textAlign: "center", padding: "20px" }}
+                    >
+                      No archived events
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

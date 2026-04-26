@@ -1,7 +1,7 @@
 import axios from "axios";
 import "./actionbar.css";
 
-type ActionbarSource = "announcement" | "document";
+type ActionbarSource = "announcement" | "document" | "events";
 
 interface ActionbarProps {
   items: number;
@@ -25,6 +25,12 @@ const url = (source: string) => {
         archive: `${API_URL}/documents/archive`,
         unarchive: `${API_URL}/documents/unarchive`,
         delete: `${API_URL}/documents/delete`,
+      };
+    case "events":
+      return {
+        archive: `${API_URL}/events/archive`,
+        unarchive: `${API_URL}/events/unarchive`,
+        delete: `${API_URL}/events/delete`,
       };
     default:
       throw new Error("Invalid source type");
