@@ -45,7 +45,7 @@ const Actionbar = ({
 }: ActionbarProps) => {
   const handleDelete = async () => {
     const response = await axios.delete(url(source).delete, {
-      data: [selectedIds],
+      data: selectedIds,
     });
     if (response.status === 200) {
       window.location.reload();

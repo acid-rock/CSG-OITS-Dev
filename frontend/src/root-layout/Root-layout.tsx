@@ -15,6 +15,7 @@ export type Announcement = {
   title: string;
   content: string;
   date: string;
+  is_archived?: boolean;
 };
 
 export type Document = {

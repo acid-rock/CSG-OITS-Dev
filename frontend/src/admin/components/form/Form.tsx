@@ -69,6 +69,23 @@ const Form = ({
     const formData = new FormData();
     const url = id ? `${API_URL}/documents/edit` : `${API_URL}/documents/add`;
 
+    if (!id && forType === "announcement") {
+      formData.append("title", title);
+      formData.append("content", description);
+      formData.append("image", pdf || "");
+
+      const response = await axios.post(
+        id ? `${API_URL}/announcements/edit` : `${API_URL}/announcements/add`,
+        formData,
+      );
+      if (response.status === 200) {
+        setOpen(false);
+        window.location.reload();
+      }
+    } else if (id && forType === "announcement") {
+      console.log(id);
+    }
+
     if (forType === "inventory") {
     }
 
@@ -156,9 +173,14 @@ const Form = ({
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onloadend = () => setPreview(reader.result as string);
-        setPdf(null);
-        setPdfUrl(null);
-        setShowPdfSelector(false);
+        // Only clear pdf for documents, keep for other types like announcements
+        if (forType === "document") {
+          setPdf(null);
+          setPdfUrl(null);
+          setShowPdfSelector(false);
+        } else {
+          setPdf(file);
+        }
       }
     }
   };
