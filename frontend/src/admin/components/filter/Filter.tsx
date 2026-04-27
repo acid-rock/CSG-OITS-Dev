@@ -1,5 +1,5 @@
-import type { ChangeEvent } from 'react';
-import './filter.css';
+import type { ChangeEvent } from "react";
+import "./filter.css";
 
 type FilterSelectProps = {
   options: string[];
@@ -14,22 +14,24 @@ const FilterSelect = ({
   onChange,
   label,
 }: FilterSelectProps) => (
-  <div className='filter-select-container'>
+  <div className="filter-select-container">
     {label && (
-      <label className='filter-select-label' htmlFor='filter-select'>
+      <label className="filter-select-label" htmlFor="filter-select">
         {label}
       </label>
     )}
     <select
-      id='filter-select'
-      className='filter-select-input'
+      id="filter-select"
+      className="filter-select-input"
       value={value}
       onChange={(e: ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
-      aria-label={label || 'Filter select'}
+      aria-label={label || "Filter select"}
     >
-      <option value='' disabled hidden>
-        {label}
-      </option>
+      {!value && (
+        <option value="" disabled>
+          {label}
+        </option>
+      )}
       {options.map((option) => (
         <option value={option} key={option}>
           {option}

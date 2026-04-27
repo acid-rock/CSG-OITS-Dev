@@ -1,7 +1,12 @@
 import axios from "axios";
 import "./deleteModal.css";
 
-type DeleteSource = "announcement" | "document" | "settings" | "events";
+type DeleteSource =
+  | "announcement"
+  | "document"
+  | "settings"
+  | "events"
+  | "inventory";
 
 interface DeleteModalProps {
   isOpen: boolean;
@@ -36,6 +41,11 @@ const config = (source: string) => {
       return {
         url: `${API_URL}/events/delete`,
         label: "event",
+      };
+    case "inventory":
+      return {
+        url: `${API_URL}/inventory/delete`,
+        label: "inventory",
       };
     default:
       throw new Error("Invalid source type");

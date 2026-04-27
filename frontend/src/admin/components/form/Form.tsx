@@ -86,7 +86,30 @@ const Form = ({
       console.log(id);
     }
 
-    if (forType === "inventory") {
+    if (!id && forType === "inventory") {
+      const payload = {
+        name: title,
+        max_quantity: quantity,
+      };
+
+      const response = await axios.post(`${API_URL}/inventory/add`, payload);
+      if (response.status === 201) {
+        setOpen(false);
+        window.location.reload();
+      }
+    } else if (id && forType === "inventory") {
+      const payload = {
+        id,
+        name: title,
+        quantity,
+        is_available:
+          status === "in-stock" || status === "low-stock" ? true : false,
+      };
+      const response = await axios.post(`${API_URL}/inventory/edit`, payload);
+      if (response.status === 200) {
+        setOpen(false);
+        window.location.reload();
+      }
     }
 
     if (!id && forType === "events") {

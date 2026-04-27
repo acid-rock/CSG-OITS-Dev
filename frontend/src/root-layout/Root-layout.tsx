@@ -8,6 +8,7 @@ import Announcement from "../layout/announcement-section/Announcement";
 import fetchEvents from "../config/eventConfig";
 import fetchOfficers from "../config/officerConfig";
 import fetchAudit from "../config/auditConfig";
+import fetchInventory from "../config/inventoryConfig";
 
 /*This holds the root-layout to ensure the navigation and Footer to show in all route*/
 export type Announcement = {
@@ -61,11 +62,21 @@ export type Officer = {
   is_committee_official: boolean;
 };
 
+export type Inventory = {
+  id: string;
+  name: string;
+  quantity: number;
+  max_quantity: number;
+  status: string;
+};
+
 export interface OutletContext {
   bulletin: Announcement[];
   documents: Document[];
   events: Event[];
   officers: Officer[];
+  auditLogs: AuditLogs[];
+  inventory: Inventory[];
 }
 
 const Root = () => {
@@ -74,6 +85,7 @@ const Root = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [officers, setOfficers] = useState<Officer[]>();
   const [auditLogs, setAuditLogs] = useState<AuditLogs[]>([]);
+  const [inventory, setInventory] = useState<Inventory[]>([]);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -84,6 +96,7 @@ const Root = () => {
           fetchEvents(),
           fetchOfficers(),
           fetchAudit(),
+          fetchInventory(),
         ]);
 
       setBulletin(bulletinData);
@@ -91,6 +104,7 @@ const Root = () => {
       setEvents(eventsData);
       setOfficers(officersData);
       setAuditLogs(auditLogs);
+      setInventory(inventory);
     };
 
     fetchAll();
@@ -99,7 +113,16 @@ const Root = () => {
   return (
     <div className="relative px-4 md:px-8 lg:px-16 lx:px-32 2xl:px-64 overflow-hidden flex flex-col">
       <Navigation />
-      <Outlet context={{ bulletin, documents, events, officers }} />
+      <Outlet
+        context={{
+          bulletin,
+          documents,
+          events,
+          officers,
+          auditLogs,
+          inventory,
+        }}
+      />
       <Footer />
     </div>
   );
