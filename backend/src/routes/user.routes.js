@@ -2,6 +2,8 @@ import { Router } from "express";
 import { supabase, anonSupabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import ApiError from "../lib/apiError.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
+import { createUserClient } from "../lib/supabaseClient.js";
 
 const router = Router();
 
@@ -80,6 +82,20 @@ router.post(
     });
 
     return res.status(200).json({ message: "Login successful." });
+  }),
+);
+
+// GET users
+router.get(
+  "/",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { data, error } = await userSupabase.from("profiles").select("*");
+    if (error) throw new ApiError(error.message);
+
+    return res.status(200).json(data);
   }),
 );
 

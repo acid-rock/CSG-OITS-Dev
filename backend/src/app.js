@@ -5,6 +5,7 @@ import announcementRoutes from "./routes/announcements.routes.js";
 import eventRoutes from "./routes/events.routes.js";
 import officerRoutes from "./routes/officers.routes.js";
 import committeeRoutes from "./routes/committee.routes.js";
+import auditRoutes from "./routes/audit.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -46,6 +47,7 @@ app.use("/api/v1/announcements", announcementRoutes);
 app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/officers", officerRoutes);
 app.use("/api/v1/committees", committeeRoutes);
+app.use("/api/v1/auditlogs", auditRoutes);
 
 // Health route
 app.get("/health", (req, res) => {
