@@ -248,16 +248,13 @@
 
 /* ── Colgroup column widths ── */
 .audit-file-table col.audit-col-user {
-  width: 20%;
-}
-.audit-file-table col.audit-col-image {
-  width: 15%;
+  width: 25%;
 }
 .audit-file-table col.audit-col-filename {
-  width: 20%;
+  width: 25%;
 }
 .audit-file-table col.audit-col-description {
-  width: 25%;
+  width: 30%;
 }
 .audit-file-table col.audit-col-date {
   width: 20%;

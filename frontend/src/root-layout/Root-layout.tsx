@@ -7,6 +7,7 @@ import fetchDocuments from "../config/documentsConfig";
 import Announcement from "../layout/announcement-section/Announcement";
 import fetchEvents from "../config/eventConfig";
 import fetchOfficers from "../config/officerConfig";
+import fetchAudit from "../config/auditConfig";
 
 /*This holds the root-layout to ensure the navigation and Footer to show in all route*/
 export type Announcement = {
@@ -25,6 +26,15 @@ export type Document = {
   description: string;
   category: string;
   url: string;
+  date: string;
+};
+
+export type AuditLogs = {
+  user: string;
+  role: "Admin";
+  imageName: string;
+  fileName: string;
+  description: string;
   date: string;
 };
 
@@ -63,6 +73,7 @@ const Root = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [officers, setOfficers] = useState<Officer[]>();
+  const [auditLogs, setAuditLogs] = useState<AuditLogs[]>([]);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -72,12 +83,14 @@ const Root = () => {
           fetchDocuments(),
           fetchEvents(),
           fetchOfficers(),
+          fetchAudit(),
         ]);
 
       setBulletin(bulletinData);
       setDocuments(documentsData);
       setEvents(eventsData);
       setOfficers(officersData);
+      setAuditLogs(auditLogs);
     };
 
     fetchAll();
