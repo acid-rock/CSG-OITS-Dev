@@ -9,6 +9,7 @@ import fetchEvents from "../config/eventConfig";
 import fetchOfficers from "../config/officerConfig";
 import fetchAudit from "../config/auditConfig";
 import fetchInventory from "../config/inventoryConfig";
+import { usePageTracking } from "../hooks/usePageTracking";
 
 /*This holds the root-layout to ensure the navigation and Footer to show in all route*/
 export type Announcement = {
@@ -80,6 +81,9 @@ export interface OutletContext {
 }
 
 const Root = () => {
+  // Tracking hook
+  usePageTracking();
+
   const [bulletin, setBulletin] = useState<Announcement[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [events, setEvents] = useState<Event[]>([]);

@@ -4,6 +4,12 @@ import Barcharts from "../../components/charts/bar-chart/Barchart";
 import Linechart from "../../components/charts/line-chart/Linechart";
 import fetchAudit from "../../../config/auditConfig";
 import type { AuditLogs } from "../../../root-layout/Root-layout";
+import { fetchMetrics, fetchSizeUsed } from "../../../config/metricsConfig";
+
+type Metrics = {
+  visits: Array<{ date: string; views: number }>;
+  storage: Array<{ bucket: string; totalSize: number }>;
+};
 
 const formatDateTime = (iso: string): string => {
   const d = new Date(iso);
@@ -21,6 +27,12 @@ const Dashboard = () => {
   const [active, setActive] = useState<string[]>([]);
   const [auditData, setAuditData] = useState([]);
 
+  // Here is where the data is stored via useEffect.
+  const [metrics, setMetrics] = useState<Metrics>({
+    visits: [],
+    storage: [],
+  });
+
   const handleActive = (fileName: string) => {
     setActive((prev) =>
       prev.includes(fileName)
@@ -32,7 +44,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetchAudit(5);
+      const visits = await fetchMetrics();
+      const storage = await fetchSizeUsed();
       setAuditData(data);
+      setMetrics((prev) => ({ ...prev, visits }));
+      setMetrics((prev) => ({ ...prev, storage }));
     };
     fetchData();
   }, []);
