@@ -17,6 +17,10 @@ const BulletinAnnouncement = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
   const filteredAnnouncements = bulletin.filter((ann) => {
     const matchSearch = ann.title
       ?.toLowerCase()
@@ -46,12 +50,22 @@ const BulletinAnnouncement = () => {
         </Typography>
       </div>
 
+      <div className="bulletin-search-wrapper">
+        <input
+          className="bulletin-search-input"
+          type="text"
+          placeholder="Search announcements…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       <div className="bulletin-announcement-layout-wrapper">
         <div className="bulletin-announcement-layout">
           {/* Announcement Grid */}
           <main className="bulletin-announcement-main" tabIndex={-1}>
             <div className="bulletin-announcement-grid">
-              {bulletin.map((ann) => (
+              {filteredAnnouncements.map((ann) => (
                 <BulletinCard
                   key={ann.id}
                   id={ann.id}
