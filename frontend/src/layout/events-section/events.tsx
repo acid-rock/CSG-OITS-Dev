@@ -4,7 +4,6 @@ import Typography from "../../components/typography/Typography";
 import "./event.css";
 import Modal from "../../components/modal/Modal";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import wave from "../../assets/2.svg";
 
 export default function Events() {
   const [open, setOpen] = useState(false);
@@ -30,16 +29,13 @@ export default function Events() {
 
   return (
     <div className="event-container">
-      <div className="event-wave">
-        <img className="wave" src={wave} alt="Wave" />
-      </div>
       <div className="event-layout">
         <div className="event-texts">
-          <Typography size="text-md" color="text-white">
+          <Typography size="text-lg" color="text-dark">
             Events
           </Typography>
 
-          <Typography size="text-sm" color="text-white">
+          <Typography size="text-sm" color="text-dark">
             Discover upcoming events, programs, and initiatives led by the CSG.
           </Typography>
         </div>

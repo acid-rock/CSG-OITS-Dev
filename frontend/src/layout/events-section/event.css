@@ -1,26 +1,17 @@
 .event-container {
+  background: linear-gradient(
+    to bottom,
+    #f4f6fa 0%,
+    #cfd9f3 50%,
+    #4a78e0 80%,
+    #4a78e0 100%
+  );
+
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: auto;
-  background-image: url("../../assets/Events.svg");
   flex-direction: column;
-}
-
-.event-wave {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
-  position: relative;
-  z-index: 1;
-}
-
-.event-wave img {
-  width: 100%;
-  height: auto;
-  display: block;
 }
 
 .event-layout {
@@ -30,6 +21,7 @@
   justify-content: center;
   gap: 1.5rem;
   width: 100%;
+  height: 100vh;
   max-width: 1400px;
   padding: 2rem;
   position: relative;
@@ -182,15 +174,15 @@
   justify-content: center;
   gap: 1rem;
   background-color: #e8e8e88e;
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 1rem;
 }
 
 .featured-arrow--mobile {
   position: static;
   transform: none;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2rem;
+  height: 2rem;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -209,7 +201,7 @@
   gap: 1rem;
   justify-content: center;
   background-color: #e8e8e88e;
-  padding: 0.75rem;
+  padding: 0.2rem;
   margin-bottom: 1rem;
   border-radius: 1rem;
 }
@@ -221,8 +213,8 @@
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: whitesmoke;
   border: none;

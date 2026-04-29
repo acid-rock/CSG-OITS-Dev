@@ -1,15 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Navigation from "../components/navigation/Navigation";
 import Footer from "../components/footer/Footer";
-import { useEffect, useState } from "react";
-import fetchBulletinData from "../config/bulletinConfig";
-import fetchDocuments from "../config/documentsConfig";
-import Announcement from "../layout/announcement-section/Announcement";
-import fetchEvents from "../config/eventConfig";
-import fetchOfficers from "../config/officerConfig";
-import fetchAudit from "../config/auditConfig";
-import fetchInventory from "../config/inventoryConfig";
-import { usePageTracking } from "../hooks/usePageTracking";
 
 /*This holds the root-layout to ensure the navigation and Footer to show in all route*/
 export type Announcement = {

@@ -1,7 +1,25 @@
+/*gradient on background. and fixed the color*/
+
 /* CONTAINER */
 .hero-container {
+  background: linear-gradient(
+    to bottom,
+    #4a78e0 0%,
+    #4a78e0 40%,
+    #cfd9f3 70%,
+    #f4f6fa 100%
+  );
+
+  min-height: 100vh;
+  width: 100%;
+
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+
   overflow: hidden;
 }
 
@@ -9,6 +27,7 @@
 .hero-layout {
   display: flex;
   max-width: 1400px;
+  height: 100vh;
   width: 100%;
   margin: 0 auto;
   padding-top: 4rem;
@@ -46,16 +65,28 @@
   box-shadow:
     0 20px 60px -10px rgba(66, 68, 90, 0.3),
     0 10px 30px -5px rgba(66, 68, 90, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 /* CAROUSEL */
 @keyframes slide-track {
-  0% { transform: translateX(0%); }
-  45% { transform: translateX(0%); }
-  50% { transform: translateX(-50%); }
-  95% { transform: translateX(-50%); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0%);
+  }
+  45% {
+    transform: translateX(0%);
+  }
+  50% {
+    transform: translateX(-50%);
+  }
+  95% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .image-carousel-track {
@@ -94,7 +125,7 @@
 
 /* OVERLAYS */
 .hero-image-container::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -108,7 +139,7 @@
 }
 
 .hero-image-container::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.18) 0%, transparent 40%);
@@ -117,85 +148,74 @@
   pointer-events: none;
 }
 
-/* FIX WAVE */
-.wave-image {
-  width: 100%;
-  line-height: 0;
-  margin-top: -120px;
-  position: relative;
-  z-index: 1;
-}
-
-.wave {
-  width: 100%;
-  height: 200px;
-  display: block;
-  object-fit: cover;
-}
-
-/* TABLET */
+/*TABLET*/
 @media (max-width: 1024px) {
   .hero-layout {
+    flex-direction: column;
     padding: 2rem 1.5rem;
-    gap: 2rem;
-    flex-direction: row;
+    gap: 0;
+    height: auto;
+    align-items: stretch;
   }
 
   .hero-text {
-    flex: 1.1;
+    display: contents;
+  }
+
+  .hero-text > *:nth-child(1) {
+    order: 1;
+    margin-bottom: 1.5rem;
   }
 
   .hero-image-container {
-    flex: 0.9;
-    max-width: 500px;
-  }
-
-  .wave-image {
-    margin-top: -90px;
-  }
-
-  .wave {
-    height: 160px;
-  }
-}
-
-/* MOBILE */
-@media (max-width: 768px) {
-  .hero-layout {
-    flex-direction: column;
-    padding: 1.5rem 1rem;
-    gap: 2rem;
-  }
-
-  .hero-image-container {
+    order: 2;
+    flex: none;
+    width: 100%;
     max-width: 100%;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-text > *:nth-child(2) {
+    order: 3;
+    margin-bottom: 1rem;
+  }
+
+  .hero-text > *:nth-child(3) {
+    order: 4;
+  }
+
+  .hero-buttons {
+    margin-top: 0.5rem;
   }
 
   .hero-image-container::before {
     background: linear-gradient(
       to bottom,
-      rgba(255, 255, 255, 0.6) 0%,
-      transparent 40%
+      rgba(255, 255, 255, 0.25) 0%,
+      transparent 35%
     );
-  }
-
-  .wave-image {
-    margin-top: -70px;
-  }
-
-  .wave {
-    height: 130px;
   }
 }
 
-/* SMALL MOBILE */
+/*MOBILE*/
+@media (max-width: 768px) {
+  .hero-layout {
+    padding: 1.5rem 1rem;
+  }
+
+  .hero-text > *:nth-child(1) {
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-image-container {
+    margin-bottom: 1.25rem;
+  }
+}
+
+/*SMALL MOBILE*/
 @media (max-width: 480px) {
   .hero-image-container {
     min-height: 160px;
     border-radius: calc(var(--border-radius) * 0.75);
-  }
-
-  .wave-image {
-    margin-top: -50px;
   }
 }

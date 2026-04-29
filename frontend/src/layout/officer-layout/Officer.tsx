@@ -1,23 +1,16 @@
 import OfficerCard from "../../components/officer-card/Officer-card";
 import Typography from "../../components/typography/Typography";
-import { Link, useOutletContext } from "react-router-dom";
+import officer from "../../config/officerConfig";
+import board from "../../config/boardConfig";
+import { Link } from "react-router-dom";
 import Button from "../../components/button/Button";
-import type { OutletContext, Officer } from "../../root-layout/Root-layout";
 import "./officer.css";
+import adviser from "../../config/adviserConfig";
 
 export default function Officer() {
-  const { officers } = useOutletContext<OutletContext>();
-  const executives = officers?.filter((officer) => {
-    return officer.type === "executive";
-  });
-
-  const board = officers?.filter((officer) => {
-    return officer.type === "board";
-  });
-
-  const advisers = officers?.filter((officer) => {
-    return officer.type === "adviser";
-  });
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   return (
     <section className="officer-container" id="officers">
       <div className="officer-layout">
@@ -25,8 +18,9 @@ export default function Officer() {
           <Typography size="text-md" color="text-dark">
             Executive Officers
           </Typography>
-          <Typography size="text-light" color="text-ghost">
-            These are the executive officers
+
+          <Typography size="text-light" color="text-dark">
+            Meet your Executive Officers
           </Typography>
         </div>
 
@@ -47,8 +41,9 @@ export default function Officer() {
           <Typography size="text-md" color="text-dark">
             Board Members
           </Typography>
-          <Typography size="text-light" color="text-ghost">
-            These are the board members
+
+          <Typography size="text-light" color="text-dark">
+            Meet the Board Members
           </Typography>
         </div>
 
@@ -69,8 +64,9 @@ export default function Officer() {
           <Typography size="text-md" color="text-dark">
             Advisers
           </Typography>
-          <Typography size="text-light" color="text-ghost">
-            These are the advisers
+
+          <Typography size="text-light" color="text-dark">
+            Meet our Advisers
           </Typography>
         </div>
 
@@ -92,6 +88,7 @@ export default function Officer() {
             <Link
               to="/officers"
               style={{ textDecoration: "none", color: "white" }}
+              onClick={scroll}
             >
               VIEW ALL
             </Link>
@@ -101,4 +98,3 @@ export default function Officer() {
     </section>
   );
 }
-

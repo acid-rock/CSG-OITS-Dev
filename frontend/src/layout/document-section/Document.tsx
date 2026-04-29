@@ -2,14 +2,20 @@ import DocumentCard from "../../components/document-card/Document-card";
 import Typography from "../../components/typography/Typography";
 import "./document.css";
 import Button from "../../components/button/Button";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useState } from "react";
-import type {
-  OutletContext,
-  Document,
-} from "../../root-layout/Root-layout.tsx";
+import documents from "../../config/documentsConfig.ts";
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
-import wave from "../../assets/1.svg";
+
+type DocumentItem = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  date?: string;
+  url?: string;
+  memoSrc?: string;
+};
 
 export default function Document() {
   const { documents } = useOutletContext<OutletContext>();
@@ -21,18 +27,20 @@ export default function Document() {
     setIsModalOpen(true);
   };
 
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="document-container">
-      <div className="document-wave">
-        <img className="wave" src={wave} alt="Wave" />
-      </div>
       <div className="document-layout">
         <div className="document-texts">
-          <Typography size="text-md" color="text-white">
+          <Typography size="text-lg" color="text-dark">
             Comprehensive Document Library
           </Typography>
-          <Typography size="text-sm" color="text-ghost">
-            This is where the documents
+          <Typography size="text-sm" color="text-dark">
+            Explore our comprehensive library of official documents, memos, and
+            reports.
           </Typography>
         </div>
 
@@ -41,9 +49,13 @@ export default function Document() {
             <DocumentCard
               key={docu.id}
               id={docu.id}
-              title={docu.description}
+              category={docu.category}
+              title={docu.title}
+              description={docu.description}
+              term={docu.term}
+              date={docu.date}
               variant="default"
-              onSelect={() => {}} // no preview panel on this page
+              onSelect={() => {}}
               onView={() => handleView(docu)}
             />
           ))}
@@ -54,6 +66,7 @@ export default function Document() {
             <Link
               to="/bulletin"
               style={{ textDecoration: "none", color: "white" }}
+              onClick={scroll}
             >
               VIEW ALL
             </Link>
@@ -64,9 +77,9 @@ export default function Document() {
       {isModalOpen && selectedDoc && (
         <DocumentModal
           selected={{
-            title: selectedDoc.name,
+            title: selectedDoc.title,
             date: selectedDoc.date ?? "",
-            memoSrc: selectedDoc.url ?? "",
+            memoSrc: selectedDoc.url ?? selectedDoc.memoSrc ?? "",
           }}
           onClose={() => {
             setIsModalOpen(false);
