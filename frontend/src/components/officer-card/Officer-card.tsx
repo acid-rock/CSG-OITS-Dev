@@ -1,5 +1,4 @@
 import "./officer-card.css";
-import { FaFacebook } from "react-icons/fa";
 
 type OfficerCardProps = {
   id?: string;
