@@ -7,6 +7,7 @@ import officerRoutes from "./routes/officers.routes.js";
 import committeeRoutes from "./routes/committee.routes.js";
 import auditRoutes from "./routes/audit.routes.js";
 import inventoryRoutes from "./routes/inventory.routes.js";
+import metricsRoutes from "./routes/metrics.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -50,6 +51,7 @@ app.use("/api/v1/officers", officerRoutes);
 app.use("/api/v1/committees", committeeRoutes);
 app.use("/api/v1/auditlogs", auditRoutes);
 app.use("/api/v1/inventory", inventoryRoutes);
+app.use("/api/v1/metrics", metricsRoutes);
 
 // Health route
 app.get("/health", (req, res) => {
