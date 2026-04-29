@@ -2,7 +2,6 @@ import { Outlet } from "react-router-dom";
 import Navigation from "../components/navigation/Navigation";
 import Footer from "../components/footer/Footer";
 import { useState, useEffect } from "react";
-import fetchAudit from "../config/auditConfig";
 import fetchBulletinData from "../config/bulletinConfig";
 import fetchDocuments from "../config/documentsConfig";
 import fetchEvents from "../config/eventConfig";
@@ -87,7 +86,6 @@ const Root = () => {
           fetchDocuments(),
           fetchEvents(),
           fetchOfficers(),
-          fetchAudit(),
           fetchInventory(),
         ]);
 
