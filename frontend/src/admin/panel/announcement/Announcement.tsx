@@ -4,7 +4,7 @@ import FilterSelect from "../../components/filter/Filter";
 import Form from "../../components/form/Form";
 import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
 import Actionbar from "../../components/action-bar/Actionbar";
-import { type Announcement } from "../../../root-layout/Root-layout.tsx";
+import { type Announcement as AnnouncementItem } from "../../../root-layout/Root-layout.tsx";
 import getAnnouncements from "../../../config/bulletinConfig.ts";
 import { DateTime } from "luxon";
 
@@ -26,7 +26,7 @@ const Announcement = () => {
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>("All");
   const [sort, setSort] = useState<string>("");
-  const [data, setData] = useState<Announcement[]>([]);
+  const [data, setData] = useState<AnnouncementItem[]>([]);
   const [archivedOpen, setArchivedOpen] = useState(false);
   const [activeArchived, setActiveArchived] = useState<string[]>([]);
 
@@ -70,7 +70,7 @@ const Announcement = () => {
     });
 
     const sortedData = [...filteredData].sort(
-      (a: Announcement, b: Announcement) => {
+      (a: AnnouncementItem, b: AnnouncementItem) => {
         switch (sort) {
           case "Name (A-Z)":
             return a.title.localeCompare(b.title);
@@ -114,7 +114,7 @@ const Announcement = () => {
 
   const archivedData = data.filter((announcement) => announcement.is_archived);
   const sortedArchivedData = [...archivedData].sort(
-    (a: Announcement, b: Announcement) => {
+    (a: AnnouncementItem, b: AnnouncementItem) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     },
   );

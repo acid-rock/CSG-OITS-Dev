@@ -46,7 +46,6 @@ const Login = () => {
           <h2 className="login-title">
             Online Information Transparency System
           </h2>
-          <p className="login-subtitle">Account Login</p>
         </div>
 
         {/* Form */}
@@ -55,7 +54,7 @@ const Login = () => {
             <img src="/user-login.png" alt="User" className="input-icon" />
             <input
               type="email"
-              placeholder="CvSU Email"
+              placeholder="Email"
               className="input-field"
               onChange={handleEmailChange}
             />

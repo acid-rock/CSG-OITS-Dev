@@ -3,7 +3,7 @@ import "./Inventory.css";
 import Form from "../../components/form/Form";
 import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
 import fetchInventory from "../../../config/inventoryConfig";
-import { type Inventory } from "../../../root-layout/Root-layout";
+import { type Inventory as InventoryItem } from "../../../root-layout/Root-layout";
 
 const filterByStatus = (status: boolean, filter: string): boolean => {
   if (!filter || filter === "All") return true;
@@ -19,9 +19,7 @@ const Inventory = () => {
   const [editQuantity, setEditQuantity] = useState(0);
   const [openEdit, setOpenEdit] = useState(false);
   const [active, setActive] = useState<string[]>([]);
-  const [filter, setFilter] = useState<string>("All");
-  const [sort, setSort] = useState<string>("Name (A-Z)");
-  const [inventory, setInventory] = useState<Inventory[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
 
   const handleActive = (itemId: string) => {
     setActive((prev) =>
@@ -95,21 +93,6 @@ const Inventory = () => {
           </thead>
           <tbody>
             {inventory
-              .filter((item) =>
-                filterByStatus(
-                  item.status === "In Stock" ? true : false,
-                  filter,
-                ),
-              )
-              .sort((a, b) => {
-                if (sort === "Name (A-Z)") return a.name.localeCompare(b.name);
-                if (sort === "Name (Z-A)") return b.name.localeCompare(a.name);
-                if (sort === "Quantity (High-Low)")
-                  return b.quantity - a.quantity;
-                if (sort === "Quantity (Low-High)")
-                  return a.quantity - b.quantity;
-                return 0;
-              })
               .map((item, idx) => (
                 <tr
                   key={idx}
