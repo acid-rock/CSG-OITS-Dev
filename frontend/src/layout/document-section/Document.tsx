@@ -2,20 +2,11 @@ import DocumentCard from "../../components/document-card/Document-card";
 import Typography from "../../components/typography/Typography";
 import "./document.css";
 import Button from "../../components/button/Button";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { useState } from "react";
-import documents from "../../config/documentsConfig.ts";
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
-
-type DocumentItem = {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  date?: string;
-  url?: string;
-  memoSrc?: string;
-};
+import type { OutletContext } from "../../root-layout/Root-layout.tsx";
+import type { Document } from "../../root-layout/Root-layout.tsx";
 
 export default function Document() {
   const { documents } = useOutletContext<OutletContext>();
@@ -50,9 +41,9 @@ export default function Document() {
               key={docu.id}
               id={docu.id}
               category={docu.category}
-              title={docu.title}
+              title={docu.description}
               description={docu.description}
-              term={docu.term}
+              term={"" /* TODO: Add term */}
               date={docu.date}
               variant="default"
               onSelect={() => {}}
@@ -77,9 +68,9 @@ export default function Document() {
       {isModalOpen && selectedDoc && (
         <DocumentModal
           selected={{
-            title: selectedDoc.title,
+            title: selectedDoc.name,
             date: selectedDoc.date ?? "",
-            memoSrc: selectedDoc.url ?? selectedDoc.memoSrc ?? "",
+            memoSrc: selectedDoc.url ?? "",
           }}
           onClose={() => {
             setIsModalOpen(false);

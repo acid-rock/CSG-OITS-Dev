@@ -1,30 +1,30 @@
-import './AboutContent.css';
-import Typography from '../../../../components/typography/Typography';
+import "./AboutContent.css";
+import Typography from "../../../../components/typography/Typography";
 
 const AboutContent = () => {
   return (
-    <div className='about-layout'>
-      <div className='about-text-layout'>
-        <div className='about-texts'>
-          <Typography size='text-md' color='text-dark'>
+    <div className="about-layout">
+      <div className="about-text-layout">
+        <div className="about-texts">
+          <Typography size="text-lg" color="text-dark">
             About
           </Typography>
-          <Typography size='text-light' color='text-ghost'>
+          <Typography size="text-sm" color="text-dark">
             Get to know the Central Student Government, our history, and our
             mission.
           </Typography>
         </div>
       </div>
-      <div className='about-content'>
-        <div className='about-content-sect1'>
-          <div className='about-title'>
+      <div className="about-content">
+        <div className="about-content-sect1">
+          <div className="about-title">
             <h1>
               CENTRAL STUDENT <br></br> GOVERNMENT
             </h1>
           </div>
 
-          <div className='about-content-text'>
-            <h1 className=''>
+          <div className="about-content-text">
+            <h1 className="">
               A new era arises, bringing with it a new set of student leaders.
               We're not just a new set of faces; we represent a new face of
               leadership—one built on genuine commitment and dedication. In a
@@ -33,22 +33,22 @@ const AboutContent = () => {
             </h1>
           </div>
         </div>
-        <div className='about-content-image'>
+        <div className="about-content-image">
           <img
-            src='./about1.jpg'
-            alt='Central Student Government'
-            className='about-image'
+            src="./about1.jpg"
+            alt="Central Student Government"
+            className="about-image"
           />
         </div>
-        <div className='about-content-image'>
+        <div className="about-content-image">
           <img
-            src='./about2.jpg'
-            alt='Central Student Government'
-            className='about-image'
+            src="./about2.jpg"
+            alt="Central Student Government"
+            className="about-image"
           />
         </div>
-        <div className='about-content-sect2'>
-          <div className='about-content-text'>
+        <div className="about-content-sect2">
+          <div className="about-content-text">
             <h1>
               This new term is driven by a deep sense of purpose, ensuring that
               every initiative, decision, and program is rooted in the true

@@ -1,13 +1,23 @@
 import OfficerCard from "../../components/officer-card/Officer-card";
 import Typography from "../../components/typography/Typography";
-import officer from "../../config/officerConfig";
-import board from "../../config/boardConfig";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import Button from "../../components/button/Button";
 import "./officer.css";
-import adviser from "../../config/adviserConfig";
+import type { Officer, OutletContext } from "../../root-layout/Root-layout";
 
 export default function Officer() {
+  const { officers } = useOutletContext<OutletContext>();
+  const executives = officers?.filter((officer) => {
+    return officer.type === "executive";
+  });
+
+  const board = officers?.filter((officer) => {
+    return officer.type === "board";
+  });
+
+  const advisers = officers?.filter((officer) => {
+    return officer.type === "adviser";
+  });
   const scroll = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
