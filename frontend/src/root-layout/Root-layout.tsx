@@ -30,15 +30,6 @@ export type Document = {
   date: string;
 };
 
-export type AuditLogs = {
-  user: string;
-  role: "Admin";
-  imageName: string;
-  fileName: string;
-  description: string;
-  date: string;
-};
-
 export type Event = {
   is_archived: boolean;
   id: string;
@@ -75,7 +66,6 @@ export interface OutletContext {
   documents: Document[];
   events: Event[];
   officers: Officer[];
-  auditLogs: AuditLogs[];
   inventory: Inventory[];
 }
 
@@ -87,7 +77,6 @@ const Root = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [officers, setOfficers] = useState<Officer[]>();
-  const [auditLogs, setAuditLogs] = useState<AuditLogs[]>([]);
   const [inventory, setInventory] = useState<Inventory[]>([]);
 
   useEffect(() => {
@@ -106,7 +95,6 @@ const Root = () => {
       setDocuments(documentsData);
       setEvents(eventsData);
       setOfficers(officersData);
-      setAuditLogs(auditLogs);
       setInventory(inventory);
     };
 
@@ -122,7 +110,6 @@ const Root = () => {
           documents,
           events,
           officers,
-          auditLogs,
           inventory,
         }}
       />

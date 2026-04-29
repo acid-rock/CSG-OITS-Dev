@@ -1,26 +1,36 @@
 import { useEffect, useState } from "react";
-import eventData from "../../config/eventsConfig";
 import Typography from "../../components/typography/Typography";
 import AnnouncementCard from "../../components/announcement-card/Announcement-card";
 import "./announcement.css";
 import Modal from "../../components/modal/Modal";
 import Button from "../../components/button/Button";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
+import type {
+  Announcement,
+  OutletContext,
+} from "../../root-layout/Root-layout";
+import { DateTime } from "luxon";
 
 export default function Announcement() {
+  const { bulletin } = useOutletContext<OutletContext>();
   const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] =
+    useState<Announcement | null>(null);
   const [open, setOpen] = useState(false);
 
-  const handleCardClick = (event: any) => {
-    setSelectedEvent(event);
+  const formatDate = (date: string) => {
+    return DateTime.fromISO(date).toLocaleString();
+  };
+
+  const handleCardClick = (announcement: Announcement) => {
+    setSelectedAnnouncement(announcement);
     setOpen(true);
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
-        if (prev + 1 >= eventData.length) {
+        if (prev + 1 >= bulletin.length) {
           return 0;
         }
         return prev + 1;
@@ -34,7 +44,7 @@ export default function Announcement() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const currentEvent = eventData[currentSlide];
+  const currentAnnouncement = bulletin[currentSlide];
   return (
     <section className="announcement-container">
       <div className="announcement-layout">
@@ -49,14 +59,14 @@ export default function Announcement() {
 
         {/* Slideshow */}
         <div className="announcement-content">
-          {currentEvent && (
+          {currentAnnouncement && (
             <AnnouncementCard
-              title={currentEvent.title}
-              description={currentEvent.description}
-              date={currentEvent.date}
-              image={currentEvent.image}
+              title={currentAnnouncement.title}
+              description={currentAnnouncement.content}
+              date={formatDate(currentAnnouncement.date) || "Not Available"}
+              image={currentAnnouncement.imgUrl}
               variant="default"
-              onClick={() => handleCardClick(currentEvent)}
+              onClick={() => handleCardClick(currentAnnouncement)}
             />
           )}
         </div>
@@ -74,15 +84,15 @@ export default function Announcement() {
         </div>
       </div>
 
-      {open && selectedEvent && (
+      {open && selectedAnnouncement && (
         <Modal
           isOpen={open}
           setOpen={setOpen}
-          imageSrc={selectedEvent.image}
-          imageAlt={selectedEvent.title}
-          date={selectedEvent.date}
-          title={selectedEvent.title}
-          description={selectedEvent.description}
+          imageSrc={selectedAnnouncement.imgUrl}
+          imageAlt={"Image goes here..."}
+          date={formatDate(selectedAnnouncement.date) || "Not Available"}
+          title={selectedAnnouncement.title}
+          description={selectedAnnouncement.content}
         ></Modal>
       )}
     </section>

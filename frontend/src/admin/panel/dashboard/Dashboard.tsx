@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Barcharts from "../../components/charts/bar-chart/Barchart";
 import Linechart from "../../components/charts/line-chart/Linechart";
 import fetchAudit from "../../../config/auditConfig";
-import type { AuditLogs } from "../../../root-layout/Root-layout";
+import type { AuditLogs } from "../auditlog/Auditlog";
 import { fetchMetrics, fetchSizeUsed } from "../../../config/metricsConfig";
 
 type Metrics = {

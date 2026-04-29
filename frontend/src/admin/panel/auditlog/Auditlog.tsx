@@ -1,9 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import "./auditlog.css";
 import FilterSelect from "../../components/filter/Filter";
-import { type AuditLogs } from "../../../root-layout/Root-layout";
 import fetchAudit from "../../../config/auditConfig";
 import { DateTime } from "luxon";
+
+export type AuditLogs = {
+  user: string;
+  role: "Admin";
+  imageName: string;
+  fileName: string;
+  description: string;
+  date: string;
+};
 
 const filterOptions = ["All", "Today", "This Week", "This Month"];
 const sortOptions = [

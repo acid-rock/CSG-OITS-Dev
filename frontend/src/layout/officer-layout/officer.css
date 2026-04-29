@@ -63,9 +63,9 @@
   }
 }
 
-.board-grid {
+.board-member-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 3fr));
   gap: 70px 40px;
   width: 100%;
   max-width: 1100px;
