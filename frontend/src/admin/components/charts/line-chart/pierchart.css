@@ -1,8 +1,10 @@
-.bar-chart-container {
+.pie-chart-container {
   display: flex;
-  flex-direction: column;
   flex: 1;
   max-width: 450px;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 1) 0%,
@@ -13,14 +15,17 @@
   box-shadow:
     0 2px 12px rgba(148, 163, 184, 0.15),
     0 1px 4px rgba(148, 163, 184, 0.1);
+  width: 100%;
 }
 
-.bar-chart-details {
+.pie-chart-details {
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
+  color: white;
   padding: 1rem;
+  width: 100%;
   border-bottom: 1px solid rgba(203, 213, 225, 0.6);
   background: linear-gradient(
     90deg,
@@ -30,23 +35,16 @@
   border-radius: 0.9rem 0.9rem 0 0;
 }
 
-.bar-chart-details span {
+.pie-chart-details span {
   font-weight: 600;
   font-size: 0.75rem;
   color: rgba(29, 78, 216, 1);
   text-shadow: 0 1px 4px rgba(59, 130, 246, 0.2);
 }
 
-.bar-chart-details p {
-  font-size: 0.75rem;
-  color: #64748b;
-}
-
-.canvas-bar-container {
+.canvas-pie-container {
+  padding: 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
-  width: 100%;
-  box-sizing: border-box;
 }

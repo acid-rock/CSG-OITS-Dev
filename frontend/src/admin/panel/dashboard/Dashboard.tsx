@@ -1,7 +1,7 @@
 import "./dashboard.css";
 import { useEffect, useState } from "react";
 import Barcharts from "../../components/charts/bar-chart/Barchart";
-import Linechart from "../../components/charts/line-chart/Linechart";
+import Linechart from "../../components/charts/line-chart/Piechart";
 import fetchAudit from "../../../config/auditConfig";
 import type { AuditLogs } from "../auditlog/Auditlog";
 import { fetchMetrics, fetchSizeUsed } from "../../../config/metricsConfig";

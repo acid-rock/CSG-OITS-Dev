@@ -10,13 +10,16 @@ const monthsData = [
   { month: 'May', views: Math.floor(Math.random() * 100) },
 ];
 
+const totalViews = monthsData.reduce((sum, d) => sum + d.views, 0);
+
 const Barcharts = () => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
+  const chartInstanceRef = useRef<Chart | null>(null);
 
   useEffect(() => {
     if (!chartRef.current) return;
 
-    const chart = new Chart(chartRef.current, {
+    chartInstanceRef.current = new Chart(chartRef.current, {
       type: 'bar',
       data: {
         labels: monthsData.map((d) => d.month),
@@ -33,11 +36,24 @@ const Barcharts = () => {
         plugins: {
           legend: { display: false },
         },
+        scales: {
+          x: {
+            grid: { color: 'rgba(203, 213, 225, 0.4)' },
+            ticks: { color: '#64748b', font: { size: 11 } },
+          },
+          y: {
+            grid: { color: 'rgba(203, 213, 225, 0.4)' },
+            ticks: { color: '#64748b', font: { size: 11 } },
+          },
+        },
       },
     });
 
     return () => {
-      chart.destroy();
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
+      }
     };
   }, []);
 
@@ -45,7 +61,7 @@ const Barcharts = () => {
     <div className='bar-chart-container'>
       <div className='bar-chart-details'>
         <span>Recent Visits</span>
-        <p>{monthsData[monthsData.length - 1].views} Views</p>
+        <p>{totalViews} Views</p>
       </div>
       <div className='canvas-bar-container'>
         <canvas id='bar-chart' ref={chartRef}></canvas>
