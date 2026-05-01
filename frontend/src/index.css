@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
-/* Helvetica alternative - Inter (very similar to Helvetica) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 html {
@@ -43,8 +42,6 @@ html {
   --border-radius: 12px;
   --button-padding: 0.6em 1.2em;
 
-  /*font style*/
-  /* --font-body: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; */
   --font-body:
     'Roboto', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-heading: 'Montserrat', sans-serif;
@@ -63,10 +60,43 @@ body {
   transition: all 0.75s ease-in-out;
   overflow-x: hidden;
   font-family: var(--font-body);
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #3771b7 #eaf1fb;
 }
 
 * {
   box-sizing: border-box;
+
+  /* Firefox — all scrollable elements */
+  scrollbar-width: thin;
+  scrollbar-color: #3771b7 #eaf1fb;
+}
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px; /* horizontal scrollbars */
+}
+
+::-webkit-scrollbar-track {
+  background: #eaf1fb;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4acbff 0%, #3771b7 100%);
+  border-radius: 999px;
+  border: 1px solid #eaf1fb;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #71dcff 0%, #114da7 100%);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 h1,

@@ -86,7 +86,7 @@ export default function BulletinDocument() {
               Categories
             </Typography>
             <nav className="bulletin-nav-menu">
-              {categories.map((category) => (
+              {categories.map((category) => ( 
                 <button
                   key={category.id}
                   type="button"

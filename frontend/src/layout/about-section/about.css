@@ -1,5 +1,6 @@
 /* CONTAINER */
 .about-container {
+  position: relative;
   background: linear-gradient(
     to bottom,
     #4a78e0 0%,
@@ -41,7 +42,7 @@
   border-radius: 50px;
   padding: 10px;
   position: absolute;
-  top: 50%;
+  top: 60%;
   transform: translateY(-50%);
   color: rgb(26, 143, 232);
   background-color: aliceblue;

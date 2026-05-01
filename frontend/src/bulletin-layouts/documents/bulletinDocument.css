@@ -67,6 +67,7 @@
 }
 
 .bulletin-nav-menu {
+  overflow: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -74,9 +75,9 @@
 }
 
 .bulletin-nav-item {
-  padding: 10px 14px;
   border-radius: 8px;
   border: none;
+  padding: 5px;
   background: transparent;
   font-size: 14px;
   font-weight: 500;
