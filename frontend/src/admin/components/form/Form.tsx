@@ -40,7 +40,9 @@ const Form = ({
   const [date, setDate] = useState(initialDate);
   const [eventImages, setEventImages] = useState<File[]>([]);
   // For event edit mode: one optional replacement per slot (0, 1, 2)
-  const [replaceImages, setReplaceImages] = useState<[File | null, File | null, File | null]>([null, null, null]);
+  const [replaceImages, setReplaceImages] = useState<
+    [File | null, File | null, File | null]
+  >([null, null, null]);
   const [type, setType] = useState("");
 
   // Helpers
@@ -274,58 +276,76 @@ const Form = ({
                 ? "Photos (up to 3)"
                 : "File"}
           </label>
-          <div
-            className={`image-preview${preview ? " has-image" : ""}`}
-            id="imagePreview"
-            onClick={handleImageClick}
-          >
-            {!preview ? (
-              <div className="image-placeholder">
-                <div className="upload-icon">📁</div>
-                <div className="upload-text">
-                  <strong>Click to upload</strong>
-                  <br />
-                  {forType === "announcement"
-                    ? "PNG, JPG, JPEG"
-                    : forType === "event"
-                      ? "PNG, JPG (up to 3 images)"
-                      : "PDF files"}
+          {!id ? (
+            <div
+              className={`image-preview${preview ? " has-image" : ""}`}
+              id="imagePreview"
+              onClick={handleImageClick}
+            >
+              {!preview ? (
+                <div className="image-placeholder">
+                  <div className="upload-icon">📁</div>
+                  <div className="upload-text">
+                    <strong>Click to upload</strong>
+                    <br />
+                    {forType === "announcement"
+                      ? "PNG, JPG, JPEG"
+                      : forType === "event"
+                        ? "PNG, JPG (up to 3 images)"
+                        : "PDF files"}
+                  </div>
                 </div>
-              </div>
-            ) : preview?.endsWith(".pdf") ? (
-              <div className="pdf-preview">
-                <div className="upload-icon">📄</div>
-                <div className="upload-text">{preview}</div>
-                {forType === "document" && (
-                  <>
-                    {selectedBoxes.length > 0 && (
-                      <div className="pdf-selected-count">
-                        ✓ {selectedBoxes.length} area(s) selected
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="btn btn-edit-selections"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowPdfSelector(true);
-                      }}
-                    >
-                      Edit selections
-                    </button>
-                  </>
-                )}
-              </div>
-            ) : (
-              <img id="previewImage" alt="Preview" src={preview} />
-            )}
-          </div>
+              ) : preview?.endsWith(".pdf") ? (
+                <div className="pdf-preview">
+                  <div className="upload-icon">📄</div>
+                  <div className="upload-text">{preview}</div>
+                  {forType === "document" && (
+                    <>
+                      {selectedBoxes.length > 0 && (
+                        <div className="pdf-selected-count">
+                          ✓ {selectedBoxes.length} area(s) selected
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className="btn btn-edit-selections"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowPdfSelector(true);
+                        }}
+                      >
+                        Edit selections
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <img id="previewImage" alt="Preview" src={preview} />
+              )}
+            </div>
+          ) : (
+            <p>Preview not available.</p>
+          )}
 
           {/* Event edit mode: 3 individual replacement slots */}
           {forType === "event" && id ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "0.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+                marginTop: "0.5rem",
+              }}
+            >
               {([0, 1, 2] as const).map((i) => (
-                <div key={i} style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.25rem",
+                  }}
+                >
                   <label style={{ fontSize: "0.85rem", color: "#6b7280" }}>
                     Replace Image {i + 1} (optional)
                   </label>
@@ -333,14 +353,26 @@ const Form = ({
                     <img
                       src={initialImages[i]}
                       alt={`Current image ${i + 1}`}
-                      style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 4, border: "1px solid #e5e7eb" }}
+                      style={{
+                        width: 72,
+                        height: 72,
+                        objectFit: "cover",
+                        borderRadius: 4,
+                        border: "1px solid #e5e7eb",
+                      }}
                     />
                   )}
                   {replaceImages[i] && (
                     <img
                       src={URL.createObjectURL(replaceImages[i]!)}
                       alt={`New image ${i + 1}`}
-                      style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 4, border: "2px solid #3b82f6" }}
+                      style={{
+                        width: 72,
+                        height: 72,
+                        objectFit: "cover",
+                        borderRadius: 4,
+                        border: "2px solid #3b82f6",
+                      }}
                     />
                   )}
                   <input
@@ -351,7 +383,11 @@ const Form = ({
                     onChange={(e) => {
                       const file = e.target.files?.[0] ?? null;
                       setReplaceImages((prev) => {
-                        const next = [...prev] as [File | null, File | null, File | null];
+                        const next = [...prev] as [
+                          File | null,
+                          File | null,
+                          File | null,
+                        ];
                         next[i] = file;
                         return next;
                       });
