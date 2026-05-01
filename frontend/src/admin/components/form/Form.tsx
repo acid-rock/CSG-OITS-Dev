@@ -1,14 +1,14 @@
-import React, { useRef, useState } from 'react';
-import './form.css';
-import type { Box } from '../pdf-selector-components/pdf-selector';
-import PdfSelector from '../pdf-selector-components/pdf-selector';
-import axios from 'axios';
+import React, { useRef, useState } from "react";
+import "./form.css";
+import type { Box } from "../pdf-selector-components/pdf-selector";
+import PdfSelector from "../pdf-selector-components/pdf-selector";
+import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
 // TASK 5: extended forType to include 'event'
 interface FormProps {
-  forType: 'announcement' | 'document' | 'event';
+  forType: "announcement" | "document" | "event";
   id?: string | null;
   initialTitle?: string;
   initialDescription?: string;
@@ -20,9 +20,9 @@ interface FormProps {
 const Form = ({
   forType,
   id,
-  initialTitle = '',
-  initialDescription = '',
-  initialDate = '',
+  initialTitle = "",
+  initialDescription = "",
+  initialDate = "",
   setOpen,
   onSuccess,
 }: FormProps) => {
@@ -37,15 +37,25 @@ const Form = ({
   const [description, setDescription] = useState(initialDescription);
   const [date, setDate] = useState(initialDate);
   const [eventImages, setEventImages] = useState<File[]>([]);
+  const [type, setType] = useState("");
+
+  // Helpers
+  const undoHandler = () => {
+    setSelectedBoxes((prev) => prev.slice(0, -1));
+  };
+
+  const typeChangeHandler = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setType(event.target.value);
+  };
 
   // TASK 1: correct endpoint paths using VITE_API_URL
   const getUrl = (): string => {
-    if (forType === 'announcement') {
+    if (forType === "announcement") {
       return id
         ? `${API_URL}/announcements/edit`
         : `${API_URL}/announcements/add`;
     }
-    if (forType === 'document') {
+    if (forType === "document") {
       return id ? `${API_URL}/documents/edit` : `${API_URL}/documents/add`;
     }
     // event
@@ -58,37 +68,37 @@ const Form = ({
     const formData = new FormData();
 
     // Common fields
-    formData.append('title', title);
-    formData.append('description', description);
+    formData.append("title", title);
+    formData.append("description", description);
 
-    if (forType === 'announcement') {
+    if (forType === "announcement") {
       // Backend expects 'content' not 'description'
-      formData.append('content', description);
+      formData.append("content", description);
     }
 
-    if (forType === 'document') {
+    if (forType === "document") {
       // Backend expects 'name' not 'title'
-      formData.append('name', title);
+      formData.append("name", title);
       if (pdf) {
-        formData.append('file', pdf);
-        formData.append('boxes', JSON.stringify(selectedBoxes));
+        formData.append("file", pdf);
+        formData.append("boxes", JSON.stringify(selectedBoxes));
       }
     }
 
-    if (forType === 'event') {
+    if (forType === "event") {
       // Backend expects 'name' not 'title', and 'date_happened'
-      formData.append('name', title);
-      formData.append('date_happened', date);
-      eventImages.forEach((img) => formData.append('images', img));
+      formData.append("name", title);
+      formData.append("date_happened", date);
+      eventImages.forEach((img) => formData.append("images", img));
     }
 
-    if (forType === 'announcement' && pdf) {
-      formData.append('image', pdf);
+    if (forType === "announcement" && pdf) {
+      formData.append("image", pdf);
     }
 
     // Include id for edit operations
     if (id) {
-      formData.append('id', id);
+      formData.append("id", id);
     }
 
     await axios.post(getUrl(), formData, { withCredentials: true });
@@ -99,11 +109,11 @@ const Form = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type === 'application/pdf') {
+      if (file.type === "application/pdf") {
         setPreview(file.name);
         setPdf(file);
         setPdfUrl(URL.createObjectURL(file));
-        if (forType === 'document') {
+        if (forType === "document") {
           setShowPdfSelector(true);
         }
       } else {
@@ -134,71 +144,108 @@ const Form = ({
   };
 
   return (
-    <div className='form-container'>
-      <div className='form-header'>
-        <h2>{id ? 'Update File' : 'Add New File'}</h2>
+    <div className="form-container">
+      <div className="form-header">
+        <h2>{id ? "Update File" : "Add New File"}</h2>
       </div>
 
       {/* PDF Selector Modal — documents only */}
-      {forType === 'document' && showPdfSelector && pdfUrl && (
-        <div className='pdf-selector-overlay'>
-          <div className='pdf-selector-modal'>
-            <div className='pdf-selector-header'>
+      {forType === "document" && showPdfSelector && pdfUrl && (
+        <div className="pdf-selector-overlay">
+          <div className="pdf-selector-modal">
+            <div className="pdf-selector-header">
               <h3>Select areas on PDF</h3>
-              <button
-                type='button'
-                className='btn btn-secondary'
-                onClick={() => setShowPdfSelector(false)}
-              >
-                Done ({selectedBoxes.length} selected)
-              </button>
+              <div className="btn-container">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setShowPdfSelector(false);
+                    // debug
+                    console.log(selectedBoxes);
+                  }}
+                >
+                  Done ({selectedBoxes.length} selected)
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={undoHandler}
+                >
+                  Undo last box
+                </button>
+              </div>
             </div>
-            <div className='pdf-selector-body'>
-              <PdfSelector fileUrl={pdfUrl} onBoxesChange={setSelectedBoxes} />
+            <div className="pdf-selector-body">
+              <PdfSelector
+                boxList={selectedBoxes}
+                fileUrl={pdfUrl}
+                onBoxesChange={setSelectedBoxes}
+              />
             </div>
           </div>
         </div>
       )}
 
-      <form className='form-layout' onSubmit={handleSubmit}>
-        <div className='form-fields'>
-          <div className='form-group'>
-            <label htmlFor='title'>
-              {forType === 'event' ? 'Event Name' : 'Title'}
+      <form className="form-layout" onSubmit={handleSubmit}>
+        <div className="form-fields">
+          <div className="form-group">
+            <label htmlFor="title">
+              {forType === "event" ? "Event Name" : "Title"}
             </label>
             <input
-              type='text'
-              id='title'
+              type="text"
+              id="title"
               placeholder={
-                forType === 'event' ? 'Leadership Summit' : 'System Maintenance'
+                forType === "event" ? "Leadership Summit" : "System Maintenance"
               }
-              name='title'
+              name="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
-          <div className='form-group'>
-            <label htmlFor='description'>Description</label>
+          {forType === "document" && (
+            <div className="form-group">
+              <label htmlFor="type">Type</label>
+              <select value={type} onChange={typeChangeHandler}>
+                <option value="activity-proposal">Activity Proposal</option>
+                <option value="resolution">Resolution</option>
+                <option value="project-proposal">Project Proposal</option>
+                <option value="accomplishment-report">
+                  Accomplishment Report
+                </option>
+                <option value="financial-statement">Financial Statement</option>
+                <option value="sponsorship-letter">Sponsorship Letter</option>
+                <option value="excuse-letter">Excuse Letter</option>
+                <option value="office-memorandum">Office Memorandum</option>
+                <option value="minutes-of-the-meeting">
+                  Minutes of the Meeting
+                </option>
+              </select>
+            </div>
+          )}
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
             <textarea
-              id='description'
-              name='description'
+              id="description"
+              name="description"
               placeholder={
-                forType === 'event'
-                  ? 'Annual leadership summit for CSG officers...'
-                  : 'Scheduled maintenance for system updates...'
+                forType === "event"
+                  ? "Annual leadership summit for CSG officers..."
+                  : "Scheduled maintenance for system updates..."
               }
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             ></textarea>
           </div>
           {/* TASK 5: date field for events only */}
-          {forType === 'event' && (
-            <div className='form-group'>
-              <label htmlFor='date'>Date</label>
+          {forType === "event" && (
+            <div className="form-group">
+              <label htmlFor="date">Date</label>
               <input
-                type='date'
-                id='date'
-                name='date'
+                type="date"
+                id="date"
+                name="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
@@ -206,46 +253,46 @@ const Form = ({
           )}
         </div>
 
-        <div className='image-upload'>
+        <div className="image-upload">
           <label>
-            {forType === 'announcement'
-              ? 'Image'
-              : forType === 'event'
-                ? 'Photos (up to 3)'
-                : 'File'}
+            {forType === "announcement"
+              ? "Image"
+              : forType === "event"
+                ? "Photos (up to 3)"
+                : "File"}
           </label>
           <div
-            className={`image-preview${preview ? ' has-image' : ''}`}
-            id='imagePreview'
+            className={`image-preview${preview ? " has-image" : ""}`}
+            id="imagePreview"
             onClick={handleImageClick}
           >
             {!preview ? (
-              <div className='image-placeholder'>
-                <div className='upload-icon'>📁</div>
-                <div className='upload-text'>
+              <div className="image-placeholder">
+                <div className="upload-icon">📁</div>
+                <div className="upload-text">
                   <strong>Click to upload</strong>
                   <br />
-                  {forType === 'announcement'
-                    ? 'PNG, JPG, JPEG'
-                    : forType === 'event'
-                      ? 'PNG, JPG (up to 3 images)'
-                      : 'PDF files'}
+                  {forType === "announcement"
+                    ? "PNG, JPG, JPEG"
+                    : forType === "event"
+                      ? "PNG, JPG (up to 3 images)"
+                      : "PDF files"}
                 </div>
               </div>
-            ) : preview?.endsWith('.pdf') ? (
-              <div className='pdf-preview'>
-                <div className='upload-icon'>📄</div>
-                <div className='upload-text'>{preview}</div>
-                {forType === 'document' && (
+            ) : preview?.endsWith(".pdf") ? (
+              <div className="pdf-preview">
+                <div className="upload-icon">📄</div>
+                <div className="upload-text">{preview}</div>
+                {forType === "document" && (
                   <>
                     {selectedBoxes.length > 0 && (
-                      <div className='pdf-selected-count'>
+                      <div className="pdf-selected-count">
                         ✓ {selectedBoxes.length} area(s) selected
                       </div>
                     )}
                     <button
-                      type='button'
-                      className='btn btn-edit-selections'
+                      type="button"
+                      className="btn btn-edit-selections"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowPdfSelector(true);
@@ -257,45 +304,45 @@ const Form = ({
                 )}
               </div>
             ) : (
-              <img id='previewImage' alt='Preview' src={preview} />
+              <img id="previewImage" alt="Preview" src={preview} />
             )}
           </div>
 
           {/* TASK 5: separate file input for events (multi-image) */}
-          {forType === 'event' ? (
+          {forType === "event" ? (
             <input
-              type='file'
+              type="file"
               ref={fileInputRef}
-              title='Select up to 3 photos'
-              accept='image/*'
+              title="Select up to 3 photos"
+              accept="image/*"
               multiple
               onChange={handleEventImagesChange}
-              className='file-input-hidden'
+              className="file-input-hidden"
             />
           ) : (
             <input
-              type='file'
+              type="file"
               ref={fileInputRef}
-              title='Select a file to upload'
+              title="Select a file to upload"
               accept={
-                forType === 'announcement' ? 'image/*' : 'application/pdf'
+                forType === "announcement" ? "image/*" : "application/pdf"
               }
               onChange={handleFileChange}
-              className='file-input-hidden'
+              className="file-input-hidden"
             />
           )}
         </div>
 
-        <div className='form-actions'>
+        <div className="form-actions">
           <button
-            type='button'
-            className='btn btn-cancel'
+            type="button"
+            className="btn btn-cancel"
             onClick={() => setOpen(false)}
           >
             Cancel
           </button>
-          <button type='submit' className='btn btn-submit'>
-            {id ? 'Update' : 'Post'}
+          <button type="submit" className="btn btn-submit">
+            {id ? "Update" : "Post"}
           </button>
         </div>
       </form>
