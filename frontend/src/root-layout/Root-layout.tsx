@@ -7,7 +7,7 @@ import fetchDocuments from "../config/documentsConfig";
 import fetchEvents from "../config/eventConfig";
 import fetchOfficers from "../config/officerConfig";
 
-type Announcement = {
+export type Announcement = {
   id: string;
   imgUrl: string;
   title: string;

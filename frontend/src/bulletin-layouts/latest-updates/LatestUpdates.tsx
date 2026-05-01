@@ -4,16 +4,25 @@ import { useOutletContext } from "react-router-dom";
 import type { OutletContext } from "../../root-layout/Root-layout";
 
 const LatestUpdates = () => {
-  const { documents } = useOutletContext<OutletContext>();
-  if (!documents.length) {
+  const { bulletin } = useOutletContext<OutletContext>();
+  if (!bulletin.length) {
     return null;
   }
-  const latest = [...documents]
+  const latest = [...bulletin]
     .sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )
     .slice(0, 3);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="latest-container">
@@ -33,17 +42,18 @@ const LatestUpdates = () => {
             </Typography>
           </div>
           <div className="content-cards-container">
-            {latest.map((doc) => (
-              <div key={doc.id} className="content-cards">
-                <div className="cards-link">
-                  <a href="/bulletin">{doc.category}</a>
+            {latest.map((ann) => (
+              <div key={ann.id} className="content-cards">
+                {/* Left: Title and Category */}
+                <div className="card-left">
+                  <h3 className="card-title">{ann.title}</h3>
                 </div>
-                <div className="cards-text">
-                  <Typography color="text-dark" size="text-xs">
-                    {doc.description.length > 160
-                      ? doc.description.slice(0, 160) + "..."
-                      : doc.description}
-                  </Typography>
+
+                {/* Center: Date */}
+                <div className="card-center">
+                  <span className="card-date">
+                    {ann.date ? formatDate(ann.date) : "N/A"}
+                  </span>
                 </div>
               </div>
             ))}

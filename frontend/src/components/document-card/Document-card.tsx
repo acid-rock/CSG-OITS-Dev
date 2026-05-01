@@ -1,11 +1,13 @@
-import './document-card.css';
+import "./document-card.css";
 
 type DocumentCardProps = {
   id?: string;
   title?: string;
   description?: string;
   date?: string;
-  variant?: 'default' | 'outlined' | 'elevated';
+  variant?: "default" | "outlined" | "elevated";
+  category?: string;
+  term?: string;
   onSelect?: () => void; // clicking the card → updates preview
   onView?: () => void; // clicking "View" → opens modal
   className?: string;
@@ -17,7 +19,7 @@ export default function DocumentCard({
   title,
   description,
   date,
-  variant = 'default',
+  variant = "default",
   onSelect,
   onView,
   style,
@@ -29,15 +31,15 @@ export default function DocumentCard({
       style={style}
       onClick={onSelect}
     >
-      <div className='document-card-content'>
-        {title && <h3 className='document-card-title'>{title}</h3>}
-        {date && <p className='document-card-date'>{date}</p>}
+      <div className="document-card-content">
+        {title && <h3 className="document-card-title">{title}</h3>}
+        {date && <p className="document-card-date">{date}</p>}
         {description && (
-          <p className='document-card-description'>{description}</p>
+          <p className="document-card-description">{description}</p>
         )}
       </div>
       <button
-        className='document-card-button'
+        className="document-card-button"
         onClick={(e) => {
           e.stopPropagation(); // prevent card's onSelect from firing
           onView?.();
