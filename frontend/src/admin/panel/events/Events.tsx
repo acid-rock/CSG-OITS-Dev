@@ -64,6 +64,7 @@ const Events = () => {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editDate, setEditDate] = useState('');
+  const [editImages, setEditImages] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
   const [active, setActive] = useState<string[]>([]);
@@ -272,6 +273,7 @@ const Events = () => {
                           setEditTitle(entry.name);
                           setEditDescription(entry.description);
                           setEditDate(entry.date ?? '');
+                          setEditImages(entry.images ?? []);
                           setOpen(true);
                         }}
                       />
@@ -306,6 +308,7 @@ const Events = () => {
             initialTitle={editTitle}
             initialDescription={editDescription}
             initialDate={editDate}
+            initialImages={editImages}
             setOpen={setOpen}
             onSuccess={fetchData}
           />

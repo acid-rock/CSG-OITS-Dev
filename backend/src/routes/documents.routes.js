@@ -11,6 +11,7 @@ import ApiError from "../lib/apiError.js";
 import { createUserClient, supabase } from "../lib/supabaseClient.js";
 import multer from "multer";
 import { requireAuth } from "../middlewares/auth.middleware.js";
+import { auditLogger } from "../middlewares/audit.middleware.js";
 import FormData from "form-data";
 import "dotenv/config";
 import asyncHandler from "express-async-handler";
@@ -91,6 +92,7 @@ router.post(
   "/add",
   upload.single("file"),
   requireAuth,
+  auditLogger(),
   asyncHandler(async (req, res) => {
     const token = req.token;
     const { name, type, boxes, description } = req.body;
@@ -154,6 +156,7 @@ router.post(
 router.post(
   "/edit",
   requireAuth,
+  auditLogger(),
   asyncHandler(async (req, res) => {
     const token = req.token;
     const { name, description, type, id } = req.body;
@@ -195,6 +198,7 @@ router.post(
 router.delete(
   "/delete",
   requireAuth,
+  auditLogger(),
   asyncHandler(async (req, res) => {
     if (!Array.isArray(req.body) || req.body.length === 0) {
       throw new ApiError(400, "Array of document objects required.");

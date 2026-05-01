@@ -8,6 +8,7 @@ import ApiError from "../lib/apiError.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { anonSupabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
+import { auditLogger } from "../middlewares/audit.middleware.js";
 
 const router = Router();
 
@@ -54,6 +55,7 @@ router.post(
   "/add",
   requireAuth,
   upload.single("image"),
+  auditLogger(),
   asyncHandler(async (req, res) => {
     const token = req.token;
     const { title, content } = req.body;
@@ -90,6 +92,7 @@ router.post(
 router.post(
   "/edit",
   requireAuth,
+  auditLogger(),
   asyncHandler(async (req, res) => {
     if (!req.body) throw new ApiError(400, "No valid request body is found.");
     const { id, title, content } = req.body;
@@ -136,6 +139,7 @@ router.post(
 router.delete(
   "/delete",
   requireAuth,
+  auditLogger(),
   asyncHandler(async (req, res) => {
     const token = req.token;
     const userSupabase = createUserClient(token);

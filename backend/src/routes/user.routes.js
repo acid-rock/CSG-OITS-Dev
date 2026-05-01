@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { supabase, anonSupabase } from "../lib/supabaseClient.js";
+import { supabase, anonSupabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import ApiError from "../lib/apiError.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
@@ -101,14 +101,70 @@ router.post(
   }),
 );
 
+router.get(
+  "/me",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const token = req.token;
+    const userClient = createUserClient(token);
+
+    const { data: userData, error: userError } = await userClient.auth.getUser();
+    if (userError) throw new ApiError(500, "Could not retrieve user information.");
+
+    const user = userData.user;
+    const email = user.email ?? "";
+    const fullName = user.user_metadata?.full_name;
+    const emailPrefix = email.split("@")[0];
+    const name =
+      fullName ||
+      (emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1));
+
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("owner_id", req.user.sub)
+      .single();
+
+    return res.status(200).json({
+      name,
+      email,
+      role: profileData?.role ?? "admin",
+    });
+  }),
+);
+
 router.post(
   "/forgot-password",
   asyncHandler(async (req, res) => {
     const { email } = req.body;
+    const FRONTEND_URL = process.env.FRONTEND_URL || "";
     // Always return 200 regardless of whether the email exists (avoids user enumeration)
     if (email) {
-      await supabase.auth.resetPasswordForEmail(email);
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${FRONTEND_URL}/admin/reset-password`,
+      });
     }
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/reset-password",
+  asyncHandler(async (req, res) => {
+    const { access_token, new_password } = req.body;
+
+    if (!new_password || new_password.length < 8) {
+      throw new ApiError(400, "Password must be at least 8 characters.");
+    }
+
+    if (!access_token) {
+      throw new ApiError(400, "Access token is required.");
+    }
+
+    const userClient = createUserClient(access_token);
+    const { error } = await userClient.auth.updateUser({ password: new_password });
+    if (error) throw new ApiError(400, error.message);
+
     return res.sendStatus(200);
   }),
 );

@@ -13,6 +13,7 @@ interface FormProps {
   initialTitle?: string;
   initialDescription?: string;
   initialDate?: string;
+  initialImages?: string[]; // current image URLs shown as previews in event edit mode
   setOpen: (open: boolean) => void;
   onSuccess?: () => void; // called after a successful API submission
 }
@@ -23,6 +24,7 @@ const Form = ({
   initialTitle = "",
   initialDescription = "",
   initialDate = "",
+  initialImages = [],
   setOpen,
   onSuccess,
 }: FormProps) => {
@@ -37,6 +39,8 @@ const Form = ({
   const [description, setDescription] = useState(initialDescription);
   const [date, setDate] = useState(initialDate);
   const [eventImages, setEventImages] = useState<File[]>([]);
+  // For event edit mode: one optional replacement per slot (0, 1, 2)
+  const [replaceImages, setReplaceImages] = useState<[File | null, File | null, File | null]>([null, null, null]);
   const [type, setType] = useState("");
 
   // Helpers
@@ -89,7 +93,16 @@ const Form = ({
       // Backend expects 'name' not 'title', and 'date_happened'
       formData.append("name", title);
       formData.append("date_happened", date);
-      eventImages.forEach((img) => formData.append("images", img));
+
+      if (id) {
+        // Edit mode: send individual slot replacements as image_0 / image_1 / image_2
+        replaceImages.forEach((file, i) => {
+          if (file) formData.append(`image_${i}`, file);
+        });
+      } else {
+        // Add mode: send all images under the 'images' field
+        eventImages.forEach((img) => formData.append("images", img));
+      }
     }
 
     if (forType === "announcement" && pdf) {
@@ -308,8 +321,47 @@ const Form = ({
             )}
           </div>
 
-          {/* TASK 5: separate file input for events (multi-image) */}
-          {forType === "event" ? (
+          {/* Event edit mode: 3 individual replacement slots */}
+          {forType === "event" && id ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "0.5rem" }}>
+              {([0, 1, 2] as const).map((i) => (
+                <div key={i} style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                  <label style={{ fontSize: "0.85rem", color: "#6b7280" }}>
+                    Replace Image {i + 1} (optional)
+                  </label>
+                  {initialImages[i] && !replaceImages[i] && (
+                    <img
+                      src={initialImages[i]}
+                      alt={`Current image ${i + 1}`}
+                      style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 4, border: "1px solid #e5e7eb" }}
+                    />
+                  )}
+                  {replaceImages[i] && (
+                    <img
+                      src={URL.createObjectURL(replaceImages[i]!)}
+                      alt={`New image ${i + 1}`}
+                      style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 4, border: "2px solid #3b82f6" }}
+                    />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    title={`Replace image slot ${i + 1}`}
+                    style={{ fontSize: "0.85rem" }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      setReplaceImages((prev) => {
+                        const next = [...prev] as [File | null, File | null, File | null];
+                        next[i] = file;
+                        return next;
+                      });
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : forType === "event" ? (
+            /* Event add mode: single multi-image input */
             <input
               type="file"
               ref={fileInputRef}

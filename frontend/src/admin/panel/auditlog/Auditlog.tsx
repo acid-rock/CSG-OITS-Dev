@@ -1,83 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './auditlog.css';
 import FilterSelect from '../../components/filter/Filter';
 import { filterByDate } from '../../utils/filterByDate';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 interface AuditEntry {
-  user: string;
-  role: 'Admin' | 'Super Admin';
-  imageName: string;
-  fileName: string;
-  description: string;
-  date: string; // ISO string for accurate filtering & sorting
+  id: string;
+  action: string;       // 'INSERT' | 'UPDATE' | 'DELETE'
+  entity: string;       // table name (bulletin, documents, events…)
+  entity_id: string;    // uuid of the affected row
+  created_by: string;   // admin user uuid
+  ip_address: string;
+  created_at: string;
 }
-
-const auditData: AuditEntry[] = [
-  {
-    user: 'Juan Dela Cruz',
-    role: 'Admin',
-    imageName: 'image1.png',
-    fileName: 'Budget_Report_Q1.pdf',
-    description: 'Uploaded new budget report',
-    date: '2026-01-28T14:15:00',
-  },
-  {
-    user: 'Maria Santos',
-    role: 'Super Admin',
-    imageName: 'image2.png',
-    fileName: 'Announcement_Feb.docx',
-    description: 'Deleted outdated announcement',
-    date: '2026-01-27T09:42:00',
-  },
-  {
-    user: 'Pedro Reyes',
-    role: 'Admin',
-    imageName: 'image3.png',
-    fileName: 'Policy_Update.pdf',
-    description: 'Edited policy document',
-    date: '2026-01-26T16:05:00',
-  },
-  {
-    user: 'Ana Lopez',
-    role: 'Admin',
-    imageName: 'image4.png',
-    fileName: 'Memo_March.pdf',
-    description: 'Uploaded memo for March',
-    date: '2026-01-25T11:30:00',
-  },
-  {
-    user: 'Ana Lopez',
-    role: 'Admin',
-    imageName: 'image4.png',
-    fileName: 'Memo_March.pdf',
-    description: 'Uploaded memo for March',
-    date: '2026-01-25T11:30:00',
-  },
-  {
-    user: 'Ana Lopez',
-    role: 'Admin',
-    imageName: 'image4.png',
-    fileName: 'Memo_March.pdf',
-    description: 'Uploaded memo for March',
-    date: '2026-01-25T11:30:00',
-  },
-  {
-    user: 'Ana Lopez',
-    role: 'Admin',
-    imageName: 'image4.png',
-    fileName: 'Memo_March.pdf',
-    description: 'Uploaded memo for March',
-    date: '2026-01-25T11:30:00',
-  },
-  {
-    user: 'Jose Ramos',
-    role: 'Super Admin',
-    imageName: 'image5.png',
-    fileName: 'Whitelist_Update.xlsx',
-    description: 'Removed user from whitelist',
-    date: '2026-01-24T08:00:00',
-  },
-];
 
 const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
 const sortOptions = [
@@ -99,39 +36,73 @@ const formatDateTime = (iso: string): string => {
   });
 };
 
+const shortId = (uuid: string | null): string =>
+  uuid ? uuid.substring(0, 8) + '…' : '—';
 
 const Audit = () => {
+  const [data, setData] = useState<AuditEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [spinning, setSpinning] = useState(false);
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [sort, setSort] = useState<string>('');
 
-  const handleActive = (fileName: string) => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const { data: responseData } = await axios.get<AuditEntry[]>(
+        `${API_URL}/auditlog/`,
+        { withCredentials: true },
+      );
+      setData(responseData);
+    } catch (err: unknown) {
+      setFetchError(
+        err instanceof Error ? err.message : 'Failed to load audit log.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleActive = (entryId: string) => {
     setActive((prev) =>
-      prev.includes(fileName)
-        ? prev.filter((name) => name !== fileName)
-        : [...prev, fileName]
+      prev.includes(entryId)
+        ? prev.filter((id) => id !== entryId)
+        : [...prev, entryId],
     );
   };
 
   const handleRefresh = () => {
     setSpinning(true);
-    setTimeout(() => {
-      window.location.reload();
-    }, 600);
+    fetchData().finally(() => setTimeout(() => setSpinning(false), 600));
   };
 
-  const filtered = auditData
-    .filter((entry) => filterByDate(entry.date, filter))
+  const filtered = data
+    .filter((entry) => filterByDate(entry.created_at, filter))
     .sort((a, b) => {
-      if (sort === 'Name (A-Z)') return a.fileName.localeCompare(b.fileName);
-      if (sort === 'Name (Z-A)') return b.fileName.localeCompare(a.fileName);
+      if (sort === 'Name (A-Z)') return a.entity.localeCompare(b.entity);
+      if (sort === 'Name (Z-A)') return b.entity.localeCompare(a.entity);
       if (sort === 'Date (Newest)')
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       if (sort === 'Date (Oldest)')
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       return 0;
     });
+
+  if (loading) {
+    return (
+      <div className='audit-container'>
+        <div className='audit-header'><span>Audit Log</span></div>
+        <p style={{ padding: '1rem' }}>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className='audit-container'>
@@ -139,8 +110,12 @@ const Audit = () => {
         <span>Audit Log</span>
       </div>
 
+      {fetchError && (
+        <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>
+      )}
+
       <div className='audit-toolbar'>
-        <span className='audit-file-count'>{auditData.length} Entries</span>
+        <span className='audit-file-count'>{data.length} Entries</span>
         <div className='audit-toolbar-actions'>
           <FilterSelect
             options={filterOptions}
@@ -179,10 +154,10 @@ const Audit = () => {
           </colgroup>
           <thead>
             <tr className='audit-table-header-light'>
-              <th>User / Admin</th>
-              <th>Image</th>
-              <th>File Name</th>
-              <th>Description</th>
+              <th>Admin ID</th>
+              <th>Action</th>
+              <th>Table</th>
+              <th>Record ID</th>
               <th>Date & Time</th>
             </tr>
           </thead>
@@ -190,23 +165,39 @@ const Audit = () => {
             {filtered.map((entry, idx) => (
               <tr
                 key={idx}
-                className={`audit-table-row ${active.includes(entry.fileName) ? 'audit-active' : ''}`}
-                onClick={() => handleActive(entry.fileName)}
+                className={`audit-table-row ${active.includes(entry.id) ? 'audit-active' : ''}`}
+                onClick={() => handleActive(entry.id)}
               >
                 <td>
                   <div className='audit-user-cell'>
-                    <span className='audit-user-name'>{entry.user}</span>
-                    <span
-                      className={`audit-role-badge audit-role-${entry.role === 'Super Admin' ? 'super' : 'admin'}`}
-                    >
-                      {entry.role}
+                    <span className='audit-user-name' title={entry.created_by}>
+                      {shortId(entry.created_by)}
+                    </span>
+                    <span className='audit-role-badge audit-role-admin'>
+                      Admin
                     </span>
                   </div>
                 </td>
-                <td>{entry.imageName}</td>
-                <td>{entry.fileName}</td>
-                <td>{entry.description}</td>
-                <td className='audit-datetime'>{formatDateTime(entry.date)}</td>
+                <td>
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      color:
+                        entry.action === 'DELETE'
+                          ? '#dc2626'
+                          : entry.action === 'INSERT'
+                            ? '#16a34a'
+                            : '#2563eb',
+                    }}
+                  >
+                    {entry.action ?? '—'}
+                  </span>
+                </td>
+                <td>{entry.entity ?? '—'}</td>
+                <td title={entry.entity_id}>{shortId(entry.entity_id)}</td>
+                <td className='audit-datetime'>
+                  {entry.created_at ? formatDateTime(entry.created_at) : '—'}
+                </td>
               </tr>
             ))}
           </tbody>

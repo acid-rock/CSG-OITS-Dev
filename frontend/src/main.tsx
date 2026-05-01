@@ -12,6 +12,7 @@ import Officers from "./route/officers/Officers";
 // Admin Login (Public)
 import Login from "./admin/admin-loginpage/login/Login";
 import Forgot from "./admin/admin-loginpage/forgot/Forgot";
+import Reset from "./admin/admin-loginpage/reset/Reset";
 import AdminPage from "./admin/AdminPage";
 import ProtectedRoute from "./admin/ProtectedRoute";
 
@@ -34,6 +35,11 @@ const router = createBrowserRouter([
   {
     path: "/admin/forgot-password",
     element: <Forgot />,
+  },
+  // Password reset landing page — NOT wrapped in ProtectedRoute (user has no session cookie)
+  {
+    path: "/admin/reset-password",
+    element: <Reset />,
   },
   // Admin Protected Routes
   {

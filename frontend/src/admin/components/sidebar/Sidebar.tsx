@@ -1,6 +1,7 @@
 import { buttonConfig } from './dashboard-buttonConfig';
 import './sidebar.css';
 import axios from 'axios';
+import { useState, useEffect } from 'react';
 
 type SidebarProps = {
   panel: string;
@@ -8,6 +9,19 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ panel, setPanel }: SidebarProps) => {
+  const [adminName, setAdminName] = useState('Admin');
+
+  useEffect(() => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/user/me`, { withCredentials: true })
+      .then(({ data }) => {
+        if (data.name) setAdminName(data.name);
+      })
+      .catch(() => {
+        // Fallback: keep 'Admin'
+      });
+  }, []);
+
   const handleLogout = async () => {
     try {
       await axios.post(
@@ -49,7 +63,7 @@ const Sidebar = ({ panel, setPanel }: SidebarProps) => {
         </div>
       </div>
       <div className='sidebar-logout'>
-        <h4>Welcome Admin</h4>
+        <h4>Welcome, {adminName}!</h4>
         <button className='logout-button' onClick={handleLogout}>
           <img src='/logout.png' alt='' />
           Log Out

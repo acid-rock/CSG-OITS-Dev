@@ -2,6 +2,7 @@ import { Router } from "express";
 import { anonSupabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
+import ApiError from "../lib/apiError.js";
 import multer from "multer";
 import { auditLogger } from "../middlewares/audit.middleware.js";
 
@@ -93,18 +94,38 @@ router.post(
 
 router.post(
   "/edit",
+  upload.fields([
+    { name: "image_0", maxCount: 1 },
+    { name: "image_1", maxCount: 1 },
+    { name: "image_2", maxCount: 1 },
+  ]),
   requireAuth,
   auditLogger(),
   asyncHandler(async (req, res) => {
     const { id, name, description, date } = req.body;
     const token = req.token;
     const supabase = createUserClient(token);
+    const eventBucket = supabase.storage.from("events");
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("events")
       .update({ name, description, date_happened: date })
       .eq("id", id);
     if (error) throw new Error(error.message);
+
+    // Replace only the image slots that were supplied in this request
+    for (let i = 0; i <= 2; i++) {
+      const slotFiles = req.files?.[`image_${i}`];
+      if (slotFiles && slotFiles.length > 0) {
+        const file = slotFiles[0];
+        const { error: uploadError } = await eventBucket.upload(
+          `${id}/${i}.jpg`,
+          file.buffer,
+          { contentType: file.mimetype, upsert: true },
+        );
+        if (uploadError) throw new ApiError(500, uploadError.message);
+      }
+    }
 
     return res.sendStatus(200);
   }),
