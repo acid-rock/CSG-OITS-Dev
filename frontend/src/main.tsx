@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import "./index.css";
 
 // Guest pages
@@ -13,6 +13,7 @@ import Officers from "./route/officers/Officers";
 import Login from "./admin/admin-loginpage/login/Login";
 import Forgot from "./admin/admin-loginpage/forgot/Forgot";
 import AdminPage from "./admin/AdminPage";
+import ProtectedRoute from "./admin/ProtectedRoute";
 
 const router = createBrowserRouter([
   // Guest Routes
@@ -37,7 +38,18 @@ const router = createBrowserRouter([
   // Admin Protected Routes
   {
     path: "/admin",
-    element: <AdminPage />,
+    element: <ProtectedRoute />,
+    children: [
+      { index: true, element: <AdminPage /> },
+    ],
+  },
+  // /bin redirects into the admin panel with the bin panel active
+  {
+    path: "/bin",
+    element: <ProtectedRoute />,
+    children: [
+      { index: true, element: <Navigate to="/admin?panel=bin" replace /> },
+    ],
   },
 ]);
 
@@ -46,5 +58,3 @@ createRoot(document.getElementById("root")!).render(
     <RouterProvider router={router} />
   </StrictMode>,
 );
-
-// todo - fix the classnames

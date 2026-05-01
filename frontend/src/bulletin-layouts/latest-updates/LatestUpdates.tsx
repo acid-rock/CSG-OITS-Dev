@@ -5,12 +5,14 @@ import type { OutletContext } from "../../root-layout/Root-layout";
 
 const LatestUpdates = () => {
   const { documents } = useOutletContext<OutletContext>();
-  console.log(documents);
   if (!documents.length) {
     return null;
   }
   const latest = [...documents]
-    .sort((a, b) => Number(b.id) - Number(a.id))
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
     .slice(0, 3);
 
   return (

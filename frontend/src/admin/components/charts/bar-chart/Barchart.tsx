@@ -2,36 +2,31 @@ import { Chart } from 'chart.js/auto';
 import './barchart.css';
 import { useEffect, useRef } from 'react';
 
-const monthsData = [
-  { month: 'January', views: Math.floor(Math.random() * 100) },
-  { month: 'February', views: Math.floor(Math.random() * 100) },
-  { month: 'March', views: Math.floor(Math.random() * 100) },
-  { month: 'April', views: Math.floor(Math.random() * 100) },
-  { month: 'May', views: Math.floor(Math.random() * 100) },
-];
+interface ChartDataset {
+  label: string;
+  data: number[];
+  borderColor?: string;
+  backgroundColor?: string;
+}
 
-const Barcharts = () => {
+interface BarchartProps {
+  labels: string[];
+  datasets: ChartDataset[];
+}
+
+const Barcharts = ({ labels, datasets }: BarchartProps) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
+  const lastValue = datasets[0]?.data.at(-1) ?? 0;
 
   useEffect(() => {
-    if (!chartRef.current) return;
+    if (!chartRef.current || !labels.length) return;
 
     const chart = new Chart(chartRef.current, {
       type: 'bar',
-      data: {
-        labels: monthsData.map((d) => d.month),
-        datasets: [
-          {
-            label: 'Views',
-            data: monthsData.map((d) => d.views),
-            borderColor: 'rgb(51, 236, 236)',
-            backgroundColor: 'rgba(17, 255, 255, 0.81)',
-          },
-        ],
-      },
+      data: { labels, datasets },
       options: {
         plugins: {
-          legend: { display: false },
+          legend: { display: datasets.length > 1 },
         },
       },
     });
@@ -39,13 +34,15 @@ const Barcharts = () => {
     return () => {
       chart.destroy();
     };
-  }, []);
+  // Stringify to avoid re-renders from new array references with same content
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(labels), JSON.stringify(datasets)]);
 
   return (
     <div className='bar-chart-container'>
       <div className='bar-chart-details'>
-        <span>Recent Visits</span>
-        <p>{monthsData[monthsData.length - 1].views} Views</p>
+        <span>Uploads by Month</span>
+        <p>{lastValue} this month</p>
       </div>
       <div className='canvas-bar-container'>
         <canvas id='bar-chart' ref={chartRef}></canvas>

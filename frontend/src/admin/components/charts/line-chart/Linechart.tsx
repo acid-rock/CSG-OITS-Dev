@@ -2,52 +2,38 @@ import { Chart } from 'chart.js/auto';
 import { useEffect, useRef } from 'react';
 import './linechart.css';
 
-const monthsData = [
-  { month: 'January', views: Math.floor(Math.random() * 100) },
-  { month: 'February', views: Math.floor(Math.random() * 100) },
-  { month: 'March', views: Math.floor(Math.random() * 100) },
-  { month: 'April', views: Math.floor(Math.random() * 100) },
-  { month: 'May', views: Math.floor(Math.random() * 100) },
-];
+interface ChartDataset {
+  label: string;
+  data: number[];
+  borderColor?: string;
+  backgroundColor?: string;
+  fill?: boolean;
+  tension?: number;
+}
 
-const Linechart = () => {
+interface LinechartProps {
+  labels: string[];
+  datasets: ChartDataset[];
+}
+
+const Linechart = ({ labels, datasets }: LinechartProps) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstanceRef = useRef<Chart | null>(null);
+  const lastValue = datasets[0]?.data.at(-1) ?? 0;
 
   useEffect(() => {
-    if (!chartRef.current) return;
+    if (!chartRef.current || !labels.length) return;
 
     chartInstanceRef.current = new Chart(chartRef.current, {
       type: 'line',
-      data: {
-        labels: monthsData.map((d) => d.month),
-        datasets: [
-          {
-            label: 'Views',
-            data: monthsData.map((d) => d.views),
-            borderColor: 'rgba(171, 203, 233, 1)',
-            fill: true,
-            tension: 0.4,
-          },
-        ],
-      },
+      data: { labels, datasets },
       options: {
         plugins: {
-          legend: {
-            display: false,
-          },
+          legend: { display: false },
         },
         scales: {
-          x: {
-            ticks: {
-              color: '#ffffff',
-            },
-          },
-          y: {
-            ticks: {
-              color: '#ffffff',
-            },
-          },
+          x: { ticks: { color: '#ffffff' } },
+          y: { ticks: { color: '#ffffff' } },
         },
       },
     });
@@ -58,13 +44,14 @@ const Linechart = () => {
         chartInstanceRef.current = null;
       }
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(labels), JSON.stringify(datasets)]);
 
   return (
     <div className='line-chart-container'>
       <div className='line-chart-details'>
-        <span>Document Views</span>
-        <p>{monthsData[monthsData.length - 1].views} Views</p>
+        <span>Activity by Week</span>
+        <p>{lastValue} this week</p>
       </div>
       <div className='canvas-line-container'>
         <canvas id='line-chart' ref={chartRef}></canvas>

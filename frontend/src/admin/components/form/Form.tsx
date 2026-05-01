@@ -2,13 +2,19 @@ import React, { useRef, useState } from 'react';
 import './form.css';
 import type { Box } from '../pdf-selector-components/pdf-selector';
 import PdfSelector from '../pdf-selector-components/pdf-selector';
+import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL as string;
+
+// TASK 5: extended forType to include 'event'
 interface FormProps {
-  forType: 'announcement' | 'document';
+  forType: 'announcement' | 'document' | 'event';
   id?: string | null;
   initialTitle?: string;
   initialDescription?: string;
+  initialDate?: string;
   setOpen: (open: boolean) => void;
+  onSuccess?: () => void; // called after a successful API submission
 }
 
 const Form = ({
@@ -16,7 +22,9 @@ const Form = ({
   id,
   initialTitle = '',
   initialDescription = '',
+  initialDate = '',
   setOpen,
+  onSuccess,
 }: FormProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -27,31 +35,65 @@ const Form = ({
   const [selectedBoxes, setSelectedBoxes] = useState<Box[]>([]);
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
+  const [date, setDate] = useState(initialDate);
+  const [eventImages, setEventImages] = useState<File[]>([]);
 
-  const url =
-    forType === 'announcement'
-      ? `/api/announcement/${id ? `update/${id}` : 'upload'}`
-      : `/api/document/${id ? `update/${id}` : 'upload'}`;
+  // TASK 1: correct endpoint paths using VITE_API_URL
+  const getUrl = (): string => {
+    if (forType === 'announcement') {
+      return id
+        ? `${API_URL}/announcements/edit`
+        : `${API_URL}/announcements/add`;
+    }
+    if (forType === 'document') {
+      return id ? `${API_URL}/documents/edit` : `${API_URL}/documents/add`;
+    }
+    // event
+    return id ? `${API_URL}/events/edit` : `${API_URL}/events/add`;
+  };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // TASK 1: replaced fetch with axios + withCredentials; made async
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData();
 
+    // Common fields
     formData.append('title', title);
     formData.append('description', description);
 
-    if (pdf) {
-      formData.append('file', pdf);
-      // Only send boxes for documents — announcements skip the selector
-      if (forType === 'document') {
+    if (forType === 'announcement') {
+      // Backend expects 'content' not 'description'
+      formData.append('content', description);
+    }
+
+    if (forType === 'document') {
+      // Backend expects 'name' not 'title'
+      formData.append('name', title);
+      if (pdf) {
+        formData.append('file', pdf);
         formData.append('boxes', JSON.stringify(selectedBoxes));
       }
     }
 
-    fetch(url, {
-      method: 'POST',
-      body: formData,
-    });
+    if (forType === 'event') {
+      // Backend expects 'name' not 'title', and 'date_happened'
+      formData.append('name', title);
+      formData.append('date_happened', date);
+      eventImages.forEach((img) => formData.append('images', img));
+    }
+
+    if (forType === 'announcement' && pdf) {
+      formData.append('image', pdf);
+    }
+
+    // Include id for edit operations
+    if (id) {
+      formData.append('id', id);
+    }
+
+    await axios.post(getUrl(), formData, { withCredentials: true });
+    onSuccess?.();
+    setOpen(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +103,6 @@ const Form = ({
         setPreview(file.name);
         setPdf(file);
         setPdfUrl(URL.createObjectURL(file));
-        // Only open the PDF box selector for documents, not announcements
         if (forType === 'document') {
           setShowPdfSelector(true);
         }
@@ -79,6 +120,13 @@ const Form = ({
       setPdfUrl(null);
       setShowPdfSelector(false);
     }
+  };
+
+  // TASK 5: event-specific multi-image handler
+  const handleEventImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []).slice(0, 3);
+    setEventImages(files);
+    if (files.length > 0) setPreview(files[0].name);
   };
 
   const handleImageClick = () => {
@@ -115,11 +163,15 @@ const Form = ({
       <form className='form-layout' onSubmit={handleSubmit}>
         <div className='form-fields'>
           <div className='form-group'>
-            <label htmlFor='title'>Title</label>
+            <label htmlFor='title'>
+              {forType === 'event' ? 'Event Name' : 'Title'}
+            </label>
             <input
               type='text'
               id='title'
-              placeholder='System Maintenance'
+              placeholder={
+                forType === 'event' ? 'Leadership Summit' : 'System Maintenance'
+              }
               name='title'
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -130,15 +182,38 @@ const Form = ({
             <textarea
               id='description'
               name='description'
-              placeholder='Scheduled maintenance for system updates...'
+              placeholder={
+                forType === 'event'
+                  ? 'Annual leadership summit for CSG officers...'
+                  : 'Scheduled maintenance for system updates...'
+              }
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             ></textarea>
           </div>
+          {/* TASK 5: date field for events only */}
+          {forType === 'event' && (
+            <div className='form-group'>
+              <label htmlFor='date'>Date</label>
+              <input
+                type='date'
+                id='date'
+                name='date'
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+          )}
         </div>
 
         <div className='image-upload'>
-          <label>{forType === 'announcement' ? 'Image' : 'File'}</label>
+          <label>
+            {forType === 'announcement'
+              ? 'Image'
+              : forType === 'event'
+                ? 'Photos (up to 3)'
+                : 'File'}
+          </label>
           <div
             className={`image-preview${preview ? ' has-image' : ''}`}
             id='imagePreview'
@@ -150,14 +225,17 @@ const Form = ({
                 <div className='upload-text'>
                   <strong>Click to upload</strong>
                   <br />
-                  {forType === 'announcement' ? 'PNG, JPG, JPEG' : 'PDF files'}
+                  {forType === 'announcement'
+                    ? 'PNG, JPG, JPEG'
+                    : forType === 'event'
+                      ? 'PNG, JPG (up to 3 images)'
+                      : 'PDF files'}
                 </div>
               </div>
             ) : preview?.endsWith('.pdf') ? (
               <div className='pdf-preview'>
                 <div className='upload-icon'>📄</div>
                 <div className='upload-text'>{preview}</div>
-                {/* Edit selections button only shown for documents */}
                 {forType === 'document' && (
                   <>
                     {selectedBoxes.length > 0 && (
@@ -182,14 +260,30 @@ const Form = ({
               <img id='previewImage' alt='Preview' src={preview} />
             )}
           </div>
-          <input
-            type='file'
-            ref={fileInputRef}
-            title='Select a file to upload'
-            accept={forType === 'announcement' ? 'image/*' : 'application/pdf'}
-            onChange={handleFileChange}
-            className='file-input-hidden'
-          />
+
+          {/* TASK 5: separate file input for events (multi-image) */}
+          {forType === 'event' ? (
+            <input
+              type='file'
+              ref={fileInputRef}
+              title='Select up to 3 photos'
+              accept='image/*'
+              multiple
+              onChange={handleEventImagesChange}
+              className='file-input-hidden'
+            />
+          ) : (
+            <input
+              type='file'
+              ref={fileInputRef}
+              title='Select a file to upload'
+              accept={
+                forType === 'announcement' ? 'image/*' : 'application/pdf'
+              }
+              onChange={handleFileChange}
+              className='file-input-hidden'
+            />
+          )}
         </div>
 
         <div className='form-actions'>

@@ -31,15 +31,15 @@ export async function requireAuth(req, res, next) {
 
       res.cookie("sb_access_token", data.session.access_token, {
         httpOnly: true,
-        // secure: true, // Change this in production
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: data.session.expires_in * 1000,
       });
 
       res.cookie("sb_refresh_token", data.session.refresh_token, {
         httpOnly: true,
-        // secure: true, // Change this in production
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 

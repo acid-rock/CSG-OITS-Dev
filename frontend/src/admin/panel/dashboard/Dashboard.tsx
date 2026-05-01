@@ -1,19 +1,87 @@
-import { fileTableConfig } from './dashboardExample';
 import './dashboard.css';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Barcharts from '../../components/charts/bar-chart/Barchart';
 import Linechart from '../../components/charts/line-chart/Linechart';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL as string;
+
+interface MonthUpload {
+  month: string;
+  documents: number;
+  announcements: number;
+}
+
+interface WeekViews {
+  week: string;
+  views: number;
+}
+
+interface AnalyticsData {
+  total_officers: number;
+  total_documents: number;
+  documents_this_week: number;
+  total_announcements: number;
+  total_events: number;
+  uploads_by_month: MonthUpload[];
+  views_by_week: WeekViews[];
+}
 
 const Dashboard = () => {
-  const [active, setActive] = useState<string[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const handleActive = (fileName: string) => {
-    setActive((prev) =>
-      prev.includes(fileName)
-        ? prev.filter((name) => name !== fileName)
-        : [...prev, fileName]
-    );
-  };
+  const fetchAnalytics = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const { data } = await axios.get<AnalyticsData>(`${API_URL}/analytics`, {
+        withCredentials: true,
+      });
+      setAnalytics(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to load analytics.';
+      setFetchError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
+
+  const barLabels = analytics?.uploads_by_month.map((m) => m.month) ?? [];
+  const barDatasets = analytics
+    ? [
+        {
+          label: 'Documents',
+          data: analytics.uploads_by_month.map((m) => m.documents),
+          borderColor: 'rgb(51, 236, 236)',
+          backgroundColor: 'rgba(17, 255, 255, 0.81)',
+        },
+        {
+          label: 'Announcements',
+          data: analytics.uploads_by_month.map((m) => m.announcements),
+          borderColor: 'rgb(255, 160, 50)',
+          backgroundColor: 'rgba(255, 160, 50, 0.6)',
+        },
+      ]
+    : [];
+
+  const lineLabels = analytics?.views_by_week.map((w) => w.week) ?? [];
+  const lineDatasets = analytics
+    ? [
+        {
+          label: 'Uploads',
+          data: analytics.views_by_week.map((w) => w.views),
+          borderColor: 'rgba(171, 203, 233, 1)',
+          fill: true,
+          tension: 0.4,
+        },
+      ]
+    : [];
 
   return (
     <div className='dashboard-container'>
@@ -27,16 +95,26 @@ const Dashboard = () => {
           })}
         </p>
       </div>
+
+      {fetchError && (
+        <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>
+      )}
+
       <div className='dashboard-content'>
-        {/*graph div*/}
+        {/* Charts */}
         <div className='graph-container'>
-          <Barcharts />
-          <Linechart />
+          {loading ? (
+            <p style={{ padding: '1rem' }}>Loading charts...</p>
+          ) : (
+            <>
+              <Barcharts labels={barLabels} datasets={barDatasets} />
+              <Linechart labels={lineLabels} datasets={lineDatasets} />
+            </>
+          )}
         </div>
 
         {/* Stats & Pending Banner */}
         <div className='dashboard-summary-bar'>
-          {/* Pending Requests Banner */}
           <div className='pending-requests-banner'>
             <div className='pending-icon'>
               <svg
@@ -56,12 +134,13 @@ const Dashboard = () => {
               </svg>
             </div>
             <div className='pending-text'>
-              <span className='pending-label'>Pending Requests</span>
+              <span className='pending-label'>Total Content</span>
               <span className='pending-value'>
-                3 New Documents Awaiting Approval
+                {loading
+                  ? '—'
+                  : `${analytics?.total_documents ?? 0} Documents · ${analytics?.total_announcements ?? 0} Announcements · ${analytics?.total_events ?? 0} Events`}
               </span>
             </div>
-            <span className='pending-badge'>3</span>
           </div>
 
           {/* Quick Stats */}
@@ -85,7 +164,9 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div className='stat-info'>
-                <span className='stat-number'>15</span>
+                <span className='stat-number'>
+                  {loading ? '—' : analytics?.total_officers ?? 0}
+                </span>
                 <span className='stat-label'>Total Officers</span>
               </div>
             </div>
@@ -108,42 +189,13 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div className='stat-info'>
-                <span className='stat-number'>8</span>
+                <span className='stat-number'>
+                  {loading ? '—' : analytics?.documents_this_week ?? 0}
+                </span>
                 <span className='stat-label'>Documents Uploaded this Week</span>
               </div>
             </div>
           </div>
-        </div>
-
-        {/*file table div*/}
-        <div className='dashboard-file-table'>
-          <span>Recent Activity</span>
-          <table>
-            <thead>
-              <tr className='table-header-black'>
-                <th>Action</th>
-                <th>File Name</th>
-                <th>Description</th>
-                <th>Size</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fileTableConfig.map((file, idx) => (
-                <tr
-                  key={idx}
-                  onClick={() => handleActive(file.fileName)}
-                  className={`table-row ${active.includes(file.fileName) ? 'active' : ''}`}
-                >
-                  <td>{file.action}</td>
-                  <td>{file.fileName}</td>
-                  <td>{file.description}</td>
-                  <td>{file.size}</td>
-                  <td>{file.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

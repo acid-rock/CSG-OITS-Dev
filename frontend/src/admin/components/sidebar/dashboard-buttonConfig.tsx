@@ -7,12 +7,36 @@ export const buttonConfig = [
   {
     label: 'Announcements',
     name: 'announcement',
-    icon: <img src='/document.png' alt='Document' width={18} height={18} />,
+    icon: <img src='/document.png' alt='Announcements' width={18} height={18} />,
   },
   {
-    label: 'Document',
+    label: 'Documents',
     name: 'documents',
-    icon: <img src='/document.png' alt='Document' width={18} height={18} />,
+    icon: <img src='/document.png' alt='Documents' width={18} height={18} />,
+  },
+  {
+    label: 'Events',
+    name: 'events',
+    icon: <img src='/document.png' alt='Events' width={18} height={18} />,
+  },
+  {
+    label: 'Officers',
+    name: 'officers',
+    icon: (
+      <img src='/user-solid.png' alt='Officers' width={18} height={18} />
+    ),
+  },
+  {
+    label: 'Committees',
+    name: 'committees',
+    icon: (
+      <img src='/user-solid.png' alt='Committees' width={18} height={18} />
+    ),
+  },
+  {
+    label: 'Bin',
+    name: 'bin',
+    icon: <img src='/bin.png' alt='Bin' width={18} height={18} />,
   },
   {
     label: 'Contributors',

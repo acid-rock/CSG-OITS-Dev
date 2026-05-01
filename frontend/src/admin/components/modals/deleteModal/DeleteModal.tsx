@@ -1,32 +1,65 @@
 import './deleteModal.css';
+import axios from 'axios';
 
-type DeleteSource = 'announcement' | 'document' | 'settings';
+const API_URL = import.meta.env.VITE_API_URL as string;
+
+// TASK 2: added 'event' source; settings endpoint placeholder for Wave 3
+type DeleteSource = 'announcement' | 'document' | 'event' | 'settings' | 'officer' | 'committee';
 
 interface DeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm?: () => void; // optional: called after successful delete
+  onConfirm?: () => void;
   source: DeleteSource;
   id: string | null;
+  name?: string | null; // file_path — required for document deletions
   title?: string;
   message?: string;
 }
 
+// TASK 2: restructured from URL-in-path to body-based axios.delete
+// Each backend delete endpoint expects a specific body shape:
+//   announcement: DELETE /announcements/delete body=[{id}]
+//   document:     DELETE /documents/delete    body=[{id, name}]
+//   event:        DELETE /events/delete       body={id}
+//   settings:     DELETE /user/whitelist      body={id}  (Wave 3 endpoint)
 const sourceConfig: Record<
   DeleteSource,
-  { endpoint: (id: string) => string; label: string }
+  {
+    endpoint: string;
+    buildBody: (id: string, name?: string | null) => unknown;
+    label: string;
+  }
 > = {
   announcement: {
-    endpoint: (id) => `/api/announcement/delete/${id}`,
+    endpoint: `${API_URL}/announcements/delete`,
+    buildBody: (id) => [{ id }],
     label: 'announcement',
   },
   document: {
-    endpoint: (id) => `/api/document/delete/${id}`,
+    endpoint: `${API_URL}/documents/delete`,
+    buildBody: (id, name) => [{ id, name: name ?? id }],
     label: 'document',
   },
+  event: {
+    endpoint: `${API_URL}/events/delete`,
+    buildBody: (id) => ({ id }),
+    label: 'event',
+  },
   settings: {
-    endpoint: (id) => `/api/whitelist/delete/${id}`,
+    endpoint: `${API_URL}/user/whitelist`,
+    buildBody: (id) => ({ id }),
     label: 'user from whitelist',
+  },
+  officer: {
+    endpoint: `${API_URL}/officers/delete`,
+    buildBody: (id) => [id],
+    label: 'officer',
+  },
+  committee: {
+    endpoint: `${API_URL}/committees/delete`,
+    buildBody: (id) => ({ id: parseInt(id) }),
+    label: 'committee',
   },
 };
 
@@ -36,6 +69,7 @@ const DeleteModal = ({
   onConfirm,
   source,
   id,
+  name,
   title = 'Delete',
   message = "This action can't be undone. Please confirm if you want to proceed.",
 }: DeleteModalProps) => {
@@ -44,12 +78,12 @@ const DeleteModal = ({
   const handleConfirm = () => {
     if (!id) return;
 
-    const { endpoint } = sourceConfig[source];
+    const config = sourceConfig[source];
+    const body = config.buildBody(id, name);
 
-    fetch(endpoint(id), { method: 'DELETE' })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(`Delete [${source}] success:`, data);
+    axios
+      .delete(config.endpoint, { data: body, withCredentials: true })
+      .then(() => {
         onConfirm?.();
         onClose();
       })

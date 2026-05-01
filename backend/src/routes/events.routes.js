@@ -12,6 +12,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get(
   "/",
   asyncHandler(async (req, res) => {
+    // MANUAL STEP: To track individual event views, create a Supabase DB function:
+    //   increment_views(row_id uuid, table_name text) — UPDATE SET views = views + 1
+    // Then call supabase.rpc('increment_views', { row_id, table_name: 'events' }) per item.
     const table = anonSupabase.from("events");
     const bucket = anonSupabase.storage.from("events");
 
@@ -57,7 +60,7 @@ router.post(
   requireAuth,
   auditLogger(),
   asyncHandler(async (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, date_happened } = req.body;
     const images = req.files;
     const token = req.token;
     const supabase = createUserClient(token);
@@ -65,11 +68,10 @@ router.post(
     const ip_address = req.ip;
     const user_agent = req.headers["user-agent"];
 
-    // NOTE TO SELF: Add date-happened.
     const { data: eventData, error: eventError } = await supabase
       .from("events")
       .upsert(
-        { name, description, ip_address, user_agent },
+        { name, description, date_happened, ip_address, user_agent },
         { onConflict: "name" },
       )
       .select();
@@ -85,7 +87,7 @@ router.post(
       if (error) throw new Error(error.message);
     }
 
-    return res.send(200);
+    return res.sendStatus(200);
   }),
 );
 
@@ -94,7 +96,6 @@ router.post(
   requireAuth,
   auditLogger(),
   asyncHandler(async (req, res) => {
-    console.log(req.headers);
     const { id, name, description, date } = req.body;
     const token = req.token;
     const supabase = createUserClient(token);
@@ -105,7 +106,7 @@ router.post(
       .eq("id", id);
     if (error) throw new Error(error.message);
 
-    return res.send(200);
+    return res.sendStatus(200);
   }),
 );
 
@@ -133,7 +134,7 @@ router.delete(
     const { error: deleteError } = await bucket.remove(paths);
     if (deleteError) throw new Error(deleteError.message);
 
-    return res.send(200);
+    return res.sendStatus(200);
   }),
 );
 

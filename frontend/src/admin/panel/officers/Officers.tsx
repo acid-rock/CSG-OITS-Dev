@@ -1,0 +1,231 @@
+import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import FilterSelect from '../../components/filter/Filter';
+import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
+import OfficerForm from './OfficerForm';
+import { filterByDate } from '../../utils/filterByDate';
+
+const API_URL = import.meta.env.VITE_API_URL as string;
+
+interface Committee {
+  id: number;
+  name: string;
+}
+
+interface OfficerEntry {
+  id: string;
+  full_name: string;
+  position: string | string[];
+  type: string;
+  avatar: string;
+  socials?: string;
+  year_serving?: string;
+  student_number?: string;
+  committee?: string | null;
+  is_committee_official: boolean;
+  created_at: string;
+}
+
+const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
+const sortOptions = ['Name (A-Z)', 'Name (Z-A)', 'Date (Newest)', 'Date (Oldest)'];
+
+function displayPosition(pos: string | string[]): string {
+  return Array.isArray(pos) ? pos[0] : pos;
+}
+
+const OfficersPanel = () => {
+  const [data, setData] = useState<OfficerEntry[]>([]);
+  const [committees, setCommittees] = useState<Committee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const [active, setActive] = useState<string[]>([]);
+  const [filter, setFilter] = useState('');
+  const [sort, setSort] = useState('');
+  const [spinning, setSpinning] = useState(false);
+
+  const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<OfficerEntry | undefined>(undefined);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const [officersRes, committeesRes] = await Promise.all([
+        axios.get<OfficerEntry[]>(`${API_URL}/officers`, { withCredentials: true }),
+        axios.get<Committee[]>(`${API_URL}/committees`, { withCredentials: true }),
+      ]);
+      setData(officersRes.data);
+      setCommittees(committeesRes.data);
+    } catch (err: unknown) {
+      setFetchError(err instanceof Error ? err.message : 'Failed to load officers.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const committeeName = (id?: string | null) =>
+    committees.find((c) => c.id === id)?.name ?? '—';
+
+  const handleActive = (entryId: string) =>
+    setActive((prev) =>
+      prev.includes(entryId) ? prev.filter((a) => a !== entryId) : [...prev, entryId],
+    );
+
+  const handleRefresh = () => {
+    setSpinning(true);
+    fetchData().finally(() => setTimeout(() => setSpinning(false), 600));
+  };
+
+  if (loading) {
+    return (
+      <div className='announce-container'>
+        <div className='announce-header'><span>Officers</span></div>
+        <p style={{ padding: '1rem' }}>Loading...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className='announce-container'>
+      <div className='announce-header'><span>Officers</span></div>
+
+      {fetchError && (
+        <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>
+      )}
+
+      <div className='announce-toolbar'>
+        <span className='announce-file-count'>{data.length} Officers</span>
+        <div className='announce-toolbar-actions'>
+          <FilterSelect options={filterOptions} value={filter} onChange={setFilter} label='Filter' />
+          <FilterSelect options={sortOptions} value={sort} onChange={setSort} label='Sort' />
+          <button className='announce-action-btn announce-refresh-btn' title='Refresh' onClick={handleRefresh}>
+            <img src='/refresh.png' alt='refresh' className={spinning ? 'announce-spin refresh-img' : 'refresh-img'} />
+          </button>
+          <button
+            className='announce-add-btn'
+            onClick={() => { setEditId(null); setEditData(undefined); setOpen(true); }}
+          >
+            Add Officer
+          </button>
+        </div>
+      </div>
+
+      <div className='announce-file-table'>
+        <table>
+          <thead>
+            <tr className='announce-table-header-light'>
+              <th>
+                <input
+                  type='checkbox'
+                  title='Select All'
+                  checked={data.length > 0 && active.length === data.length}
+                  onChange={() =>
+                    setActive(active.length === data.length ? [] : data.map((e) => e.id))
+                  }
+                />
+              </th>
+              <th>Full Name</th>
+              <th>Position</th>
+              <th>Type</th>
+              <th>Committee</th>
+              <th>Year Serving</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data
+              .filter((e) => filterByDate(e.created_at, filter))
+              .sort((a, b) => {
+                if (sort === 'Name (A-Z)') return a.full_name.localeCompare(b.full_name);
+                if (sort === 'Name (Z-A)') return b.full_name.localeCompare(a.full_name);
+                if (sort === 'Date (Newest)') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                if (sort === 'Date (Oldest)') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                return 0;
+              })
+              .map((entry, idx) => (
+                <tr
+                  key={idx}
+                  className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}
+                >
+                  <td>
+                    <input
+                      className='checkbox'
+                      type='checkbox'
+                      checked={active.includes(entry.id)}
+                      onChange={() => handleActive(entry.id)}
+                      title={`Select ${entry.full_name}`}
+                    />
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {entry.avatar && (
+                        <img src={entry.avatar} alt={entry.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                      )}
+                      {entry.full_name}
+                    </div>
+                  </td>
+                  <td>{displayPosition(entry.position)}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{entry.type}</td>
+                  <td>{committeeName(entry.committee)}</td>
+                  <td>{entry.year_serving ?? '—'}</td>
+                  <td className='announce-file-btn'>
+                    <div className='announce-file-btn-inner'>
+                      <img
+                        src='/bin.png'
+                        alt='Delete'
+                        onClick={() => { setDeleteId(entry.id); setIsModalOpen(true); }}
+                      />
+                      <img
+                        src='/edit.png'
+                        alt='Edit'
+                        onClick={() => { setEditId(entry.id); setEditData(entry); setOpen(true); }}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+
+      {isModalOpen && (
+        <div className='announce-modal-position'>
+          <DeleteModal
+            isOpen={isModalOpen}
+            source='officer'
+            id={deleteId}
+            title='Delete Officer'
+            message='This will permanently remove the officer and their avatar from storage.'
+            onClose={() => setIsModalOpen(false)}
+            onConfirm={() => {
+              setActive((prev) => prev.filter((a) => a !== deleteId));
+              fetchData();
+            }}
+          />
+        </div>
+      )}
+
+      {open && (
+        <div className='announce-form-position'>
+          <OfficerForm
+            id={editId}
+            initialData={editData}
+            setOpen={setOpen}
+            onSuccess={fetchData}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default OfficersPanel;

@@ -1,10 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './announcement.css';
-import { announcementConfig } from './announcementExample';
 import FilterSelect from '../../components/filter/Filter';
 import Form from '../../components/form/Form';
 import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
 import Actionbar from '../../components/action-bar/Actionbar';
+import axios from 'axios';
+import { filterByDate } from '../../utils/filterByDate';
+import { Pin, PinOff } from 'lucide-react';
+
+const API_URL = import.meta.env.VITE_API_URL as string;
+
+interface BulletinEntry {
+  id: string;
+  imgUrl: string;
+  title: string;
+  content: string;
+  date: string;
+  is_pinned?: boolean;
+}
 
 const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
 const sortOptions = [
@@ -14,27 +27,11 @@ const sortOptions = [
   'Date (Oldest)',
 ];
 
-const filterByDate = (date: string, filter: string): boolean => {
-  if (!filter || filter === 'All') return true;
-  const fileDate = new Date(date);
-  const now = new Date();
-  if (filter === 'Today') return fileDate.toDateString() === now.toDateString();
-  if (filter === 'This Week') {
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-    return fileDate >= startOfWeek;
-  }
-  if (filter === 'This Month') {
-    return (
-      fileDate.getMonth() === now.getMonth() &&
-      fileDate.getFullYear() === now.getFullYear()
-    );
-  }
-  return true;
-};
-
 const Announcement = () => {
+  const [data, setData] = useState<BulletinEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [id, setId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -45,20 +42,65 @@ const Announcement = () => {
   const [filter, setFilter] = useState<string>('');
   const [sort, setSort] = useState<string>('');
 
-  const handleActive = (fileName: string) => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const { data: responseData } = await axios.get(
+        `${API_URL}/announcements/`,
+        { withCredentials: true },
+      );
+      setData(responseData);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to load announcements.';
+      setFetchError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleActive = (entryId: string) => {
     setActive((prev) =>
-      prev.includes(fileName)
-        ? prev.filter((name) => name !== fileName)
-        : [...prev, fileName]
+      prev.includes(entryId)
+        ? prev.filter((id) => id !== entryId)
+        : [...prev, entryId],
     );
   };
 
   const handleRefresh = () => {
     setSpinning(true);
-    setTimeout(() => {
-      window.location.reload();
-    }, 600);
+    fetchData().finally(() => setTimeout(() => setSpinning(false), 600));
   };
+
+  const handleTogglePin = async (entry: BulletinEntry) => {
+    try {
+      await axios.post(
+        `${API_URL}/announcements/pin`,
+        { id: entry.id, is_pinned: !entry.is_pinned },
+        { withCredentials: true },
+      );
+      fetchData();
+    } catch {
+      // Pin toggle failure is non-critical; refetch to show real state
+      fetchData();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className='announce-container'>
+        <div className='announce-header'>
+          <span>Announcement</span>
+        </div>
+        <p style={{ padding: '1rem' }}>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className='announce-container'>
@@ -66,10 +108,12 @@ const Announcement = () => {
         <span>Announcement</span>
       </div>
 
+      {fetchError && (
+        <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>
+      )}
+
       <div className='announce-toolbar'>
-        <span className='announce-file-count'>
-          {announcementConfig.length} Files
-        </span>
+        <span className='announce-file-count'>{data.length} Files</span>
         <div className='announce-toolbar-actions'>
           <FilterSelect
             options={filterOptions}
@@ -132,14 +176,12 @@ const Announcement = () => {
                 <input
                   type='checkbox'
                   title='Select All'
-                  checked={active.length === announcementConfig.length}
+                  checked={data.length > 0 && active.length === data.length}
                   onChange={() => {
-                    if (active.length === announcementConfig.length) {
+                    if (active.length === data.length) {
                       setActive([]);
                     } else {
-                      setActive(
-                        announcementConfig.map((file) => file.fileName)
-                      );
+                      setActive(data.map((entry) => entry.id));
                     }
                   }}
                 />
@@ -152,13 +194,13 @@ const Announcement = () => {
             </tr>
           </thead>
           <tbody>
-            {announcementConfig
-              .filter((file) => filterByDate(file.date, filter))
+            {data
+              .filter((entry) => filterByDate(entry.date, filter))
               .sort((a, b) => {
                 if (sort === 'Name (A-Z)')
-                  return a.fileName.localeCompare(b.fileName);
+                  return a.title.localeCompare(b.title);
                 if (sort === 'Name (Z-A)')
-                  return b.fileName.localeCompare(a.fileName);
+                  return b.title.localeCompare(a.title);
                 if (sort === 'Date (Newest)')
                   return (
                     new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -169,31 +211,78 @@ const Announcement = () => {
                   );
                 return 0;
               })
-              .map((file, idx) => (
+              .map((entry, idx) => (
                 <tr
                   key={idx}
-                  className={`announce-table-row ${active.includes(file.fileName) ? 'announce-active' : ''}`}
+                  className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}
+                  style={entry.is_pinned ? { background: '#fef9c3' } : undefined}
                 >
                   <td>
                     <input
                       className='checkbox'
                       type='checkbox'
-                      title={`Select ${file.fileName}`}
-                      checked={active.includes(file.fileName)}
-                      onChange={() => handleActive(file.fileName)}
+                      title={`Select ${entry.title}`}
+                      checked={active.includes(entry.id)}
+                      onChange={() => handleActive(entry.id)}
                     />
                   </td>
-                  <td>{file.imageName}</td>
-                  <td>{file.fileName}</td>
-                  <td>{file.description}</td>
-                  <td>{file.date}</td>
+                  <td>
+                    {entry.imgUrl ? (
+                      <img
+                        src={entry.imgUrl}
+                        alt={entry.title}
+                        style={{ width: 40, height: 40, objectFit: 'cover' }}
+                      />
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td>
+                    {entry.title}
+                    {entry.is_pinned && (
+                      <span
+                        style={{
+                          marginLeft: '0.5rem',
+                          fontSize: '0.7rem',
+                          background: '#f59e0b',
+                          color: '#fff',
+                          borderRadius: '4px',
+                          padding: '0.1rem 0.4rem',
+                          verticalAlign: 'middle',
+                        }}
+                      >
+                        Pinned
+                      </span>
+                    )}
+                  </td>
+                  <td>{entry.content}</td>
+                  <td>{entry.date}</td>
                   <td className='announce-file-btn'>
                     <div className='announce-file-btn-inner'>
+                      <button
+                        title={entry.is_pinned ? 'Unpin' : 'Pin to top'}
+                        onClick={() => handleTogglePin(entry)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '0.2rem',
+                          color: entry.is_pinned ? '#f59e0b' : '#9ca3af',
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
+                      >
+                        {entry.is_pinned ? (
+                          <PinOff size={16} />
+                        ) : (
+                          <Pin size={16} />
+                        )}
+                      </button>
                       <img
                         src='/bin.png'
                         alt='Delete'
                         onClick={() => {
-                          setId(file.fileName);
+                          setId(entry.id);
                           setIsModalOpen(true);
                         }}
                       />
@@ -201,9 +290,9 @@ const Announcement = () => {
                         src='/edit.png'
                         alt='Edit'
                         onClick={() => {
-                          setId(file.fileName);
-                          setEditTitle(file.fileName);
-                          setEditDescription(file.description);
+                          setId(entry.id);
+                          setEditTitle(entry.title);
+                          setEditDescription(entry.content);
                           setOpen(true);
                         }}
                       />
@@ -222,7 +311,10 @@ const Announcement = () => {
             source='announcement'
             id={id}
             onClose={() => setIsModalOpen(false)}
-            onConfirm={() => setActive((prev) => prev.filter((a) => a !== id))}
+            onConfirm={() => {
+              setActive((prev) => prev.filter((a) => a !== id));
+              fetchData();
+            }}
           />
         </div>
       )}
@@ -235,6 +327,7 @@ const Announcement = () => {
             initialTitle={editTitle}
             initialDescription={editDescription}
             setOpen={setOpen}
+            onSuccess={fetchData}
           />
         </div>
       )}

@@ -12,6 +12,7 @@ import { useOutletContext } from "react-router-dom";
 export default function BulletinDocument() {
   const { documents } = useOutletContext<OutletContext>();
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null,
   );
@@ -33,18 +34,24 @@ export default function BulletinDocument() {
     ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
   ];
 
-  // Filter documents by selected category
-  const filteredDocuments =
-    selectedCategory === "all"
-      ? documents
-      : documents.filter((doc) => doc.category === selectedCategory);
+  // Apply category filter then search filter — both must match
+  const filteredDocuments = documents
+    .filter((doc) =>
+      selectedCategory === "all" ? true : doc.category === selectedCategory,
+    )
+    .filter((doc) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        doc.name.toLowerCase().includes(q) ||
+        doc.description.toLowerCase().includes(q)
+      );
+    });
 
-  // Clicking a card updates the preview panel
   const handleSelect = (doc: Document) => {
     setSelectedDocument(doc);
   };
 
-  // Clicking "View" opens the modal
   const handleView = (doc: Document) => {
     setSelectedDocument(doc);
     setIsModalOpen(true);
@@ -65,6 +72,24 @@ export default function BulletinDocument() {
         <div className="bulletin-document-layout">
           {/* Sidebar Navigation */}
           <aside className="bulletin-document-navigation">
+            {/* Search bar */}
+            <input
+              type="text"
+              placeholder="Search documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "0.45rem 0.75rem",
+                marginBottom: "0.75rem",
+                fontSize: "0.875rem",
+                border: "1px solid #d1d5db",
+                borderRadius: "6px",
+                boxSizing: "border-box",
+                outline: "none",
+              }}
+            />
+
             <Typography size="text-sm" color="text-dark">
               Categories
             </Typography>
@@ -86,19 +111,32 @@ export default function BulletinDocument() {
 
           {/* Document Grid */}
           <main className="bulletin-document-content">
-            <div className="bulletin-document-grid">
-              {filteredDocuments.map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  id={doc.id}
-                  title={doc.description}
-                  description={doc.category}
-                  date={doc.date}
-                  onSelect={() => handleSelect(doc)}
-                  onView={() => handleView(doc)}
-                />
-              ))}
-            </div>
+            {filteredDocuments.length === 0 ? (
+              <p
+                style={{
+                  textAlign: "center",
+                  color: "#6b7280",
+                  padding: "2rem 0",
+                  fontSize: "0.95rem",
+                }}
+              >
+                No documents found.
+              </p>
+            ) : (
+              <div className="bulletin-document-grid">
+                {filteredDocuments.map((doc) => (
+                  <DocumentCard
+                    key={doc.id}
+                    id={doc.id}
+                    title={doc.description}
+                    description={doc.category}
+                    date={doc.date}
+                    onSelect={() => handleSelect(doc)}
+                    onView={() => handleView(doc)}
+                  />
+                ))}
+              </div>
+            )}
           </main>
         </div>
 

@@ -28,7 +28,7 @@ export default function Document() {
             Comprehensive Document Library
           </Typography>
           <Typography size="text-sm" color="text-ghost">
-            This is where the documents
+            Browse the latest official documents from the Central Student Government. View all documents in the bulletin.
           </Typography>
         </div>
 

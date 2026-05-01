@@ -1,7 +1,36 @@
 import './login.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import axios from 'axios';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/user/login`,
+        { email, password },
+        { withCredentials: true },
+      );
+      localStorage.setItem('admin_authenticated', '1');
+      navigate('/admin');
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || 'Login failed. Check your credentials.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className='login-container'>
       <div className='login-card'>
@@ -19,13 +48,18 @@ const Login = () => {
         </div>
 
         {/* Form */}
-        <form className='login-form' onSubmit={(e) => e.preventDefault()}>
+        <form className='login-form' onSubmit={handleSubmit}>
+          {error && <p className='login-error'>{error}</p>}
+
           <div className='input-group'>
             <img src='/user-login.png' alt='User' className='input-icon' />
             <input
               type='email'
               placeholder='CvSU Email'
               className='input-field'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
@@ -35,6 +69,9 @@ const Login = () => {
               type='password'
               placeholder='Password'
               className='input-field'
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
@@ -44,8 +81,8 @@ const Login = () => {
             </Link>
           </div>
 
-          <button type='submit' className='sign-in-button'>
-            Sign In
+          <button type='submit' className='sign-in-button' disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
       </div>

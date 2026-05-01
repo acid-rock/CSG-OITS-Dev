@@ -1,6 +1,15 @@
 import "./SettingsForm.css";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ConfimationModal from "../../modals/confirmationModal/ConfimationModal";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL as string;
+
+interface SettingsData {
+  system_name: string;
+  logo_url: string | null;
+  access_paused: boolean;
+}
 
 interface SettingsFormProps {
   setEdit: (open: boolean) => void;
@@ -11,7 +20,21 @@ const SettingsForm = ({ setEdit }: SettingsFormProps) => {
   const [systemName, setSystemName] = useState("Online Transparency System");
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    axios
+      .get<SettingsData>(`${API_URL}/settings`, { withCredentials: true })
+      .then(({ data }) => {
+        setSystemName(data.system_name ?? "Online Transparency System");
+        if (data.logo_url) setPreview(data.logo_url);
+      })
+      .catch(() => {
+        // Use defaults silently on fetch error
+      });
+  }, []);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -34,11 +57,23 @@ const SettingsForm = ({ setEdit }: SettingsFormProps) => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSubmit = () => {
-    // TODO: send systemName + preview (base64 or file) to backend
-    console.log("Saving:", { systemName, preview });
-    setConfirmModal(false);
-    setEdit(false);
+  const handleSubmit = async () => {
+    setSuccessMessage(null);
+    setErrorMessage(null);
+    try {
+      await axios.post(
+        `${API_URL}/settings`,
+        { system_name: systemName, logo_url: preview, access_paused: false },
+        { withCredentials: true },
+      );
+      setSuccessMessage("Settings saved.");
+      setConfirmModal(false);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to save settings.";
+      setErrorMessage(message);
+      setConfirmModal(false);
+    }
   };
 
   return (
@@ -54,6 +89,15 @@ const SettingsForm = ({ setEdit }: SettingsFormProps) => {
           ✕
         </button>
       </div>
+
+      {successMessage && (
+        <p style={{ color: "green", padding: "0.5rem 1rem" }}>
+          {successMessage}
+        </p>
+      )}
+      {errorMessage && (
+        <p style={{ color: "red", padding: "0.5rem 1rem" }}>{errorMessage}</p>
+      )}
 
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="form-group">

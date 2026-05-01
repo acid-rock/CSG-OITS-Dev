@@ -16,7 +16,7 @@ export default function Main() {
       <div className='hero-layout'>
         <div className='hero-text'>
           <Typography size='text-lg' color='text-dark'>
-            Online Information and Trasparency System
+            Online Information and Transparency System
           </Typography>
           <Typography
             size='text-md'
@@ -25,7 +25,7 @@ export default function Main() {
           >
             We believe in open communication and accountability. Our mission is
             to represent student voices and ensure every decision in clever and
-            accesible.
+            accessible.
           </Typography>
           <div className='hero-buttons'>
             <Button

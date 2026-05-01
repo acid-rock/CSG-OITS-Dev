@@ -38,7 +38,7 @@ const Officers = () => {
   function committeeMembers(committee_id: number, officers: Officer[]) {
     if (!officers) return [];
     return officers.filter((o: Officer) => {
-      return o.committee == committee_id;
+      return o.committee == committee_id && o.is_committee_official !== true;
     });
   }
 
@@ -68,9 +68,16 @@ const Officers = () => {
                       <h3 className="officer-name">{official.full_name}</h3>
                       <p className="officer-title">{official.position[0]}</p>
                       <div className="social-icons">
-                        <a href="#" className="social-icon">
-                          <Facebook size={20} className="fb-icon" />
-                        </a>
+                        {official.socials ? (
+                          <a
+                            href={official.socials}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="social-icon"
+                          >
+                            <Facebook size={20} className="fb-icon" />
+                          </a>
+                        ) : null}
                       </div>
                     </div>
                   ),

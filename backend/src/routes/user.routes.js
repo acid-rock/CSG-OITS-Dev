@@ -1,12 +1,15 @@
 import { Router } from "express";
 import { supabase, anonSupabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
+import ApiError from "../lib/apiError.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
 // Routes go here
 router.post(
   "/register",
+  requireAuth,
   asyncHandler(async (req, res) => {
     // TODO: Make this so that admin can only access this route
     const { role, email, password, studentNumber, fullname, nickname } =
@@ -78,6 +81,35 @@ router.post(
     });
 
     return res.status(200).json({ message: "Login successful." });
+  }),
+);
+
+router.post(
+  "/logout",
+  asyncHandler(async (req, res) => {
+    res.clearCookie("sb_access_token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+    res.clearCookie("sb_refresh_token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/forgot-password",
+  asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    // Always return 200 regardless of whether the email exists (avoids user enumeration)
+    if (email) {
+      await supabase.auth.resetPasswordForEmail(email);
+    }
+    return res.sendStatus(200);
   }),
 );
 

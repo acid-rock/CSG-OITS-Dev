@@ -1,35 +1,28 @@
 import React, { useState } from 'react';
 import './forgot.css';
+import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL as string;
+
+// Simplified flow: email entry → confirmation → success/redirect
+// 2FA and new-password steps removed — Supabase handles OTP via email link.
 const Forgot: React.FC = () => {
-  const [step, setStep] = useState<'email' | '2fa' | 'newPassword' | 'success'>(
-    'email'
+  const [step, setStep] = useState<'email' | 'confirmation' | 'success'>(
+    'email',
   );
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSend2FA = (e: React.FormEvent) => {
+  const handleSendReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStep('2fa');
-  };
-
-  const handleVerify = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStep('newPassword');
-  };
-
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleChangePassword = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (newPassword !== confirmPassword) {
-      setErrorMessage('Passwords do not match!');
-      return;
+    setLoading(true);
+    try {
+      await axios.post(`${API_URL}/user/forgot-password`, { email });
+    } finally {
+      // Always advance to confirmation — avoids leaking whether email exists
+      setLoading(false);
+      setStep('confirmation');
     }
-
-    setErrorMessage('');
-    setStep('success');
   };
 
   if (step === 'success') {
@@ -54,7 +47,7 @@ const Forgot: React.FC = () => {
           <p className='success-subtext'>Password Changed Successfully</p>
           <button
             className='send-2fa-button'
-            onClick={() => (window.location.href = '/bin')}
+            onClick={() => (window.location.href = '/admin/login')}
           >
             Close
           </button>
@@ -80,7 +73,7 @@ const Forgot: React.FC = () => {
 
         <div className='forgotPassword-content'>
           {step === 'email' && (
-            <form onSubmit={handleSend2FA}>
+            <form onSubmit={handleSendReset}>
               <p className='input-label'>Recover Account</p>
               <div className='input-group'>
                 <svg
@@ -110,133 +103,34 @@ const Forgot: React.FC = () => {
                   type='email'
                   placeholder='Email'
                   className='input-field'
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
-              <button type='submit' className='send-2fa-button'>
-                Send 2FA
+              <button
+                type='submit'
+                className='send-2fa-button'
+                disabled={loading}
+              >
+                {loading ? 'Sending...' : 'Send Reset Link'}
               </button>
             </form>
           )}
 
-          {step === '2fa' && (
-            <form onSubmit={handleVerify}>
-              <p className='input-label'>Verification Code</p>
-              <div className='input-group'>
-                <svg
-                  className='input-icon'
-                  width='20'
-                  height='20'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  xmlns='http://www.w3.org/2000/svg'
-                >
-                  <path
-                    d='M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                  <path
-                    d='M22 6L12 13L2 6'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                </svg>
-                <input
-                  type='number'
-                  placeholder='Enter Code'
-                  className='input-field'
-                  required
-                />
-              </div>
-              <button type='submit' className='send-2fa-button'>
-                Verify
+          {step === 'confirmation' && (
+            <div>
+              <p className='input-label'>Check Your Email</p>
+              <p style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+                Check your email for a password reset link.
+              </p>
+              <button
+                className='send-2fa-button'
+                onClick={() => setStep('success')}
+              >
+                Done
               </button>
-            </form>
-          )}
-
-          {step === 'newPassword' && (
-            <form onSubmit={handleChangePassword}>
-              <p className='input-label'>Enter New Password</p>
-
-              <div className='input-group'>
-                <svg
-                  className='input-icon'
-                  width='20'
-                  height='20'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  xmlns='http://www.w3.org/2000/svg'
-                >
-                  <path
-                    d='M19 11H5C3.89543 11 3 11.8954 3 13V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V13C21 11.8954 20.1046 11 19 11Z'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                  <path
-                    d='M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                </svg>
-                <input
-                  type='password'
-                  placeholder='New Password'
-                  className='input-field'
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className='input-group'>
-                <svg
-                  className='input-icon'
-                  width='20'
-                  height='20'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  xmlns='http://www.w3.org/2000/svg'
-                >
-                  <path
-                    d='M19 11H5C3.89543 11 3 11.8954 3 13V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V13C21 11.8954 20.1046 11 19 11Z'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                  <path
-                    d='M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                </svg>
-                <input
-                  type='password'
-                  placeholder='Confirm Password'
-                  className='input-field'
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-              </div>
-
-              {errorMessage && <p className='error-text'>{errorMessage}</p>}
-
-              <button type='submit' className='send-2fa-button'>
-                Change Password
-              </button>
-            </form>
+            </div>
           )}
         </div>
       </div>

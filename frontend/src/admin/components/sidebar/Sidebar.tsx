@@ -1,5 +1,6 @@
 import { buttonConfig } from './dashboard-buttonConfig';
 import './sidebar.css';
+import axios from 'axios';
 
 type SidebarProps = {
   panel: string;
@@ -7,6 +8,19 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ panel, setPanel }: SidebarProps) => {
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/user/logout`,
+        {},
+        { withCredentials: true },
+      );
+    } finally {
+      localStorage.removeItem('admin_authenticated');
+      window.location.href = '/admin/login';
+    }
+  };
+
   return (
     <div className='sidebar-container'>
       <div className='sidebar-top'>
@@ -36,7 +50,7 @@ const Sidebar = ({ panel, setPanel }: SidebarProps) => {
       </div>
       <div className='sidebar-logout'>
         <h4>Welcome Admin</h4>
-        <button className='logout-button'>
+        <button className='logout-button' onClick={handleLogout}>
           <img src='/logout.png' alt='' />
           Log Out
         </button>

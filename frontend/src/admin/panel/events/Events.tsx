@@ -1,22 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import './document.css';
 import FilterSelect from '../../components/filter/Filter';
 import Form from '../../components/form/Form';
 import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
 import Actionbar from '../../components/action-bar/Actionbar';
 import axios from 'axios';
-import { filterByDate } from '../../utils/filterByDate';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
-interface DocumentEntry {
+interface EventEntry {
   id: string;
-  name: string;       // file_path (e.g. "memo/budget.pdf")
+  name: string;
   description: string;
-  category: string;
-  createdAt: string;
-  url: string;
-  thumbnail: string;
+  date: string;
+  created_at: string;
+  images: string[];
 }
 
 const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
@@ -27,7 +24,28 @@ const sortOptions = [
   'Date (Oldest)',
 ];
 
+const filterByDate = (date: string, filter: string): boolean => {
+  if (!filter || filter === 'All') return true;
+  const fileDate = new Date(date);
+  const now = new Date();
+  if (filter === 'Today') return fileDate.toDateString() === now.toDateString();
+  if (filter === 'This Week') {
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    return fileDate >= startOfWeek;
+  }
+  if (filter === 'This Month') {
+    return (
+      fileDate.getMonth() === now.getMonth() &&
+      fileDate.getFullYear() === now.getFullYear()
+    );
+  }
+  return true;
+};
+
 const formatDate = (iso: string): string => {
+  if (!iso) return '—';
   const d = new Date(iso);
   return d.toLocaleDateString('en-US', {
     month: 'short',
@@ -36,33 +54,33 @@ const formatDate = (iso: string): string => {
   });
 };
 
-const Documents = () => {
-  const [data, setData] = useState<DocumentEntry[]>([]);
+const Events = () => {
+  const [data, setData] = useState<EventEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [id, setId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [sort, setSort] = useState<string>('');
-  const [open, setOpen] = useState(false);
-  const [id, setId] = useState<string | null>(null);
-  const [selectedName, setSelectedName] = useState<string | null>(null); // file_path for delete
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setFetchError(null);
     try {
-      const { data: responseData } = await axios.get(`${API_URL}/documents`, {
+      const { data: responseData } = await axios.get(`${API_URL}/events`, {
         withCredentials: true,
       });
       setData(responseData);
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : 'Failed to load documents.';
+        err instanceof Error ? err.message : 'Failed to load events.';
       setFetchError(message);
     } finally {
       setLoading(false);
@@ -76,7 +94,7 @@ const Documents = () => {
   const handleActive = (entryId: string) => {
     setActive((prev) =>
       prev.includes(entryId)
-        ? prev.filter((id) => id !== entryId)
+        ? prev.filter((a) => a !== entryId)
         : [...prev, entryId],
     );
   };
@@ -88,9 +106,9 @@ const Documents = () => {
 
   if (loading) {
     return (
-      <div className='docs-container'>
-        <div className='docs-header'>
-          <span>Documents</span>
+      <div className='announce-container'>
+        <div className='announce-header'>
+          <span>Events</span>
         </div>
         <p style={{ padding: '1rem' }}>Loading...</p>
       </div>
@@ -98,18 +116,18 @@ const Documents = () => {
   }
 
   return (
-    <div className='docs-container'>
-      <div className='docs-header'>
-        <span>Documents</span>
+    <div className='announce-container'>
+      <div className='announce-header'>
+        <span>Events</span>
       </div>
 
       {fetchError && (
         <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>
       )}
 
-      <div className='docs-toolbar'>
-        <span className='docs-file-count'>{data.length} Files</span>
-        <div className='docs-toolbar-actions'>
+      <div className='announce-toolbar'>
+        <span className='announce-file-count'>{data.length} Events</span>
+        <div className='announce-toolbar-actions'>
           <FilterSelect
             options={filterOptions}
             value={filter}
@@ -123,27 +141,27 @@ const Documents = () => {
             label='Sort'
           />
           <button
-            className='docs-action-btn docs-refresh-btn'
+            className='announce-action-btn announce-refresh-btn'
             title='Refresh'
             onClick={handleRefresh}
           >
             <img
               src='/refresh.png'
               alt='refresh'
-              className={spinning ? 'docs-spin refresh-img' : 'refresh-img'}
+              className={spinning ? 'announce-spin refresh-img' : 'refresh-img'}
             />
           </button>
           <button
-            className='docs-add-btn'
+            className='announce-add-btn'
             onClick={() => {
               setId(null);
-              setSelectedName(null);
               setEditTitle('');
               setEditDescription('');
+              setEditDate('');
               setOpen(true);
             }}
           >
-            Add Document
+            Add Event
           </button>
         </div>
       </div>
@@ -152,11 +170,12 @@ const Documents = () => {
         <Actionbar
           items={active.length}
           selectedIds={active}
-          source='document'
+          source='event'
+          onSuccess={fetchData}
         />
       )}
 
-      <div className='docs-file-table'>
+      <div className='announce-file-table'>
         <table>
           <colgroup>
             <col className='col-checkbox' />
@@ -167,7 +186,7 @@ const Documents = () => {
             <col className='col-actions' />
           </colgroup>
           <thead>
-            <tr className='docs-table-header-light'>
+            <tr className='announce-table-header-light'>
               <th>
                 <input
                   type='checkbox'
@@ -182,8 +201,8 @@ const Documents = () => {
                   }}
                 />
               </th>
-              <th>Thumbnail</th>
-              <th>File Name</th>
+              <th>Photo</th>
+              <th>Name</th>
               <th>Description</th>
               <th>Date</th>
               <th>Actions</th>
@@ -191,7 +210,7 @@ const Documents = () => {
           </thead>
           <tbody>
             {data
-              .filter((entry) => filterByDate(entry.createdAt, filter))
+              .filter((entry) => filterByDate(entry.date, filter))
               .sort((a, b) => {
                 if (sort === 'Name (A-Z)')
                   return a.name.localeCompare(b.name);
@@ -199,20 +218,18 @@ const Documents = () => {
                   return b.name.localeCompare(a.name);
                 if (sort === 'Date (Newest)')
                   return (
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime()
+                    new Date(b.date).getTime() - new Date(a.date).getTime()
                   );
                 if (sort === 'Date (Oldest)')
                   return (
-                    new Date(a.createdAt).getTime() -
-                    new Date(b.createdAt).getTime()
+                    new Date(a.date).getTime() - new Date(b.date).getTime()
                   );
                 return 0;
               })
               .map((entry, idx) => (
                 <tr
                   key={idx}
-                  className={`docs-table-row ${active.includes(entry.id) ? 'docs-active' : ''}`}
+                  className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}
                 >
                   <td>
                     <input
@@ -224,9 +241,9 @@ const Documents = () => {
                     />
                   </td>
                   <td>
-                    {entry.thumbnail ? (
+                    {entry.images?.[0] ? (
                       <img
-                        src={entry.thumbnail}
+                        src={entry.images[0]}
                         alt={entry.name}
                         style={{ width: 40, height: 40, objectFit: 'cover' }}
                       />
@@ -236,15 +253,14 @@ const Documents = () => {
                   </td>
                   <td>{entry.name}</td>
                   <td>{entry.description}</td>
-                  <td>{formatDate(entry.createdAt)}</td>
-                  <td className='docs-file-btn'>
-                    <div className='docs-file-btn-inner'>
+                  <td>{formatDate(entry.date)}</td>
+                  <td className='announce-file-btn'>
+                    <div className='announce-file-btn-inner'>
                       <img
                         src='/bin.png'
                         alt='Delete'
                         onClick={() => {
                           setId(entry.id);
-                          setSelectedName(entry.name);
                           setIsModalOpen(true);
                         }}
                       />
@@ -253,9 +269,9 @@ const Documents = () => {
                         alt='Edit'
                         onClick={() => {
                           setId(entry.id);
-                          setSelectedName(entry.name);
                           setEditTitle(entry.name);
                           setEditDescription(entry.description);
+                          setEditDate(entry.date ?? '');
                           setOpen(true);
                         }}
                       />
@@ -267,26 +283,12 @@ const Documents = () => {
         </table>
       </div>
 
-      {open && (
-        <div className='docs-form-position'>
-          <Form
-            forType='document'
-            id={id}
-            initialTitle={editTitle}
-            initialDescription={editDescription}
-            setOpen={setOpen}
-            onSuccess={fetchData}
-          />
-        </div>
-      )}
-
       {isModalOpen && (
-        <div className='docs-modal-position'>
+        <div className='announce-modal-position'>
           <DeleteModal
             isOpen={isModalOpen}
-            source='document'
+            source='event'
             id={id}
-            name={selectedName}
             onClose={() => setIsModalOpen(false)}
             onConfirm={() => {
               setActive((prev) => prev.filter((a) => a !== id));
@@ -295,8 +297,22 @@ const Documents = () => {
           />
         </div>
       )}
+
+      {open && (
+        <div className='announce-form-position'>
+          <Form
+            forType='event'
+            id={id}
+            initialTitle={editTitle}
+            initialDescription={editDescription}
+            initialDate={editDate}
+            setOpen={setOpen}
+            onSuccess={fetchData}
+          />
+        </div>
+      )}
     </div>
   );
 };
 
-export default Documents;
+export default Events;

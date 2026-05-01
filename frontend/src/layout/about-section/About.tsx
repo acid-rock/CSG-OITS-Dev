@@ -19,7 +19,7 @@ export default function About() {
           <div className='about-content-sect1'>
             <div className='about-title'>
               <h1>
-                CENTRAL STUDENT <br></br> GOVERMENT
+                CENTRAL STUDENT <br></br> GOVERNMENT
               </h1>
             </div>
 

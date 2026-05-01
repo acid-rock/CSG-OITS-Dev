@@ -1,24 +1,22 @@
-// import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-// import { useState } from "react";
-// import App from "./AdminPage";
-import "../index.css";
+import { Navigate, Outlet } from 'react-router-dom';
+import '../index.css';
 
+// Note: sb_access_token is httpOnly — it cannot be read by document.cookie (by design).
+// We track auth state with a localStorage flag set on login and cleared on logout.
+// The backend requireAuth middleware is the real security boundary on every protected request.
 const ProtectedRoute = () => {
-  // const [authenticated, setAuthenticated] = useState(true);
-  // change this later a global state handler function to monitor the session of the user
+  try {
+    const isAuthenticated =
+      localStorage.getItem('admin_authenticated') === '1';
 
-  // const queryClient = new QueryClient();
+    if (!isAuthenticated) {
+      return <Navigate to='/admin/login' replace />;
+    }
 
-  // if (!authenticated) {
-  //   return <div>loading...</div>;
-  // }
-
-  // return (
-  //   <QueryClientProvider client={queryClient}>
-  //     <App />
-  //   </QueryClientProvider>
-  // );
-  return <></>;
+    return <Outlet />;
+  } catch {
+    return <Navigate to='/admin/login' replace />;
+  }
 };
 
 export default ProtectedRoute;

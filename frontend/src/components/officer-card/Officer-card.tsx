@@ -6,6 +6,7 @@ type OfficerCardProps = {
   title?: string;
   description?: string;
   image?: string;
+  socials?: string | null;
   variant?: "default" | "outlined" | "elevated";
   onClick?: () => void;
   className?: string;
@@ -17,6 +18,7 @@ export default function OfficerCard({
   title,
   description,
   image,
+  socials,
   variant = "default",
   onClick,
   style,
@@ -40,11 +42,19 @@ export default function OfficerCard({
           <p className="officer-card-description">{description}</p>
         )}
       </div>
-      <div className="officer-card-socials">
-        <div className="social-icon">
-          <FaFacebook className="fb-icon" />
+      {socials ? (
+        <div className="officer-card-socials">
+          <a
+            href={socials}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-icon"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FaFacebook className="fb-icon" />
+          </a>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

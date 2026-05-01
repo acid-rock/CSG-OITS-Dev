@@ -5,6 +5,10 @@ import Button from "../../components/button/Button";
 import type { OutletContext, Officer } from "../../root-layout/Root-layout";
 import "./officer.css";
 
+function getPosition(pos: string | string[]): string {
+  return Array.isArray(pos) ? pos[0] : pos;
+}
+
 export default function Officer() {
   const { officers } = useOutletContext<OutletContext>();
   const executives = officers?.filter((officer) => {
@@ -35,8 +39,9 @@ export default function Officer() {
             <div key={o.id} className="office-card-container">
               <OfficerCard
                 id={o.full_name}
-                title={o.position[0]}
+                title={getPosition(o.position)}
                 image={o.avatar}
+                socials={o.socials}
                 variant="default"
               />
             </div>
@@ -57,8 +62,9 @@ export default function Officer() {
             <div key={b.id} className="office-card-container">
               <OfficerCard
                 id={b.full_name}
-                title={b.position[0]}
+                title={getPosition(b.position)}
                 image={b.avatar}
+                socials={b.socials}
                 variant="default"
               />
             </div>
@@ -79,8 +85,9 @@ export default function Officer() {
             <div key={a.id} className="office-card-container">
               <OfficerCard
                 id={a.full_name}
-                title={a.position}
+                title={getPosition(a.position)}
                 image={a.avatar}
+                socials={a.socials}
                 variant="default"
               />
             </div>
