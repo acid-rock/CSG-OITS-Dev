@@ -41,11 +41,8 @@ export default function Officer() {
                 id={o.full_name}
                 title={o.position[0]}
                 image={o.avatar}
-<<<<<<< HEAD
                 socials={o.socials}
                 term={o.year_serving}
-=======
->>>>>>> 8b22842f790adc5614b6daf60635130b967e3062
                 variant="default"
               />
             </div>

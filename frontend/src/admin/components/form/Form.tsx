@@ -42,18 +42,11 @@ const Form = ({
   const [date, setDate] = useState(initialDate);
   const [eventImages, setEventImages] = useState<File[]>([]);
   // For event edit mode: one optional replacement per slot (0, 1, 2)
-<<<<<<< HEAD
   const [replaceImages, setReplaceImages] = useState<[File | null, File | null, File | null]>([null, null, null]);
   // Stores the selected image file for announcement add/edit (non-PDF images are not stored in `pdf`)
   const [announcementImage, setAnnouncementImage] = useState<File | null>(null);
   const [type, setType] = useState(initialType);
   const [term, setTerm] = useState("");
-=======
-  const [replaceImages, setReplaceImages] = useState<
-    [File | null, File | null, File | null]
-  >([null, null, null]);
-  const [type, setType] = useState("");
->>>>>>> 8b22842f790adc5614b6daf60635130b967e3062
 
   // Helpers
   const undoHandler = () => {
