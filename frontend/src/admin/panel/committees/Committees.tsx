@@ -1,15 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
+import { Archive, ArchiveRestore } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
 interface CommitteeEntry {
   id: string;
   name: string;
+  archived_at?: string;
 }
 
+type Tab = 'active' | 'archived';
+
 const CommitteesPanel = () => {
+  const [tab, setTab] = useState<Tab>('active');
   const [data, setData] = useState<CommitteeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -29,17 +34,17 @@ const CommitteesPanel = () => {
     setLoading(true);
     setFetchError(null);
     try {
-      const { data: res } = await axios.get<CommitteeEntry[]>(
-        `${API_URL}/committees`,
-        { withCredentials: true },
-      );
+      const endpoint = tab === 'archived'
+        ? `${API_URL}/committees/archived`
+        : `${API_URL}/committees`;
+      const { data: res } = await axios.get<CommitteeEntry[]>(endpoint, { withCredentials: true });
       setData(res);
     } catch (err: unknown) {
       setFetchError(err instanceof Error ? err.message : 'Failed to load committees.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tab]);
 
   useEffect(() => {
     fetchData();
@@ -72,10 +77,37 @@ const CommitteesPanel = () => {
     }
   };
 
+  const handleArchive = async (id: string) => {
+    try {
+      await axios.post(`${API_URL}/committees/archive`, { ids: [id] }, { withCredentials: true });
+      fetchData();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        ?? 'Failed to archive committee.';
+      setFetchError(msg);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    await axios.post(`${API_URL}/committees/restore`, { ids: [id] }, { withCredentials: true });
+    fetchData();
+  };
+
   const handleRefresh = () => {
     setSpinning(true);
     fetchData().finally(() => setTimeout(() => setSpinning(false), 600));
   };
+
+  const tabStyle = (t: Tab) => ({
+    padding: '0.35rem 1rem',
+    border: 'none',
+    borderBottom: tab === t ? '2px solid #3b82f6' : '2px solid transparent',
+    background: 'none',
+    cursor: 'pointer',
+    fontWeight: tab === t ? 600 : 400,
+    color: tab === t ? '#3b82f6' : '#6b7280',
+    fontSize: '0.9rem',
+  });
 
   if (loading) {
     return (
@@ -90,24 +122,32 @@ const CommitteesPanel = () => {
     <div className='announce-container'>
       <div className='announce-header'><span>Committees</span></div>
 
+      {/* Tab toggle */}
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
+        <button style={tabStyle('active')} onClick={() => setTab('active')}>Active</button>
+        <button style={tabStyle('archived')} onClick={() => setTab('archived')}>Archived</button>
+      </div>
+
       {fetchError && (
         <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>
       )}
 
-      {/* Inline add form */}
+      {/* Inline add form — active tab only */}
       <div className='announce-toolbar'>
-        <form onSubmit={handleAdd} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <input
-            type='text'
-            placeholder='New committee name'
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            style={{ padding: '0.4rem 0.75rem', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-          <button type='submit' className='announce-add-btn' disabled={adding}>
-            {adding ? 'Adding...' : 'Add Committee'}
-          </button>
-        </form>
+        {tab === 'active' && (
+          <form onSubmit={handleAdd} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <input
+              type='text'
+              placeholder='New committee name'
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              style={{ padding: '0.4rem 0.75rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+            <button type='submit' className='announce-add-btn' disabled={adding}>
+              {adding ? 'Adding...' : 'Add Committee'}
+            </button>
+          </form>
+        )}
         {addError && <span style={{ color: 'red', fontSize: '0.85rem' }}>{addError}</span>}
         <button className='announce-action-btn announce-refresh-btn' title='Refresh' onClick={handleRefresh}>
           <img src='/refresh.png' alt='refresh' className={spinning ? 'announce-spin refresh-img' : 'refresh-img'} />
@@ -142,36 +182,53 @@ const CommitteesPanel = () => {
                 </td>
                 <td className='announce-file-btn'>
                   <div className='announce-file-btn-inner'>
-                    {editingId === entry.id ? (
-                      <>
-                        <button
-                          className='announce-add-btn'
-                          style={{ padding: '0.2rem 0.75rem', fontSize: '0.8rem' }}
-                          onClick={() => handleEditSave(entry.id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className='btn btn-cancel'
-                          style={{ padding: '0.2rem 0.75rem', fontSize: '0.8rem' }}
-                          onClick={() => setEditingId(null)}
-                        >
-                          Cancel
-                        </button>
-                      </>
+                    {tab === 'active' ? (
+                      editingId === entry.id ? (
+                        <>
+                          <button
+                            className='announce-add-btn'
+                            style={{ padding: '0.2rem 0.75rem', fontSize: '0.8rem' }}
+                            onClick={() => handleEditSave(entry.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className='btn btn-cancel'
+                            style={{ padding: '0.2rem 0.75rem', fontSize: '0.8rem' }}
+                            onClick={() => setEditingId(null)}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            title='Archive'
+                            onClick={() => handleArchive(entry.id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}
+                          >
+                            <Archive size={16} />
+                          </button>
+                          <img
+                            src='/bin.png'
+                            alt='Delete'
+                            onClick={() => { setDeleteId(String(entry.id)); setIsModalOpen(true); }}
+                          />
+                          <img
+                            src='/edit.png'
+                            alt='Edit'
+                            onClick={() => { setEditingId(entry.id); setEditName(entry.name); }}
+                          />
+                        </>
+                      )
                     ) : (
-                      <>
-                        <img
-                          src='/bin.png'
-                          alt='Delete'
-                          onClick={() => { setDeleteId(String(entry.id)); setIsModalOpen(true); }}
-                        />
-                        <img
-                          src='/edit.png'
-                          alt='Edit'
-                          onClick={() => { setEditingId(entry.id); setEditName(entry.name); }}
-                        />
-                      </>
+                      <button
+                        title='Restore'
+                        onClick={() => handleRestore(entry.id)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}
+                      >
+                        <ArchiveRestore size={16} /> Restore
+                      </button>
                     )}
                   </div>
                 </td>

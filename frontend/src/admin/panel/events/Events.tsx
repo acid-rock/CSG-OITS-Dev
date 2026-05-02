@@ -4,6 +4,7 @@ import Form from '../../components/form/Form';
 import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
 import Actionbar from '../../components/action-bar/Actionbar';
 import axios from 'axios';
+import { Archive, ArchiveRestore } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -14,6 +15,7 @@ interface EventEntry {
   date: string;
   created_at: string;
   images: string[];
+  archived_at?: string;
 }
 
 const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
@@ -23,6 +25,8 @@ const sortOptions = [
   'Date (Newest)',
   'Date (Oldest)',
 ];
+
+type Tab = 'active' | 'archived';
 
 const filterByDate = (date: string, filter: string): boolean => {
   if (!filter || filter === 'All') return true;
@@ -55,6 +59,7 @@ const formatDate = (iso: string): string => {
 };
 
 const Events = () => {
+  const [tab, setTab] = useState<Tab>('active');
   const [data, setData] = useState<EventEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -74,8 +79,12 @@ const Events = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setFetchError(null);
+    setActive([]);
     try {
-      const { data: responseData } = await axios.get(`${API_URL}/events`, {
+      const endpoint = tab === 'archived'
+        ? `${API_URL}/events/archived`
+        : `${API_URL}/events`;
+      const { data: responseData } = await axios.get(endpoint, {
         withCredentials: true,
       });
       setData(responseData);
@@ -86,7 +95,7 @@ const Events = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tab]);
 
   useEffect(() => {
     fetchData();
@@ -105,6 +114,27 @@ const Events = () => {
     fetchData().finally(() => setTimeout(() => setSpinning(false), 600));
   };
 
+  const handleArchive = async (entryId: string) => {
+    await axios.post(`${API_URL}/events/archive`, { ids: [entryId] }, { withCredentials: true });
+    fetchData();
+  };
+
+  const handleRestore = async (entryId: string) => {
+    await axios.post(`${API_URL}/events/restore`, { ids: [entryId] }, { withCredentials: true });
+    fetchData();
+  };
+
+  const tabStyle = (t: Tab) => ({
+    padding: '0.35rem 1rem',
+    border: 'none',
+    borderBottom: tab === t ? '2px solid #3b82f6' : '2px solid transparent',
+    background: 'none',
+    cursor: 'pointer',
+    fontWeight: tab === t ? 600 : 400,
+    color: tab === t ? '#3b82f6' : '#6b7280',
+    fontSize: '0.9rem',
+  });
+
   if (loading) {
     return (
       <div className='announce-container'>
@@ -120,6 +150,12 @@ const Events = () => {
     <div className='announce-container'>
       <div className='announce-header'>
         <span>Events</span>
+      </div>
+
+      {/* Tab toggle */}
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
+        <button style={tabStyle('active')} onClick={() => setTab('active')}>Active</button>
+        <button style={tabStyle('archived')} onClick={() => setTab('archived')}>Archived</button>
       </div>
 
       {fetchError && (
@@ -152,22 +188,24 @@ const Events = () => {
               className={spinning ? 'announce-spin refresh-img' : 'refresh-img'}
             />
           </button>
-          <button
-            className='announce-add-btn'
-            onClick={() => {
-              setId(null);
-              setEditTitle('');
-              setEditDescription('');
-              setEditDate('');
-              setOpen(true);
-            }}
-          >
-            Add Event
-          </button>
+          {tab === 'active' && (
+            <button
+              className='announce-add-btn'
+              onClick={() => {
+                setId(null);
+                setEditTitle('');
+                setEditDescription('');
+                setEditDate('');
+                setOpen(true);
+              }}
+            >
+              Add Event
+            </button>
+          )}
         </div>
       </div>
 
-      {active.length >= 3 && (
+      {tab === 'active' && active.length >= 3 && (
         <Actionbar
           items={active.length}
           selectedIds={active}
@@ -257,26 +295,45 @@ const Events = () => {
                   <td>{formatDate(entry.date)}</td>
                   <td className='announce-file-btn'>
                     <div className='announce-file-btn-inner'>
-                      <img
-                        src='/bin.png'
-                        alt='Delete'
-                        onClick={() => {
-                          setId(entry.id);
-                          setIsModalOpen(true);
-                        }}
-                      />
-                      <img
-                        src='/edit.png'
-                        alt='Edit'
-                        onClick={() => {
-                          setId(entry.id);
-                          setEditTitle(entry.name);
-                          setEditDescription(entry.description);
-                          setEditDate(entry.date ?? '');
-                          setEditImages(entry.images ?? []);
-                          setOpen(true);
-                        }}
-                      />
+                      {tab === 'active' ? (
+                        <>
+                          <button
+                            title='Archive'
+                            onClick={() => handleArchive(entry.id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}
+                          >
+                            <Archive size={16} />
+                          </button>
+                          <img
+                            src='/bin.png'
+                            alt='Delete'
+                            onClick={() => {
+                              setId(entry.id);
+                              setIsModalOpen(true);
+                            }}
+                          />
+                          <img
+                            src='/edit.png'
+                            alt='Edit'
+                            onClick={() => {
+                              setId(entry.id);
+                              setEditTitle(entry.name);
+                              setEditDescription(entry.description);
+                              setEditDate(entry.date ?? '');
+                              setEditImages(entry.images ?? []);
+                              setOpen(true);
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <button
+                          title='Restore'
+                          onClick={() => handleRestore(entry.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}
+                        >
+                          <ArchiveRestore size={16} /> Restore
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

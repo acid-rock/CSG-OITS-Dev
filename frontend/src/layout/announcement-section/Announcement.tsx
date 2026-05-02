@@ -70,6 +70,7 @@ export default function Announcement() {
               date={formatDate(currentAnnouncement.date) || "Not Available"}
               image={currentAnnouncement.imgUrl}
               variant="default"
+              style={{ cursor: "pointer" }}
               onClick={() => handleCardClick(currentAnnouncement)}
             />
           )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DocumentCard from "../../components/document-card/Document-card";
 import "./bulletinDocument.css";
 import Typography from "../../components/typography/Typography";
@@ -19,11 +19,7 @@ export default function BulletinDocument() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (documents.length > 0 && !selectedDocument) {
-      setSelectedDocument(documents[0]);
-    }
-  }, [documents]);
+  // selectedDocument remains null until the user explicitly clicks "View" on a document
 
   // Derive unique categories directly from the documents array
   const uniqueCategories = Array.from(
@@ -194,24 +190,26 @@ export default function BulletinDocument() {
           </main>
         </div>
 
-        {/* Always Visible Document Preview Panel */}
-        <aside className="bulletin-preview-panel">
-          <div className="bulletin-preview-content">
-            <div className="bulletin-preview-body">
-              {selectedDocument?.date && (
-                <p className="bulletin-preview-date">
-                  {selectedDocument?.date}
+        {/* Document Preview Panel — only shown after user selects a document */}
+        {selectedDocument && (
+          <aside className="bulletin-preview-panel">
+            <div className="bulletin-preview-content">
+              <div className="bulletin-preview-body">
+                {selectedDocument.date && (
+                  <p className="bulletin-preview-date">
+                    {selectedDocument.date}
+                  </p>
+                )}
+                <h2 className="bulletin-preview-title">
+                  {selectedDocument.description}
+                </h2>
+                <p className="bulletin-preview-description">
+                  {selectedDocument.category}
                 </p>
-              )}
-              <h2 className="bulletin-preview-title">
-                {selectedDocument?.description}
-              </h2>
-              <p className="bulletin-preview-description">
-                {selectedDocument?.category}
-              </p>
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
       </div>
 
       {/* Modal for document preview */}

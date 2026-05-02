@@ -10,6 +10,9 @@ const router = Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+// MANUAL STEP: ALTER TABLE events ADD COLUMN IF NOT EXISTS is_archived boolean NOT NULL DEFAULT false;
+// MANUAL STEP: ALTER TABLE events ADD COLUMN IF NOT EXISTS archived_at timestamptz;
+
 // MANUAL STEP (Bug 4 / CDN cache): In Supabase dashboard, add to events table:
 //   updated_at timestamptz DEFAULT now()
 // Then create a trigger to auto-update it:
@@ -58,7 +61,7 @@ router.get(
       ),
     );
 
-    const { data, error } = await table.select();
+    const { data, error } = await table.select().eq("is_archived", false);
     if (error) throw new Error(error.message);
 
     const payload = data.map((d) => {
@@ -176,6 +179,95 @@ router.delete(
     const { error: deleteError } = await bucket.remove(paths);
     if (deleteError) throw new Error(deleteError.message);
 
+    return res.sendStatus(200);
+  }),
+);
+
+// ── Archive / Restore ─────────────────────────────────────────────────────────
+
+router.get(
+  "/archived",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const bucket = anonSupabase.storage.from("events");
+    const cacheV = Date.now();
+
+    const { data: bucketData, error: bucketError } = await bucket.list();
+    if (bucketError) throw new Error(bucketError.message);
+
+    const imageMap = Object.fromEntries(
+      await Promise.all(
+        bucketData.map(async (folder) => {
+          const { data: files } = await bucket.list(folder.name);
+          const links = files
+            .filter((file) => !file.name.startsWith("."))
+            .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+            .map((file) => {
+              const path = `${folder.name}/${file.name}`;
+              return `${bucket.getPublicUrl(path).data.publicUrl}?v=${cacheV}`;
+            });
+          return [folder.name, links];
+        }),
+      ),
+    );
+
+    const { data, error } = await userSupabase
+      .from("events")
+      .select()
+      .eq("is_archived", true)
+      .order("archived_at", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const payload = data.map((d) => ({
+      id: d.id,
+      created_at: d.created_at,
+      name: d.name,
+      description: d.description,
+      date: d.date_happened,
+      images: imageMap[d.id] ?? [],
+      archived_at: d.archived_at,
+    }));
+
+    return res.json(payload);
+  }),
+);
+
+router.post(
+  "/archive",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { error } = await userSupabase
+      .from("events")
+      .update({ is_archived: true, archived_at: new Date().toISOString() })
+      .in("id", ids);
+    if (error) throw new Error(error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/restore",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { error } = await userSupabase
+      .from("events")
+      .update({ is_archived: false, archived_at: null })
+      .in("id", ids);
+    if (error) throw new Error(error.message);
     return res.sendStatus(200);
   }),
 );

@@ -1,4 +1,5 @@
 import "./officer-card.css";
+import { useState, useEffect } from "react";
 import { FaFacebook } from "react-icons/fa";
 
 type OfficerCardProps = {
@@ -7,7 +8,7 @@ type OfficerCardProps = {
   description?: string;
   image?: string;
   socials?: string | null;
-  term?: string | null; // school year, e.g. "2025-2026"
+  term?: string | null;
   variant?: "default" | "outlined" | "elevated";
   onClick?: () => void;
   className?: string;
@@ -25,6 +26,22 @@ export default function OfficerCard({
   onClick,
   style,
 }: OfficerCardProps) {
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [image]);
+
+  const initials = [
+    (id ?? "").split(" ")[0]?.[0],
+    (id ?? "").split(" ").at(-1)?.[0],
+  ]
+    .filter(Boolean)
+    .join("")
+    .toUpperCase();
+
+  const showInitials = !image || imgError;
+
   return (
     <div
       id={id}
@@ -32,11 +49,32 @@ export default function OfficerCard({
       style={style}
       onClick={onClick}
     >
-      {image && (
-        <div className="officer-card-image">
-          <img src={image} alt={title} />
-        </div>
-      )}
+      <div className="officer-card-image">
+        {showInitials ? (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              background: "#374151",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1.4rem",
+              fontWeight: 700,
+            }}
+          >
+            {initials || "?"}
+          </div>
+        ) : (
+          <img
+            src={image}
+            alt={title}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
+            onError={() => setImgError(true)}
+          />
+        )}
+      </div>
       <div className="officer-card-content">
         <h3>{id}</h3>
         {title && <h3 className="officer-card-title">{title}</h3>}

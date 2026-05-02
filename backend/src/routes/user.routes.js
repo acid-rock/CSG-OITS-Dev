@@ -169,4 +169,104 @@ router.post(
   }),
 );
 
+// ── Whitelist ─────────────────────────────────────────────────────────────────
+// MANUAL STEP: ALTER TABLE whitelist ADD COLUMN IF NOT EXISTS full_name text;
+// MANUAL STEP: ALTER TABLE whitelist ADD COLUMN IF NOT EXISTS student_id text;
+
+router.get(
+  "/whitelist",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const token = req.token;
+    const userClient = createUserClient(token);
+    const { data, error } = await userClient
+      .from("whitelist")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw new ApiError(500, error.message);
+    return res.status(200).json(data);
+  }),
+);
+
+router.post(
+  "/whitelist",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { email, full_name, student_id } = req.body;
+
+    if (!email && !student_id) {
+      throw new ApiError(400, "Provide at least an email or student ID.");
+    }
+
+    const token = req.token;
+    const userClient = createUserClient(token);
+    const { error } = await userClient.from("whitelist").insert({
+      email: email || null,
+      full_name: full_name || null,
+      student_id: student_id || null,
+    });
+    if (error) throw new ApiError(500, error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.delete(
+  "/whitelist",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { id } = req.body;
+    if (!id) throw new ApiError(400, "id is required.");
+    const token = req.token;
+    const userClient = createUserClient(token);
+    const { error } = await userClient.from("whitelist").delete().eq("id", id);
+    if (error) throw new ApiError(500, error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+// ── Change Password ───────────────────────────────────────────────────────────
+
+router.post(
+  "/change-password",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { current_password, new_password, confirm_password } = req.body;
+
+    if (!current_password || !new_password || !confirm_password) {
+      throw new ApiError(400, "All fields are required.");
+    }
+    if (new_password !== confirm_password) {
+      throw new ApiError(400, "Passwords do not match.");
+    }
+    if (new_password.length < 8) {
+      throw new ApiError(400, "New password must be at least 8 characters.");
+    }
+    if (new_password === current_password) {
+      throw new ApiError(400, "New password must be different from the current password.");
+    }
+
+    const token = req.token;
+    const userClient = createUserClient(token);
+
+    // Get current user's email so we can re-authenticate to verify current_password
+    const { data: userData, error: userError } = await userClient.auth.getUser();
+    if (userError || !userData?.user?.email) {
+      throw new ApiError(500, "Could not retrieve user information.");
+    }
+
+    const { error: signInError } = await anonSupabase.auth.signInWithPassword({
+      email: userData.user.email,
+      password: current_password,
+    });
+    if (signInError) {
+      throw new ApiError(401, "Current password is incorrect.");
+    }
+
+    const { error } = await userClient.auth.updateUser({ password: new_password });
+    if (error) throw new ApiError(500, error.message);
+
+    return res.sendStatus(200);
+  }),
+);
+
 export default router;

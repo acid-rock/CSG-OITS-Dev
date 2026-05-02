@@ -34,9 +34,9 @@ export const buttonConfig = [
     ),
   },
   {
-    label: 'Bin',
-    name: 'bin',
-    icon: <img src='/bin.png' alt='Bin' width={18} height={18} />,
+    label: 'Equipment',
+    name: 'borrowing',
+    icon: <img src='/document.png' alt='Equipment' width={18} height={18} />,
   },
   {
     label: 'Contributors',
@@ -54,5 +54,10 @@ export const buttonConfig = [
     label: 'Settings',
     name: 'settings',
     icon: <img src='/settings.png' alt='Settings' width={18} height={18} />,
+  },
+  {
+    label: 'Bin',
+    name: 'bin',
+    icon: <img src='/bin.png' alt='Bin' width={18} height={18} />,
   },
 ];

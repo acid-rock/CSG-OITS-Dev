@@ -15,8 +15,14 @@ export default function Navigation() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
 
-  const handleNavClick = (href: string) => {
+  const handleNavClick = (href: string, route?: string) => {
     closeMenu();
+
+    // Items with a `route` field navigate to a page instead of scrolling
+    if (route) {
+      navigate(route);
+      return;
+    }
 
     // If not on homepage, navigate to homepage first
     if (location.pathname !== "/") {
@@ -54,7 +60,7 @@ export default function Navigation() {
               key={button.id}
               variant={button.variant}
               id={button.id}
-              onClick={() => handleNavClick(button.href)}>
+              onClick={() => handleNavClick(button.href, (button as { route?: string }).route)}>
               {button.label}
             </Button>
           ))}
@@ -87,7 +93,7 @@ export default function Navigation() {
               key={button.id}
               variant={button.variant}
               id={button.id}
-              onClick={() => handleNavClick(button.href)}>
+              onClick={() => handleNavClick(button.href, (button as { route?: string }).route)}>
               {button.label}
             </Button>
           ))}

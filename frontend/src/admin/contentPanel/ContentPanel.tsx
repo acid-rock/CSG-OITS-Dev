@@ -10,6 +10,7 @@ import Events from '../panel/events/Events';
 import OfficersPanel from '../panel/officers/Officers';
 import CommitteesPanel from '../panel/committees/Committees';
 import Bin from '../../route/bin/Bin';
+import BorrowingPanel from '../panel/borrowing/Borrowing';
 
 const panel = [
   { name: 'dashboard',    content: <Dashboard /> },
@@ -18,10 +19,11 @@ const panel = [
   { name: 'events',       content: <Events /> },
   { name: 'officers',     content: <OfficersPanel /> },
   { name: 'committees',   content: <CommitteesPanel /> },
-  { name: 'bin',          content: <Bin /> },
+  { name: 'borrowing',    content: <BorrowingPanel /> },
   { name: 'auditlog',     content: <Audit /> },
   { name: 'contributors', content: <Contributor /> },
   { name: 'settings',     content: <Settings /> },
+  { name: 'bin',          content: <Bin /> },
 ];
 
 const ContentPanel = ({ active }: { active: string | null }) => {

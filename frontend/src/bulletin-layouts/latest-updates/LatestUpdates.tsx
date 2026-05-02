@@ -1,17 +1,23 @@
 import "./latestupdates.css";
 import Typography from "../../components/typography/Typography";
 import { useOutletContext } from "react-router-dom";
-import type { OutletContext } from "../../root-layout/Root-layout";
+import { useState } from "react";
+import Modal from "../../components/modal/Modal";
+import type { Announcement, OutletContext } from "../../root-layout/Root-layout";
 
 const LatestUpdates = () => {
   const { bulletin } = useOutletContext<OutletContext>();
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const [open, setOpen] = useState(false);
+
   if (!bulletin.length) {
     return null;
   }
+
   const latest = [...bulletin]
     .sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        new Date(b.created_at ?? b.date).getTime() - new Date(a.created_at ?? a.date).getTime(),
     )
     .slice(0, 3);
 
@@ -22,6 +28,11 @@ const LatestUpdates = () => {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const handleItemClick = (ann: Announcement) => {
+    setSelectedAnnouncement(ann);
+    setOpen(true);
   };
 
   return (
@@ -43,8 +54,13 @@ const LatestUpdates = () => {
           </div>
           <div className="content-cards-container">
             {latest.map((ann) => (
-              <div key={ann.id} className="content-cards">
-                {/* Left: Title and Category */}
+              <div
+                key={ann.id}
+                className="content-cards"
+                style={{ cursor: "pointer" }}
+                onClick={() => handleItemClick(ann)}
+              >
+                {/* Left: Title */}
                 <div className="card-left">
                   <h3 className="card-title">{ann.title}</h3>
                 </div>
@@ -60,6 +76,18 @@ const LatestUpdates = () => {
           </div>
         </div>
       </div>
+
+      {open && selectedAnnouncement && (
+        <Modal
+          isOpen={open}
+          setOpen={setOpen}
+          imageSrc={selectedAnnouncement.imgUrl}
+          imageAlt={selectedAnnouncement.title}
+          date={formatDate(selectedAnnouncement.date) || "Not Available"}
+          title={selectedAnnouncement.title}
+          description={selectedAnnouncement.content}
+        />
+      )}
     </div>
   );
 };

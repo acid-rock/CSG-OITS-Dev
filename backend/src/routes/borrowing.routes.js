@@ -1,0 +1,420 @@
+// MANUAL STEP: ALTER TABLE borrowing_requests ADD COLUMN IF NOT EXISTS organization text;
+// MANUAL STEP: ALTER TABLE borrowing_requests ADD COLUMN IF NOT EXISTS position_in_org text;
+// MANUAL STEP: ALTER TABLE borrowing_requests ADD COLUMN IF NOT EXISTS contact_number text;
+// MANUAL STEP: ALTER TABLE borrowing_requests ADD COLUMN IF NOT EXISTS purpose_type text;
+// MANUAL STEP: ALTER TABLE borrowing_requests ADD COLUMN IF NOT EXISTS purpose_others_detail text;
+// MANUAL STEP: ALTER TABLE borrowing_requests ADD COLUMN IF NOT EXISTS activity_name text;
+// MANUAL STEP: ALTER TABLE borrowing_requests ADD COLUMN IF NOT EXISTS venue text;
+// MANUAL STEP: ALTER TABLE borrowing_requests ADD COLUMN IF NOT EXISTS time_of_use text;
+// MANUAL STEP: ALTER TABLE borrowing_requests ADD COLUMN IF NOT EXISTS equipment_items jsonb;
+
+// MANUAL STEPS REQUIRED — apply in Supabase dashboard before testing:
+//
+// 1. Create borrowing_requests table:
+//    CREATE TABLE borrowing_requests (
+//      id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+//      created_at         timestamptz DEFAULT now(),
+//      borrower_name      text NOT NULL,
+//      borrower_id        text NOT NULL,
+//      borrower_email     text,
+//      equipment_id       uuid NOT NULL REFERENCES inventory(id),
+//      quantity_requested integer NOT NULL DEFAULT 1,
+//      purpose            text,
+//      borrow_date        date NOT NULL,
+//      return_date        date NOT NULL,
+//      actual_return      timestamptz,
+//      status             text NOT NULL DEFAULT 'pending'
+//                         CHECK (status IN ('pending','approved','rejected','returned')),
+//      admin_notes        text,
+//      processed_by       uuid REFERENCES auth.users(id),
+//      processed_at       timestamptz
+//    );
+//
+// 2. Enable RLS on borrowing_requests:
+//    ALTER TABLE borrowing_requests ENABLE ROW LEVEL SECURITY;
+//    -- Allow public insert (students submit requests without accounts):
+//    CREATE POLICY "allow_public_insert" ON borrowing_requests FOR INSERT TO anon WITH CHECK (true);
+//    -- Allow authenticated reads and updates (admins only):
+//    CREATE POLICY "allow_auth_all" ON borrowing_requests FOR ALL TO authenticated USING (true);
+
+import { Router } from "express";
+import { anonSupabase, createUserClient } from "../lib/supabaseClient.js";
+import asyncHandler from "express-async-handler";
+import { requireAuth } from "../middlewares/auth.middleware.js";
+import ApiError from "../lib/apiError.js";
+
+const router = Router();
+
+// ── Inventory (public reads) ──────────────────────────────────────────────────
+
+router.get(
+  "/inventory",
+  asyncHandler(async (req, res) => {
+    const { data, error } = await anonSupabase
+      .from("inventory")
+      .select("*")
+      .order("name", { ascending: true });
+    if (error) throw new ApiError(500, error.message);
+    return res.status(200).json(data);
+  }),
+);
+
+router.get(
+  "/inventory/:id",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { data, error } = await anonSupabase
+      .from("inventory")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) throw new ApiError(500, error.message);
+    if (!data) throw new ApiError(404, "Equipment not found.");
+    return res.status(200).json(data);
+  }),
+);
+
+// ── Inventory management (admin) ──────────────────────────────────────────────
+
+router.post(
+  "/inventory/add",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { name, max_quantity } = req.body;
+    if (!name || !name.trim()) throw new ApiError(400, "name is required.");
+    const qty = parseInt(max_quantity);
+    if (!qty || qty < 1) throw new ApiError(400, "max_quantity must be at least 1.");
+
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    const { error } = await userSupabase.from("inventory").insert({
+      name: name.trim(),
+      quantity: qty,
+      max_quantity: qty,
+      is_available: qty > 0,
+    });
+    if (error) throw new ApiError(500, error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/inventory/edit",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { id, name, max_quantity } = req.body;
+    if (!id) throw new ApiError(400, "id is required.");
+
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    const updates = {};
+    if (name !== undefined) updates.name = name.trim();
+    if (max_quantity !== undefined) {
+      const qty = parseInt(max_quantity);
+      if (!qty || qty < 1) throw new ApiError(400, "max_quantity must be at least 1.");
+      updates.max_quantity = qty;
+      // is_available is based on current quantity (not max_quantity)
+      const { data: current } = await userSupabase
+        .from("inventory")
+        .select("quantity")
+        .eq("id", id)
+        .single();
+      if (current) {
+        updates.is_available = current.quantity > 0;
+      }
+    }
+
+    const { error } = await userSupabase
+      .from("inventory")
+      .update(updates)
+      .eq("id", id);
+    if (error) throw new ApiError(500, error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.delete(
+  "/inventory/delete",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { id } = req.body;
+    if (!id) throw new ApiError(400, "id is required.");
+
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    // Guard: reject if there are active (pending or approved) requests for this equipment
+    const { count, error: guardError } = await userSupabase
+      .from("borrowing_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("equipment_id", id)
+      .in("status", ["pending", "approved"]);
+    if (guardError) throw new ApiError(500, guardError.message);
+    if (count > 0) {
+      throw new ApiError(400, "Cannot delete equipment with active borrow requests.");
+    }
+
+    const { error } = await userSupabase.from("inventory").delete().eq("id", id);
+    if (error) throw new ApiError(500, error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+// ── Borrow requests ───────────────────────────────────────────────────────────
+
+router.get(
+  "/requests",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    let query = userSupabase
+      .from("borrowing_requests")
+      .select("*, inventory(name)")
+      .order("created_at", { ascending: false });
+
+    if (req.query.status) {
+      query = query.eq("status", req.query.status);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new ApiError(500, error.message);
+
+    const payload = data.map((r) => ({
+      ...r,
+      equipment_name: r.inventory?.name ?? "Unknown",
+      inventory: undefined,
+    }));
+
+    return res.status(200).json(payload);
+  }),
+);
+
+router.post(
+  "/request",
+  asyncHandler(async (req, res) => {
+    const {
+      borrower_name,
+      borrower_id,
+      borrower_email,
+      contact_number,
+      organization,
+      position_in_org,
+      purpose_type,
+      purpose_others_detail,
+      activity_name,
+      venue,
+      borrow_date,
+      return_date,
+      time_of_use,
+      equipment_items, // array: [{ equipment_id, quantity_requested }]
+    } = req.body;
+
+    if (!borrower_name || !borrower_id || !borrow_date) {
+      throw new ApiError(400, "Missing required fields.");
+    }
+
+    if (!Array.isArray(equipment_items) || equipment_items.length === 0) {
+      throw new ApiError(400, "At least one equipment item is required.");
+    }
+
+    // Validate and check availability for each item
+    for (const item of equipment_items) {
+      const qty = parseInt(item.quantity_requested);
+      if (!item.equipment_id) throw new ApiError(400, "Each item requires an equipment_id.");
+      if (!qty || qty < 1) throw new ApiError(400, "Quantity must be at least 1 for each item.");
+
+      const { data: inv, error: invErr } = await anonSupabase
+        .from("inventory")
+        .select("quantity, name")
+        .eq("id", item.equipment_id)
+        .single();
+      if (invErr || !inv) throw new ApiError(404, `Equipment not found: ${item.equipment_id}`);
+      if (qty > inv.quantity) {
+        throw new ApiError(
+          400,
+          `Not enough units available for ${inv.name}. Only ${inv.quantity} unit(s) left.`,
+        );
+      }
+    }
+
+    // Use first item for the main (backward-compat) columns
+    const firstItem = equipment_items[0];
+    const firstQty = parseInt(firstItem.quantity_requested);
+
+    // Derive return_date: use provided value or default to borrow_date + 1 day
+    let effectiveReturnDate = return_date;
+    if (!effectiveReturnDate) {
+      const d = new Date(borrow_date);
+      d.setDate(d.getDate() + 1);
+      effectiveReturnDate = d.toISOString().split("T")[0];
+    }
+
+    const { error } = await anonSupabase.from("borrowing_requests").insert({
+      borrower_name,
+      borrower_id,
+      borrower_email: borrower_email || null,
+      contact_number: contact_number || null,
+      organization: organization || null,
+      position_in_org: position_in_org || null,
+      purpose_type: purpose_type || null,
+      purpose_others_detail: purpose_others_detail || null,
+      activity_name: activity_name || null,
+      venue: venue || null,
+      time_of_use: time_of_use || null,
+      equipment_id: firstItem.equipment_id,
+      quantity_requested: firstQty,
+      equipment_items: equipment_items,
+      borrow_date,
+      return_date: effectiveReturnDate,
+      status: "pending",
+    });
+    if (error) throw new ApiError(500, error.message);
+
+    return res.status(201).json({ message: "Request submitted successfully." });
+  }),
+);
+
+router.post(
+  "/approve",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { request_id, admin_notes } = req.body;
+    if (!request_id) throw new ApiError(400, "request_id is required.");
+
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    const { data: request, error: reqError } = await userSupabase
+      .from("borrowing_requests")
+      .select("*")
+      .eq("id", request_id)
+      .single();
+    if (reqError || !request) throw new ApiError(404, "Request not found.");
+    if (request.status !== "pending") {
+      throw new ApiError(400, "Only pending requests can be approved.");
+    }
+
+    const { data: inventory, error: invError } = await userSupabase
+      .from("inventory")
+      .select("quantity")
+      .eq("id", request.equipment_id)
+      .single();
+    if (invError || !inventory) throw new ApiError(404, "Equipment not found.");
+    if (inventory.quantity < request.quantity_requested) {
+      throw new ApiError(400, "Insufficient inventory to approve this request.");
+    }
+
+    const newQty = inventory.quantity - request.quantity_requested;
+    const { error: invUpdateError } = await userSupabase
+      .from("inventory")
+      .update({ quantity: newQty, is_available: newQty > 0 })
+      .eq("id", request.equipment_id);
+    if (invUpdateError) throw new ApiError(500, invUpdateError.message);
+
+    const { error: reqUpdateError } = await userSupabase
+      .from("borrowing_requests")
+      .update({
+        status: "approved",
+        processed_by: req.user.sub,
+        processed_at: new Date().toISOString(),
+        admin_notes: admin_notes || null,
+      })
+      .eq("id", request_id);
+
+    if (reqUpdateError) {
+      // Compensating rollback: restore inventory quantity
+      await userSupabase
+        .from("inventory")
+        .update({ quantity: inventory.quantity, is_available: true })
+        .eq("id", request.equipment_id);
+      throw new ApiError(500, reqUpdateError.message);
+    }
+
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/reject",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { request_id, admin_notes } = req.body;
+    if (!request_id) throw new ApiError(400, "request_id is required.");
+
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    const { data: request, error: reqError } = await userSupabase
+      .from("borrowing_requests")
+      .select("status")
+      .eq("id", request_id)
+      .single();
+    if (reqError || !request) throw new ApiError(404, "Request not found.");
+    if (request.status !== "pending") {
+      throw new ApiError(400, "Only pending requests can be rejected.");
+    }
+
+    const { error } = await userSupabase
+      .from("borrowing_requests")
+      .update({
+        status: "rejected",
+        processed_by: req.user.sub,
+        processed_at: new Date().toISOString(),
+        admin_notes: admin_notes || null,
+      })
+      .eq("id", request_id);
+    if (error) throw new ApiError(500, error.message);
+
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/return",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { request_id } = req.body;
+    if (!request_id) throw new ApiError(400, "request_id is required.");
+
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    const { data: request, error: reqError } = await userSupabase
+      .from("borrowing_requests")
+      .select("*")
+      .eq("id", request_id)
+      .single();
+    if (reqError || !request) throw new ApiError(404, "Request not found.");
+    if (request.status !== "approved") {
+      throw new ApiError(400, "Only approved requests can be marked as returned.");
+    }
+
+    const { data: inventory, error: invError } = await userSupabase
+      .from("inventory")
+      .select("quantity")
+      .eq("id", request.equipment_id)
+      .single();
+    if (invError || !inventory) throw new ApiError(404, "Equipment not found.");
+
+    const newQty = inventory.quantity + request.quantity_requested;
+    const { error: invUpdateError } = await userSupabase
+      .from("inventory")
+      .update({ quantity: newQty, is_available: newQty > 0 })
+      .eq("id", request.equipment_id);
+    if (invUpdateError) throw new ApiError(500, invUpdateError.message);
+
+    const { error } = await userSupabase
+      .from("borrowing_requests")
+      .update({ status: "returned", actual_return: new Date().toISOString() })
+      .eq("id", request_id);
+    if (error) throw new ApiError(500, error.message);
+
+    return res.sendStatus(200);
+  }),
+);
+
+export default router;

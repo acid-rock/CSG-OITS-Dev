@@ -1,3 +1,6 @@
+// MANUAL STEP: ALTER TABLE officers ADD COLUMN IF NOT EXISTS is_archived boolean NOT NULL DEFAULT false;
+// MANUAL STEP: ALTER TABLE officers ADD COLUMN IF NOT EXISTS archived_at timestamptz;
+
 import { Router } from "express";
 import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
@@ -49,6 +52,7 @@ router.get(
       const { data, error, count } = await anonSupabase
         .from("officers")
         .select("*", { count: "exact" })
+        .eq("is_archived", false)
         .order("created_at", { ascending: true })
         .range(from, to);
       if (error) throw new Error(error.message);
@@ -64,6 +68,7 @@ router.get(
     const { data, error } = await anonSupabase
       .from("officers")
       .select()
+      .eq("is_archived", false)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
 
@@ -226,6 +231,62 @@ router.delete(
       if (error) throw new Error(error.message);
     }
 
+    return res.sendStatus(200);
+  }),
+);
+
+// ── Archive / Restore ─────────────────────────────────────────────────────────
+
+router.get(
+  "/archived",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { data, error } = await userSupabase
+      .from("officers")
+      .select()
+      .eq("is_archived", true)
+      .order("archived_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return res.status(200).json(data.map(transformOfficer));
+  }),
+);
+
+router.post(
+  "/archive",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { error } = await userSupabase
+      .from("officers")
+      .update({ is_archived: true, archived_at: new Date().toISOString() })
+      .in("id", ids);
+    if (error) throw new Error(error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/restore",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { error } = await userSupabase
+      .from("officers")
+      .update({ is_archived: false, archived_at: null })
+      .in("id", ids);
+    if (error) throw new Error(error.message);
     return res.sendStatus(200);
   }),
 );

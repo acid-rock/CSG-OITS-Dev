@@ -20,4 +20,11 @@ export const navigationConfig = [
     variant: 'navigation',
     href: 'officers',
   },
+  {
+    id: 'borrow-btn',
+    label: 'Equipment',
+    variant: 'navigation',
+    href: 'borrow',
+    route: '/borrow',
+  },
 ];
