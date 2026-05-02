@@ -48,6 +48,7 @@ router.get(
         title: row.title,
         content: row.content,
         date: row.created_at,
+        created_at: row.created_at,
         is_pinned: row.is_pinned ?? false,
       };
     });

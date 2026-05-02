@@ -9,8 +9,6 @@ import type {
   Announcement,
   OutletContext,
 } from "../../root-layout/Root-layout";
-import { DateTime } from "luxon";
-
 export default function Announcement() {
   const { bulletin } = useOutletContext<OutletContext>();
   const [currentSlide, setCurrentSlide] = useState<number>(0);
@@ -18,8 +16,14 @@ export default function Announcement() {
     useState<Announcement | null>(null);
   const [open, setOpen] = useState(false);
 
-  const formatDate = (date: string) => {
-    return DateTime.fromISO(date).toLocaleString();
+  const formatDate = (date: string): string => {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return date; // return as-is if already formatted
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const handleCardClick = (announcement: Announcement) => {

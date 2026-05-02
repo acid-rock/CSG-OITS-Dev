@@ -13,6 +13,7 @@ export type Announcement = {
   title: string;
   content: string;
   date: string;
+  created_at?: string;
   is_pinned?: boolean;
 };
 

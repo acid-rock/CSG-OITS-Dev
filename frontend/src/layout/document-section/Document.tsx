@@ -43,7 +43,7 @@ export default function Document() {
               category={docu.category}
               title={docu.description}
               description={docu.description}
-              term={"" /* TODO: Add term */}
+              term={docu.term ?? ""}
               date={docu.date}
               variant="default"
               onSelect={() => {}}
