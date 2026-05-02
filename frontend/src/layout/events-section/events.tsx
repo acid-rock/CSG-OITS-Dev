@@ -41,7 +41,7 @@ export default function Events() {
     <div className="event-container">
       <div className="event-layout">
         <div className="event-texts">
-          <Typography size="text-md" color="text-dark">
+          <Typography size="text-lg" color="text-dark">
             Events
           </Typography>
           <Typography size="text-sm" color="text-ghost">
@@ -117,6 +117,7 @@ export default function Events() {
 
       {open && selectedEvent && (
         <Modal
+          type="event"
           isOpen={open}
           setOpen={setOpen}
           imageSrc={selectedEvent.images[0]}
@@ -124,6 +125,7 @@ export default function Events() {
           date={selectedEvent.date}
           title={selectedEvent.name}
           description={selectedEvent.description}
+          extraImage={selectedEvent.images}
         ></Modal>
       )}
     </div>

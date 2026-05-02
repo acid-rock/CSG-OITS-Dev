@@ -2,12 +2,8 @@ import OfficerCard from "../../components/officer-card/Officer-card";
 import Typography from "../../components/typography/Typography";
 import { Link, useOutletContext } from "react-router-dom";
 import Button from "../../components/button/Button";
-import type { OutletContext, Officer } from "../../root-layout/Root-layout";
 import "./officer.css";
-
-function getPosition(pos: string | string[]): string {
-  return Array.isArray(pos) ? pos[0] : pos;
-}
+import type { Officer, OutletContext } from "../../root-layout/Root-layout";
 
 export default function Officer() {
   const { officers } = useOutletContext<OutletContext>();
@@ -22,39 +18,47 @@ export default function Officer() {
   const advisers = officers?.filter((officer) => {
     return officer.type === "adviser";
   });
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   return (
     <section className="officer-container" id="officers">
       <div className="officer-layout">
-        <div className="document-texts">
-          <Typography size="text-md" color="text-dark">
+        <div className="officer-texts">
+          <Typography size="text-lg" color="text-dark">
             Executive Officers
           </Typography>
-          <Typography size="text-light" color="text-ghost">
-            These are the executive officers
+
+          <Typography size="text-sm" color="text-dark">
+            Meet your Executive Officers
           </Typography>
         </div>
 
         <div className="officer-grid">
-          {executives?.slice(0, 6).map((o: Officer) => (
+          {executives?.slice(0, 7).map((o: Officer) => (
             <div key={o.id} className="office-card-container">
               <OfficerCard
                 id={o.full_name}
-                title={getPosition(o.position)}
+                title={o.position[0]}
                 image={o.avatar}
+<<<<<<< HEAD
                 socials={o.socials}
                 term={o.year_serving}
+=======
+>>>>>>> 8b22842f790adc5614b6daf60635130b967e3062
                 variant="default"
               />
             </div>
           ))}
         </div>
 
-        <div className="document-texts">
-          <Typography size="text-md" color="text-dark">
+        <div className="officer-texts">
+          <Typography size="text-lg" color="text-dark">
             Board Members
           </Typography>
-          <Typography size="text-light" color="text-ghost">
-            These are the board members
+
+          <Typography size="text-sm" color="text-dark">
+            Meet the Board Members
           </Typography>
         </div>
 
@@ -63,21 +67,21 @@ export default function Officer() {
             <div key={b.id} className="office-card-container">
               <OfficerCard
                 id={b.full_name}
-                title={getPosition(b.position)}
+                title={b.position[0]}
                 image={b.avatar}
-                socials={b.socials}
                 variant="default"
               />
             </div>
           ))}
         </div>
 
-        <div className="document-texts">
-          <Typography size="text-md" color="text-dark">
+        <div className="officer-texts">
+          <Typography size="text-lg" color="text-dark">
             Advisers
           </Typography>
-          <Typography size="text-light" color="text-ghost">
-            These are the advisers
+
+          <Typography size="text-sm" color="text-dark">
+            Meet our Advisers
           </Typography>
         </div>
 
@@ -86,9 +90,8 @@ export default function Officer() {
             <div key={a.id} className="office-card-container">
               <OfficerCard
                 id={a.full_name}
-                title={getPosition(a.position)}
+                title={a.position[0]}
                 image={a.avatar}
-                socials={a.socials}
                 variant="default"
               />
             </div>
@@ -100,6 +103,7 @@ export default function Officer() {
             <Link
               to="/officers"
               style={{ textDecoration: "none", color: "white" }}
+              onClick={scroll}
             >
               VIEW ALL
             </Link>

@@ -1,13 +1,15 @@
 import "./officer-card.css";
-import { FaFacebook } from "react-icons/fa";
 
 type OfficerCardProps = {
   id?: string;
   title?: string;
   description?: string;
   image?: string;
+<<<<<<< HEAD
   socials?: string | null;
   term?: string | null; // school year, e.g. "2025-2026"
+=======
+>>>>>>> 8b22842f790adc5614b6daf60635130b967e3062
   variant?: "default" | "outlined" | "elevated";
   onClick?: () => void;
   className?: string;
@@ -17,10 +19,12 @@ type OfficerCardProps = {
 export default function OfficerCard({
   id,
   title,
-  description,
   image,
+<<<<<<< HEAD
   socials,
   term,
+=======
+>>>>>>> 8b22842f790adc5614b6daf60635130b967e3062
   variant = "default",
   onClick,
   style,
@@ -40,6 +44,7 @@ export default function OfficerCard({
       <div className="officer-card-content">
         <h3>{id}</h3>
         {title && <h3 className="officer-card-title">{title}</h3>}
+<<<<<<< HEAD
         {term && (
           <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0.1rem 0 0" }}>
             {term}
@@ -48,20 +53,9 @@ export default function OfficerCard({
         {description && (
           <p className="officer-card-description">{description}</p>
         )}
+=======
+>>>>>>> 8b22842f790adc5614b6daf60635130b967e3062
       </div>
-      {socials ? (
-        <div className="officer-card-socials">
-          <a
-            href={socials}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="social-icon"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FaFacebook className="fb-icon" />
-          </a>
-        </div>
-      ) : null}
     </div>
   );
 }

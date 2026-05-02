@@ -1,9 +1,17 @@
 .event-container {
+  background: linear-gradient(
+    to bottom,
+    #f4f6fa 0%,
+    #cfd9f3 50%,
+    #4a78e0 80%,
+    #4a78e0 100%
+  );
+
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  margin-top: 5rem;
+  min-height: auto;
+  flex-direction: column;
 }
 
 .event-layout {
@@ -129,6 +137,7 @@
 }
 
 .event-button {
+  border-radius: 100%;
   background: rgba(255, 255, 255, 0.534);
   color: var(--primary-blue);
   border: none;

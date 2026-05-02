@@ -38,6 +38,120 @@
   flex: 1;
 }
 
+/* Card Layout: Left (Title + Category) | Center (Date) | Right (Button) */
+.content-cards {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background-color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.content-cards:hover {
+  border-color: var(--primary-blue, #2196f3);
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Left Section: Title and Category */
+.card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0; /* Allow text truncation */
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.card-category {
+  display: inline-block;
+}
+
+.card-category a {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(33, 150, 243, 0.1);
+  color: var(--primary-blue, #2196f3);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-category a:hover {
+  background: var(--primary-blue, #2196f3);
+  color: white;
+}
+
+/* Center Section: Date */
+.card-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  border-left: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  min-width: 120px;
+}
+
+.card-date {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+/* Right Section: View Button */
+.card-right {
+  display: flex;
+  align-items: center;
+}
+
+.card-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.5rem;
+  background: var(--primary-blue, #2196f3);
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.card-view-btn:hover {
+  background: #1976d2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.card-view-btn:active {
+  transform: translateY(0);
+}
+
 .content-cards {
   border: 2px solid rgba(128, 128, 128, 0.858);
   padding: 1rem;

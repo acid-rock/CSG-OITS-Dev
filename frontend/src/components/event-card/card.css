@@ -65,7 +65,7 @@
 
 /* Card variants */
 .event-card.default {
-  border: 1px solid var(--black-border);
+  border: 0px solid var(--black-border);
 }
 
 .event-card.outlined {
