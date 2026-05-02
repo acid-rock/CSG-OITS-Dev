@@ -1,6 +1,10 @@
 // MANUAL STEP REQUIRED: In Supabase dashboard, add to bulletin table:
-//   is_pinned boolean NOT NULL DEFAULT false
-// Then run: UPDATE bulletin SET is_pinned = false WHERE is_pinned IS NULL;
+//   is_pinned  boolean NOT NULL DEFAULT false
+//   is_archived boolean NOT NULL DEFAULT false
+//   archived_at timestamptz
+// Then run:
+//   UPDATE bulletin SET is_pinned   = false WHERE is_pinned   IS NULL;
+//   UPDATE bulletin SET is_archived = false WHERE is_archived IS NULL;
 
 import { Router } from "express";
 import multer from "multer";
@@ -28,6 +32,7 @@ router.get(
     let { data, error } = await anonSupabase
       .from("bulletin")
       .select()
+      .eq("is_archived", false)
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -92,6 +97,7 @@ router.post(
 router.post(
   "/edit",
   requireAuth,
+  upload.single("image"), // optional — only present when the admin replaces the cover image
   auditLogger(),
   asyncHandler(async (req, res) => {
     if (!req.body) throw new ApiError(400, "No valid request body is found.");
@@ -101,13 +107,21 @@ router.post(
     const userSupabase = createUserClient(token);
     const { error } = await userSupabase
       .from("bulletin")
-      .update({
-        id: id,
-        title: title,
-        content: content,
-      })
+      .update({ title, content })
       .eq("id", id);
     if (error) throw new Error(error.message);
+
+    // Replace the cover image only when a new file was uploaded
+    if (req.file) {
+      const imgPath = `${id}.jpg`;
+      const { error: uploadError } = await userSupabase.storage
+        .from("bulletin")
+        .upload(imgPath, req.file.buffer, {
+          contentType: req.file.mimetype,
+          upsert: true,
+        });
+      if (uploadError) throw new Error(uploadError.message);
+    }
 
     return res.sendStatus(200);
   }),
@@ -158,6 +172,81 @@ router.delete(
       if (deleteImgError) throw new Error(deleteImgError.message);
     }
 
+    return res.sendStatus(200);
+  }),
+);
+
+// ── Archive / Restore ─────────────────────────────────────────────────────────
+
+router.get(
+  "/archived",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    const { data, error } = await userSupabase
+      .from("bulletin")
+      .select()
+      .eq("is_archived", true)
+      .order("archived_at", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const payload = data.map((row) => {
+      const imgPath = `${row.id}.jpg`;
+      const imgUrl = anonSupabase.storage
+        .from("bulletin")
+        .getPublicUrl(imgPath).data.publicUrl;
+      return {
+        id: row.id,
+        imgUrl,
+        title: row.title,
+        content: row.content,
+        date: row.created_at,
+        is_pinned: row.is_pinned ?? false,
+        is_archived: true,
+        archived_at: row.archived_at,
+      };
+    });
+
+    return res.status(200).json(payload);
+  }),
+);
+
+router.post(
+  "/archive",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { error } = await userSupabase
+      .from("bulletin")
+      .update({ is_archived: true, archived_at: new Date().toISOString() })
+      .in("id", ids);
+    if (error) throw new Error(error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/restore",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { error } = await userSupabase
+      .from("bulletin")
+      .update({ is_archived: false, archived_at: null })
+      .in("id", ids);
+    if (error) throw new Error(error.message);
     return res.sendStatus(200);
   }),
 );

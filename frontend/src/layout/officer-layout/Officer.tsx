@@ -42,6 +42,7 @@ export default function Officer() {
                 title={getPosition(o.position)}
                 image={o.avatar}
                 socials={o.socials}
+                term={o.year_serving}
                 variant="default"
               />
             </div>

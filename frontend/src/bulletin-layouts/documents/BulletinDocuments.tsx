@@ -12,6 +12,7 @@ import { useOutletContext } from "react-router-dom";
 export default function BulletinDocument() {
   const { documents } = useOutletContext<OutletContext>();
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedTerm, setSelectedTerm] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null,
@@ -34,10 +35,18 @@ export default function BulletinDocument() {
     ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
   ];
 
-  // Apply category filter then search filter — both must match
+  // Derive unique terms for the term filter
+  const uniqueTerms = Array.from(
+    new Set(documents.map((doc) => doc.term).filter(Boolean) as string[]),
+  ).sort();
+
+  // Apply category + term + search filters — all must match
   const filteredDocuments = documents
     .filter((doc) =>
       selectedCategory === "all" ? true : doc.category === selectedCategory,
+    )
+    .filter((doc) =>
+      selectedTerm === "all" ? true : doc.term === selectedTerm,
     )
     .filter((doc) => {
       if (!searchQuery) return true;
@@ -107,6 +116,33 @@ export default function BulletinDocument() {
                 </button>
               ))}
             </nav>
+
+            {uniqueTerms.length > 0 && (
+              <>
+                <Typography size="text-sm" color="text-dark" style={{ marginTop: "1rem" }}>
+                  Term
+                </Typography>
+                <nav className="bulletin-nav-menu">
+                  <button
+                    type="button"
+                    className={`bulletin-nav-item ${selectedTerm === "all" ? "active" : ""}`}
+                    onClick={() => setSelectedTerm("all")}
+                  >
+                    All Terms
+                  </button>
+                  {uniqueTerms.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      className={`bulletin-nav-item ${selectedTerm === t ? "active" : ""}`}
+                      onClick={() => setSelectedTerm(t)}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </nav>
+              </>
+            )}
           </aside>
 
           {/* Document Grid */}
@@ -125,15 +161,32 @@ export default function BulletinDocument() {
             ) : (
               <div className="bulletin-document-grid">
                 {filteredDocuments.map((doc) => (
-                  <DocumentCard
-                    key={doc.id}
-                    id={doc.id}
-                    title={doc.description}
-                    description={doc.category}
-                    date={doc.date}
-                    onSelect={() => handleSelect(doc)}
-                    onView={() => handleView(doc)}
-                  />
+                  <div key={doc.id} style={{ position: "relative" }}>
+                    {doc.term && (
+                      <span style={{
+                        position: "absolute",
+                        top: "0.4rem",
+                        right: "0.4rem",
+                        fontSize: "0.65rem",
+                        background: "#eff6ff",
+                        color: "#3b82f6",
+                        border: "1px solid #bfdbfe",
+                        borderRadius: "4px",
+                        padding: "0.1rem 0.35rem",
+                        zIndex: 1,
+                      }}>
+                        {doc.term}
+                      </span>
+                    )}
+                    <DocumentCard
+                      id={doc.id}
+                      title={doc.description}
+                      description={doc.category}
+                      date={doc.date}
+                      onSelect={() => handleSelect(doc)}
+                      onView={() => handleView(doc)}
+                    />
+                  </div>
                 ))}
               </div>
             )}

@@ -24,6 +24,7 @@ export type Document = {
   url: string;
   date: string;
   created_at?: string;
+  term?: string | null;
 };
 
 type Event = {

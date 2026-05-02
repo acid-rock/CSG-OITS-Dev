@@ -10,6 +10,15 @@ const router = Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+// MANUAL STEP (Bug 4 / CDN cache): In Supabase dashboard, add to events table:
+//   updated_at timestamptz DEFAULT now()
+// Then create a trigger to auto-update it:
+//   CREATE OR REPLACE FUNCTION set_updated_at()
+//     RETURNS trigger LANGUAGE plpgsql AS
+//     $$ BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+//   CREATE TRIGGER events_updated_at BEFORE UPDATE ON events
+//     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+// Once that column exists, replace Date.now() below with d.updated_at unix timestamp.
 router.get(
   "/",
   asyncHandler(async (req, res) => {
@@ -22,15 +31,27 @@ router.get(
     const { data: bucketData, error: bucketError } = await bucket.list();
     if (bucketError) throw new Error(bucketError.message);
 
+    // Bug 4 workaround: each response carries a fresh cache-bust value so that
+    // browsers do not serve a stale CDN-cached version after an image replacement.
+    // Replace Date.now() with the event's updated_at unix timestamp once that
+    // column exists (see MANUAL STEP above).
+    const cacheV = Date.now();
+
     const imageMap = Object.fromEntries(
       await Promise.all(
         bucketData.map(async (folder) => {
           const { data: files } = await bucket.list(folder.name);
 
-          const links = files.map((file) => {
-            const path = `${folder.name}/${file.name}`;
-            return bucket.getPublicUrl(path).data.publicUrl;
-          });
+          // Bug 3 fix: Supabase Storage may include a hidden .emptyFolderPlaceholder
+          // file. Filter it out and sort remaining files numerically so that
+          // 0.jpg is always index 0, regardless of storage listing order.
+          const links = files
+            .filter((file) => !file.name.startsWith("."))
+            .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+            .map((file) => {
+              const path = `${folder.name}/${file.name}`;
+              return `${bucket.getPublicUrl(path).data.publicUrl}?v=${cacheV}`;
+            });
 
           return [folder.name, links];
         }),
@@ -40,14 +61,14 @@ router.get(
     const { data, error } = await table.select();
     if (error) throw new Error(error.message);
 
-    const payload = data.map((d, i) => {
+    const payload = data.map((d) => {
       return {
         id: d.id,
         created_at: d.created_at,
         name: d.name,
         description: d.description,
         date: d.date_happened,
-        images: imageMap[d.id],
+        images: imageMap[d.id] ?? [],
       };
     });
 

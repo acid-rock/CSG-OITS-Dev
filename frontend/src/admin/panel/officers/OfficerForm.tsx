@@ -173,13 +173,14 @@ const OfficerForm = ({
           </div>
 
           <div className='form-group'>
-            <label htmlFor='year_serving'>Year Serving</label>
+            {/* term is stored as year_serving — no schema change needed for officers */}
+            <label htmlFor='year_serving'>Term (S.Y.)</label>
             <input
               type='text'
               id='year_serving'
               value={yearServing}
               onChange={(e) => setYearServing(e.target.value)}
-              placeholder='2024-2025'
+              placeholder='e.g. S.Y. 2025-2026'
             />
           </div>
 

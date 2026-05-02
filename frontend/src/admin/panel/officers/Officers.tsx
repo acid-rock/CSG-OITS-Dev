@@ -137,7 +137,7 @@ const OfficersPanel = () => {
               <th>Position</th>
               <th>Type</th>
               <th>Committee</th>
-              <th>Year Serving</th>
+              <th>Term (S.Y.)</th>
               <th>Actions</th>
             </tr>
           </thead>

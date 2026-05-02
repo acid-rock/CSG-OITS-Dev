@@ -1,8 +1,12 @@
 // MANUAL STEP REQUIRED: In Supabase dashboard, add to the documents table:
 //   is_deleted  boolean      NOT NULL DEFAULT false
 //   deleted_at  timestamptz  NULL
+//   is_archived boolean      NOT NULL DEFAULT false
+//   archived_at timestamptz  NULL
+//   term        text         NULL  (e.g. "S.Y. 2024-2025")
 // After adding the columns run:
-//   UPDATE documents SET is_deleted = false WHERE is_deleted IS NULL;
+//   UPDATE documents SET is_deleted  = false WHERE is_deleted  IS NULL;
+//   UPDATE documents SET is_archived = false WHERE is_archived IS NULL;
 // Do NOT attempt to run this migration from backend code.
 
 import { Router } from "express";
@@ -44,6 +48,7 @@ const transformDocument = (file) => {
     category: file.file_path.split("/")[0],
     url: data.publicUrl,
     thumbnail: thumbnail,
+    term: file.term ?? null,
   };
 };
 
@@ -65,6 +70,7 @@ router.get(
         .from("documents")
         .select("*", { count: "exact" })
         .eq("is_deleted", false)
+        .eq("is_archived", false)
         .range(from, to);
       if (error) throw new Error(error.message);
 
@@ -79,7 +85,8 @@ router.get(
     const { data: files, error } = await supabase
       .from("documents")
       .select("*")
-      .eq("is_deleted", false);
+      .eq("is_deleted", false)
+      .eq("is_archived", false);
     if (error) throw new Error(error.message);
 
     return res.status(200).json(files.map(transformDocument));
@@ -143,8 +150,9 @@ router.post(
       .upload(imgName, thumbnail, { thumbnailContentType, upsert: true });
     if (thumbnailError) throw new Error(thumbnailError.message);
 
+    const { term } = req.body;
     const { error: tableError } = await userSupabase.from("documents").upsert(
-      { id: data.id, file_path: filepath, description, owner_id: req.user.sub, is_deleted: false },
+      { id: data.id, file_path: filepath, description, term: term ?? null, owner_id: req.user.sub, is_deleted: false },
       { onConflict: "id" },
     );
     if (tableError) throw new Error(tableError.message);
@@ -155,11 +163,12 @@ router.post(
 
 router.post(
   "/edit",
+  upload.none(), // parse multipart/form-data text fields without accepting a file upload
   requireAuth,
   auditLogger(),
   asyncHandler(async (req, res) => {
     const token = req.token;
-    const { name, description, type, id } = req.body;
+    const { name, description, type, id, term } = req.body;
 
     if (!name || !description || !type || !id) {
       throw new ApiError(400, "All fields are required.");
@@ -175,7 +184,7 @@ router.post(
 
     const { error: updateError } = await userSupabase
       .from("documents")
-      .update({ file_path: filepath, description })
+      .update({ file_path: filepath, description, term: term ?? null })
       .eq("id", id);
     if (updateError) throw new Error(updateError.message);
 
@@ -298,6 +307,72 @@ router.delete(
     }
 
     return res.status(200).json({ purged: files.length });
+  }),
+);
+
+// ── Archive / Restore ─────────────────────────────────────────────────────────
+
+router.get(
+  "/archived",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { data: files, error } = await supabase
+      .from("documents")
+      .select("*")
+      .eq("is_archived", true)
+      .eq("is_deleted", false)
+      .order("archived_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return res.status(200).json(files.map((f) => ({ ...transformDocument(f), is_archived: true, archived_at: f.archived_at })));
+  }),
+);
+
+router.post(
+  "/archive",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+
+    // Refuse to archive documents that are already in the bin
+    const { data: inBin } = await userSupabase
+      .from("documents")
+      .select("id")
+      .in("id", ids)
+      .eq("is_deleted", true);
+    if (inBin && inBin.length > 0) {
+      throw new ApiError(400, "Document is in the bin. Restore it from the bin first.");
+    }
+
+    const { error } = await userSupabase
+      .from("documents")
+      .update({ is_archived: true, archived_at: new Date().toISOString() })
+      .in("id", ids);
+    if (error) throw new Error(error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/restore",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { error } = await userSupabase
+      .from("documents")
+      .update({ is_archived: false, archived_at: null })
+      .in("id", ids);
+    if (error) throw new Error(error.message);
+    return res.sendStatus(200);
   }),
 );
 

@@ -13,6 +13,7 @@ interface FormProps {
   initialTitle?: string;
   initialDescription?: string;
   initialDate?: string;
+  initialType?: string;   // pre-populate type select for document edits
   initialImages?: string[]; // current image URLs shown as previews in event edit mode
   setOpen: (open: boolean) => void;
   onSuccess?: () => void; // called after a successful API submission
@@ -24,6 +25,7 @@ const Form = ({
   initialTitle = "",
   initialDescription = "",
   initialDate = "",
+  initialType = "",
   initialImages = [],
   setOpen,
   onSuccess,
@@ -41,7 +43,10 @@ const Form = ({
   const [eventImages, setEventImages] = useState<File[]>([]);
   // For event edit mode: one optional replacement per slot (0, 1, 2)
   const [replaceImages, setReplaceImages] = useState<[File | null, File | null, File | null]>([null, null, null]);
-  const [type, setType] = useState("");
+  // Stores the selected image file for announcement add/edit (non-PDF images are not stored in `pdf`)
+  const [announcementImage, setAnnouncementImage] = useState<File | null>(null);
+  const [type, setType] = useState(initialType);
+  const [term, setTerm] = useState("");
 
   // Helpers
   const undoHandler = () => {
@@ -81,8 +86,10 @@ const Form = ({
     }
 
     if (forType === "document") {
-      // Backend expects 'name' not 'title'
+      // Backend expects 'name' not 'title' and requires 'type'
       formData.append("name", title);
+      formData.append("type", type);
+      if (term) formData.append("term", term);
       if (pdf) {
         formData.append("file", pdf);
         formData.append("boxes", JSON.stringify(selectedBoxes));
@@ -105,8 +112,9 @@ const Form = ({
       }
     }
 
-    if (forType === "announcement" && pdf) {
-      formData.append("image", pdf);
+    // Bug 1 fix: use announcementImage (non-PDF file) not pdf (PDF file)
+    if (forType === "announcement" && announcementImage) {
+      formData.append("image", announcementImage);
     }
 
     // Include id for edit operations
@@ -130,6 +138,8 @@ const Form = ({
           setShowPdfSelector(true);
         }
       } else {
+        // Image file (announcement cover photo, etc.)
+        setAnnouncementImage(file);
         const reader = new FileReader();
         reader.onloadend = () => setPreview(reader.result as string);
         reader.readAsDataURL(file);
@@ -141,6 +151,7 @@ const Form = ({
       setPreview(null);
       setPdf(null);
       setPdfUrl(null);
+      setAnnouncementImage(null);
       setShowPdfSelector(false);
     }
   };
@@ -217,6 +228,18 @@ const Form = ({
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
+          {forType === "document" && (
+            <div className="form-group">
+              <label htmlFor="term">Term (S.Y.)</label>
+              <input
+                type="text"
+                id="term"
+                placeholder="e.g. S.Y. 2024-2025"
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+              />
+            </div>
+          )}
           {forType === "document" && (
             <div className="form-group">
               <label htmlFor="type">Type</label>

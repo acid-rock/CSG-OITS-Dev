@@ -7,6 +7,7 @@ type OfficerCardProps = {
   description?: string;
   image?: string;
   socials?: string | null;
+  term?: string | null; // school year, e.g. "2025-2026"
   variant?: "default" | "outlined" | "elevated";
   onClick?: () => void;
   className?: string;
@@ -19,6 +20,7 @@ export default function OfficerCard({
   description,
   image,
   socials,
+  term,
   variant = "default",
   onClick,
   style,
@@ -38,6 +40,11 @@ export default function OfficerCard({
       <div className="officer-card-content">
         <h3>{id}</h3>
         {title && <h3 className="officer-card-title">{title}</h3>}
+        {term && (
+          <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0.1rem 0 0" }}>
+            {term}
+          </p>
+        )}
         {description && (
           <p className="officer-card-description">{description}</p>
         )}
