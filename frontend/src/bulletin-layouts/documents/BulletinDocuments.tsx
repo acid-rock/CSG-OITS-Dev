@@ -3,39 +3,31 @@ import DocumentCard from "../../components/document-card/Document-card";
 import "./bulletinDocument.css";
 import Typography from "../../components/typography/Typography";
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
-import fetchDocuments from "../../config/documentsConfig.ts";
-import type { Document } from "../../root-layout/Root-layout.tsx";
+import type {
+  Document,
+  OutletContext,
+} from "../../root-layout/Root-layout.tsx";
+import { useOutletContext } from "react-router-dom";
 
 export default function BulletinDocument() {
-<<<<<<< HEAD
   const { documents } = useOutletContext<OutletContext>();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedTerm, setSelectedTerm] = useState("all");
-=======
->>>>>>> 8b22842f790adc5614b6daf60635130b967e3062
   const [searchQuery, setSearchQuery] = useState("");
-  const [documents, setDocuments] = useState<Document[]>();
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedDocument, setSelectedDocument] = useState<Document>();
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null,
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const res = await fetchDocuments();
+    if (documents.length > 0 && !selectedDocument) {
+      setSelectedDocument(documents[0]);
+    }
+  }, [documents]);
 
-      if (!res) {
-        console.log("failed to fetch documents");
-        return;
-      }
-
-      setDocuments(res);
-    };
-
-    fetchData();
-  }, []);
-
+  // Derive unique categories directly from the documents array
   const uniqueCategories = Array.from(
-    new Set(documents?.map((doc: Document) => doc.category)),
+    new Set(documents.map((doc) => doc.category)),
   );
 
   const categories = [
@@ -43,7 +35,6 @@ export default function BulletinDocument() {
     ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
   ];
 
-<<<<<<< HEAD
   // Derive unique terms for the term filter
   const uniqueTerms = Array.from(
     new Set(documents.map((doc) => doc.term).filter(Boolean) as string[]),
@@ -65,16 +56,6 @@ export default function BulletinDocument() {
         doc.description.toLowerCase().includes(q)
       );
     });
-=======
-  const filteredDocuments = documents?.filter((doc) => {
-    const matchCategory =
-      selectedCategory === "all" || selectedCategory === doc.category;
-    const matchSearch = doc.description
-      ?.toLocaleLowerCase()
-      .includes(searchQuery.toLowerCase());
-    return matchSearch && matchCategory;
-  });
->>>>>>> 8b22842f790adc5614b6daf60635130b967e3062
 
   const handleSelect = (doc: Document) => {
     setSelectedDocument(doc);
@@ -97,21 +78,28 @@ export default function BulletinDocument() {
         </Typography>
       </div>
 
-      {/* Search Bar */}
-      <div className="bulletin-document-search-wrapper">
-        <input
-          className="bulletin-document-search-input"
-          type="text"
-          placeholder="Search documents…"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
       <div className="bulletin-document-layout-wrapper">
         <div className="bulletin-document-layout">
           {/* Sidebar Navigation */}
           <aside className="bulletin-document-navigation">
+            {/* Search bar */}
+            <input
+              type="text"
+              placeholder="Search documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "0.45rem 0.75rem",
+                marginBottom: "0.75rem",
+                fontSize: "0.875rem",
+                border: "1px solid #d1d5db",
+                borderRadius: "6px",
+                boxSizing: "border-box",
+                outline: "none",
+              }}
+            />
+
             <Typography size="text-sm" color="text-dark">
               Categories
             </Typography>
@@ -160,35 +148,34 @@ export default function BulletinDocument() {
 
           {/* Document Grid */}
           <main className="bulletin-document-content">
-<<<<<<< HEAD
             {filteredDocuments.length === 0 ? (
-              <p
-                style={{
-                  textAlign: "center",
-                  color: "#6b7280",
-                  padding: "2rem 0",
-                  fontSize: "0.95rem",
-                }}
-              >
-                No documents found.
-              </p>
+              <div className="bulletin-document-empty">
+                <p className="bulletin-document-empty-title">
+                  No documents found
+                </p>
+                <p className="bulletin-document-empty-sub">
+                  Try a different search term or category.
+                </p>
+              </div>
             ) : (
               <div className="bulletin-document-grid">
                 {filteredDocuments.map((doc) => (
                   <div key={doc.id} style={{ position: "relative" }}>
                     {doc.term && (
-                      <span style={{
-                        position: "absolute",
-                        top: "0.4rem",
-                        right: "0.4rem",
-                        fontSize: "0.65rem",
-                        background: "#eff6ff",
-                        color: "#3b82f6",
-                        border: "1px solid #bfdbfe",
-                        borderRadius: "4px",
-                        padding: "0.1rem 0.35rem",
-                        zIndex: 1,
-                      }}>
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "0.4rem",
+                          right: "0.4rem",
+                          fontSize: "0.65rem",
+                          background: "#eff6ff",
+                          color: "#3b82f6",
+                          border: "1px solid #bfdbfe",
+                          borderRadius: "4px",
+                          padding: "0.1rem 0.35rem",
+                          zIndex: 1,
+                        }}
+                      >
                         {doc.term}
                       </span>
                     )}
@@ -204,42 +191,34 @@ export default function BulletinDocument() {
                 ))}
               </div>
             )}
-=======
-            <div className="bulletin-document-grid">
-              {filteredDocuments?.length === 0 ? (
-                <div className="bulletin-document-empty">
-                  <p className="bulletin-document-empty-title">
-                    No documents found
-                  </p>
-                  <p className="bulletin-document-empty-sub">
-                    Try a different search term or category.
-                  </p>
-                </div>
-              ) : (
-                filteredDocuments?.map((doc) => (
-                  <DocumentCard
-                    key={doc.id}
-                    id={doc.id}
-                    title={doc.description}
-                    description={doc.description}
-                    date={doc.date}
-                    term={"" /* Add term */}
-                    onSelect={() => handleSelect(doc)}
-                    onView={() => handleView(doc)}
-                  />
-                ))
-              )}
-            </div>
->>>>>>> 8b22842f790adc5614b6daf60635130b967e3062
           </main>
         </div>
+
+        {/* Always Visible Document Preview Panel */}
+        <aside className="bulletin-preview-panel">
+          <div className="bulletin-preview-content">
+            <div className="bulletin-preview-body">
+              {selectedDocument?.date && (
+                <p className="bulletin-preview-date">
+                  {selectedDocument?.date}
+                </p>
+              )}
+              <h2 className="bulletin-preview-title">
+                {selectedDocument?.description}
+              </h2>
+              <p className="bulletin-preview-description">
+                {selectedDocument?.category}
+              </p>
+            </div>
+          </div>
+        </aside>
       </div>
 
-      {/* Modal */}
-      {isModalOpen && selectedDocument && (
+      {/* Modal for document preview */}
+      {isModalOpen && (
         <DocumentModal
           selected={{
-            title: selectedDocument.name,
+            title: selectedDocument?.name ?? "",
             date: selectedDocument?.date ?? "",
             memoSrc: selectedDocument?.url ?? "",
           }}
