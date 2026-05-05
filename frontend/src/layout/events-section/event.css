@@ -1,232 +1,140 @@
-.event-container {
-  background: linear-gradient(
-    to bottom,
-    #f4f6fa 0%,
-    #cfd9f3 50%,
-    #4a78e0 80%,
-    #4a78e0 100%
-  );
+/* Wave 11A — Events Section */
+.events-section,
+.event-section{
+  padding:80px 60px;
+  background:var(--gradient-hero);
+  position:relative;overflow:hidden;
+}
+.events-section::before,
+.event-section::before{
+  content:"";position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><pattern id='g' width='28' height='28' patternUnits='userSpaceOnUse'><circle cx='1' cy='1' r='0.8' fill='%230f1729' opacity='0.05'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
+  pointer-events:none;
+}
+.events-section > *,
+.event-section > *{position:relative;z-index:1}
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: auto;
-  flex-direction: column;
+.events-layout{
+  display:grid;grid-template-columns:1.25fr 0.75fr;gap:20px;
+  max-width:1180px;margin:0 auto;
+}
+.event-side{display:flex;flex-direction:column;gap:14px}
+
+.events-controls{
+  display:flex;justify-content:center;gap:10px;
+  margin-top:32px;align-items:center;
+}
+.events-arrow{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--color-white);
+  color:var(--color-primary);
+  border:1px solid var(--color-border);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;
+  transition:var(--transition);
+  box-shadow:0 2px 8px rgba(15,23,41,0.06);
+}
+.events-arrow:hover{
+  background:var(--color-primary);color:#fff;
+  border-color:var(--color-primary);transform:scale(1.05);
+}
+.events-dots{display:flex;gap:6px;align-items:center;margin:0 12px}
+.events-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(79,111,209,0.3);
+  cursor:pointer;border:none;padding:0;
+  transition:var(--transition);
+}
+.events-dot.active{
+  background:var(--color-primary);
+  width:28px;border-radius:4px;
 }
 
-.event-layout {
-  display: flex;
-  flex-direction: column;
-  max-width: 1400px;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
+@media (max-width:1024px){
+  .events-section,.event-section{padding:64px 32px}
+  .events-layout{grid-template-columns:1fr}
+}
+@media (max-width:768px){
+  .events-section,.event-section{padding:56px 20px}
 }
 
-.event-layout .event-texts {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+/* SOURCE A — backward-compat layout classes */
+.event-container{
+  background:var(--gradient-hero);
+  padding:80px 60px;
+  position:relative;overflow:hidden;
 }
-
-/* Carousel wrapper - hides other slides but allows hover growth on larger screens */
-.carousel-wrapper {
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-  padding-right: 0px;
-  padding-top: 1rem;
-  transition:
-    padding 0.2s ease,
-    overflow 0.2s ease;
+.event-container::before{
+  content:"";position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><pattern id='g' width='28' height='28' patternUnits='userSpaceOnUse'><circle cx='1' cy='1' r='0.8' fill='%230f1729' opacity='0.05'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
+  pointer-events:none;
 }
-
-/* On tablet/desktop allow scaled cards to grow outside the wrapper */
-@media (min-width: 768px) {
-  .carousel-wrapper {
-    overflow: hidden; /* don't clip hover scale */
-    padding-left: 1rem; /* give horizontal breathing room */
-    padding-right: 0rem;
-  }
-
-  /* Compensate so slides still align with page content */
-  .carousel-track {
-    margin: 0;
-  }
+.event-container > *{position:relative;z-index:1}
+.event-layout{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+.event-texts{
+  text-align:center;
+  max-width:680px;margin-left:auto;margin-right:auto;
 }
-
-/* Keep strict clipping on small screens to prevent layout issues */
-@media (max-width: 767px) {
-  .carousel-wrapper {
-    overflow: hidden;
-    padding-left: 0;
-    padding-right: 1px;
-  }
-
-  .carousel-track {
-    margin: 0;
-  }
+/* Text on blue gradient background must be white */
+.event-container .event-texts .text-dark,
+.event-container .event-texts h1,
+.event-container .event-texts h2,
+.event-container .event-texts h3{
+  color:#ffffff;
 }
-
-/* Carousel track - slides horizontally with transform */
-.carousel-track {
-  display: flex;
-  transition: transform 0.5s ease-in-out;
-  width: 100%;
+.event-container .event-texts .text-ghost,
+.event-container .event-texts p{
+  color:rgba(255,255,255,0.85);
 }
-
-/* Each slide - take full visible area but leave a "peek" of the next slide */
-:root {
-  --carousel-peek: 2rem;
-} /* adjust to control how much of the next slide is visible */
-
-.carousel-slide {
-  flex: 0 0 calc(100% - var(--carousel-peek));
-  width: calc(100% - var(--carousel-peek));
-  margin-right: var(--carousel-peek);
-  box-sizing: border-box;
+.carousel-wrapper{position:relative;overflow:hidden;width:100%}
+.carousel-track{
+  display:flex;
+  width:100%;
+  transition:transform 0.3s ease;
 }
-
-/* remove extra gap after last slide */
-.carousel-slide:last-child {
-  margin-right: 0;
+.carousel-slide{min-width:100%;flex-shrink:0}
+.card-container{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:16px;
+  padding:8px 4px;
+  align-items:stretch;
 }
-
-/* On small screens show full width (no peek) */
-@media (max-width: 767px) {
-  .carousel-slide {
-    flex: 0 0 100%;
-    width: 100%;
-    margin-right: 0;
-    padding: 0.75rem;
-  }
+.carousel-controls{
+  display:flex;justify-content:center;gap:10px;
+  margin-top:20px;
 }
-
-/* Card grid inside each slide */
-.card-container {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: repeat(
-    3,
-    180px
-  ); /* Reduced from 200px to 180px (10% smaller) */
-  gap: 1rem;
-  width: 100%;
+.event-button{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--color-white);
+  color:var(--color-primary);
+  border:1px solid var(--color-border);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;
+  transition:var(--transition);
 }
-
-.card-item-0 {
-  grid-row: span 3;
+.event-button:hover:not(:disabled){
+  background:var(--color-primary);color:#fff;border-color:var(--color-primary);
 }
-
-.card-item-3 {
-  grid-column: 2 / 4;
-  grid-row: span 2;
+.event-button:disabled{opacity:0.4;cursor:not-allowed}
+.dot-indicators{display:flex;gap:6px;justify-content:center;margin-top:12px}
+.dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(79,111,209,0.3);
+  cursor:pointer;border:none;padding:0;
+  transition:var(--transition);
 }
+.dot.active{background:var(--color-primary);width:28px;border-radius:4px}
 
-/*carousel-controls*/
-.carousel-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 auto;
-  gap: 2rem;
-  max-width: 500px;
-  width: 100%;
-  margin-top: 0.75rem;
+/* card-item positions (from teammate design) */
+[class^="card-item-"]{cursor:pointer}
+
+@media (max-width:1024px){
+  .event-container{padding:64px 32px}
+  .card-container{grid-template-columns:repeat(2,1fr)}
 }
-
-.event-button {
-  border-radius: 100%;
-  background: rgba(255, 255, 255, 0.534);
-  color: var(--primary-blue);
-  border: none;
-  /* border-radius: 1rem; */
-  /* border: 1px solid var(--accent-blue-transparent); */
-  transition: all 0.3s ease;
+@media (max-width:768px){
+  .event-container{padding:56px 20px}
+  .card-container{grid-template-columns:1fr 1fr}
 }
-
-.event-button:hover {
-  transform: scale(1.25);
-}
-
-.event-button:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.dot-indicators {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: var(--accent-blue-transparent);
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 0;
-}
-
-.dot.active {
-  background-color: var(--primary-blue);
-  transform: scale(1.2);
-}
-
-.dot:hover {
-  background-color: var(--primary-blue);
-}
-
-@media (max-width: 768px) {
-  .card-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1.5fr);
-    grid-template-rows: repeat(
-      10,
-      36px
-    ); /* Reduced from 40px to 36px (10% smaller) */
-    width: 100%;
-  }
-
-  .card-item-0 {
-    grid-column: span 2 / span 2;
-    grid-row: span 5 / span 5;
-  }
-
-  .card-item-1 {
-    grid-column: span 2 / span 2;
-    grid-row: span 5 / span 5;
-    grid-column-start: 3;
-  }
-
-  .card-item-2 {
-    grid-column: span 2 / span 2;
-    grid-row: span 5 / span 5;
-    grid-row-start: 6;
-  }
-
-  .card-item-3 {
-    grid-column: span 2 / span 2;
-    grid-row: span 5 / span 5;
-    grid-column-start: 3;
-    grid-row-start: 6;
-  }
-
-  .carousel-controls {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    transform: translateY(-50%);
-    z-index: 10;
-  }
+@media (max-width:480px){
+  .card-container{grid-template-columns:1fr}
 }

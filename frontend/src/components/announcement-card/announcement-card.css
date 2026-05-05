@@ -1,146 +1,134 @@
-/* CARD WRAPPER */
-.announce-card {
-  width: 100%;
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e5e5e5;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  display: flex;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  margin: 0 auto;
+/* Wave 11A — Announcement Card */
+.announcement-card,
+.announce-card{
+  background:var(--color-white);
+  border:1px solid var(--color-border-soft);
+  border-radius:var(--radius-card);
+  padding:22px;cursor:pointer;
+  transition:var(--transition);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:10px;
+}
+.announcement-card::before,
+.announce-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--color-primary);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 250ms cubic-bezier(.2,.8,.2,1);
+}
+.announcement-card:hover::before,
+.announce-card:hover::before{transform:scaleX(1)}
+.announcement-card:hover,
+.announce-card:hover{
+  border-color:var(--color-primary-mid);
+  box-shadow:var(--shadow-card-hover);
+  transform:translateY(-2px);
 }
 
-.announce-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+.announce-meta,
+.announcement-meta{display:flex;align-items:center;gap:10px}
+.announce-tag,
+.announcement-tag{
+  font-size:10px;font-weight:700;
+  letter-spacing:0.5px;text-transform:uppercase;
+  color:var(--color-primary-deep);
+  background:rgba(79,111,209,0.08);
+  padding:4px 9px;border-radius:6px;
 }
-
-.announce-card.outlined {
-  border: 2px solid #e2e8f0;
-  box-shadow: none;
+.announce-tag.tag-event,
+.announcement-tag.tag-event{color:#9a3412;background:#fff7ed}
+.announce-tag.tag-update,
+.announcement-tag.tag-update{color:var(--color-warning-text);background:var(--color-warning-bg)}
+.announce-date,
+.announcement-date{
+  font-size:11.5px;color:var(--color-text-hint);
+  font-weight:500;
+  display:inline-flex;align-items:center;gap:5px;
 }
-
-.announce-card.elevated {
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+.announce-date::before,
+.announcement-date::before{
+  content:"";width:3px;height:3px;
+  border-radius:50%;background:var(--color-text-hint);
 }
-
-/* IMAGE SECTION */
-.announcement-card-image {
-  width: 50%;
-  flex-shrink: 0;
-  background: #f5f5f5;
+.announce-title,
+.announcement-title{
+  font-size:15px;color:var(--color-text-primary);
+  font-weight:700;margin:0;line-height:1.35;
+  letter-spacing:-0.01em;
 }
-
-.announcement-card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.announce-desc,
+.announcement-desc{
+  font-size:13.5px;color:var(--color-text-secondary);
+  line-height:1.6;margin:0;flex:1;
 }
-
-/* TEXT SECTION */
-.announcement-card-content {
-  flex: 1;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+.announce-link,
+.announcement-link{
+  color:var(--color-primary);font-weight:600;
+  font-size:13px;
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:auto;
 }
+.announce-link .arr,
+.announcement-link .arr{transition:transform 200ms ease}
+.announce-card:hover .announce-link .arr,
+.announcement-card:hover .announcement-link .arr{transform:translateX(3px)}
 
-.announcement-card-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  line-height: 1.3;
-  margin-bottom: 0.5rem;
+/* Pinned strip */
+.pinned-strip{
+  background:rgba(255,255,255,0.85);
+  border-radius:14px;padding:14px 18px;
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;gap:14px;
+  max-width:1180px;margin:0 auto 32px;
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,0.7);
+  transition:var(--transition);
+  box-shadow:0 4px 14px -4px rgba(15,23,41,0.08);
 }
-
-.announcement-card-date {
-  font-size: 0.95rem;
-  color: #718096;
-  margin-bottom: 1rem;
+.pinned-strip:hover{
+  background:rgba(255,255,255,0.95);
+  transform:translateY(-1px);
 }
-
-.announcement-card-description {
-  font-size: 1.05rem;
-  color: #2d3748;
-  line-height: 1.7;
-  text-align: justify;
-  text-align-last: center;
-  flex-grow: 1;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
+.pinned-badge{
+  background:var(--color-primary);color:#fff;
+  font-size:10px;font-weight:700;
+  padding:4px 10px;border-radius:6px;
+  text-transform:uppercase;letter-spacing:0.5px;
+  display:inline-flex;align-items:center;gap:5px;
 }
-
-/* TABLET */
-@media (max-width: 1024px) {
-  .announce-card {
-    height: 380px;
-  }
-
-  .announcement-card-content {
-    padding: 1.75rem;
-  }
-
-  .announcement-card-title {
-    font-size: 1.5rem;
-  }
-
-  .announcement-card-description {
-    font-size: 1rem;
-  }
+.pinned-title{
+  font-size:13.5px;color:var(--color-text-primary);
+  font-weight:600;flex:1;
 }
-
-/* MOBILE */
-@media (max-width: 768px) {
-  .announce-card {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .announce-card:hover {
-    transform: none;
-  }
-
-  .announcement-card-image {
-    width: 100%;
-    height: 250px;
-  }
-
-  .announcement-card-content {
-    padding: 1.5rem;
-  }
-
-  .announcement-card-title {
-    font-size: 1.35rem;
-  }
-
-  .announcement-card-description {
-    font-size: 0.95rem;
-    -webkit-line-clamp: 3;
-  }
+.pinned-strip:hover .pinned-title{color:var(--color-primary)}
+.pinned-date{
+  font-size:11.5px;color:var(--color-text-muted);
+  font-weight:500;
 }
+.pinned-arrow{color:var(--color-primary);font-weight:600;font-size:18px}
 
-@media (max-width: 480px) {
-  .announcement-card-image {
-    height: 200px;
-  }
-
-  .announcement-card-content {
-    padding: 1.25rem;
-  }
-
-  .announcement-card-title {
-    font-size: 1.2rem;
-  }
-
-  .announcement-card-date {
-    font-size: 0.875rem;
-  }
-
-  .announcement-card-description {
-    font-size: 0.9rem;
-  }
+/* SOURCE A — backward-compat card inner classes */
+.announcement-card-image{
+  width:100%;border-radius:10px;
+  overflow:hidden;aspect-ratio:16/7;
+  background:var(--color-surface);
+}
+.announcement-card-image img{
+  width:100%;height:100%;object-fit:cover;display:block;
+}
+.announcement-card-content{
+  display:flex;flex-direction:column;gap:8px;flex:1;
+}
+.announcement-card-title{
+  font-size:15px;color:var(--color-text-primary);
+  font-weight:700;margin:0;line-height:1.35;
+  letter-spacing:-0.01em;
+}
+.announcement-card-date{
+  font-size:11.5px;color:var(--color-text-hint);
+  font-weight:500;margin:0;
+}
+.announcement-card-description{
+  font-size:13.5px;color:var(--color-text-secondary);
+  line-height:1.6;margin:0;
 }

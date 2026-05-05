@@ -68,32 +68,36 @@ const Root = () => {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const [bulletinData, documentsData, eventsData, officersData] =
-        await Promise.all([
-          fetchBulletinData(),
-          fetchDocuments(),
-          fetchEvents(),
-          fetchOfficers(),
-        ]);
+    const [bulletinResult, documentsResult, eventsResult, officersResult] =
+      await Promise.allSettled([
+        fetchBulletinData(),
+        fetchDocuments(),
+        fetchEvents(),
+        fetchOfficers(),
+      ]);
 
-      // Pinned items first; within each group preserve API order (already sorted by created_at desc)
-      const sortedBulletin = [...bulletinData].sort((a, b) => {
+    const allFailed = [bulletinResult, documentsResult, eventsResult, officersResult]
+      .every((r) => r.status === "rejected");
+
+    if (allFailed) {
+      setError("Unable to load content. Please refresh the page or try again later.");
+      setLoading(false);
+      return;
+    }
+
+    if (bulletinResult.status === "fulfilled") {
+      const sortedBulletin = [...bulletinResult.value].sort((a, b) => {
         if ((a.is_pinned ?? false) && !(b.is_pinned ?? false)) return -1;
         if (!(a.is_pinned ?? false) && (b.is_pinned ?? false)) return 1;
         return 0;
       });
       setBulletin(sortedBulletin);
-      setDocuments(documentsData);
-      setEvents(eventsData);
-      setOfficers(officersData);
-    } catch {
-      setError(
-        "Failed to load content. Please check your connection and try again.",
-      );
-    } finally {
-      setLoading(false);
     }
+    if (documentsResult.status === "fulfilled") setDocuments(documentsResult.value);
+    if (eventsResult.status === "fulfilled") setEvents(eventsResult.value);
+    if (officersResult.status === "fulfilled") setOfficers(officersResult.value);
+
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -125,11 +129,16 @@ const Root = () => {
           alignItems: "center",
           minHeight: "100vh",
           gap: "1rem",
+          padding: "2rem",
+          textAlign: "center",
         }}
       >
-        <p>{error}</p>
-        <button onClick={fetchAll} style={{ padding: "0.5rem 1.5rem" }}>
-          Try again
+        <p style={{ color: "#374151", fontSize: "1rem" }}>{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{ padding: "0.5rem 1.5rem", borderRadius: 8, border: "1px solid #d1d5db", cursor: "pointer" }}
+        >
+          Refresh
         </button>
       </div>
     );

@@ -18,8 +18,20 @@ interface WhitelistEntry {
   created_at: string;
 }
 
+interface AdminAccount {
+  id: string;
+  owner_id: string;
+  role: string;
+  email: string | null;
+}
+
 const Settings = () => {
   const [spinning, setSpinning] = useState(false);
+
+  // Admin accounts list
+  const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>([]);
+  const [adminLoading, setAdminLoading] = useState(true);
+  const [adminError, setAdminError] = useState<string | null>(null);
 
   const [pauseModal, setPauseModal] = useState(false);
   const [editForm, setEditForm] = useState(false);
@@ -48,9 +60,26 @@ const Settings = () => {
     }
   }, []);
 
+  const fetchAdminAccounts = useCallback(async () => {
+    setAdminLoading(true);
+    setAdminError(null);
+    try {
+      const { data } = await axios.get(`${API_URL}/user/list`, { withCredentials: true });
+      setAdminAccounts(data);
+    } catch (err: unknown) {
+      setAdminError(
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        'Could not load accounts.',
+      );
+    } finally {
+      setAdminLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchWhitelist();
-  }, [fetchWhitelist]);
+    fetchAdminAccounts();
+  }, [fetchWhitelist, fetchAdminAccounts]);
 
   const handleRefresh = () => {
     setSpinning(true);
@@ -181,6 +210,52 @@ const Settings = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* ── Admin Accounts ── */}
+        <div className='addmin-whitelist-container' style={{ marginTop: '1rem', minHeight: 'fit-content', overflow: 'visible' }}>
+          <div className='whitelist-header'>
+            <span>Admin Accounts</span>
+          </div>
+          <div className='whitelist-table-wrapper' style={{ minHeight: '60px', overflow: 'visible' }}>
+            {adminLoading ? (
+              <p style={{ padding: '1rem', fontSize: '0.875rem', color: '#9ca3af' }}>Loading accounts...</p>
+            ) : adminError ? (
+              <p style={{ padding: '1rem', fontSize: '0.875rem', color: '#dc2626' }}>
+                {adminError}
+              </p>
+            ) : (
+              <table>
+                <thead>
+                  <tr className='settings-thead-row'>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminAccounts.map((acct) => (
+                    <tr key={acct.id} className='settings-table-row'>
+                      <td><span className='email-data'>{acct.email ?? '—'}</span></td>
+                      <td><span className='name-data'>{acct.role}</span></td>
+                      <td className='settings-file-btn'>
+                        <button
+                          type='button'
+                          className='remove-link-btn'
+                          onClick={() => console.log('remove', acct.id)}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {adminAccounts.length === 0 && (
+                    <tr><td colSpan={3} style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.875rem' }}>No admin accounts found.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 

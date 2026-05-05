@@ -1,80 +1,161 @@
-.officer-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 16px;
-  width: 100%;
-  max-width: 280px;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+/* Wave 11A — Officer Card */
+.officer-card{
+  background:var(--color-white);
+  border:1px solid var(--color-border-soft);
+  border-radius:var(--radius-card);
+  padding:24px 18px;
+  text-align:center;
+  transition:var(--transition);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;
+}
+.officer-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:48px;
+  background:linear-gradient(180deg,rgba(79,111,209,0.08),transparent);
+  pointer-events:none;
+}
+.officer-card:hover{
+  box-shadow:var(--shadow-card-hover);
+  transform:translateY(-3px);
+  border-color:var(--color-primary-light);
 }
 
-.officer-card-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: var(--color-surface, #d9d9d9);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
-  margin: 0 auto 14px;
-  transition: transform 0.25s ease;
+/* SOURCE B canonical avatar class */
+.officer-avatar{
+  width:120px;height:120px;border-radius:50%;
+  margin:0 auto 16px;overflow:hidden;
+  background:var(--gradient-deep);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:24px;font-weight:700;
+  position:relative;z-index:1;
+  box-shadow:0 0 0 3px var(--color-white),0 0 0 4px var(--color-primary-light),0 8px 20px -6px rgba(79,111,209,0.4);
+  letter-spacing:-0.02em;
+}
+.officer-avatar img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+
+/* SOURCE A — officer-card-image maps to officer-avatar */
+.officer-card-image{
+  width:90px;height:90px;border-radius:50%;
+  flex-shrink:0;
+  margin:0 auto 14px;overflow:hidden;
+  background:var(--color-surface, #d9d9d9);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:1;
+  box-shadow:0 0 0 3px var(--color-white),0 0 0 4px var(--color-primary-light),0 8px 20px -6px rgba(79,111,209,0.4);
+  transition:transform 0.25s ease;
+}
+.officer-card-image img{
+  width:100%;height:100%;object-fit:cover;
+  object-position:top center;display:block;
+}
+.officer-card:hover .officer-card-image{transform:translateY(-6px) scale(1.05)}
+
+.officer-name{
+  font-size:14px;font-weight:700;
+  color:var(--color-text-primary);
+  margin:0 0 4px;line-height:1.3;
+  letter-spacing:-0.01em;position:relative;z-index:1;
+}
+.officer-pos,.officer-position{
+  font-size:12px;color:var(--color-text-muted);
+  margin:0 0 6px;line-height:1.4;
+  font-weight:500;position:relative;z-index:1;
+}
+.officer-term{
+  font-size:10.5px;color:var(--color-text-hint);
+  margin:0 0 14px;
+  font-family:var(--font-mono);font-weight:500;
+  position:relative;z-index:1;
+}
+.officer-fb,.officer-social{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--color-surface);
+  color:var(--color-primary);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto;cursor:pointer;
+  font-size:14px;font-weight:700;
+  border:1px solid var(--color-border-soft);
+  transition:var(--transition);
+  font-family:var(--font-serif);font-style:italic;
+}
+.officer-fb:hover,.officer-social:hover{
+  background:var(--color-primary);color:#fff;
+  border-color:var(--color-primary);transform:translateY(-2px);
 }
 
-.officer-card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  display: block;
+/* SOURCE A — officer-card-content / officer-card-title / officer-card-socials */
+.officer-card-content{
+  flex:1;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:space-between;
+  position:relative;z-index:1;width:100%;
+}
+.officer-card-content h3:first-child{
+  font-size:14px;font-weight:600;
+  color:var(--color-text-primary);
+  margin:0;letter-spacing:-0.01em;
+  text-align:center;
+  min-height:2.8em;
+  display:flex;align-items:center;justify-content:center;
+}
+.officer-card-title{
+  font-size:12px;color:var(--color-text-muted);
+  margin:0;font-weight:500;
+  text-align:center;
+  min-height:1.4em;
+}
+.officer-card-socials{
+  display:flex;gap:8px;justify-content:center;
+  margin-top:auto;padding-top:0.75rem;
+  position:relative;z-index:1;
+}
+.officer-card-socials .social-icon{
+  color:var(--color-primary);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:8px;
+  background:var(--color-surface);
+  border:1px solid var(--color-border-soft);
+  transition:var(--transition);
+}
+.officer-card-socials .social-icon:hover,.officer-card-socials a:hover{
+  background:var(--color-primary);color:#fff;
+  border-color:var(--color-primary);transform:translateY(-2px);
+}
+.officer-card-socials svg,.fb-icon{color:var(--color-primary);cursor:pointer;transition:transform 0.2s}
+.officer-card-socials svg:hover,.fb-icon:hover{transform:scale(1.2)}
+
+/* President variant */
+.officer-card.is-president,
+.officer-pres .officer-card{
+  padding:32px 24px;
+  border-color:var(--color-primary-light);
+}
+.officer-card.is-president::before,
+.officer-pres .officer-card::before{
+  height:60px;
+  background:linear-gradient(180deg,rgba(79,111,209,0.15),transparent);
+}
+.officer-card.is-president .officer-avatar,
+.officer-pres .officer-avatar,
+.officer-card.is-president .officer-card-image,
+.officer-pres .officer-card-image{width:104px;height:104px;font-size:28px}
+.officer-card.is-president .officer-name,
+.officer-pres .officer-name,
+.officer-card.is-president .officer-card-content h3:first-child,
+.officer-pres .officer-card-content h3:first-child{font-size:17px}
+
+.officer-pres-crown{
+  position:absolute;top:-12px;left:50%;
+  transform:translateX(-50%);
+  background:var(--color-primary);color:#fff;
+  padding:5px 14px;border-radius:var(--radius-pill);
+  font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.6px;
+  box-shadow:0 6px 16px -4px rgba(79,111,209,0.5);
+  z-index:2;
 }
 
-.officer-card:hover .officer-card-image {
-  transform: translateY(-6px) scale(1.05);
-}
-
-.officer-card-content h3:first-child {
-  font-size: clamp(14px, 2vw, 18px);
-  font-weight: 600;
-  color: black;
-  margin: 4px 0;
-}
-
-.officer-card-title {
-  font-size: clamp(12px, 1.8vw, 14px);
-  color: black;
-  margin-bottom: 8px;
-}
-
-.officer-card-socials {
-  display: flex;
-  gap: 8px;
-  color: #fff;
-  font-size: clamp(12px, 1.5vw, 16px);
-}
-
-.officer-card-socials svg {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.officer-card-socials svg:hover {
-  transform: scale(1.2);
-}
-
-.officer-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 20px;
-  justify-items: center;
-}
-
-@media (max-width: 480px) {
-  .officer-card {
-    max-width: 100%;
-  }
+@media (max-width:480px){
+  .officer-card{max-width:100%}
 }

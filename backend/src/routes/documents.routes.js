@@ -239,6 +239,7 @@ router.get(
       .from("documents")
       .select("*")
       .eq("is_deleted", true)
+      .not("deleted_at", "is", null)
       .order("deleted_at", { ascending: false });
     if (error) throw new Error(error.message);
 
@@ -255,22 +256,28 @@ router.post(
   "/restore",
   requireAuth,
   asyncHandler(async (req, res) => {
-    if (!Array.isArray(req.body) || req.body.length === 0) {
-      throw new ApiError(400, "Array of document ids required.");
+    // Accept either { ids: [...] } or a raw array for backward compat
+    const ids = Array.isArray(req.body) ? req.body : req.body?.ids;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids must be a non-empty array");
     }
 
     const token = req.token;
     const userSupabase = createUserClient(token);
 
-    for (const id of req.body) {
-      const { error } = await userSupabase
-        .from("documents")
-        .update({ is_deleted: false, deleted_at: null })
-        .eq("id", id);
-      if (error) throw new Error(error.message);
+    console.log("[DOC RESTORE] ids received:", ids);
+    const { data, error } = await userSupabase
+      .from("documents")
+      .update({ is_deleted: false, deleted_at: null })
+      .in("id", ids)
+      .select();
+    console.log("[DOC RESTORE] rows updated:", data?.length ?? 0, "error:", error?.message ?? null);
+    if (error) throw new ApiError(500, "Failed to restore documents: " + error.message);
+    if (!data || data.length === 0) {
+      throw new ApiError(404, "No documents found with those IDs, or they are not in the bin");
     }
 
-    return res.sendStatus(200);
+    return res.json({ restored: data.length });
   }),
 );
 
@@ -319,11 +326,10 @@ router.get(
     const { data: files, error } = await supabase
       .from("documents")
       .select("*")
-      .eq("is_archived", true)
-      .eq("is_deleted", false)
-      .order("archived_at", { ascending: false });
+      .not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return res.status(200).json(files.map((f) => ({ ...transformDocument(f), is_archived: true, archived_at: f.archived_at })));
+    return res.status(200).json(files.map((f) => ({ ...transformDocument(f), deleted_at: f.deleted_at })));
   }),
 );
 

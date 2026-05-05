@@ -1,6 +1,5 @@
 import './adminPanel.css';
 import { useSearchParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 // Layout
 import Sidebar from './components/sidebar/Sidebar';
 import ContentPanel from './contentPanel/ContentPanel';
@@ -9,17 +8,12 @@ const DEFAULT_PANEL = 'dashboard';
 
 const AdminPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const panelParam = searchParams.get('panel') || DEFAULT_PANEL;
+  const panel = searchParams.get('panel') || DEFAULT_PANEL;
 
-  const [panel, setPanel] = useState(panelParam);
-  //state the controls what panel to show
-
-  useEffect(() => {
-    setSearchParams({ panel });
-  }, [panel]);
+  const setPanel = (newPanel: string) => setSearchParams({ panel: newPanel });
 
   return (
-    <div className='admin-panel'>
+    <div className='admin' style={{ display: 'grid', gridTemplateColumns: '248px 1fr', minHeight: '100vh' }}>
       <Sidebar panel={panel} setPanel={setPanel} />
       <ContentPanel active={panel} />
     </div>

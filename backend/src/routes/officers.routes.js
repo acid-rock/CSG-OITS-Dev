@@ -49,10 +49,12 @@ router.get(
       const from = (page - 1) * limit;
       const to = from + limit - 1;
 
+      const statusFilter = req.query.status || "active";
+
       const { data, error, count } = await anonSupabase
         .from("officers")
         .select("*", { count: "exact" })
-        .eq("is_archived", false)
+        .eq("status", statusFilter)
         .order("created_at", { ascending: true })
         .range(from, to);
       if (error) throw new Error(error.message);
@@ -65,10 +67,12 @@ router.get(
       });
     }
 
+    const statusFilter = req.query.status || "active";
+
     const { data, error } = await anonSupabase
       .from("officers")
       .select()
-      .eq("is_archived", false)
+      .eq("status", statusFilter)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
 
@@ -246,8 +250,8 @@ router.get(
     const { data, error } = await userSupabase
       .from("officers")
       .select()
-      .eq("is_archived", true)
-      .order("archived_at", { ascending: false });
+      .eq("status", "archived")
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return res.status(200).json(data.map(transformOfficer));
   }),
@@ -261,14 +265,20 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-    const { error } = await userSupabase
+    const { term_year } = req.body;
+    console.log("[OFFICER ARCHIVE] ids:", ids, "term_year:", term_year ?? null);
+    const { data, error } = await supabase
       .from("officers")
-      .update({ is_archived: true, archived_at: new Date().toISOString() })
-      .in("id", ids);
-    if (error) throw new Error(error.message);
-    return res.sendStatus(200);
+      .update({ status: "archived", term_year: term_year ?? "2025-2026" })
+      .in("id", ids)
+      .select("id, status");
+    console.log("[OFFICER ARCHIVE] service key result:", JSON.stringify(data));
+    console.log("[OFFICER ARCHIVE] service key error:", JSON.stringify(error));
+    if (error) throw new ApiError(500, "Archive failed: " + error.message);
+    if (!data || data.length === 0) {
+      throw new ApiError(404, "No officers found — confirm the status column migration has run");
+    }
+    return res.json({ archived: data.length });
   }),
 );
 
@@ -280,13 +290,11 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-    const { error } = await userSupabase
+    const { error } = await supabase
       .from("officers")
-      .update({ is_archived: false, archived_at: null })
+      .update({ status: "active" })
       .in("id", ids);
-    if (error) throw new Error(error.message);
+    if (error) throw new ApiError(500, "Failed to restore officers");
     return res.sendStatus(200);
   }),
 );

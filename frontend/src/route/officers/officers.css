@@ -1,234 +1,163 @@
-.officers-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 20px;
+/* Wave 11A — Officers Route Page */
+.officers-route,
+.officers-page{
+  min-height:calc(100vh - 68px);
+}
+.officers-page-hero{
+  background:var(--gradient-hero);
+  padding:60px 60px 56px;
+  position:relative;overflow:hidden;
+}
+.officers-page-hero::before{
+  content:"";position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><pattern id='g' width='28' height='28' patternUnits='userSpaceOnUse'><circle cx='1' cy='1' r='0.8' fill='%230f1729' opacity='0.05'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
+}
+.officers-page-hero > *{position:relative}
+.officers-page-hero h1{
+  color:var(--color-text-primary);
+  font-size:36px;font-weight:800;
+  margin:0 0 8px;letter-spacing:-0.02em;line-height:1.1;
+}
+.officers-page-hero h1 em{
+  font-family:var(--font-serif);font-style:italic;
+  font-weight:400;color:var(--color-primary-deep);
+}
+.officers-page-hero p{
+  color:var(--color-text-secondary);
+  font-size:15px;margin:0;max-width:640px;font-weight:450;
+}
+.officers-content{
+  padding:48px 60px;background:var(--color-surface);
+}
+.officers-content .officer-pres{margin-bottom:36px}
+.officers-content .officers-grid{max-width:1180px;margin:0 auto}
+.officers-cluster-label{
+  font-size:11px;color:var(--color-primary);
+  font-weight:700;text-transform:uppercase;letter-spacing:0.7px;
+  text-align:center;margin:36px 0 18px;
+}
+@media (max-width:768px){
+  .officers-page-hero{padding:36px 20px 28px}
+  .officers-page-hero h1{font-size:28px}
+  .officers-content{padding:32px 20px}
 }
 
-.officers-layout {
-  display: flex;
-  flex-direction: column;
-  max-width: 1400px;
-  width: 100%;
-  margin-top: 5rem;
+/* SOURCE A — Officers route existing classes (committee structure) */
+.officers-container{
+  display:flex;flex-direction:column;align-items:center;
+  padding:40px 20px;
+  background:var(--color-surface);
+  min-height:calc(100vh - 68px);
+}
+.officers-layout{
+  width:100%;max-width:1180px;
+  display:flex;flex-direction:column;gap:40px;
+}
+.committee-section{
+  background:var(--color-white);
+  border:1px solid var(--color-border-soft);
+  border-radius:var(--radius-card);
+  padding:28px;
+  transition:var(--transition);
+}
+.committee-section:hover{
+  box-shadow:var(--shadow-card-hover);
+  border-color:var(--color-primary-light);
+}
+.committee-title{
+  font-size:20px;font-weight:800;
+  color:var(--color-text-primary);
+  margin:0 0 24px;letter-spacing:-0.02em;
+  padding-bottom:14px;
+  border-bottom:2px solid var(--color-border-soft);
+}
+.committee-layout{display:flex;flex-direction:column;gap:28px}
+.officials-section{display:flex;flex-direction:column;gap:16px}
+.officer-card{
+  display:flex;align-items:center;gap:16px;
+  padding:14px 18px;
+  background:var(--color-surface);
+  border-radius:var(--radius-card);
+  border:1px solid var(--color-border-soft);
+  transition:var(--transition);
+}
+.officer-card:hover{
+  box-shadow:var(--shadow-card-hover);
+  border-color:var(--color-primary-light);
+  transform:translateY(-1px);
+}
+.officer-image{
+  width:54px;height:54px;border-radius:50%;
+  object-fit:cover;object-position:top center;
+  border:2px solid var(--color-primary-light);
+  flex-shrink:0;
+}
+.officer-name{
+  font-size:14px;font-weight:700;
+  color:var(--color-text-primary);
+  margin:0 0 2px;letter-spacing:-0.01em;
+}
+.officer-title,.officer-pos{
+  font-size:12px;color:var(--color-text-muted);
+  margin:0;font-weight:500;
+}
+.social-icons{
+  display:flex;gap:6px;margin-top:8px;
+}
+.social-icon{
+  width:28px;height:28px;border-radius:8px;
+  background:var(--color-surface);
+  color:var(--color-primary);
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--color-border-soft);
+  cursor:pointer;transition:var(--transition);
+  text-decoration:none;
+}
+.social-icon:hover{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+.fb-icon{color:var(--color-primary)}
+
+.members-section{margin-top:8px}
+.members-dropdown{
+  border:1px solid var(--color-border-soft);
+  border-radius:var(--radius-card);
+  overflow:hidden;
+  background:var(--color-white);
+}
+.dropdown-toggle{
+  width:100%;padding:12px 18px;
+  background:var(--color-surface);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:var(--font-stack);
+  transition:var(--transition);
+}
+.dropdown-toggle:hover{background:rgba(79,111,209,0.06)}
+.dropdown-toggle-content{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:600;color:var(--color-text-secondary);
+}
+.dropdown-icons{display:flex;align-items:center;gap:6px}
+.dropdown-content{
+  padding:14px 18px;
+  display:flex;flex-direction:column;gap:8px;
+  border-top:1px solid var(--color-border-soft);
+}
+.member-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 0;
+  border-bottom:1px solid var(--color-border-soft);
+}
+.member-item:last-child{border-bottom:none}
+.member-name{
+  font-size:13px;font-weight:600;
+  color:var(--color-text-primary);flex:1;
+}
+.member-role{
+  font-size:11.5px;color:var(--color-text-muted);
+  font-weight:500;
 }
 
-.committee-section {
-  margin-bottom: 60px;
-}
-
-.committee-title {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  margin-bottom: 30px;
-  text-align: center;
-  border-bottom: 2px solid #2563eb;
-  padding-bottom: 10px;
-  display: inline-block;
-  width: 100%;
-  color: var(--text-color);
-}
-
-.committee-layout {
-  display: flex;
-  flex-direction: row;
-  gap: 30px;
-  align-items: flex-start;
-}
-
-.officials-section {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  flex: 1;
-}
-
-.members-section {
-  flex: 1;
-  min-width: 300px;
-  align-self: flex-start;
-}
-
-.officer-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.officer-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.officer-image {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 15px;
-  border: 3px solid #2563eb;
-}
-
-.officer-name {
-  font-family: var(--font-heading);
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin: 0 0 5px 0;
-  text-align: center;
-  color: var(--text-color);
-}
-
-.officer-title {
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--text-muted);
-  margin: 0 0 15px 0;
-  text-align: center;
-}
-
-.social-icons {
-  display: flex;
-  gap: 12px;
-  color: white;
-}
-
-.social-icon {
-  color: #fff;
-  transition: color 0.2s;
-  text-decoration: none;
-}
-
-.social-icon:hover {
-  color: #2563eb;
-}
-
-/* Members section */
-.members-dropdown {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.dropdown-toggle {
-  width: 100%;
-  padding: 20px;
-  background: var(--primary-blue);
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: background 0.2s;
-  border: none;
-  outline: none;
-  list-style: none;
-  box-sizing: border-box;
-}
-
-.dropdown-toggle::-webkit-details-marker {
-  display: none;
-}
-
-.dropdown-toggle::marker {
-  display: none;
-}
-
-.dropdown-toggle-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.dropdown-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  min-width: 24px;
-  min-height: 24px;
-}
-
-.dropdown-icons {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  color: white;
-}
-
-.dropdown-toggle:hover {
-  background: #1d4ed8;
-}
-
-.dropdown-content {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.member-item {
-  padding: 15px 20px;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background 0.2s;
-}
-
-.member-item:last-child {
-  border-bottom: none;
-}
-
-.member-item:hover {
-  background: #f8fafc;
-}
-
-.member-name {
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.member-role {
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--text-muted);
-}
-
-.fb-icon {
-  color: #fff;
-}
-
-@media (max-width: 768px) {
-  .committee-layout {
-    flex-direction: column;
-  }
-
-  .officials-section {
-    justify-content: center;
-  }
-
-  .members-section {
-    width: 100%;
-  }
-
-  .committee-title {
-    margin-top: 3rem;
-  }
+@media (max-width:768px){
+  .officers-container{padding:28px 16px}
+  .committee-section{padding:20px}
 }

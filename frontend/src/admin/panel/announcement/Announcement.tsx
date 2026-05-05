@@ -26,6 +26,17 @@ const sortOptions = ['Name (A-Z)', 'Name (Z-A)', 'Date (Newest)', 'Date (Oldest)
 
 type Tab = 'active' | 'archived';
 
+const groupByTerm = (items: BulletinEntry[]): Record<string, BulletinEntry[]> => {
+  const groups: Record<string, BulletinEntry[]> = {};
+  items.forEach(item => {
+    const year = item.archived_at ? new Date(item.archived_at).getFullYear() : new Date().getFullYear();
+    const term = `${year}-${year + 1}`;
+    if (!groups[term]) groups[term] = [];
+    groups[term].push(item);
+  });
+  return groups;
+};
+
 const Announcement = () => {
   const [tab, setTab] = useState<Tab>('active');
   const [data, setData] = useState<BulletinEntry[]>([]);
@@ -41,6 +52,7 @@ const Announcement = () => {
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [sort, setSort] = useState<string>('');
+  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -59,9 +71,8 @@ const Announcement = () => {
     }
   }, [tab]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { setOpenTerms({}); }, [tab]);
 
   const handleActive = (entryId: string) =>
     setActive((prev) =>
@@ -102,6 +113,14 @@ const Announcement = () => {
     fontSize: '0.9rem',
   });
 
+  const toggleTerm = (term: string) =>
+    setOpenTerms(prev => ({ ...prev, [term]: !prev[term] }));
+
+  const archivedGroups = tab === 'archived' ? groupByTerm(data) : {};
+  const sortedTerms = Object.keys(archivedGroups).sort((a, b) => b.localeCompare(a));
+  const isOpen = (term: string) =>
+    openTerms[term] !== undefined ? openTerms[term] : term === sortedTerms[0];
+
   if (loading) {
     return (
       <div className='announce-container'>
@@ -115,7 +134,6 @@ const Announcement = () => {
     <div className='announce-container'>
       <div className='announce-header'><span>Announcement</span></div>
 
-      {/* Tab toggle */}
       <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
         <button style={tabStyle('active')} onClick={() => setTab('active')}>Active</button>
         <button style={tabStyle('archived')} onClick={() => setTab('archived')}>Archived</button>
@@ -144,93 +162,154 @@ const Announcement = () => {
       )}
 
       <div className='announce-file-table'>
-        <table>
-          <colgroup>
-            <col className='col-checkbox' />
-            <col className='col-image' />
-            <col className='col-filename' />
-            <col className='col-description' />
-            <col className='col-date' />
-            <col className='col-actions' />
-          </colgroup>
-          <thead>
-            <tr className='announce-table-header-light'>
-              <th>
-                <input type='checkbox' title='Select All'
-                  checked={data.length > 0 && active.length === data.length}
-                  onChange={() => setActive(active.length === data.length ? [] : data.map((e) => e.id))}
-                />
-              </th>
-              <th>Image</th>
-              <th>File Name</th>
-              <th>Description</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data
-              .filter((entry) => filterByDate(entry.date, filter))
-              .sort((a, b) => {
-                if (sort === 'Name (A-Z)') return a.title.localeCompare(b.title);
-                if (sort === 'Name (Z-A)') return b.title.localeCompare(a.title);
-                if (sort === 'Date (Newest)') return new Date(b.date).getTime() - new Date(a.date).getTime();
-                if (sort === 'Date (Oldest)') return new Date(a.date).getTime() - new Date(b.date).getTime();
-                return 0;
-              })
-              .map((entry, idx) => (
-                <tr
-                  key={idx}
-                  className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}
-                  style={entry.is_pinned ? { background: '#fef9c3' } : undefined}
-                >
-                  <td>
-                    <input className='checkbox' type='checkbox' title={`Select ${entry.title}`}
-                      checked={active.includes(entry.id)} onChange={() => handleActive(entry.id)}
-                    />
-                  </td>
-                  <td>
-                    {entry.imgUrl
-                      ? <img src={entry.imgUrl} alt={entry.title} style={{ width: 40, height: 40, objectFit: 'cover' }} />
-                      : '—'}
-                  </td>
-                  <td>
-                    {entry.title}
-                    {entry.is_pinned && (
-                      <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: '#f59e0b', color: '#fff', borderRadius: '4px', padding: '0.1rem 0.4rem', verticalAlign: 'middle' }}>
-                        Pinned
-                      </span>
-                    )}
-                  </td>
-                  <td>{entry.content}</td>
-                  <td>{entry.date}</td>
-                  <td className='announce-file-btn'>
-                    <div className='announce-file-btn-inner'>
-                      {tab === 'active' ? (
-                        <>
-                          <button title={entry.is_pinned ? 'Unpin' : 'Pin to top'} onClick={() => handleTogglePin(entry)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: entry.is_pinned ? '#f59e0b' : '#9ca3af', display: 'flex', alignItems: 'center' }}>
-                            {entry.is_pinned ? <PinOff size={16} /> : <Pin size={16} />}
-                          </button>
-                          <button title='Archive' onClick={() => handleArchive(entry.id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
-                            <Archive size={16} />
-                          </button>
-                          <img src='/bin.png' alt='Delete' onClick={() => { setId(entry.id); setIsModalOpen(true); }} />
-                          <img src='/edit.png' alt='Edit' onClick={() => { setId(entry.id); setEditTitle(entry.title); setEditDescription(entry.content); setOpen(true); }} />
-                        </>
-                      ) : (
-                        <button title='Restore' onClick={() => handleRestore(entry.id)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}>
-                          <ArchiveRestore size={16} /> Restore
-                        </button>
+        {tab === 'active' ? (
+          <table>
+            <colgroup>
+              <col className='col-checkbox' />
+              <col className='col-image' />
+              <col className='col-filename' />
+              <col className='col-description' />
+              <col className='col-date' />
+              <col className='col-actions' />
+            </colgroup>
+            <thead>
+              <tr className='announce-table-header-light'>
+                <th>
+                  <input type='checkbox' title='Select All'
+                    checked={data.length > 0 && active.length === data.length}
+                    onChange={() => setActive(active.length === data.length ? [] : data.map((e) => e.id))}
+                  />
+                </th>
+                <th>Image</th>
+                <th>File Name</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data
+                .filter((entry) => filterByDate(entry.date, filter))
+                .sort((a, b) => {
+                  if (sort === 'Name (A-Z)') return a.title.localeCompare(b.title);
+                  if (sort === 'Name (Z-A)') return b.title.localeCompare(a.title);
+                  if (sort === 'Date (Newest)') return new Date(b.date).getTime() - new Date(a.date).getTime();
+                  if (sort === 'Date (Oldest)') return new Date(a.date).getTime() - new Date(b.date).getTime();
+                  return 0;
+                })
+                .map((entry, idx) => (
+                  <tr
+                    key={idx}
+                    className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}
+                    style={entry.is_pinned ? { background: '#fef9c3' } : undefined}
+                  >
+                    <td>
+                      <input className='checkbox' type='checkbox' title={`Select ${entry.title}`}
+                        checked={active.includes(entry.id)} onChange={() => handleActive(entry.id)}
+                      />
+                    </td>
+                    <td>
+                      {entry.imgUrl
+                        ? <img src={entry.imgUrl} alt={entry.title} style={{ width: 40, height: 40, objectFit: 'cover' }} />
+                        : '—'}
+                    </td>
+                    <td>
+                      {entry.title}
+                      {entry.is_pinned && (
+                        <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: '#f59e0b', color: '#fff', borderRadius: '4px', padding: '0.1rem 0.4rem', verticalAlign: 'middle' }}>
+                          Pinned
+                        </span>
                       )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+                    </td>
+                    <td>{entry.content}</td>
+                    <td>{entry.date}</td>
+                    <td className='announce-file-btn'>
+                      <div className='announce-file-btn-inner'>
+                        <button title={entry.is_pinned ? 'Unpin' : 'Pin to top'} onClick={() => handleTogglePin(entry)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: entry.is_pinned ? '#f59e0b' : '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                          {entry.is_pinned ? <PinOff size={16} /> : <Pin size={16} />}
+                        </button>
+                        <button title='Archive' onClick={() => handleArchive(entry.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                          <Archive size={16} />
+                        </button>
+                        <img src='/bin.png' alt='Delete' onClick={() => { setId(entry.id); setIsModalOpen(true); }} />
+                        <img src='/edit.png' alt='Edit' onClick={() => { setId(entry.id); setEditTitle(entry.title); setEditDescription(entry.content); setOpen(true); }} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        ) : (
+          <>
+            {sortedTerms.length === 0 && (
+              <p style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.875rem' }}>No archived announcements.</p>
+            )}
+            {sortedTerms.map(term => (
+              <div key={term} style={{ marginBottom: '1rem', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                <button
+                  onClick={() => toggleTerm(term)}
+                  style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', background: '#f9fafb', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: '#374151' }}
+                >
+                  <span>Term {term}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                    {archivedGroups[term].length} item{archivedGroups[term].length !== 1 ? 's' : ''}&nbsp;{isOpen(term) ? '▲' : '▼'}
+                  </span>
+                </button>
+                {isOpen(term) && (
+                  <table style={{ width: '100%' }}>
+                    <colgroup>
+                      <col className='col-checkbox' />
+                      <col className='col-image' />
+                      <col className='col-filename' />
+                      <col className='col-description' />
+                      <col className='col-date' />
+                      <col className='col-actions' />
+                    </colgroup>
+                    <thead>
+                      <tr className='announce-table-header-light'>
+                        <th></th>
+                        <th>Image</th>
+                        <th>File Name</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {archivedGroups[term].map((entry, idx) => (
+                        <tr key={idx} className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}>
+                          <td>
+                            <input className='checkbox' type='checkbox' title={`Select ${entry.title}`}
+                              checked={active.includes(entry.id)} onChange={() => handleActive(entry.id)}
+                            />
+                          </td>
+                          <td>
+                            {entry.imgUrl
+                              ? <img src={entry.imgUrl} alt={entry.title} style={{ width: 40, height: 40, objectFit: 'cover' }} />
+                              : '—'}
+                          </td>
+                          <td>{entry.title}</td>
+                          <td>{entry.content}</td>
+                          <td>{entry.date}</td>
+                          <td className='announce-file-btn'>
+                            <div className='announce-file-btn-inner'>
+                              <button title='Restore' onClick={() => handleRestore(entry.id)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}>
+                                <ArchiveRestore size={16} /> Restore
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            ))}
+          </>
+        )}
       </div>
 
       {isModalOpen && (

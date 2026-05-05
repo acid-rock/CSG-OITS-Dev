@@ -58,7 +58,8 @@
 }
 
 .bulletin-document-navigation {
-  height: 20rem;
+  min-height: fit-content;
+  overflow: visible;
   background: #ffffff;
   border-radius: 16px;
   padding: 20px;

@@ -269,4 +269,48 @@ router.post(
   }),
 );
 
+// ── Admin account list ────────────────────────────────────────────────────────
+
+router.get("/list", requireAuth, async (req, res) => {
+  try {
+    console.log("[USER LIST] Handler entered");
+
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("owner_id, role")
+      .order("owner_id", { ascending: true });
+
+    console.log("[USER LIST] Profiles result:", JSON.stringify(profiles));
+    console.log("[USER LIST] Profiles error:", JSON.stringify(profilesError));
+
+    if (profilesError) throw new ApiError(500, "Profiles fetch failed: " + profilesError.message);
+
+    let users = [];
+    try {
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+      console.log("[USER LIST] Auth users count:", authData?.users?.length);
+      console.log("[USER LIST] Auth error:", JSON.stringify(authError));
+      if (!authError) users = authData.users;
+    } catch (authEx) {
+      console.error("[USER LIST] auth.admin.listUsers threw:", authEx.message);
+    }
+
+    const result = (profiles ?? []).map((profile) => {
+      const authUser = users.find((u) => u.id === profile.owner_id);
+      return {
+        id: profile.owner_id,
+        owner_id: profile.owner_id,
+        role: profile.role,
+        email: authUser?.email ?? "Unknown",
+      };
+    });
+
+    console.log("[USER LIST] Returning", result.length, "accounts");
+    res.json(result);
+  } catch (err) {
+    console.error("[USER LIST] Caught error:", err.message, err.stack);
+    throw err;
+  }
+});
+
 export default router;

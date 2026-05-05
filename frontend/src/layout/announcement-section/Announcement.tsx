@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Typography from "../../components/typography/Typography";
 import AnnouncementCard from "../../components/announcement-card/Announcement-card";
 import "./announcement.css";
 import Modal from "../../components/modal/Modal";
@@ -9,7 +8,8 @@ import type {
   Announcement,
   OutletContext,
 } from "../../root-layout/Root-layout";
-export default function Announcement() {
+
+export default function AnnouncementSection() {
   const { bulletin } = useOutletContext<OutletContext>();
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [selectedAnnouncement, setSelectedAnnouncement] =
@@ -18,7 +18,7 @@ export default function Announcement() {
 
   const formatDate = (date: string): string => {
     const d = new Date(date);
-    if (isNaN(d.getTime())) return date; // return as-is if already formatted
+    if (isNaN(d.getTime())) return date;
     return d.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -34,13 +34,10 @@ export default function Announcement() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
-        if (prev + 1 >= bulletin.length) {
-          return 0;
-        }
+        if (prev + 1 >= bulletin.length) return 0;
         return prev + 1;
       });
     }, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -48,20 +45,34 @@ export default function Announcement() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const pinned = bulletin.find((a) => a.is_pinned);
   const currentAnnouncement = bulletin[currentSlide];
+
   return (
-    <section className="announcement-container">
+    <section className="announcement-container" id="announcement">
       <div className="announcement-layout">
-        <div className="announcement-texts">
-          <Typography size="text-lg" color="text-dark">
-            Announcements
-          </Typography>
-          <Typography size="text-sm" color="text-dark">
-            Explore official records from student government proceedings
-          </Typography>
+        {/* Section header */}
+        <div className="section-head">
+          <div className="kicker">From the council</div>
+          <h2>Latest <em>announcements</em></h2>
+          <p>Notices, advisories, and updates from your CSG officers.</p>
         </div>
 
-        {/* Slideshow */}
+        {/* Pinned strip */}
+        {pinned && (
+          <button
+            type="button"
+            className="pinned-strip"
+            onClick={() => handleCardClick(pinned)}
+          >
+            <span className="pinned-badge">📌 Pinned</span>
+            <span className="pinned-title">{pinned.title}</span>
+            <span className="pinned-date">{formatDate(pinned.date)}</span>
+            <span className="pinned-arrow">→</span>
+          </button>
+        )}
+
+        {/* Slideshow card */}
         <div className="announcement-content">
           {currentAnnouncement && (
             <AnnouncementCard
@@ -98,7 +109,7 @@ export default function Announcement() {
           date={formatDate(selectedAnnouncement.date) || "Not Available"}
           title={selectedAnnouncement.title}
           description={selectedAnnouncement.content}
-        ></Modal>
+        />
       )}
     </section>
   );

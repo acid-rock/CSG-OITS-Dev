@@ -9,6 +9,8 @@ import settingsRoutes from "./routes/settings.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import auditlogRoutes from "./routes/auditlog.routes.js";
 import borrowingRoutes from "./routes/borrowing.routes.js";
+import equipmentRoutes from "./routes/equipment.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -18,11 +20,22 @@ import "dotenv/config";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "";
 
-const apiLimiter = rateLimit({
+// Public routes — stricter limit
+const publicLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  message: { error: "Too many requests. Please try again later." },
+});
+
+// Admin/authenticated routes — more generous limit
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please try again later." },
 });
 
 const app = express();
@@ -42,18 +55,19 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use("/api/v1", apiLimiter);
-app.use("/api/v1/user", userRoutes);
-app.use("/api/v1/documents", documentRoutes);
-app.use("/api/v1/announcements", announcementRoutes);
-app.use("/api/v1/events", eventRoutes);
-app.use("/api/v1/officers", officerRoutes);
-app.use("/api/v1/committees", committeeRoutes);
-app.use("/api/v1/settings", settingsRoutes);
-app.use("/api/v1/analytics", analyticsRoutes);
-app.use("/api/v1/auditlog", auditlogRoutes);
-app.use("/api/v1/borrowing", borrowingRoutes);
+// Routes — public (stricter) vs admin (generous)
+app.use("/api/v1/announcements", publicLimiter, announcementRoutes);
+app.use("/api/v1/documents", publicLimiter, documentRoutes);
+app.use("/api/v1/events", publicLimiter, eventRoutes);
+app.use("/api/v1/officers", publicLimiter, officerRoutes);
+app.use("/api/v1/committees", publicLimiter, committeeRoutes);
+app.use("/api/v1/equipment", publicLimiter, equipmentRoutes);
+app.use("/api/v1/user", adminLimiter, userRoutes);
+app.use("/api/v1/dashboard", adminLimiter, dashboardRoutes);
+app.use("/api/v1/settings", adminLimiter, settingsRoutes);
+app.use("/api/v1/analytics", adminLimiter, analyticsRoutes);
+app.use("/api/v1/auditlog", adminLimiter, auditlogRoutes);
+app.use("/api/v1/borrowing", adminLimiter, borrowingRoutes);
 
 // Health route
 app.get("/health", (req, res) => {

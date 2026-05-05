@@ -34,6 +34,22 @@ const Login = () => {
   return (
     <div className='login-container'>
       <div className='login-card'>
+        <Link
+          to='/'
+          style={{
+            fontSize: '0.85rem',
+            color: '#555',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            marginBottom: '1.5rem',
+            textDecoration: 'none',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+          onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+        >
+          ← Back to Home
+        </Link>
         {/* Logo — centered above card */}
         <div className='logo-wrapper'>
           <img src='/CSG_logo.svg' alt='CSG Logo' className='logo-img' />

@@ -12,6 +12,7 @@ interface AuditEntry {
   entity: string;       // table name (bulletin, documents, events…)
   entity_id: string;    // uuid of the affected row
   created_by: string;   // admin user uuid
+  admin_name: string;   // resolved email or uuid fallback
   ip_address: string;
   created_at: string;
 }
@@ -154,7 +155,7 @@ const Audit = () => {
           </colgroup>
           <thead>
             <tr className='audit-table-header-light'>
-              <th>Admin ID</th>
+              <th>Admin</th>
               <th>Action</th>
               <th>Table</th>
               <th>Record ID</th>
@@ -171,7 +172,7 @@ const Audit = () => {
                 <td>
                   <div className='audit-user-cell'>
                     <span className='audit-user-name' title={entry.created_by}>
-                      {shortId(entry.created_by)}
+                      {entry.admin_name ?? shortId(entry.created_by)}
                     </span>
                     <span className='audit-role-badge audit-role-admin'>
                       Admin

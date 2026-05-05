@@ -9,6 +9,7 @@ type OfficerCardProps = {
   image?: string;
   socials?: string | null;
   term?: string | null;
+  officerType?: string;
   variant?: "default" | "outlined" | "elevated";
   onClick?: () => void;
   className?: string;
@@ -22,6 +23,7 @@ export default function OfficerCard({
   image,
   socials,
   term,
+  officerType,
   variant = "default",
   onClick,
   style,
@@ -79,27 +81,31 @@ export default function OfficerCard({
         <h3>{id}</h3>
         {title && <h3 className="officer-card-title">{title}</h3>}
         {term && (
-          <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0.1rem 0 0" }}>
+          <p style={{ fontSize: "0.85rem", color: "inherit", margin: "0.25rem 0 0", textAlign: "center" }}>
             {term}
           </p>
         )}
         {description && (
           <p className="officer-card-description">{description}</p>
         )}
+        {officerType !== "adviser" && (
+          <div className="officer-card-socials">
+            <a
+              href={socials || "#"}
+              target={socials ? "_blank" : undefined}
+              rel={socials ? "noopener noreferrer" : undefined}
+              className="social-icon"
+              style={!socials ? { opacity: 0.3, cursor: "default" } : undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!socials) e.preventDefault();
+              }}
+            >
+              <FaFacebook className="fb-icon" />
+            </a>
+          </div>
+        )}
       </div>
-      {socials ? (
-        <div className="officer-card-socials">
-          <a
-            href={socials}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="social-icon"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FaFacebook className="fb-icon" />
-          </a>
-        </div>
-      ) : null}
     </div>
   );
 }

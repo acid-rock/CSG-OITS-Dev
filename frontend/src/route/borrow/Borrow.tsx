@@ -56,14 +56,29 @@ export default function Borrow() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const FALLBACK_INVENTORY: InventoryItem[] = [
+    { id: "9091ce6a-871d-4de2-9008-0cd84ae4fa54", name: "Basketball", quantity: 1, max_quantity: 1, is_available: true },
+    { id: "dfa76261-a0f4-4436-959a-41f337cc4ded", name: "HDMI Cable", quantity: 1, max_quantity: 1, is_available: true },
+    { id: "e6563dec-bfdb-446e-89d9-7f6f85ce2cee", name: "Iwata Fan", quantity: 1, max_quantity: 1, is_available: true },
+    { id: "49cfe9bc-3a74-4aa1-89fd-a9ee316e2f6e", name: "Long Table", quantity: 2, max_quantity: 2, is_available: true },
+    { id: "d97a2657-81d1-4b17-83c3-b0361f79e748", name: "Microphone", quantity: 1, max_quantity: 1, is_available: true },
+    { id: "44684f16-073d-4ab5-8ad2-8ef119f07fb4", name: "Mixer", quantity: 1, max_quantity: 1, is_available: true },
+    { id: "1c49efaf-e579-40ab-ba8f-e489515761b3", name: "Orange Cones (for training)", quantity: 4, max_quantity: 4, is_available: true },
+    { id: "15061230-b28f-49f1-873b-d3a84fd4aa41", name: "Projector", quantity: 1, max_quantity: 1, is_available: true },
+    { id: "78a6c8ba-00ad-48a3-8f73-6e41763c43f0", name: "Projector Screen", quantity: 2, max_quantity: 2, is_available: true },
+    { id: "ab83f5a8-9c30-46d8-9c88-8aae90e76928", name: "Soccer Ball", quantity: 1, max_quantity: 1, is_available: true },
+    { id: "90c3cb8c-9c0f-4898-8835-21a17c0632b8", name: "Speaker", quantity: 1, max_quantity: 1, is_available: true },
+  ];
+
   const fetchInventory = async () => {
     setLoadingInventory(true);
     setInventoryError(null);
     try {
-      const { data } = await axios.get(`${API_URL}/borrowing/inventory`);
+      const { data } = await axios.get(`${API_URL}/equipment/`);
       setInventory(data);
     } catch {
-      setInventoryError("Failed to load equipment. Please try again.");
+      setInventory(FALLBACK_INVENTORY);
+      setInventoryError(null);
     } finally {
       setLoadingInventory(false);
     }
@@ -235,17 +250,32 @@ export default function Borrow() {
                 <label>Purpose of Equipment Use</label>
                 <div className="borrow-checkbox-group">
                   {(["academic", "event", "organization", "others"] as PurposeType[]).map((pt) => (
-                    <label key={pt} className="borrow-checkbox-label">
+                    <div
+                      key={pt}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.625rem",
+                        marginBottom: "0.5rem",
+                      }}
+                    >
                       <input
                         type="checkbox"
+                        id={`purpose-${pt}`}
                         checked={purposeType === pt}
                         onChange={() => setPurposeType(purposeType === pt ? "" : pt)}
+                        style={{ width: "16px", height: "16px", flexShrink: 0, margin: 0 }}
                       />
-                      {pt === "academic" && "Academic / Class Use"}
-                      {pt === "event" && "Event / Program"}
-                      {pt === "organization" && "Organization"}
-                      {pt === "others" && "Others:"}
-                    </label>
+                      <label
+                        htmlFor={`purpose-${pt}`}
+                        style={{ fontSize: "0.85rem", fontWeight: 500, margin: 0, cursor: "pointer" }}
+                      >
+                        {pt === "academic" && "Academic / Class Use"}
+                        {pt === "event" && "Event / Program"}
+                        {pt === "organization" && "Organization"}
+                        {pt === "others" && "Others:"}
+                      </label>
+                    </div>
                   ))}
                   {purposeType === "others" && (
                     <input

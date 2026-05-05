@@ -66,11 +66,17 @@ const Bin = () => {
 
   const restoreSelected = async () => {
     if (!active.length) return;
-    await axios.post(`${API_URL}/documents/restore`, active, {
-      withCredentials: true,
-    });
-    setActive([]);
-    await fetchData();
+    try {
+      await axios.post(
+        `${API_URL}/documents/restore`,
+        { ids: active },
+        { withCredentials: true },
+      );
+      setData((prev) => prev.filter((d) => !active.includes(d.id)));
+      setActive([]);
+    } catch {
+      setFetchError('Failed to restore documents. Please try again.');
+    }
   };
 
   const confirmThenRun = (action: () => Promise<void>) => {
@@ -228,12 +234,17 @@ const Bin = () => {
                         padding: '0.2rem 0.5rem',
                       }}
                       onClick={async () => {
-                        await axios.post(
-                          `${API_URL}/documents/restore`,
-                          [doc.id],
-                          { withCredentials: true },
-                        );
-                        fetchData();
+                        try {
+                          await axios.post(
+                            `${API_URL}/documents/restore`,
+                            { ids: [doc.id] },
+                            { withCredentials: true },
+                          );
+                          setData((prev) => prev.filter((d) => d.id !== doc.id));
+                          setActive((prev) => prev.filter((a) => a !== doc.id));
+                        } catch {
+                          setFetchError('Failed to restore document. Please try again.');
+                        }
                       }}
                     >
                       Restore

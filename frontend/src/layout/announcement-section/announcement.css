@@ -1,81 +1,86 @@
-/* Container */
-.announcement-container {
-  background: linear-gradient(
-    to bottom,
-    #f4f6fa 0%,
-    #cfd9f3 50%,
-    #4a78e0 80%,
-    #4a78e0 100%
-  );
+/* Wave 11A — Announcement Section */
+.announcement-section{
+  padding:80px 60px;
+  background:var(--gradient-hero);
+  position:relative;overflow:hidden;
+}
+.announcement-section::before{
+  content:"";position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><pattern id='g' width='28' height='28' patternUnits='userSpaceOnUse'><circle cx='1' cy='1' r='0.8' fill='%230f1729' opacity='0.05'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
+  pointer-events:none;
+}
+.announcement-section > *{position:relative;z-index:1}
 
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  min-height: 100vh;
-  padding: 3rem 1.5rem;
+.announcement-head,
+.section-head{
+  margin-bottom:40px;text-align:center;
+  max-width:680px;margin-left:auto;margin-right:auto;
+}
+.announcement-head .kicker,
+.section-head .kicker{
+  display:inline-block;
+  font-size:11px;font-weight:700;
+  letter-spacing:0.7px;text-transform:uppercase;
+  color:var(--color-primary);
+  margin-bottom:10px;
+}
+.announcement-head h2,
+.section-head h2{
+  color:var(--color-text-primary);
+  font-size:34px;font-weight:800;
+  margin:0 0 10px;
+  letter-spacing:-0.02em;line-height:1.15;
+}
+.announcement-head h2 em,
+.section-head h2 em{
+  font-family:var(--font-serif);font-style:italic;
+  font-weight:400;color:var(--color-primary-deep);
+}
+.announcement-head p,
+.section-head p{
+  color:var(--color-text-secondary);
+  font-size:15px;margin:0;font-weight:450;
 }
 
-/* Layout */
-.announcement-layout {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 1100px;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 3rem;
+.announce-grid,
+.announcement-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:18px;max-width:1180px;margin:0 auto;
 }
 
-/* Content */
-.announcement-content {
-  max-width: 1000px;
-  min-height: 400px;
-  width: 100%;
-  height: auto;
-  align-items: center;
-  justify-content: center;
+@media (max-width:1024px){
+  .announcement-section{padding:64px 32px}
+  .announce-grid,.announcement-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:768px){
+  .announcement-section{padding:56px 20px}
+  .announce-grid,.announcement-grid{grid-template-columns:1fr}
+  .announcement-head h2,.section-head h2{font-size:28px}
 }
 
-/* TABLET */
-@media (max-width: 1024px) {
-  .announcement-container {
-    padding: 2.5rem 1.25rem;
-    min-height: auto;
-  }
-
-  .announcement-layout {
-    gap: 2rem;
-  }
-
-  .announcement-content {
-    max-width: 700px;
-    min-height: 250px;
-  }
+/* SOURCE A — backward-compat layout classes */
+.announcement-container{
+  background:var(--gradient-hero);
+  padding:80px 60px;
+  position:relative;overflow:hidden;
 }
-
-/* MOBILE */
-@media (max-width: 768px) {
-  .announcement-container {
-    min-height: auto;
-    padding: 2rem 1rem;
-  }
-
-  .announcement-layout {
-    gap: 1.5rem;
-  }
-
-  .announcement-content {
-    width: 60%;
-    min-height: auto;
-  }
+.announcement-container::before{
+  content:"";position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><pattern id='g' width='28' height='28' patternUnits='userSpaceOnUse'><circle cx='1' cy='1' r='0.8' fill='%230f1729' opacity='0.05'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
+  pointer-events:none;
 }
+.announcement-container > *{position:relative;z-index:1}
+.announcement-layout{
+  max-width:1180px;margin:0 auto;
+  display:flex;flex-direction:column;gap:24px;
+}
+.announcement-texts{
+  text-align:center;
+  max-width:680px;margin-left:auto;margin-right:auto;
+}
+.announcement-content{max-width:900px;margin:0 auto;width:100%}
+.view-btn{display:flex;justify-content:center;margin-top:16px}
 
-/* SMALL MOBILE */
-@media (max-width: 480px) {
-  .announcement-layout {
-    gap: 1.25rem;
-  }
+@media (max-width:768px){
+  .announcement-container{padding:56px 20px}
 }

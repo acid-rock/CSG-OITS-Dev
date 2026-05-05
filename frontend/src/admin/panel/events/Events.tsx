@@ -19,12 +19,7 @@ interface EventEntry {
 }
 
 const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
-const sortOptions = [
-  'Name (A-Z)',
-  'Name (Z-A)',
-  'Date (Newest)',
-  'Date (Oldest)',
-];
+const sortOptions = ['Name (A-Z)', 'Name (Z-A)', 'Date (Newest)', 'Date (Oldest)'];
 
 type Tab = 'active' | 'archived';
 
@@ -40,10 +35,7 @@ const filterByDate = (date: string, filter: string): boolean => {
     return fileDate >= startOfWeek;
   }
   if (filter === 'This Month') {
-    return (
-      fileDate.getMonth() === now.getMonth() &&
-      fileDate.getFullYear() === now.getFullYear()
-    );
+    return fileDate.getMonth() === now.getMonth() && fileDate.getFullYear() === now.getFullYear();
   }
   return true;
 };
@@ -51,11 +43,18 @@ const filterByDate = (date: string, filter: string): boolean => {
 const formatDate = (iso: string): string => {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const groupByTerm = (items: EventEntry[]): Record<string, EventEntry[]> => {
+  const groups: Record<string, EventEntry[]> = {};
+  items.forEach(item => {
+    const year = item.archived_at ? new Date(item.archived_at).getFullYear() : new Date().getFullYear();
+    const term = `${year}-${year + 1}`;
+    if (!groups[term]) groups[term] = [];
+    groups[term].push(item);
   });
+  return groups;
 };
 
 const Events = () => {
@@ -75,6 +74,7 @@ const Events = () => {
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [sort, setSort] = useState<string>('');
+  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -84,30 +84,22 @@ const Events = () => {
       const endpoint = tab === 'archived'
         ? `${API_URL}/events/archived`
         : `${API_URL}/events`;
-      const { data: responseData } = await axios.get(endpoint, {
-        withCredentials: true,
-      });
+      const { data: responseData } = await axios.get(endpoint, { withCredentials: true });
       setData(responseData);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to load events.';
-      setFetchError(message);
+      setFetchError(err instanceof Error ? err.message : 'Failed to load events.');
     } finally {
       setLoading(false);
     }
   }, [tab]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { setOpenTerms({}); }, [tab]);
 
-  const handleActive = (entryId: string) => {
+  const handleActive = (entryId: string) =>
     setActive((prev) =>
-      prev.includes(entryId)
-        ? prev.filter((a) => a !== entryId)
-        : [...prev, entryId],
+      prev.includes(entryId) ? prev.filter((a) => a !== entryId) : [...prev, entryId],
     );
-  };
 
   const handleRefresh = () => {
     setSpinning(true);
@@ -135,12 +127,18 @@ const Events = () => {
     fontSize: '0.9rem',
   });
 
+  const toggleTerm = (term: string) =>
+    setOpenTerms(prev => ({ ...prev, [term]: !prev[term] }));
+
+  const archivedGroups = tab === 'archived' ? groupByTerm(data) : {};
+  const sortedTerms = Object.keys(archivedGroups).sort((a, b) => b.localeCompare(a));
+  const isOpen = (term: string) =>
+    openTerms[term] !== undefined ? openTerms[term] : term === sortedTerms[0];
+
   if (loading) {
     return (
       <div className='announce-container'>
-        <div className='announce-header'>
-          <span>Events</span>
-        </div>
+        <div className='announce-header'><span>Events</span></div>
         <p style={{ padding: '1rem' }}>Loading...</p>
       </div>
     );
@@ -148,57 +146,25 @@ const Events = () => {
 
   return (
     <div className='announce-container'>
-      <div className='announce-header'>
-        <span>Events</span>
-      </div>
+      <div className='announce-header'><span>Events</span></div>
 
-      {/* Tab toggle */}
       <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
         <button style={tabStyle('active')} onClick={() => setTab('active')}>Active</button>
         <button style={tabStyle('archived')} onClick={() => setTab('archived')}>Archived</button>
       </div>
 
-      {fetchError && (
-        <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>
-      )}
+      {fetchError && <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>}
 
       <div className='announce-toolbar'>
         <span className='announce-file-count'>{data.length} Events</span>
         <div className='announce-toolbar-actions'>
-          <FilterSelect
-            options={filterOptions}
-            value={filter}
-            onChange={setFilter}
-            label='Filter'
-          />
-          <FilterSelect
-            options={sortOptions}
-            value={sort}
-            onChange={setSort}
-            label='Sort'
-          />
-          <button
-            className='announce-action-btn announce-refresh-btn'
-            title='Refresh'
-            onClick={handleRefresh}
-          >
-            <img
-              src='/refresh.png'
-              alt='refresh'
-              className={spinning ? 'announce-spin refresh-img' : 'refresh-img'}
-            />
+          <FilterSelect options={filterOptions} value={filter} onChange={setFilter} label='Filter' />
+          <FilterSelect options={sortOptions} value={sort} onChange={setSort} label='Sort' />
+          <button className='announce-action-btn announce-refresh-btn' title='Refresh' onClick={handleRefresh}>
+            <img src='/refresh.png' alt='refresh' className={spinning ? 'announce-spin refresh-img' : 'refresh-img'} />
           </button>
           {tab === 'active' && (
-            <button
-              className='announce-add-btn'
-              onClick={() => {
-                setId(null);
-                setEditTitle('');
-                setEditDescription('');
-                setEditDate('');
-                setOpen(true);
-              }}
-            >
+            <button className='announce-add-btn' onClick={() => { setId(null); setEditTitle(''); setEditDescription(''); setEditDate(''); setOpen(true); }}>
               Add Event
             </button>
           )}
@@ -206,168 +172,165 @@ const Events = () => {
       </div>
 
       {tab === 'active' && active.length >= 3 && (
-        <Actionbar
-          items={active.length}
-          selectedIds={active}
-          source='event'
-          onSuccess={fetchData}
-        />
+        <Actionbar items={active.length} selectedIds={active} source='event' onSuccess={fetchData} />
       )}
 
       <div className='announce-file-table'>
-        <table>
-          <colgroup>
-            <col className='col-checkbox' />
-            <col className='col-image' />
-            <col className='col-filename' />
-            <col className='col-description' />
-            <col className='col-date' />
-            <col className='col-actions' />
-          </colgroup>
-          <thead>
-            <tr className='announce-table-header-light'>
-              <th>
-                <input
-                  type='checkbox'
-                  title='Select All'
-                  checked={data.length > 0 && active.length === data.length}
-                  onChange={() => {
-                    if (active.length === data.length) {
-                      setActive([]);
-                    } else {
-                      setActive(data.map((entry) => entry.id));
-                    }
-                  }}
-                />
-              </th>
-              <th>Photo</th>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data
-              .filter((entry) => filterByDate(entry.date, filter))
-              .sort((a, b) => {
-                if (sort === 'Name (A-Z)')
-                  return a.name.localeCompare(b.name);
-                if (sort === 'Name (Z-A)')
-                  return b.name.localeCompare(a.name);
-                if (sort === 'Date (Newest)')
-                  return (
-                    new Date(b.date).getTime() - new Date(a.date).getTime()
-                  );
-                if (sort === 'Date (Oldest)')
-                  return (
-                    new Date(a.date).getTime() - new Date(b.date).getTime()
-                  );
-                return 0;
-              })
-              .map((entry, idx) => (
-                <tr
-                  key={idx}
-                  className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}
-                >
-                  <td>
-                    <input
-                      className='checkbox'
-                      type='checkbox'
-                      title={`Select ${entry.name}`}
-                      checked={active.includes(entry.id)}
-                      onChange={() => handleActive(entry.id)}
-                    />
-                  </td>
-                  <td>
-                    {entry.images?.[0] ? (
-                      <img
-                        src={entry.images[0]}
-                        alt={entry.name}
-                        style={{ width: 40, height: 40, objectFit: 'cover' }}
+        {tab === 'active' ? (
+          <table>
+            <colgroup>
+              <col className='col-checkbox' />
+              <col className='col-image' />
+              <col className='col-filename' />
+              <col className='col-description' />
+              <col className='col-date' />
+              <col className='col-actions' />
+            </colgroup>
+            <thead>
+              <tr className='announce-table-header-light'>
+                <th>
+                  <input type='checkbox' title='Select All'
+                    checked={data.length > 0 && active.length === data.length}
+                    onChange={() => setActive(active.length === data.length ? [] : data.map((e) => e.id))}
+                  />
+                </th>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data
+                .filter((entry) => filterByDate(entry.date, filter))
+                .sort((a, b) => {
+                  if (sort === 'Name (A-Z)') return a.name.localeCompare(b.name);
+                  if (sort === 'Name (Z-A)') return b.name.localeCompare(a.name);
+                  if (sort === 'Date (Newest)') return new Date(b.date).getTime() - new Date(a.date).getTime();
+                  if (sort === 'Date (Oldest)') return new Date(a.date).getTime() - new Date(b.date).getTime();
+                  return 0;
+                })
+                .map((entry, idx) => (
+                  <tr key={idx} className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}>
+                    <td>
+                      <input className='checkbox' type='checkbox' title={`Select ${entry.name}`}
+                        checked={active.includes(entry.id)} onChange={() => handleActive(entry.id)}
                       />
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td>{entry.name}</td>
-                  <td>{entry.description}</td>
-                  <td>{formatDate(entry.date)}</td>
-                  <td className='announce-file-btn'>
-                    <div className='announce-file-btn-inner'>
-                      {tab === 'active' ? (
-                        <>
-                          <button
-                            title='Archive'
-                            onClick={() => handleArchive(entry.id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}
-                          >
-                            <Archive size={16} />
-                          </button>
-                          <img
-                            src='/bin.png'
-                            alt='Delete'
-                            onClick={() => {
-                              setId(entry.id);
-                              setIsModalOpen(true);
-                            }}
-                          />
-                          <img
-                            src='/edit.png'
-                            alt='Edit'
-                            onClick={() => {
-                              setId(entry.id);
-                              setEditTitle(entry.name);
-                              setEditDescription(entry.description);
-                              setEditDate(entry.date ?? '');
-                              setEditImages(entry.images ?? []);
-                              setOpen(true);
-                            }}
-                          />
-                        </>
-                      ) : (
-                        <button
-                          title='Restore'
-                          onClick={() => handleRestore(entry.id)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}
-                        >
-                          <ArchiveRestore size={16} /> Restore
+                    </td>
+                    <td>
+                      {entry.images?.[0]
+                        ? <img src={entry.images[0]} alt={entry.name} style={{ width: 40, height: 40, objectFit: 'cover' }} />
+                        : '—'}
+                    </td>
+                    <td>{entry.name}</td>
+                    <td>{entry.description}</td>
+                    <td>{formatDate(entry.date)}</td>
+                    <td className='announce-file-btn'>
+                      <div className='announce-file-btn-inner'>
+                        <button title='Archive' onClick={() => handleArchive(entry.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                          <Archive size={16} />
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+                        <img src='/bin.png' alt='Delete' onClick={() => { setId(entry.id); setIsModalOpen(true); }} />
+                        <img src='/edit.png' alt='Edit' onClick={() => {
+                          setId(entry.id);
+                          setEditTitle(entry.name);
+                          setEditDescription(entry.description);
+                          setEditDate(entry.date ?? '');
+                          setEditImages(entry.images ?? []);
+                          setOpen(true);
+                        }} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        ) : (
+          <>
+            {sortedTerms.length === 0 && (
+              <p style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.875rem' }}>No archived events.</p>
+            )}
+            {sortedTerms.map(term => (
+              <div key={term} style={{ marginBottom: '1rem', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                <button
+                  onClick={() => toggleTerm(term)}
+                  style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', background: '#f9fafb', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: '#374151' }}
+                >
+                  <span>Term {term}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                    {archivedGroups[term].length} item{archivedGroups[term].length !== 1 ? 's' : ''}&nbsp;{isOpen(term) ? '▲' : '▼'}
+                  </span>
+                </button>
+                {isOpen(term) && (
+                  <table style={{ width: '100%' }}>
+                    <colgroup>
+                      <col className='col-checkbox' />
+                      <col className='col-image' />
+                      <col className='col-filename' />
+                      <col className='col-description' />
+                      <col className='col-date' />
+                      <col className='col-actions' />
+                    </colgroup>
+                    <thead>
+                      <tr className='announce-table-header-light'>
+                        <th></th>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {archivedGroups[term].map((entry, idx) => (
+                        <tr key={idx} className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}>
+                          <td>
+                            <input className='checkbox' type='checkbox' title={`Select ${entry.name}`}
+                              checked={active.includes(entry.id)} onChange={() => handleActive(entry.id)}
+                            />
+                          </td>
+                          <td>
+                            {entry.images?.[0]
+                              ? <img src={entry.images[0]} alt={entry.name} style={{ width: 40, height: 40, objectFit: 'cover' }} />
+                              : '—'}
+                          </td>
+                          <td>{entry.name}</td>
+                          <td>{entry.description}</td>
+                          <td>{formatDate(entry.date)}</td>
+                          <td className='announce-file-btn'>
+                            <div className='announce-file-btn-inner'>
+                              <button title='Restore' onClick={() => handleRestore(entry.id)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}>
+                                <ArchiveRestore size={16} /> Restore
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            ))}
+          </>
+        )}
       </div>
 
       {isModalOpen && (
         <div className='announce-modal-position'>
-          <DeleteModal
-            isOpen={isModalOpen}
-            source='event'
-            id={id}
+          <DeleteModal isOpen={isModalOpen} source='event' id={id}
             onClose={() => setIsModalOpen(false)}
-            onConfirm={() => {
-              setActive((prev) => prev.filter((a) => a !== id));
-              fetchData();
-            }}
+            onConfirm={() => { setActive((prev) => prev.filter((a) => a !== id)); fetchData(); }}
           />
         </div>
       )}
 
       {open && (
         <div className='announce-form-position'>
-          <Form
-            forType='event'
-            id={id}
-            initialTitle={editTitle}
-            initialDescription={editDescription}
-            initialDate={editDate}
-            initialImages={editImages}
-            setOpen={setOpen}
-            onSuccess={fetchData}
+          <Form forType='event' id={id} initialTitle={editTitle} initialDescription={editDescription}
+            initialDate={editDate} initialImages={editImages} setOpen={setOpen} onSuccess={fetchData}
           />
         </div>
       )}

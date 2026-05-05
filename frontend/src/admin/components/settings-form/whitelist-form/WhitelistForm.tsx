@@ -57,10 +57,10 @@ const WhitelistForm = ({ close, onSuccess }: WhitelistProps) => {
         className='whitelist-form-container'
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 600 }}>Add to Whitelist</h3>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.1rem', fontWeight: 600 }}>Add to Whitelist</h3>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
           <div className='input-container'>
-            <label style={{ fontSize: '0.8rem', color: '#6b7280' }}>Full Name</label>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0.35rem', color: '#555' }}>Full Name</label>
             <input
               type='text'
               placeholder='e.g. Juan Dela Cruz'
@@ -69,7 +69,7 @@ const WhitelistForm = ({ close, onSuccess }: WhitelistProps) => {
             />
           </div>
           <div className='input-container'>
-            <label style={{ fontSize: '0.8rem', color: '#6b7280' }}>Student ID</label>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0.35rem', color: '#555' }}>Student ID</label>
             <input
               type='text'
               placeholder='e.g. 2021-00123'
@@ -78,7 +78,7 @@ const WhitelistForm = ({ close, onSuccess }: WhitelistProps) => {
             />
           </div>
           <div className='input-container'>
-            <label style={{ fontSize: '0.8rem', color: '#6b7280' }}>Email Address</label>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0.35rem', color: '#555' }}>Email Address</label>
             <input
               type='email'
               placeholder='example@cvsu.edu.ph'
@@ -87,13 +87,13 @@ const WhitelistForm = ({ close, onSuccess }: WhitelistProps) => {
             />
           </div>
           {error && (
-            <p style={{ color: '#dc2626', fontSize: '0.8rem', margin: 0 }}>{error}</p>
+            <p style={{ color: '#dc2626', fontSize: '0.8rem', margin: '0 0 0.5rem' }}>{error}</p>
           )}
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button type='submit' disabled={submitting} style={{ flex: 1, padding: '0.45rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>
+          <div style={{ marginTop: '1.25rem', display: 'flex', gap: '0.75rem' }}>
+            <button type='submit' disabled={submitting} style={{ flex: 1, padding: '0.5rem 0.75rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem' }}>
               {submitting ? 'Adding...' : 'Add'}
             </button>
-            <button type='button' onClick={close} style={{ flex: 1, padding: '0.45rem', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer' }}>
+            <button type='button' onClick={close} style={{ flex: 1, padding: '0.5rem 0.75rem', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontSize: '0.9rem' }}>
               Cancel
             </button>
           </div>

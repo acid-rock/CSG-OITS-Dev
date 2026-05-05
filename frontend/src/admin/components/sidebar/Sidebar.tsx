@@ -8,9 +8,17 @@ type SidebarProps = {
   setPanel: (id: string) => void;
 };
 
+// Map each button to its nav section (Overview / Content / Operations)
+const SECTIONS: { label: string; names: string[] }[] = [
+  { label: 'Overview', names: ['dashboard'] },
+  { label: 'Content', names: ['announcement', 'documents', 'events', 'officers', 'committees'] },
+  { label: 'Operations', names: ['borrowing', 'contributors', 'auditlog', 'settings', 'bin'] },
+];
+
 const Sidebar = ({ panel, setPanel }: SidebarProps) => {
   const [adminName, setAdminName] = useState('Admin');
 
+  // SOURCE A: fetch admin name from API — preserved exactly
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/user/me`, { withCredentials: true })
@@ -22,6 +30,7 @@ const Sidebar = ({ panel, setPanel }: SidebarProps) => {
       });
   }, []);
 
+  // SOURCE A: correct logout — calls API, clears localStorage, redirects — preserved exactly
   const handleLogout = async () => {
     try {
       await axios.post(
@@ -35,8 +44,17 @@ const Sidebar = ({ panel, setPanel }: SidebarProps) => {
     }
   };
 
+  // Derive initials from adminName for the avatar circle
+  const initials = adminName
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
   return (
     <div className='sidebar-container'>
+      {/* ── Brand ── */}
       <div className='sidebar-top'>
         <div className='sidebar-details'>
           <img
@@ -49,19 +67,44 @@ const Sidebar = ({ panel, setPanel }: SidebarProps) => {
             <span className='subtitle'>Transparency System</span>
           </div>
         </div>
+
+        {/* ── Welcome block (SOURCE B addition) ── */}
+        <div className='sidebar-welcome'>
+          <div className='sidebar-avatar'>{initials || 'A'}</div>
+          <div className='sidebar-welcome-text'>
+            <div className='hi'>Hi, {adminName.split(' ')[0]}</div>
+            <div className='role'>Admin</div>
+          </div>
+          <div className='sidebar-status-dot' />
+        </div>
+
+        {/* ── Section-grouped nav (SOURCE B structure, SOURCE A handlers) ── */}
         <div className='sidebar-buttons'>
-          {buttonConfig.map((btn, idx) => (
-            <button
-              key={btn.name || idx}
-              className={`sidebar-btn ${panel === btn.name ? 'active' : ''}`}
-              onClick={() => setPanel(btn.name)}
-            >
-              {btn.icon}
-              <span>{btn.label}</span>
-            </button>
-          ))}
+          {SECTIONS.map((section) => {
+            const sectionButtons = buttonConfig.filter((btn) =>
+              section.names.includes(btn.name),
+            );
+            if (sectionButtons.length === 0) return null;
+            return (
+              <div key={section.label}>
+                <div className='sidebar-nav-section'>{section.label}</div>
+                {sectionButtons.map((btn, idx) => (
+                  <button
+                    key={btn.name || idx}
+                    className={`sidebar-btn ${panel === btn.name ? 'active' : ''}`}
+                    onClick={() => setPanel(btn.name)}
+                  >
+                    {btn.icon}
+                    <span>{btn.label}</span>
+                  </button>
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* ── Logout ── */}
       <div className='sidebar-logout'>
         <h4>Welcome, {adminName}!</h4>
         <button className='logout-button' onClick={handleLogout}>

@@ -27,7 +27,24 @@ router.get(
     const { data, error } = await query;
     if (error) throw new ApiError(500, error.message);
 
-    return res.status(200).json(data);
+    // Enrich each log entry with admin email from auth users
+    const uniqueAdminIds = [...new Set(data.map((r) => r.created_by).filter(Boolean))];
+    let emailMap = {};
+    if (uniqueAdminIds.length > 0) {
+      try {
+        const { data: { users } } = await supabase.auth.admin.listUsers();
+        emailMap = Object.fromEntries(users.map((u) => [u.id, u.email ?? u.id]));
+      } catch {
+        // Non-fatal — fall back to UUID display
+      }
+    }
+
+    const enriched = data.map((row) => ({
+      ...row,
+      admin_name: emailMap[row.created_by] ?? row.created_by ?? "—",
+    }));
+
+    return res.status(200).json(enriched);
   }),
 );
 

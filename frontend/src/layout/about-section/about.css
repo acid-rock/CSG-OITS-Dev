@@ -1,78 +1,107 @@
-.about-container {
-  background: linear-gradient(
-    to bottom,
-    #4a78e0 0%,
-    #4a78e0 40%,
-    #cfd9f3 70%,
-    #f4f6fa 100%
-  );
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
+/* Wave 11A — About Section */
+.about-section{
+  padding:80px 60px;
+  background:var(--color-white);
+}
+.about-section .section-head{
+  margin-bottom:40px;text-align:center;
+  max-width:680px;margin-left:auto;margin-right:auto;
 }
 
-.about-layout {
-  display: flex;
-  flex-direction: column;
-  max-width: 1400px;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
+.about-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:18px;max-width:1180px;margin:0 auto;
+}
+.about-card{
+  background:var(--color-white);
+  border:1px solid var(--color-border-soft);
+  border-radius:var(--radius-card-lg);
+  padding:28px;
+  transition:var(--transition);
+  position:relative;overflow:hidden;
+}
+.about-card:hover{
+  box-shadow:var(--shadow-card-hover);
+  transform:translateY(-3px);
+  border-color:var(--color-primary-light);
+}
+.about-card h3{
+  font-size:16px;color:var(--color-text-primary);
+  margin:0 0 10px;font-weight:700;
+  letter-spacing:-0.01em;
+}
+.about-card p{
+  font-size:13.5px;color:var(--color-text-secondary);
+  line-height:1.65;margin:0;font-weight:450;
+}
+.about-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(79,111,209,0.12),rgba(79,111,209,0.04));
+  color:var(--color-primary-deep);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:600;margin-bottom:16px;
+  font-family:var(--font-serif);font-style:italic;
+  border:1px solid rgba(79,111,209,0.12);
 }
 
-.about-text-layout {
-  text-align: center;
+@media (max-width:1024px){
+  .about-section{padding:64px 32px}
+  .about-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:768px){
+  .about-section{padding:56px 20px}
+  .about-grid{grid-template-columns:1fr}
 }
 
-.about-content {
-  display: grid;
-  width: 100%;
-  gap: 2rem;
-  margin: 2rem auto;
-  grid-template-columns: 1fr 1fr;
+/* SOURCE A — backward-compat layout classes */
+.about-container{
+  background:var(--color-white);
+  padding:5rem 2rem;
+}
+.about-layout{
+  max-width:1180px;margin:0 auto;
+  display:flex;flex-direction:column;gap:40px;
+}
+.about-text-layout{display:flex;justify-content:center}
+.about-texts{
+  text-align:center;
+  max-width:680px;
+}
+.about-content{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-areas:"sect1 img1" "sect2 img2";
+  gap:3rem;
+  align-items:center;
+}
+.about-content-sect1{
+  grid-area:sect1;
+  display:flex;flex-direction:column;gap:20px;
+}
+.about-content-sect2{
+  grid-area:sect2;
+}
+.about-content-image{
+  overflow:hidden;border-radius:var(--radius-card);
+  border:1px solid var(--color-border-soft);
+}
+.about-image{
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+}
+.about-title h1{
+  font-size:clamp(24px,3vw,36px);font-weight:800;
+  color:var(--color-text-primary);
+  line-height:1.1;letter-spacing:-0.025em;
+  margin:0 0 1.5rem;
+}
+.about-content-text h1{
+  font-size:14.5px;font-weight:400;
+  color:var(--color-text-secondary);
+  line-height:1.75;margin-bottom:0;
 }
 
-.about-content-image img {
-  border-radius: 12px;
-  max-width: 100%; /* Make images responsive */
-  height: auto; /* Maintain aspect ratio */
-}
-
-.about-title h1 {
-  font-size: clamp(28px, 5vw, 52px);
-  line-height: clamp(2.5rem, 6vw, 4rem);
-}
-
-.about-content-text h1 {
-  margin: 0;
-  text-align: justify;
-  font-weight: normal;
-  font-size: clamp(16px, 2.5vw, 24px);
-  line-height: clamp(1.6rem, 3vw, 2rem);
-}
-
-/* Media Queries for Responsiveness */
-@media (max-width: 768px) {
-  .about-container {
-    padding: 0 16px;
-  }
-
-  .about-content {
-    grid-template-columns: 1fr; /* Stack columns on smaller screens */
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .about-container {
-    padding: 0 12px;
-  }
-
-  .about-content {
-    gap: 1rem;
-  }
+@media (max-width:768px){
+  .about-container{padding:56px 20px}
+  .about-content{grid-template-columns:1fr;grid-template-areas:"sect1" "img1" "sect2" "img2"}
 }

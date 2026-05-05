@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Card from "../../components/event-card/Card";
 import Typography from "../../components/typography/Typography";
 import "./event.css";
@@ -7,108 +7,110 @@ import Modal from "../../components/modal/Modal";
 import { useOutletContext } from "react-router-dom";
 import type { OutletContext } from "../../root-layout/Root-layout";
 
+const EVENTS_PER_PAGE = 4;
+
 export default function Events() {
   const { events } = useOutletContext<OutletContext>();
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(0);
   const [open, setOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null); // Add state for selected event
-  const EVENTS_PER_SLIDE = 4;
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
-  /*function to take all the event object and group into 4*/
-  const eventSlides = useMemo(() => {
-    const slides = [];
-    for (let i = 0; i < events.length; i += EVENTS_PER_SLIDE) {
-      slides.push(events.slice(i, i + EVENTS_PER_SLIDE));
-    }
-    return slides;
-  }, [events]);
+  const totalPages = Math.ceil(events.length / EVENTS_PER_PAGE);
+  const currentPageEvents = events.slice(
+    currentPage * EVENTS_PER_PAGE,
+    currentPage * EVENTS_PER_PAGE + EVENTS_PER_PAGE,
+  );
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => Math.min(prev + 1, eventSlides.length - 1));
+  const nextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => Math.max(prev - 1, 0));
+  const prevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 0));
   };
 
-  // Function to handle card click
   const handleCardClick = (event: any) => {
     setSelectedEvent(event);
     setOpen(true);
   };
 
   return (
-    <div className="event-container">
-      <div className="event-layout">
-        <div className="event-texts">
-          <Typography size="text-lg" color="text-dark">
-            Events
-          </Typography>
-          <Typography size="text-sm" color="text-ghost">
-            Explore official events from students government
-          </Typography>
-        </div>
+    <>
+      <div className="event-container">
+        <div className="event-layout">
+          <div className="event-texts">
+            <Typography size="text-lg" color="text-dark">
+              Events
+            </Typography>
+            <Typography size="text-sm" color="text-ghost">
+              Explore official events from students government
+            </Typography>
+          </div>
 
-        <div className="carousel-wrapper">
+          {/* 4-cards-per-page flex row */}
           <div
-            className="carousel-track"
             style={{
-              transform: `translateX(-${currentSlide * 100}%)`,
+              display: "flex",
+              flexDirection: "row",
+              gap: "1rem",
+              alignItems: "stretch",
             }}
           >
-            {eventSlides.map((slide, slideIndex) => (
-              <div key={slideIndex} className="carousel-slide">
-                <div className="card-container">
-                  {slide.map((event, index) => (
-                    <div
-                      key={event.id}
-                      className={`card-item-${index}`}
-                      onClick={() => handleCardClick(event)}
-                      style={{ cursor: "pointer" }} // Make it clear it's clickable
-                    >
-                      <Card
-                        title={event.name}
-                        description={event.description}
-                        image={event.images[0]}
-                        date={event.date}
-                        variant="default"
-                      />
-                    </div>
-                  ))}
-                </div>
+            {currentPageEvents.map((event) => (
+              <div
+                key={event.id}
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  cursor: "pointer",
+                }}
+                onClick={() => handleCardClick(event)}
+              >
+                <Card
+                  title={event.name}
+                  description={event.description}
+                  image={event.images[0]}
+                  date={event.date}
+                  variant="default"
+                  style={{ flex: 1 }}
+                />
               </div>
             ))}
           </div>
+
           <div className="carousel-controls">
             <button
               className="event-button"
               type="button"
-              onClick={prevSlide}
-              aria-label="Previous slide"
-              title="Previous slide"
-              disabled={currentSlide === 0}
+              onClick={prevPage}
+              aria-label="Previous page"
+              title="Previous page"
+              disabled={currentPage === 0}
             >
               <ChevronLeft size={30} />
             </button>
             <button
               className="event-button"
               type="button"
-              onClick={nextSlide}
-              aria-label="next slide"
-              title="next slide"
-              disabled={currentSlide === eventSlides.length - 1}
+              onClick={nextPage}
+              aria-label="Next page"
+              title="Next page"
+              disabled={currentPage >= totalPages - 1}
             >
               <ChevronRight size={30} />
             </button>
           </div>
+
           <div className="dot-indicators">
-            {eventSlides.map((_, index) => (
+            {Array.from({ length: totalPages }).map((_, index) => (
               <button
                 key={index}
                 type="button"
-                aria-label={`Go to slide ${index + 1}`}
-                className={`dot ${index === currentSlide ? "active" : ""}`}
-                onClick={() => setCurrentSlide(index)}
+                aria-label={`Go to page ${index + 1}`}
+                className={`dot ${index === currentPage ? "active" : ""}`}
+                onClick={() => setCurrentPage(index)}
               />
             ))}
           </div>
@@ -126,8 +128,8 @@ export default function Events() {
           title={selectedEvent.name}
           description={selectedEvent.description}
           extraImage={selectedEvent.images}
-        ></Modal>
+        />
       )}
-    </div>
+    </>
   );
 }

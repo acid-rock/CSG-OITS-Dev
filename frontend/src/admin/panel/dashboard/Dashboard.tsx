@@ -2,6 +2,7 @@ import "./dashboard.css";
 import { useState, useEffect, useCallback } from "react";
 import Barcharts from "../../components/charts/bar-chart/Barchart";
 import Linechart from "../../components/charts/line-chart/Linechart";
+import PieChart from "../../components/charts/pie-chart/PieChart";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -49,6 +50,15 @@ const timeAgo = (iso: string): string => {
 const shortId = (uuid: string | null): string =>
   uuid ? uuid.substring(0, 8) + "…" : "—";
 
+// Returns the ISO week number for a given date
+function getISOWeek(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
 
@@ -59,6 +69,10 @@ const Dashboard = () => {
   const [recentLogs, setRecentLogs] = useState<AuditEntry[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
   const [logsError, setLogsError] = useState(false);
+
+  // Real weekly upload counts from documents API
+  const [weeklyUploads, setWeeklyUploads] = useState<{ label: string; count: number }[]>([]);
+  const [weeklyDataFallback, setWeeklyDataFallback] = useState(false);
 
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);
@@ -93,13 +107,55 @@ const Dashboard = () => {
     }
   }, []);
 
+  const fetchWeeklyUploads = useCallback(async () => {
+    try {
+      const { data } = await axios.get<{ createdAt: string }[]>(`${API_URL}/documents/`, {
+        withCredentials: true,
+      });
+      // Build last-8-weeks buckets
+      const now = new Date();
+      const weeks: { label: string; count: number; weekStart: Date }[] = [];
+      for (let i = 7; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i * 7);
+        weeks.push({ label: `Wk ${getISOWeek(d)}`, count: 0, weekStart: d });
+      }
+      data.forEach((doc) => {
+        const created = new Date(doc.createdAt);
+        const wk = getISOWeek(created);
+        const yr = created.getFullYear();
+        const match = weeks.find(
+          (w) => getISOWeek(w.weekStart) === wk && w.weekStart.getFullYear() === yr,
+        );
+        if (match) match.count++;
+      });
+      setWeeklyUploads(weeks.map((w) => ({ label: w.label, count: w.count })));
+      setWeeklyDataFallback(false);
+    } catch {
+      setWeeklyDataFallback(true);
+    }
+  }, []);
+
   useEffect(() => {
     fetchAnalytics();
     fetchRecentLogs();
-  }, [fetchAnalytics, fetchRecentLogs]);
+    fetchWeeklyUploads();
+  }, [fetchAnalytics, fetchRecentLogs, fetchWeeklyUploads]);
 
-  const barLabels = analytics?.uploads_by_month.map((m) => m.month) ?? [];
-  const barDatasets = analytics
+  // Bar chart — Document Uploads by week (real data)
+  const barLabels = weeklyUploads.length
+    ? weeklyUploads.map((w) => w.label)
+    : (analytics?.uploads_by_month.map((m) => m.month) ?? []);
+  const barDatasets = weeklyUploads.length
+    ? [
+        {
+          label: "Document Uploads",
+          data: weeklyUploads.map((w) => w.count),
+          borderColor: "rgb(51, 236, 236)",
+          backgroundColor: "rgba(17, 255, 255, 0.81)",
+        },
+      ]
+    : analytics
     ? [
         {
           label: "Documents",
@@ -107,27 +163,21 @@ const Dashboard = () => {
           borderColor: "rgb(51, 236, 236)",
           backgroundColor: "rgba(17, 255, 255, 0.81)",
         },
-        {
-          label: "Announcements",
-          data: analytics.uploads_by_month.map((m) => m.announcements),
-          borderColor: "rgb(255, 160, 50)",
-          backgroundColor: "rgba(255, 160, 50, 0.6)",
-        },
       ]
     : [];
 
-  const lineLabels = analytics?.views_by_week.map((w) => w.week) ?? [];
-  const lineDatasets = analytics
-    ? [
-        {
-          label: "Uploads",
-          data: analytics.views_by_week.map((w) => w.views),
-          borderColor: "rgba(171, 203, 233, 1)",
-          fill: true,
-          tension: 0.4,
-        },
-      ]
-    : [];
+  // Line chart — flat zeros (view tracking not yet implemented)
+  const placeholderWeeks = Array.from({ length: 8 }, (_, i) => `Wk ${i + 1}`);
+  const lineLabels = placeholderWeeks;
+  const lineDatasets = [
+    {
+      label: "Document Views",
+      data: Array(8).fill(0),
+      borderColor: "rgba(171, 203, 233, 1)",
+      fill: true,
+      tension: 0.4,
+    },
+  ];
 
   return (
     <div className="dashboard-container">
@@ -147,14 +197,32 @@ const Dashboard = () => {
       )}
 
       <div className="dashboard-content">
-        {/* Charts */}
-        <div className="graph-container">
+        {/* Charts — Bar (uploads) | Line (views placeholder) | Pie (storage) */}
+        <div
+          className="graph-container"
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1.5rem", width: "100%", alignItems: "start" }}
+        >
           {loading ? (
-            <p style={{ padding: "1rem" }}>Loading charts...</p>
+            <p style={{ padding: "1rem", gridColumn: "1/-1" }}>Loading charts...</p>
           ) : (
             <>
-              <Barcharts labels={barLabels} datasets={barDatasets} />
-              <Linechart labels={lineLabels} datasets={lineDatasets} />
+              <div style={{ minHeight: "360px", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+                <Barcharts labels={barLabels} datasets={barDatasets} />
+                {weeklyDataFallback && (
+                  <p style={{ fontSize: "0.75rem", color: "#f59e0b", textAlign: "center", marginTop: "0.25rem" }}>
+                    ⚠ Using sample data
+                  </p>
+                )}
+              </div>
+              <div style={{ minHeight: "360px", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+                <Linechart labels={lineLabels} datasets={lineDatasets} />
+                <p style={{ fontSize: "0.75rem", color: "#9ca3af", textAlign: "center", marginTop: "0.25rem" }}>
+                  View tracking coming soon
+                </p>
+              </div>
+              <div style={{ minHeight: "360px", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+                <PieChart />
+              </div>
             </>
           )}
         </div>
@@ -259,11 +327,13 @@ const Dashboard = () => {
               onClick={() => navigate("/admin?panel=auditlog")}
               style={{
                 background: "none",
-                border: "none",
-                cursor: "pointer",
+                border: "1px solid #3b82f6",
+                color: "#3b82f6",
+                borderRadius: "6px",
+                padding: "0.35rem 0.85rem",
                 fontSize: "0.8rem",
-                color: "#6b7280",
-                textDecoration: "underline",
+                cursor: "pointer",
+                fontWeight: 500,
               }}
             >
               View All Logs
