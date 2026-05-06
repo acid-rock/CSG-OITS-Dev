@@ -29,13 +29,15 @@ const CommitteesPanel = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [spinning, setSpinning] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setFetchError(null);
     try {
       const endpoint = tab === 'archived'
-        ? `${API_URL}/committees/archived`
+        ? `${API_URL}/committees?status=archived`
         : `${API_URL}/committees`;
       const { data: res } = await axios.get<CommitteeEntry[]>(endpoint, { withCredentials: true });
       setData(res);
@@ -70,17 +72,19 @@ const CommitteesPanel = () => {
     if (!editName.trim()) return;
     try {
       await axios.post(`${API_URL}/committees/edit`, { id, name: editName.trim() }, { withCredentials: true });
+      setData(prev => prev.map(c => c.id === id ? { ...c, name: editName.trim() } : c));
       setEditingId(null);
-      await fetchData();
     } catch (err: unknown) {
-      setFetchError(err instanceof Error ? err.message : 'Failed to update committee.');
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        ?? (err instanceof Error ? err.message : 'Failed to update committee.');
+      setFetchError(msg);
     }
   };
 
   const handleArchive = async (id: string) => {
     try {
       await axios.post(`${API_URL}/committees/archive`, { ids: [id] }, { withCredentials: true });
-      fetchData();
+      setData(prev => prev.filter(c => c.id !== id));
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
         ?? 'Failed to archive committee.';
@@ -90,7 +94,31 @@ const CommitteesPanel = () => {
 
   const handleRestore = async (id: string) => {
     await axios.post(`${API_URL}/committees/restore`, { ids: [id] }, { withCredentials: true });
+    setData(prev => prev.filter(c => c.id !== id));
     fetchData();
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    if (!window.confirm('Permanently delete this committee? This cannot be undone.')) return;
+    try {
+      await axios.delete(`${API_URL}/committees/delete`, { data: { ids: [id] }, withCredentials: true });
+      setData(prev => prev.filter(c => c.id !== id));
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        ?? 'Delete failed.';
+      setFetchError(msg);
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    if (!window.confirm(`Archive ${selectedIds.length} committee(s)?`)) return;
+    try {
+      await Promise.all(selectedIds.map(id =>
+        axios.post(`${API_URL}/committees/archive`, { ids: [id] }, { withCredentials: true })
+      ));
+      setData(prev => prev.filter(c => !selectedIds.includes(String(c.id))));
+      setSelectedIds([]);
+    } catch { setFetchError('Bulk archive failed.'); }
   };
 
   const handleRefresh = () => {
@@ -154,10 +182,44 @@ const CommitteesPanel = () => {
         </button>
       </div>
 
+      {selectedIds.length >= 1 && tab === 'active' && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '1.5rem',
+          padding: '0.625rem 1.25rem', background: '#f0f9ff',
+          border: '1px solid #bae6fd', borderRadius: '8px',
+          marginBottom: '1rem', width: '100%', boxSizing: 'border-box' as const,
+        }}>
+          <span style={{ fontSize: '0.875rem', color: '#0369a1', fontWeight: 600, minWidth: '120px' }}>
+            {selectedIds.length} item{selectedIds.length !== 1 ? 's' : ''} selected
+          </span>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button
+              onClick={handleBulkArchive}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.35rem',
+                color: '#d97706', background: 'none',
+                border: '1px solid #d97706', borderRadius: '6px',
+                padding: '0.35rem 0.875rem', fontSize: '0.8rem',
+                fontWeight: 500, cursor: 'pointer',
+              }}
+            >🗂 Archive</button>
+          </div>
+        </div>
+      )}
+
       <div className='announce-file-table'>
         <table>
           <thead>
             <tr className='announce-table-header-light'>
+              <th style={{ width: '40px', padding: '0.5rem' }}>
+                {tab === 'active' && (
+                  <input
+                    type='checkbox'
+                    checked={selectedIds.length === data.length && data.length > 0}
+                    onChange={e => setSelectedIds(e.target.checked ? data.map(c => String(c.id)) : [])}
+                  />
+                )}
+              </th>
               <th style={{ width: '60px' }}>ID</th>
               <th>Name</th>
               <th>Actions</th>
@@ -165,7 +227,21 @@ const CommitteesPanel = () => {
           </thead>
           <tbody>
             {data.map((entry) => (
-              <tr key={entry.id} className='announce-table-row'>
+              <tr key={entry.id} className='announce-table-row'
+                onMouseEnter={() => setHoveredRowId(String(entry.id))}
+                onMouseLeave={() => setHoveredRowId(null)}
+              >
+                <td style={{ padding: '0.5rem', verticalAlign: 'middle' }}>
+                  {tab === 'active' && (
+                    <input
+                      type='checkbox'
+                      checked={selectedIds.includes(String(entry.id))}
+                      onChange={e => setSelectedIds(prev =>
+                        e.target.checked ? [...prev, String(entry.id)] : prev.filter(id => id !== String(entry.id))
+                      )}
+                    />
+                  )}
+                </td>
                 <td>{entry.id}</td>
                 <td>
                   {editingId === entry.id ? (
@@ -181,56 +257,41 @@ const CommitteesPanel = () => {
                   )}
                 </td>
                 <td className='announce-file-btn'>
-                  <div className='announce-file-btn-inner'>
-                    {tab === 'active' ? (
-                      editingId === entry.id ? (
-                        <>
-                          <button
-                            className='announce-add-btn'
-                            style={{ padding: '0.2rem 0.75rem', fontSize: '0.8rem' }}
-                            onClick={() => handleEditSave(entry.id)}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className='btn btn-cancel'
-                            style={{ padding: '0.2rem 0.75rem', fontSize: '0.8rem' }}
-                            onClick={() => setEditingId(null)}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            title='Archive'
-                            onClick={() => handleArchive(entry.id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}
-                          >
+                  {tab === 'active' ? (
+                    editingId === entry.id ? (
+                      <div className='announce-file-btn-inner'>
+                        <button className='announce-add-btn' style={{ padding: '0.2rem 0.75rem', fontSize: '0.8rem' }} onClick={() => handleEditSave(entry.id)}>Save</button>
+                        <button className='btn btn-cancel' style={{ padding: '0.2rem 0.75rem', fontSize: '0.8rem' }} onClick={() => setEditingId(null)}>Cancel</button>
+                      </div>
+                    ) : (
+                      hoveredRowId === String(entry.id) && (
+                        <div className='announce-file-btn-inner'>
+                          <button title='Archive' onClick={() => handleArchive(entry.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
                             <Archive size={16} />
                           </button>
-                          <img
-                            src='/bin.png'
-                            alt='Delete'
-                            onClick={() => { setDeleteId(String(entry.id)); setIsModalOpen(true); }}
-                          />
-                          <img
-                            src='/edit.png'
-                            alt='Edit'
-                            onClick={() => { setEditingId(entry.id); setEditName(entry.name); }}
-                          />
-                        </>
+                          <img src='/bin.png' alt='Delete' onClick={() => { setDeleteId(String(entry.id)); setIsModalOpen(true); }} />
+                          <img src='/edit.png' alt='Edit' onClick={() => { setEditingId(entry.id); setEditName(entry.name); }} />
+                        </div>
                       )
-                    ) : (
-                      <button
-                        title='Restore'
-                        onClick={() => handleRestore(entry.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}
-                      >
-                        <ArchiveRestore size={16} /> Restore
-                      </button>
-                    )}
-                  </div>
+                    )
+                  ) : (
+                    <div className='announce-file-btn-inner'>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <button
+                          onClick={() => handleRestore(entry.id)}
+                          style={{ color: '#16a34a', background: 'none', border: '1px solid #16a34a', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                        >
+                          Restore
+                        </button>
+                        <button
+                          onClick={() => handlePermanentDelete(entry.id)}
+                          style={{ color: '#dc2626', background: 'none', border: '1px solid #dc2626', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

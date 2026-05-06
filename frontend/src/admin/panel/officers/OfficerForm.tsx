@@ -90,9 +90,14 @@ const OfficerForm = ({
       onSuccess?.();
       setOpen(false);
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : 'Failed to save officer.';
-      setError(msg);
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        ?? (err instanceof Error ? err.message : 'Failed to save officer.');
+      if (status === 409) {
+        setError(msg);
+      } else {
+        setError('Failed to add officer. Please try again.');
+      }
     }
   };
 
@@ -173,15 +178,22 @@ const OfficerForm = ({
           </div>
 
           <div className='form-group'>
-            {/* term is stored as year_serving — no schema change needed for officers */}
-            <label htmlFor='year_serving'>Term (S.Y.)</label>
+            <label htmlFor='year_serving'>
+              Term (S.Y.){type === 'former' ? ' *' : ''}
+            </label>
             <input
               type='text'
               id='year_serving'
               value={yearServing}
               onChange={(e) => setYearServing(e.target.value)}
-              placeholder='e.g. S.Y. 2025-2026'
+              placeholder='e.g. 2025-2026'
+              required={type === 'former'}
             />
+            {type === 'former' && (
+              <span style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.2rem' }}>
+                Required for former officers — used to group in archived view.
+              </span>
+            )}
           </div>
 
           <div className='form-group'>

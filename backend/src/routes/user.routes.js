@@ -177,9 +177,7 @@ router.get(
   "/whitelist",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const token = req.token;
-    const userClient = createUserClient(token);
-    const { data, error } = await userClient
+    const { data, error } = await supabase
       .from("whitelist")
       .select("*")
       .order("created_at", { ascending: false });
@@ -198,14 +196,12 @@ router.post(
       throw new ApiError(400, "Provide at least an email or student ID.");
     }
 
-    const token = req.token;
-    const userClient = createUserClient(token);
-    const { error } = await userClient.from("whitelist").insert({
+    const { error } = await supabase.from("whitelist").insert({
       email: email || null,
       full_name: full_name || null,
       student_id: student_id || null,
     });
-    if (error) throw new ApiError(500, error.message);
+    if (error) throw new ApiError(500, "Whitelist insert failed: " + error.message);
     return res.sendStatus(200);
   }),
 );
@@ -216,9 +212,7 @@ router.delete(
   asyncHandler(async (req, res) => {
     const { id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
-    const token = req.token;
-    const userClient = createUserClient(token);
-    const { error } = await userClient.from("whitelist").delete().eq("id", id);
+    const { error } = await supabase.from("whitelist").delete().eq("id", id);
     if (error) throw new ApiError(500, error.message);
     return res.sendStatus(200);
   }),

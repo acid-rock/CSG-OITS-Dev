@@ -96,49 +96,63 @@ router.post(
     if (!position) throw new ApiError(400, "position is required.");
     if (!type) throw new ApiError(400, "type is required.");
 
-    const token = req.token;
-    const userSupabase = createUserClient(token);
+    const normalizedType = type?.toLowerCase();
+    const isFormer = normalizedType === "former";
 
-    const { data: inserted, error: insertError } = await userSupabase
+    const insertPayload = {
+      full_name,
+      position,
+      type: normalizedType,
+      socials: socials ?? null,
+      year_serving: year_serving ?? null,
+      student_number: student_number ?? null,
+      committee: committee || null,
+      is_committee_official:
+        is_committee_official === "true" || is_committee_official === true,
+      status: isFormer ? "archived" : "active",
+      term_year: isFormer ? (year_serving ?? null) : null,
+      avatar: null,
+    };
+
+    console.log("[ADD OFFICER] payload:", JSON.stringify(insertPayload));
+
+    const { data, error: insertError } = await supabase
       .from("officers")
-      .insert({
-        full_name,
-        position,
-        type,
-        socials: socials || null,
-        year_serving: year_serving || null,
-        student_number: student_number || null,
-        committee: committee || null,
-        is_committee_official:
-          is_committee_official === "true" || is_committee_official === true,
-        avatar: null,
-      })
-      .select();
+      .insert(insertPayload)
+      .select()
+      .single();
 
-    if (insertError) throw new Error(insertError.message);
+    console.log("[ADD OFFICER] result:", JSON.stringify(data));
+    console.log("[ADD OFFICER] error:", JSON.stringify(insertError));
 
-    const officerId = inserted[0].id;
-
-    if (req.file) {
-      const ext = req.file.mimetype.split("/")[1] || "jpg";
-      const avatarPath = `${officerId}.${ext}`;
-
-      const { error: uploadError } = await userSupabase.storage
-        .from("officers")
-        .upload(avatarPath, req.file.buffer, {
-          contentType: req.file.mimetype,
-          upsert: true,
-        });
-      if (uploadError) throw new Error(uploadError.message);
-
-      const { error: updateError } = await userSupabase
-        .from("officers")
-        .update({ avatar: avatarPath })
-        .eq("id", officerId);
-      if (updateError) throw new Error(updateError.message);
+    if (insertError) {
+      if (insertError.code === "23505") {
+        throw new ApiError(409, "An officer with this name and term already exists.");
+      }
+      throw new ApiError(500, "Failed to add officer: " + insertError.message);
     }
 
-    return res.sendStatus(200);
+    // Avatar upload — failure must NOT cause the officer add to fail
+    let avatarPath = null;
+    if (req.file) {
+      try {
+        const ext = req.file.originalname?.split(".").pop() || req.file.mimetype.split("/")[1] || "jpg";
+        const fileName = `${data.id}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("officers")
+          .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+        if (!uploadError) {
+          avatarPath = fileName;
+          await supabase.from("officers").update({ avatar: avatarPath }).eq("id", data.id);
+        } else {
+          console.error("[ADD OFFICER] Avatar upload failed:", uploadError.message);
+        }
+      } catch (avatarEx) {
+        console.error("[ADD OFFICER] Avatar exception:", avatarEx.message);
+      }
+    }
+
+    return res.status(201).json({ ...data, avatar: avatarPath });
   }),
 );
 
@@ -210,30 +224,24 @@ router.delete(
   "/delete",
   requireAuth,
   asyncHandler(async (req, res) => {
-    if (!Array.isArray(req.body) || req.body.length === 0) {
-      throw new ApiError(400, "Array of officer ids required.");
+    const ids = Array.isArray(req.body) ? req.body : req.body?.ids;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids required");
     }
 
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-
-    for (const id of req.body) {
-      const { data: officer } = await userSupabase
+    for (const id of ids) {
+      const { data: officer } = await supabase
         .from("officers")
         .select("avatar")
         .eq("id", id)
         .single();
-
       if (officer?.avatar) {
-        await userSupabase.storage.from("officers").remove([officer.avatar]);
+        await supabase.storage.from("officers").remove([officer.avatar]);
       }
-
-      const { error } = await userSupabase
-        .from("officers")
-        .delete()
-        .eq("id", id);
-      if (error) throw new Error(error.message);
     }
+
+    const { error } = await supabase.from("officers").delete().in("id", ids);
+    if (error) throw new ApiError(500, "Delete failed: " + error.message);
 
     return res.sendStatus(200);
   }),

@@ -14,10 +14,11 @@ const router = Router();
 router.get(
   "/",
   asyncHandler(async (req, res) => {
+    const status = req.query.status ?? "active";
     const { data, error } = await anonSupabase
       .from("committees")
       .select("*")
-      .eq("is_archived", false)
+      .eq("status", status)
       .order("id", { ascending: true });
     if (error) throw new Error(error.message);
     return res.status(200).json(data);
@@ -52,15 +53,14 @@ router.post(
     const { id, name } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
+    const intId = parseInt(id, 10);
+    if (isNaN(intId)) throw new ApiError(400, "Invalid committee ID");
 
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-
-    const { error } = await userSupabase
+    const { error } = await supabase
       .from("committees")
       .update({ name: name.trim() })
-      .eq("id", id);
-    if (error) throw new Error(error.message);
+      .eq("id", intId);
+    if (error) throw new ApiError(500, "Update failed: " + error.message);
 
     return res.sendStatus(200);
   }),
@@ -70,29 +70,13 @@ router.delete(
   "/delete",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const { id } = req.body;
-    if (!id) throw new ApiError(400, "id is required.");
-
-    // Guard: refuse if any officer is assigned to this committee
-    const { count, error: memberError } = await supabase
-      .from("officers")
-      .select("*", { count: "exact", head: true })
-      .eq("committee", id);
-
-    if (memberError) throw new Error(memberError.message);
-    if (count > 0) {
-      throw new ApiError(400, "Cannot delete a committee that has members.");
-    }
-
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-
-    const { error } = await userSupabase
-      .from("committees")
-      .delete()
-      .eq("id", id);
-    if (error) throw new Error(error.message);
-
+    const ids = Array.isArray(req.body) ? req.body : req.body?.ids;
+    if (!Array.isArray(ids) || ids.length === 0)
+      throw new ApiError(400, "ids must be a non-empty array");
+    const intIds = ids.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
+    if (intIds.length === 0) throw new ApiError(400, "Invalid committee IDs");
+    const { error } = await supabase.from("committees").delete().in("id", intIds);
+    if (error) throw new ApiError(500, "Delete failed: " + error.message);
     return res.sendStatus(200);
   }),
 );
@@ -123,30 +107,14 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
+    const intIds = ids.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
+    if (intIds.length === 0) throw new ApiError(400, "Invalid committee IDs");
 
-    // Guard: reject if any non-archived officer is still assigned to one of these committees
-    for (const id of ids) {
-      const { count, error: memberError } = await supabase
-        .from("officers")
-        .select("*", { count: "exact", head: true })
-        .eq("committee", id)
-        .eq("is_archived", false);
-      if (memberError) throw new Error(memberError.message);
-      if (count > 0) {
-        throw new ApiError(
-          400,
-          "This committee still has active members. Archive or reassign them first.",
-        );
-      }
-    }
-
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-    const { error } = await userSupabase
+    const { error } = await supabase
       .from("committees")
-      .update({ is_archived: true, archived_at: new Date().toISOString() })
-      .in("id", ids);
-    if (error) throw new Error(error.message);
+      .update({ status: "archived" })
+      .in("id", intIds);
+    if (error) throw new ApiError(500, "Archive failed: " + error.message);
     return res.sendStatus(200);
   }),
 );
@@ -159,13 +127,13 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-    const { error } = await userSupabase
+    const intIds = ids.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
+    if (intIds.length === 0) throw new ApiError(400, "Invalid committee IDs");
+    const { error } = await supabase
       .from("committees")
-      .update({ is_archived: false, archived_at: null })
-      .in("id", ids);
-    if (error) throw new Error(error.message);
+      .update({ status: "active" })
+      .in("id", intIds);
+    if (error) throw new ApiError(500, "Restore failed: " + error.message);
     return res.sendStatus(200);
   }),
 );

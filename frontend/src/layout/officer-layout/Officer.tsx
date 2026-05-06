@@ -58,9 +58,9 @@ export default function OfficerSection() {
                 Executive Officers
               </span>
             </div>
-            <div className="officer-grid">
-              {otherExecs.slice(0, 7).map((o: Officer) => (
-                <div key={o.id} className="office-card-container">
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1rem", width: "100%" }}>
+              {otherExecs.map((o: Officer) => (
+                <div key={o.id} className="office-card-container" style={{ width: "160px", minWidth: "160px", maxWidth: "160px" }}>
                   <OfficerCard
                     id={o.full_name}
                     title={Array.isArray(o.position) ? o.position[0] : o.position}
@@ -84,9 +84,9 @@ export default function OfficerSection() {
                 Board Members
               </span>
             </div>
-            <div className="board-member-grid">
-              {board.slice(0, 10).map((b: Officer) => (
-                <div key={b.id} className="office-card-container">
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1rem", width: "100%" }}>
+              {board.map((b: Officer) => (
+                <div key={b.id} className="office-card-container" style={{ width: "160px", minWidth: "160px", maxWidth: "160px" }}>
                   <OfficerCard
                     id={b.full_name}
                     title={Array.isArray(b.position) ? b.position[0] : b.position}
@@ -109,9 +109,9 @@ export default function OfficerSection() {
                 Advisers
               </span>
             </div>
-            <div className="adviser-grid">
-              {advisers.slice(0, 2).map((a: Officer) => (
-                <div key={a.id} className="office-card-container">
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1rem", width: "100%" }}>
+              {advisers.map((a: Officer) => (
+                <div key={a.id} className="office-card-container" style={{ width: "160px", minWidth: "160px", maxWidth: "160px" }}>
                   <OfficerCard
                     id={a.full_name}
                     title={Array.isArray(a.position) ? a.position[0] : a.position}

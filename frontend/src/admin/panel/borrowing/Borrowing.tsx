@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import { Trash2 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -9,6 +10,7 @@ interface InventoryItem {
   quantity: number;
   max_quantity: number;
   is_available: boolean;
+  image?: string | null;
 }
 
 interface EquipmentItem {
@@ -67,18 +69,36 @@ interface InventoryFormProps {
 const InventoryForm = ({ initial, onSuccess, onCancel }: InventoryFormProps) => {
   const [name, setName] = useState(initial?.name ?? '');
   const [maxQty, setMaxQty] = useState(String(initial?.max_quantity ?? ''));
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(initial?.image ?? null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('max_quantity', maxQty);
+      if (imageFile) formData.append('image', imageFile);
+
       if (initial) {
-        await axios.post(`${API_URL}/borrowing/inventory/edit`, { id: initial.id, name, max_quantity: maxQty }, { withCredentials: true });
+        formData.append('id', initial.id);
+        await axios.post(`${API_URL}/borrowing/inventory/edit`, formData, { withCredentials: true });
       } else {
-        await axios.post(`${API_URL}/borrowing/inventory/add`, { name, max_quantity: maxQty }, { withCredentials: true });
+        await axios.post(`${API_URL}/borrowing/inventory/add`, formData, { withCredentials: true });
       }
       onSuccess();
     } catch (err: unknown) {
@@ -90,13 +110,39 @@ const InventoryForm = ({ initial, onSuccess, onCancel }: InventoryFormProps) => 
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 400, padding: '1rem', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: '1rem' }}>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 420, padding: '1rem', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: '1rem' }}>
       <strong>{initial ? 'Edit Equipment' : 'Add Equipment'}</strong>
       {initial && (
         <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: 0 }}>
           Note: changing total units does not affect currently borrowed quantities.
         </p>
       )}
+
+      {/* Image upload */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <label style={{ fontSize: '0.85rem', fontWeight: 500 }}>Equipment Image</label>
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            width: 120, height: 120, border: '2px dashed #d1d5db', borderRadius: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', overflow: 'hidden', background: '#fff', flexShrink: 0,
+          }}
+        >
+          {imagePreview
+            ? <img src={imagePreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <span style={{ fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center', padding: '0.5rem' }}>Click to upload</span>
+          }
+        </div>
+        <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageChange} />
+        {imagePreview && (
+          <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }}
+            style={{ fontSize: '0.75rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
+            Remove image
+          </button>
+        )}
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
         <label style={{ fontSize: '0.85rem', fontWeight: 500 }}>Name *</label>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} required
@@ -217,6 +263,17 @@ const BorrowingPanel = () => {
     }
   };
 
+  const handleDeleteRequest = async (id: string) => {
+    if (!window.confirm('Delete this borrow request? This cannot be undone.')) return;
+    try {
+      await axios.delete(`${API_URL}/borrowing/requests/delete`, { data: { ids: [id] }, withCredentials: true });
+      setRequests(prev => prev.filter(r => r.id !== id));
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to delete.';
+      alert(msg);
+    }
+  };
+
   const handleDeleteInventory = async (id: string) => {
     try {
       await axios.delete(`${API_URL}/borrowing/inventory/delete`, { data: { id }, withCredentials: true });
@@ -314,6 +371,13 @@ const BorrowingPanel = () => {
                           </td>
                           <td className="announce-file-btn" onClick={(e) => e.stopPropagation()}>
                             <div className="announce-file-btn-inner">
+                              <button
+                                title='Delete request'
+                                onClick={() => handleDeleteRequest(r.id)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#dc2626', display: 'flex', alignItems: 'center' }}
+                              >
+                                <Trash2 size={15} />
+                              </button>
                               {r.status === 'pending' && (
                                 <>
                                   <button
@@ -413,6 +477,7 @@ const BorrowingPanel = () => {
               <table>
                 <thead>
                   <tr className="announce-table-header-light">
+                    <th style={{ width: 60 }}>Image</th>
                     <th>Equipment Name</th>
                     <th>Available</th>
                     <th>Total</th>
@@ -423,6 +488,12 @@ const BorrowingPanel = () => {
                 <tbody>
                   {inventory.map((item) => (
                     <tr key={item.id} className="announce-table-row">
+                      <td>
+                        {item.image
+                          ? <img src={item.image} alt={item.name} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }} />
+                          : <div style={{ width: 40, height: 40, background: '#f3f4f6', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', color: '#9ca3af' }}>No img</div>
+                        }
+                      </td>
                       <td>{item.name}</td>
                       <td>{item.quantity}</td>
                       <td>{item.max_quantity}</td>
@@ -456,7 +527,7 @@ const BorrowingPanel = () => {
                     </tr>
                   ))}
                   {inventory.length === 0 && (
-                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>No equipment found.</td></tr>
+                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>No equipment found.</td></tr>
                   )}
                 </tbody>
               </table>

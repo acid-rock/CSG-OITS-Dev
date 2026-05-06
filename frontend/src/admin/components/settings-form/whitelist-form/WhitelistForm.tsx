@@ -42,10 +42,13 @@ const WhitelistForm = ({ close, onSuccess }: WhitelistProps) => {
       onSuccess?.();
       close();
     } catch (err: unknown) {
-      const msg =
+      const raw =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'Failed to add whitelist entry.';
-      setError(msg);
+        (err instanceof Error ? err.message : '') ?? '';
+      const friendly = raw.includes('row-level security')
+        ? 'Permission denied. Contact your system administrator.'
+        : raw || 'Failed to add whitelist entry.';
+      setError(friendly);
     } finally {
       setSubmitting(false);
     }

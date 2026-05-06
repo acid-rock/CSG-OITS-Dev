@@ -5,6 +5,7 @@ import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
 import OfficerForm from './OfficerForm';
 import { filterByDate } from '../../utils/filterByDate';
 import { Archive, ArchiveRestore } from 'lucide-react';
+import Actionbar from '../../components/action-bar/Actionbar';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -66,6 +67,7 @@ const OfficersPanel = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
+  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -126,6 +128,18 @@ const OfficersPanel = () => {
     fetchData();
   };
 
+  const handleDelete = async (officerId: string, name: string) => {
+    if (!window.confirm(`Permanently delete ${name}? This cannot be undone.`)) return;
+    try {
+      await axios.delete(`${API_URL}/officers/delete`, { data: { ids: [officerId] }, withCredentials: true });
+      setData(prev => prev.filter(o => o.id !== officerId));
+      setActive(prev => prev.filter(a => a !== officerId));
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Delete failed.';
+      setFetchError(msg);
+    }
+  };
+
   const tabStyle = (t: Tab) => ({
     padding: '0.35rem 1rem',
     border: 'none',
@@ -181,6 +195,10 @@ const OfficersPanel = () => {
         </div>
       </div>
 
+      {tab === 'active' && active.length >= 1 && (
+        <Actionbar items={active.length} selectedIds={active} source='officer' onSuccess={fetchData} />
+      )}
+
       <div className='announce-file-table'>
         {tab === 'active' ? (
           <table>
@@ -211,7 +229,10 @@ const OfficersPanel = () => {
                   return 0;
                 })
                 .map((entry, idx) => (
-                  <tr key={idx} className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}>
+                  <tr key={idx} className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}
+                    onMouseEnter={() => setHoveredRowId(entry.id)}
+                    onMouseLeave={() => setHoveredRowId(null)}
+                  >
                     <td>
                       <input className='checkbox' type='checkbox'
                         checked={active.includes(entry.id)} onChange={() => handleActive(entry.id)}
@@ -220,9 +241,12 @@ const OfficersPanel = () => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {entry.avatar && (
-                          <img src={entry.avatar} alt={entry.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
-                        )}
+                        <img
+                          src={entry.avatar || '/CSG_logo.svg'}
+                          alt={entry.full_name}
+                          style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }}
+                          onError={(e) => { e.currentTarget.src = '/CSG_logo.svg'; }}
+                        />
                         {entry.full_name}
                       </div>
                     </td>
@@ -231,14 +255,31 @@ const OfficersPanel = () => {
                     <td>{committeeName(entry.committee)}</td>
                     <td>{entry.year_serving ?? '—'}</td>
                     <td className='announce-file-btn'>
+                      {hoveredRowId === entry.id && (
                       <div className='announce-file-btn-inner'>
                         <button title='Archive' onClick={() => handleArchive(entry.id)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
                           <Archive size={16} />
                         </button>
-                        <img src='/bin.png' alt='Delete' onClick={() => { setDeleteId(entry.id); setIsModalOpen(true); }} />
+                        <img
+                          src='/bin.png'
+                          alt='Move to bin'
+                          title='Move to bin'
+                          style={{ cursor: 'pointer' }}
+                          onClick={async () => {
+                            if (!window.confirm('Move this item to the bin?')) return;
+                            try {
+                              await axios.post(`${API_URL}/officers/archive`, { ids: [entry.id], term_year: entry.year_serving ?? '2025-2026' }, { withCredentials: true });
+                              setData(prev => prev.filter(o => o.id !== entry.id));
+                            } catch (err: unknown) {
+                              const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to move to bin.';
+                              setFetchError(msg);
+                            }
+                          }}
+                        />
                         <img src='/edit.png' alt='Edit' onClick={() => { setEditId(entry.id); setEditData(entry); setOpen(true); }} />
                       </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -284,9 +325,12 @@ const OfficersPanel = () => {
                           </td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              {entry.avatar && (
-                                <img src={entry.avatar} alt={entry.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
-                              )}
+                              <img
+                                src={entry.avatar || '/CSG_logo.svg'}
+                                alt={entry.full_name}
+                                style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }}
+                                onError={(e) => { e.currentTarget.src = '/CSG_logo.svg'; }}
+                              />
                               {entry.full_name}
                             </div>
                           </td>
@@ -294,11 +338,19 @@ const OfficersPanel = () => {
                           <td style={{ textTransform: 'capitalize' }}>{entry.type}</td>
                           <td>{committeeName(entry.committee)}</td>
                           <td>{entry.year_serving ?? '—'}</td>
-                          <td className='announce-file-btn'>
-                            <div className='announce-file-btn-inner'>
-                              <button title='Restore' onClick={() => handleRestore(entry.id)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}>
-                                <ArchiveRestore size={16} /> Restore
+                          <td style={{ verticalAlign: 'middle', padding: '0.5rem 1rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <button
+                                onClick={() => handleRestore(entry.id)}
+                                style={{ color: '#16a34a', background: 'none', border: '1px solid #16a34a', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                              >
+                                Restore
+                              </button>
+                              <button
+                                onClick={() => handleDelete(entry.id, entry.full_name)}
+                                style={{ color: '#dc2626', background: 'none', border: '1px solid #dc2626', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                              >
+                                Delete
                               </button>
                             </div>
                           </td>

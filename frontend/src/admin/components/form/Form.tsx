@@ -160,7 +160,11 @@ const Form = ({
   const handleEventImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []).slice(0, 3);
     setEventImages(files);
-    if (files.length > 0) setPreview(files[0].name);
+    if (files.length > 0) {
+      // Revoke old blob URL to avoid memory leak
+      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
+      setPreview(URL.createObjectURL(files[0]));
+    }
   };
 
   const handleImageClick = () => {
@@ -297,56 +301,52 @@ const Form = ({
                 ? "Photos (up to 3)"
                 : "File"}
           </label>
-          {!id ? (
-            <div
-              className={`image-preview${preview ? " has-image" : ""}`}
-              id="imagePreview"
-              onClick={handleImageClick}
-            >
-              {!preview ? (
-                <div className="image-placeholder">
-                  <div className="upload-icon">📁</div>
-                  <div className="upload-text">
-                    <strong>Click to upload</strong>
-                    <br />
-                    {forType === "announcement"
-                      ? "PNG, JPG, JPEG"
-                      : forType === "event"
-                        ? "PNG, JPG (up to 3 images)"
-                        : "PDF files"}
-                  </div>
+          <div
+            className={`image-preview${preview ? " has-image" : ""}`}
+            id="imagePreview"
+            onClick={handleImageClick}
+          >
+            {!preview ? (
+              <div className="image-placeholder">
+                <div className="upload-icon">📁</div>
+                <div className="upload-text">
+                  <strong>Click to upload</strong>
+                  <br />
+                  {forType === "announcement"
+                    ? "PNG, JPG, JPEG"
+                    : forType === "event"
+                      ? "PNG, JPG (up to 3 images)"
+                      : "PDF files"}
                 </div>
-              ) : preview?.endsWith(".pdf") ? (
-                <div className="pdf-preview">
-                  <div className="upload-icon">📄</div>
-                  <div className="upload-text">{preview}</div>
-                  {forType === "document" && (
-                    <>
-                      {selectedBoxes.length > 0 && (
-                        <div className="pdf-selected-count">
-                          ✓ {selectedBoxes.length} area(s) selected
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        className="btn btn-edit-selections"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowPdfSelector(true);
-                        }}
-                      >
-                        Edit selections
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <img id="previewImage" alt="Preview" src={preview} />
-              )}
-            </div>
-          ) : (
-            <p>Preview not available.</p>
-          )}
+              </div>
+            ) : preview?.endsWith(".pdf") ? (
+              <div className="pdf-preview">
+                <div className="upload-icon">📄</div>
+                <div className="upload-text">{preview}</div>
+                {forType === "document" && (
+                  <>
+                    {selectedBoxes.length > 0 && (
+                      <div className="pdf-selected-count">
+                        ✓ {selectedBoxes.length} area(s) selected
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-edit-selections"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPdfSelector(true);
+                      }}
+                    >
+                      Edit selections
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <img id="previewImage" alt="Preview" src={preview} />
+            )}
+          </div>
 
           {/* Event edit mode: 3 individual replacement slots */}
           {forType === "event" && id ? (

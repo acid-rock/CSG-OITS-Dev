@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { anonSupabase, createUserClient } from "../lib/supabaseClient.js";
+import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
@@ -61,7 +61,7 @@ router.get(
       ),
     );
 
-    const { data, error } = await table.select().eq("is_archived", false);
+    const { data, error } = await table.select().eq("is_archived", false).is("deleted_at", null);
     if (error) throw new Error(error.message);
 
     const payload = data.map((d) => {
@@ -213,11 +213,11 @@ router.get(
       ),
     );
 
-    const { data, error } = await userSupabase
+    const { data, error } = await supabase
       .from("events")
       .select()
-      .eq("is_archived", true)
-      .order("archived_at", { ascending: false });
+      .not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
     if (error) throw new Error(error.message);
 
     const payload = data.map((d) => ({
@@ -244,9 +244,10 @@ router.post(
     }
     const token = req.token;
     const userSupabase = createUserClient(token);
+    const now = new Date().toISOString();
     const { error } = await userSupabase
       .from("events")
-      .update({ is_archived: true, archived_at: new Date().toISOString() })
+      .update({ is_archived: true, archived_at: now, deleted_at: now })
       .in("id", ids);
     if (error) throw new Error(error.message);
     return res.sendStatus(200);
@@ -261,13 +262,11 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-    const { error } = await userSupabase
+    const { error } = await supabase
       .from("events")
-      .update({ is_archived: false, archived_at: null })
+      .update({ is_archived: false, archived_at: null, deleted_at: null })
       .in("id", ids);
-    if (error) throw new Error(error.message);
+    if (error) throw new ApiError(500, "Restore failed: " + error.message);
     return res.sendStatus(200);
   }),
 );

@@ -75,6 +75,7 @@ const Events = () => {
   const [filter, setFilter] = useState<string>('');
   const [sort, setSort] = useState<string>('');
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
+  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -111,9 +112,30 @@ const Events = () => {
     fetchData();
   };
 
+  const handleSoftDelete = async (id: string) => {
+    if (!window.confirm('Move this item to the bin?')) return;
+    try {
+      await axios.post(`${API_URL}/events/archive`, { ids: [id] }, { withCredentials: true });
+      setData(prev => prev.filter(item => item.id !== id));
+    } catch (err: unknown) {
+      setFetchError('Failed to move to bin: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? (err instanceof Error ? err.message : 'Unknown')));
+    }
+  };
+
   const handleRestore = async (entryId: string) => {
     await axios.post(`${API_URL}/events/restore`, { ids: [entryId] }, { withCredentials: true });
+    setData(prev => prev.filter(e => e.id !== entryId));
     fetchData();
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    if (!window.confirm('Permanently delete this item? This cannot be undone.')) return;
+    try {
+      await axios.delete(`${API_URL}/events/delete`, { data: { id }, withCredentials: true });
+      setData((prev) => prev.filter((item) => item.id !== id));
+    } catch (err: unknown) {
+      setFetchError('Delete failed: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? (err instanceof Error ? err.message : 'Unknown')));
+    }
   };
 
   const tabStyle = (t: Tab) => ({
@@ -171,7 +193,7 @@ const Events = () => {
         </div>
       </div>
 
-      {tab === 'active' && active.length >= 3 && (
+      {tab === 'active' && active.length >= 1 && (
         <Actionbar items={active.length} selectedIds={active} source='event' onSuccess={fetchData} />
       )}
 
@@ -212,7 +234,10 @@ const Events = () => {
                   return 0;
                 })
                 .map((entry, idx) => (
-                  <tr key={idx} className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}>
+                  <tr key={idx} className={`announce-table-row ${active.includes(entry.id) ? 'announce-active' : ''}`}
+                    onMouseEnter={() => setHoveredRowId(entry.id)}
+                    onMouseLeave={() => setHoveredRowId(null)}
+                  >
                     <td>
                       <input className='checkbox' type='checkbox' title={`Select ${entry.name}`}
                         checked={active.includes(entry.id)} onChange={() => handleActive(entry.id)}
@@ -227,12 +252,13 @@ const Events = () => {
                     <td>{entry.description}</td>
                     <td>{formatDate(entry.date)}</td>
                     <td className='announce-file-btn'>
+                      {hoveredRowId === entry.id && (
                       <div className='announce-file-btn-inner'>
                         <button title='Archive' onClick={() => handleArchive(entry.id)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
                           <Archive size={16} />
                         </button>
-                        <img src='/bin.png' alt='Delete' onClick={() => { setId(entry.id); setIsModalOpen(true); }} />
+                        <img src='/bin.png' alt='Move to bin' title='Move to bin' onClick={() => handleSoftDelete(entry.id)} style={{ cursor: 'pointer' }} />
                         <img src='/edit.png' alt='Edit' onClick={() => {
                           setId(entry.id);
                           setEditTitle(entry.name);
@@ -242,6 +268,7 @@ const Events = () => {
                           setOpen(true);
                         }} />
                       </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -299,11 +326,19 @@ const Events = () => {
                           <td>{entry.name}</td>
                           <td>{entry.description}</td>
                           <td>{formatDate(entry.date)}</td>
-                          <td className='announce-file-btn'>
-                            <div className='announce-file-btn-inner'>
-                              <button title='Restore' onClick={() => handleRestore(entry.id)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}>
-                                <ArchiveRestore size={16} /> Restore
+                          <td style={{ verticalAlign: 'middle', padding: '0.5rem 1rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <button
+                                onClick={() => handleRestore(entry.id)}
+                                style={{ color: '#16a34a', background: 'none', border: '1px solid #16a34a', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                              >
+                                Restore
+                              </button>
+                              <button
+                                onClick={() => handlePermanentDelete(entry.id)}
+                                style={{ color: '#dc2626', background: 'none', border: '1px solid #dc2626', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                              >
+                                Delete
                               </button>
                             </div>
                           </td>

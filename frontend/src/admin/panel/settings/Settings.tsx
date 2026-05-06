@@ -3,20 +3,10 @@ import './settings.css';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import SettingsForm from '../../components/settings-form/general-form/SettingsForm';
-import WhitelistForm from '../../components/settings-form/whitelist-form/WhitelistForm';
-import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
 import ChangelogModal from '../../components/modals/changelogModal/ChangelogModal';
 import PasswordForm from '../../components/settings-form/password-form/PasswordForm';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
-
-interface WhitelistEntry {
-  id: string;
-  full_name?: string | null;
-  email?: string | null;
-  student_id?: string | null;
-  created_at: string;
-}
 
 interface AdminAccount {
   id: string;
@@ -26,8 +16,6 @@ interface AdminAccount {
 }
 
 const Settings = () => {
-  const [spinning, setSpinning] = useState(false);
-
   // Admin accounts list
   const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>([]);
   const [adminLoading, setAdminLoading] = useState(true);
@@ -35,30 +23,9 @@ const Settings = () => {
 
   const [pauseModal, setPauseModal] = useState(false);
   const [editForm, setEditForm] = useState(false);
-  const [whitelistForm, setWhitelistForm] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   const [pause, setPause] = useState(false);
-
-  // Real whitelist data
-  const [whitelist, setWhitelist] = useState<WhitelistEntry[]>([]);
-  const [whitelistLoading, setWhitelistLoading] = useState(true);
-  const [whitelistError, setWhitelistError] = useState<string | null>(null);
-
-  const fetchWhitelist = useCallback(async () => {
-    setWhitelistLoading(true);
-    setWhitelistError(null);
-    try {
-      const { data } = await axios.get(`${API_URL}/user/whitelist`, { withCredentials: true });
-      setWhitelist(data);
-    } catch {
-      setWhitelistError('Failed to load whitelist.');
-    } finally {
-      setWhitelistLoading(false);
-    }
-  }, []);
 
   const fetchAdminAccounts = useCallback(async () => {
     setAdminLoading(true);
@@ -77,19 +44,8 @@ const Settings = () => {
   }, []);
 
   useEffect(() => {
-    fetchWhitelist();
     fetchAdminAccounts();
-  }, [fetchWhitelist, fetchAdminAccounts]);
-
-  const handleRefresh = () => {
-    setSpinning(true);
-    fetchWhitelist().finally(() => setTimeout(() => setSpinning(false), 600));
-  };
-
-  const handleRemoveClick = (id: string) => {
-    setDeleteId(id);
-    setDeleteModal(true);
-  };
+  }, [fetchAdminAccounts]);
 
   return (
     <div className='settings-container'>
@@ -138,81 +94,6 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* ── Whitelist ── */}
-        <div className='addmin-whitelist-container'>
-          <div className='whitelist-header'>
-            <span>Whitelist</span>
-            <div className='whitelist-toolbar-actions'>
-              <button
-                className='settings-refresh-btn'
-                title='Refresh'
-                onClick={handleRefresh}
-              >
-                <img
-                  src='/refresh.png'
-                  alt='refresh'
-                  className={spinning ? 'settings-spin refresh-img' : 'refresh-img'}
-                />
-              </button>
-              <button
-                type='button'
-                className='whitelist-add-btn'
-                onClick={() => setWhitelistForm(!whitelistForm)}
-              >
-                Add Whitelist
-              </button>
-            </div>
-          </div>
-
-          {whitelistError && (
-            <p style={{ color: '#dc2626', fontSize: '0.85rem', padding: '0.5rem 0' }}>{whitelistError}</p>
-          )}
-
-          <div className='whitelist-table-wrapper'>
-            <table>
-              <colgroup>
-                <col className='settings-col-name' />
-                <col className='settings-col-email' />
-                <col style={{ width: '140px' }} />
-                <col className='settings-col-actions' />
-              </colgroup>
-              <thead>
-                <tr className='settings-thead-row'>
-                  <th>Full Name</th>
-                  <th>Email</th>
-                  <th>Student ID</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {whitelistLoading && (
-                  <tr><td colSpan={4} style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.875rem' }}>Loading...</td></tr>
-                )}
-                {!whitelistLoading && whitelist.length === 0 && (
-                  <tr><td colSpan={4} style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.875rem' }}>No whitelist entries yet.</td></tr>
-                )}
-                {whitelist.map((entry) => (
-                  <tr key={entry.id} className='settings-table-row'>
-                    <td><span className='name-data'>{entry.full_name ?? '—'}</span></td>
-                    <td><span className='email-data'>{entry.email ?? '—'}</span></td>
-                    <td><span className='email-data'>{entry.student_id ?? '—'}</span></td>
-                    <td className='settings-file-btn'>
-                      <button
-                        type='button'
-                        className='remove-link-btn'
-                        title='Remove from whitelist'
-                        onClick={() => handleRemoveClick(entry.id)}
-                      >
-                        <img src='./bin.png' alt='Remove' />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         {/* ── Admin Accounts ── */}
         <div className='addmin-whitelist-container' style={{ marginTop: '1rem', minHeight: 'fit-content', overflow: 'visible' }}>
           <div className='whitelist-header'>
@@ -229,21 +110,21 @@ const Settings = () => {
               <table>
                 <thead>
                   <tr className='settings-thead-row'>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Actions</th>
+                    <th style={{ verticalAlign: 'middle', textAlign: 'left', padding: '0.5rem 1rem' }}>Email</th>
+                    <th style={{ verticalAlign: 'middle', textAlign: 'left', padding: '0.5rem 1rem' }}>Role</th>
+                    <th style={{ verticalAlign: 'middle', textAlign: 'left', padding: '0.5rem 1rem' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {adminAccounts.map((acct) => (
                     <tr key={acct.id} className='settings-table-row'>
-                      <td><span className='email-data'>{acct.email ?? '—'}</span></td>
-                      <td><span className='name-data'>{acct.role}</span></td>
-                      <td className='settings-file-btn'>
+                      <td style={{ verticalAlign: 'middle' }}><span className='email-data'>{acct.email ?? '—'}</span></td>
+                      <td style={{ verticalAlign: 'middle' }}><span className='name-data'>{acct.role}</span></td>
+                      <td style={{ verticalAlign: 'middle', textAlign: 'center', padding: '0.5rem' }}>
                         <button
                           type='button'
-                          className='remove-link-btn'
-                          onClick={() => console.log('remove', acct.id)}
+                          onClick={() => console.log('remove', acct.owner_id)}
+                          style={{ background: 'none', border: '1px solid #dc2626', color: '#dc2626', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}
                         >
                           Remove
                         </button>
@@ -288,14 +169,6 @@ const Settings = () => {
         </div>
       </div>
 
-      {whitelistForm && (
-        <div className='modal-position'>
-          <WhitelistForm
-            close={() => setWhitelistForm(false)}
-            onSuccess={fetchWhitelist}
-          />
-        </div>
-      )}
       {editForm && (
         <div className='modal-position'>
           <SettingsForm setEdit={setEditForm} />
@@ -308,19 +181,6 @@ const Settings = () => {
             isOpen={pauseModal}
             onClose={() => setPauseModal(!pauseModal)}
             onConfirm={() => setPause(!pause)}
-          />
-        </div>
-      )}
-      {deleteModal && (
-        <div className='modal-position'>
-          <DeleteModal
-            isOpen={deleteModal}
-            source='settings'
-            id={deleteId}
-            title='Remove from Whitelist'
-            message="Are you sure you want to remove this entry from the whitelist? This action can't be undone."
-            onClose={() => setDeleteModal(false)}
-            onConfirm={fetchWhitelist}
           />
         </div>
       )}

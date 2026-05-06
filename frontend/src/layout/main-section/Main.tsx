@@ -21,16 +21,18 @@ export default function Main() {
       axios.get(`${base}/officers/`).then((r) => setOfficers(String(r.data.length))).catch(() => {}),
     ]);
 
-    // Pinned Now badge — most recent announcement
+    // Pinned Now badge — prefer admin-pinned item, fall back to most recent
     axios
       .get(`${base}/announcements/`)
       .then((r) => {
-        const sorted = [...r.data].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        );
-        const latest = sorted[0];
-        if (latest?.title) {
-          const title = latest.title.length > 30 ? latest.title.slice(0, 30) + "..." : latest.title;
+        const announcements: { title: string; created_at: string; is_pinned?: boolean }[] = r.data;
+        const pinned =
+          announcements.find((a) => a.is_pinned) ??
+          [...announcements].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+          )[0];
+        if (pinned?.title) {
+          const title = pinned.title.length > 30 ? pinned.title.slice(0, 30) + "..." : pinned.title;
           setPinnedTitle(title);
         } else {
           setPinnedTitle("No announcements");

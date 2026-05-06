@@ -10,7 +10,7 @@ import { Router } from "express";
 import multer from "multer";
 import ApiError from "../lib/apiError.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
-import { anonSupabase, createUserClient } from "../lib/supabaseClient.js";
+import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { auditLogger } from "../middlewares/audit.middleware.js";
 
@@ -33,6 +33,7 @@ router.get(
       .from("bulletin")
       .select()
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -132,20 +133,17 @@ router.post(
   "/pin",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const { id, is_pinned } = req.body;
+    const { id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
-    if (typeof is_pinned !== "boolean") {
-      throw new ApiError(400, "is_pinned must be a boolean.");
-    }
 
     const token = req.token;
     const userSupabase = createUserClient(token);
 
-    const { error } = await userSupabase
-      .from("bulletin")
-      .update({ is_pinned })
-      .eq("id", id);
-    if (error) throw new Error(error.message);
+    // Unpin all announcements first
+    await userSupabase.from("bulletin").update({ is_pinned: false }).neq("id", "00000000-0000-0000-0000-000000000000");
+    // Pin the selected one
+    const { error } = await userSupabase.from("bulletin").update({ is_pinned: true }).eq("id", id);
+    if (error) throw new ApiError(500, "Pin failed: " + error.message);
 
     return res.sendStatus(200);
   }),
@@ -186,11 +184,11 @@ router.get(
     const token = req.token;
     const userSupabase = createUserClient(token);
 
-    const { data, error } = await userSupabase
+    const { data, error } = await supabase
       .from("bulletin")
       .select()
-      .eq("is_archived", true)
-      .order("archived_at", { ascending: false });
+      .not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
     if (error) throw new Error(error.message);
 
     const payload = data.map((row) => {
@@ -224,9 +222,10 @@ router.post(
     }
     const token = req.token;
     const userSupabase = createUserClient(token);
+    const now = new Date().toISOString();
     const { error } = await userSupabase
       .from("bulletin")
-      .update({ is_archived: true, archived_at: new Date().toISOString() })
+      .update({ is_archived: true, archived_at: now, deleted_at: now })
       .in("id", ids);
     if (error) throw new Error(error.message);
     return res.sendStatus(200);
@@ -241,13 +240,11 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-    const { error } = await userSupabase
+    const { error } = await supabase
       .from("bulletin")
-      .update({ is_archived: false, archived_at: null })
+      .update({ is_archived: false, archived_at: null, deleted_at: null })
       .in("id", ids);
-    if (error) throw new Error(error.message);
+    if (error) throw new ApiError(500, "Restore failed: " + error.message);
     return res.sendStatus(200);
   }),
 );

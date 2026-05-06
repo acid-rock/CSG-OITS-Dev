@@ -73,6 +73,7 @@ const Dashboard = () => {
   // Real weekly upload counts from documents API
   const [weeklyUploads, setWeeklyUploads] = useState<{ label: string; count: number }[]>([]);
   const [weeklyDataFallback, setWeeklyDataFallback] = useState(false);
+  const [activeOfficerCount, setActiveOfficerCount] = useState<number | null>(null);
 
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);
@@ -136,11 +137,23 @@ const Dashboard = () => {
     }
   }, []);
 
+  const fetchActiveOfficers = useCallback(async () => {
+    try {
+      const { data } = await axios.get(`${API_URL}/officers/?status=active`, {
+        withCredentials: true,
+      });
+      setActiveOfficerCount(Array.isArray(data) ? data.length : (data.data?.length ?? 0));
+    } catch {
+      // fall back to analytics value
+    }
+  }, []);
+
   useEffect(() => {
     fetchAnalytics();
     fetchRecentLogs();
     fetchWeeklyUploads();
-  }, [fetchAnalytics, fetchRecentLogs, fetchWeeklyUploads]);
+    fetchActiveOfficers();
+  }, [fetchAnalytics, fetchRecentLogs, fetchWeeklyUploads, fetchActiveOfficers]);
 
   // Bar chart — Document Uploads by week (real data)
   const barLabels = weeklyUploads.length
@@ -279,7 +292,7 @@ const Dashboard = () => {
               </div>
               <div className="stat-info">
                 <span className="stat-number">
-                  {loading ? "—" : (analytics?.total_officers ?? 0)}
+                  {loading ? "—" : (activeOfficerCount ?? analytics?.total_officers ?? 0)}
                 </span>
                 <span className="stat-label">Total Officers</span>
               </div>

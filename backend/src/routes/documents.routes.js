@@ -71,6 +71,7 @@ router.get(
         .select("*", { count: "exact" })
         .eq("is_deleted", false)
         .eq("is_archived", false)
+        .is("deleted_at", null)
         .range(from, to);
       if (error) throw new Error(error.message);
 
@@ -86,7 +87,8 @@ router.get(
       .from("documents")
       .select("*")
       .eq("is_deleted", false)
-      .eq("is_archived", false);
+      .eq("is_archived", false)
+      .is("deleted_at", null);
     if (error) throw new Error(error.message);
 
     return res.status(200).json(files.map(transformDocument));
@@ -268,7 +270,7 @@ router.post(
     console.log("[DOC RESTORE] ids received:", ids);
     const { data, error } = await userSupabase
       .from("documents")
-      .update({ is_deleted: false, deleted_at: null })
+      .update({ is_deleted: false, is_archived: false, archived_at: null, deleted_at: null })
       .in("id", ids)
       .select();
     console.log("[DOC RESTORE] rows updated:", data?.length ?? 0, "error:", error?.message ?? null);
@@ -354,9 +356,10 @@ router.post(
       throw new ApiError(400, "Document is in the bin. Restore it from the bin first.");
     }
 
+    const now = new Date().toISOString();
     const { error } = await userSupabase
       .from("documents")
-      .update({ is_archived: true, archived_at: new Date().toISOString() })
+      .update({ is_archived: true, archived_at: now, deleted_at: now })
       .in("id", ids);
     if (error) throw new Error(error.message);
     return res.sendStatus(200);
@@ -375,7 +378,7 @@ router.post(
     const userSupabase = createUserClient(token);
     const { error } = await userSupabase
       .from("documents")
-      .update({ is_archived: false, archived_at: null })
+      .update({ is_archived: false, archived_at: null, deleted_at: null })
       .in("id", ids);
     if (error) throw new Error(error.message);
     return res.sendStatus(200);

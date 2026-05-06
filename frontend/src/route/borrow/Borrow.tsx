@@ -10,6 +10,7 @@ interface InventoryItem {
   quantity: number;
   max_quantity: number;
   is_available: boolean;
+  image?: string | null;
 }
 
 interface EquipmentRow {
@@ -246,9 +247,9 @@ export default function Borrow() {
             <div className="borrow-section-title">Section 2 — Event / Purpose Detail</div>
             <div className="borrow-two-col">
               {/* Left: Purpose checkboxes */}
-              <div className="borrow-field">
+              <div className="borrow-field" style={{ gridColumn: "1" }}>
                 <label>Purpose of Equipment Use</label>
-                <div className="borrow-checkbox-group">
+                <div className="borrow-checkbox-group" style={{ display: "flex", flexDirection: "column" }}>
                   {(["academic", "event", "organization", "others"] as PurposeType[]).map((pt) => (
                     <div
                       key={pt}
@@ -278,13 +279,23 @@ export default function Borrow() {
                     </div>
                   ))}
                   {purposeType === "others" && (
-                    <input
-                      type="text"
-                      value={purposeOthersDetail}
-                      onChange={(e) => setPurposeOthersDetail(e.target.value)}
-                      placeholder="Please specify"
-                      className="borrow-others-input"
-                    />
+                    <div style={{ marginLeft: "1.625rem", marginBottom: "0.75rem" }}>
+                      <input
+                        type="text"
+                        value={purposeOthersDetail}
+                        onChange={(e) => setPurposeOthersDetail(e.target.value)}
+                        placeholder="Please specify"
+                        style={{
+                          width: "100%",
+                          maxWidth: "280px",
+                          padding: "0.4rem 0.625rem",
+                          fontSize: "0.85rem",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "6px",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
               </div>
@@ -413,6 +424,14 @@ export default function Borrow() {
         <div className="borrow-grid">
           {inventory.map((item) => (
             <div key={item.id} className="borrow-card">
+              {item.image && (
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 8, marginBottom: '0.75rem' }}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                />
+              )}
               <div className="borrow-card-name">{item.name}</div>
               <div className="borrow-card-qty">
                 {item.quantity} / {item.max_quantity} units available

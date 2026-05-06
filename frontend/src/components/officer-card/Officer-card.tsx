@@ -53,21 +53,12 @@ export default function OfficerCard({
     >
       <div className="officer-card-image">
         {showInitials ? (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              background: "#374151",
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1.4rem",
-              fontWeight: 700,
-            }}
-          >
-            {initials || "?"}
-          </div>
+          <img
+            src="/CSG_logo.svg"
+            alt={title}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            onError={(e) => { e.currentTarget.src = "/CSG_logo.svg"; }}
+          />
         ) : (
           <img
             src={image}

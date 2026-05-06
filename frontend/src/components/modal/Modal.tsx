@@ -26,6 +26,8 @@ const Modal: React.FC<ModalProps> = ({
   extraImage,
 }) => {
   const [imageIndex, setImageIndex] = useState<number>(0);
+  const [transitioning, setTransitioning] = useState(false);
+  const [direction, setDirection] = useState<"left" | "right">("right");
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
@@ -34,6 +36,17 @@ const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen]);
 
+  // Preload adjacent images
+  useEffect(() => {
+    if (!extraImage || extraImage.length <= 1) return;
+    const nextIdx = (imageIndex + 1) % extraImage.length;
+    const prevIdx = (imageIndex - 1 + extraImage.length) % extraImage.length;
+    [nextIdx, prevIdx].forEach((idx) => {
+      const img = new Image();
+      img.src = extraImage[idx];
+    });
+  }, [imageIndex, extraImage]);
+
   if (!isOpen) return null;
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -41,18 +54,36 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   const handleNext = () => {
-    if (extraImage) {
-      setImageIndex((prev) => (prev + 1) % extraImage.length);
-    }
+    if (transitioning || !extraImage) return;
+    setDirection("right");
+    setTransitioning(true);
+    setTimeout(() => {
+      setImageIndex((i) => (i + 1) % extraImage.length);
+      setTransitioning(false);
+    }, 350);
   };
 
   const handlePrevious = () => {
-    if (extraImage) {
-      setImageIndex(
-        (prev) => (prev - 1 + extraImage.length) % extraImage.length,
-      );
-    }
+    if (transitioning || !extraImage) return;
+    setDirection("left");
+    setTransitioning(true);
+    setTimeout(() => {
+      setImageIndex((i) => (i - 1 + extraImage.length) % extraImage.length);
+      setTransitioning(false);
+    }, 350);
   };
+
+  const slideStyle: React.CSSProperties = transitioning
+    ? {
+        transition: "transform 0.35s ease, opacity 0.35s ease",
+        transform: direction === "right" ? "translateX(-8%)" : "translateX(8%)",
+        opacity: 0,
+      }
+    : {
+        transition: "transform 0.35s ease, opacity 0.35s ease",
+        transform: "translateX(0)",
+        opacity: 1,
+      };
 
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
@@ -67,6 +98,7 @@ const Modal: React.FC<ModalProps> = ({
               src={extraImage[imageIndex]}
               alt={imageAlt}
               className="modal-image"
+              style={slideStyle}
             />
           ) : (
             imageSrc && (
@@ -80,6 +112,7 @@ const Modal: React.FC<ModalProps> = ({
                 className="modal-arrow left"
                 aria-label="Previous"
                 onClick={handlePrevious}
+                disabled={transitioning}
               >
                 ❮
               </button>
@@ -87,6 +120,7 @@ const Modal: React.FC<ModalProps> = ({
                 className="modal-arrow right"
                 aria-label="Next"
                 onClick={handleNext}
+                disabled={transitioning}
               >
                 ❯
               </button>

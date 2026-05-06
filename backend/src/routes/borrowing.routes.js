@@ -38,10 +38,27 @@
 //    CREATE POLICY "allow_auth_all" ON borrowing_requests FOR ALL TO authenticated USING (true);
 
 import { Router } from "express";
-import { anonSupabase, createUserClient } from "../lib/supabaseClient.js";
+import { anonSupabase, createUserClient, supabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
+import multer from "multer";
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+// Resolve a stored image filename to a public CDN URL (returns null if no image)
+const resolveImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  return anonSupabase.storage.from("equipment").getPublicUrl(imagePath).data.publicUrl;
+};
+
+const transformInventory = (item) => ({
+  ...item,
+  image: resolveImageUrl(item.image),
+});
 
 const router = Router();
 
@@ -55,7 +72,7 @@ router.get(
       .select("*")
       .order("name", { ascending: true });
     if (error) throw new ApiError(500, error.message);
-    return res.status(200).json(data);
+    return res.status(200).json(data.map(transformInventory));
   }),
 );
 
@@ -70,7 +87,7 @@ router.get(
       .single();
     if (error) throw new ApiError(500, error.message);
     if (!data) throw new ApiError(404, "Equipment not found.");
-    return res.status(200).json(data);
+    return res.status(200).json(transformInventory(data));
   }),
 );
 
@@ -79,6 +96,7 @@ router.get(
 router.post(
   "/inventory/add",
   requireAuth,
+  upload.single("image"),
   asyncHandler(async (req, res) => {
     const { name, max_quantity } = req.body;
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
@@ -88,13 +106,30 @@ router.post(
     const token = req.token;
     const userSupabase = createUserClient(token);
 
-    const { error } = await userSupabase.from("inventory").insert({
+    const { data, error } = await userSupabase.from("inventory").insert({
       name: name.trim(),
       quantity: qty,
       max_quantity: qty,
       is_available: qty > 0,
-    });
+    }).select().single();
     if (error) throw new ApiError(500, error.message);
+
+    // Upload image if provided (non-fatal on failure)
+    if (req.file) {
+      try {
+        const ext = req.file.originalname?.split(".").pop() || req.file.mimetype.split("/")[1] || "jpg";
+        const imagePath = `${data.id}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("equipment")
+          .upload(imagePath, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+        if (!uploadError) {
+          await supabase.from("inventory").update({ image: imagePath }).eq("id", data.id);
+        }
+      } catch (imgErr) {
+        console.error("[INVENTORY ADD] Image upload failed:", imgErr.message);
+      }
+    }
+
     return res.sendStatus(200);
   }),
 );
@@ -102,6 +137,7 @@ router.post(
 router.post(
   "/inventory/edit",
   requireAuth,
+  upload.single("image"),
   asyncHandler(async (req, res) => {
     const { id, name, max_quantity } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
@@ -115,7 +151,6 @@ router.post(
       const qty = parseInt(max_quantity);
       if (!qty || qty < 1) throw new ApiError(400, "max_quantity must be at least 1.");
       updates.max_quantity = qty;
-      // is_available is based on current quantity (not max_quantity)
       const { data: current } = await userSupabase
         .from("inventory")
         .select("quantity")
@@ -125,6 +160,28 @@ router.post(
         updates.is_available = current.quantity > 0;
       }
     }
+
+    // Replace image if a new file was provided
+    if (req.file) {
+      try {
+        // Remove old image first
+        const { data: existing } = await userSupabase
+          .from("inventory").select("image").eq("id", id).single();
+        if (existing?.image) {
+          await supabase.storage.from("equipment").remove([existing.image]);
+        }
+        const ext = req.file.originalname?.split(".").pop() || req.file.mimetype.split("/")[1] || "jpg";
+        const imagePath = `${id}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("equipment")
+          .upload(imagePath, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+        if (!uploadError) updates.image = imagePath;
+      } catch (imgErr) {
+        console.error("[INVENTORY EDIT] Image upload failed:", imgErr.message);
+      }
+    }
+
+    if (Object.keys(updates).length === 0) return res.sendStatus(200);
 
     const { error } = await userSupabase
       .from("inventory")
@@ -154,6 +211,17 @@ router.delete(
     if (guardError) throw new ApiError(500, guardError.message);
     if (count > 0) {
       throw new ApiError(400, "Cannot delete equipment with active borrow requests.");
+    }
+
+    // Remove image from storage (non-fatal)
+    try {
+      const { data: existing } = await userSupabase
+        .from("inventory").select("image").eq("id", id).single();
+      if (existing?.image) {
+        await supabase.storage.from("equipment").remove([existing.image]);
+      }
+    } catch (imgErr) {
+      console.error("[INVENTORY DELETE] Image cleanup failed:", imgErr.message);
     }
 
     const { error } = await userSupabase.from("inventory").delete().eq("id", id);
@@ -275,6 +343,25 @@ router.post(
     if (error) throw new ApiError(500, error.message);
 
     return res.status(201).json({ message: "Request submitted successfully." });
+  }),
+);
+
+router.delete(
+  "/requests/delete",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const ids = Array.isArray(req.body) ? req.body : req.body?.ids;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids required");
+    }
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { error } = await userSupabase
+      .from("borrowing_requests")
+      .delete()
+      .in("id", ids);
+    if (error) throw new ApiError(500, "Delete failed: " + error.message);
+    return res.sendStatus(200);
   }),
 );
 

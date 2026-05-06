@@ -190,27 +190,79 @@ export default function BulletinDocument() {
           </main>
         </div>
 
-        {/* Document Preview Panel — only shown after user selects a document */}
-        {selectedDocument && (
-          <aside className="bulletin-preview-panel">
-            <div className="bulletin-preview-content">
-              <div className="bulletin-preview-body">
-                {selectedDocument.date && (
-                  <p className="bulletin-preview-date">
-                    {selectedDocument.date}
-                  </p>
-                )}
-                <h2 className="bulletin-preview-title">
-                  {selectedDocument.description}
-                </h2>
-                <p className="bulletin-preview-description">
-                  {selectedDocument.category}
-                </p>
-              </div>
-            </div>
-          </aside>
-        )}
       </div>
+
+      {/* Slide-in detail panel */}
+      {selectedDocument && (
+        <>
+          <div
+            onClick={() => setSelectedDocument(null)}
+            style={{
+              position: "fixed", inset: 0,
+              background: "rgba(0,0,0,0.3)", zIndex: 999,
+            }}
+          />
+          <div style={{
+            position: "fixed", top: 0, right: 0,
+            width: "400px", height: "100vh",
+            background: "#ffffff",
+            boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
+            zIndex: 1000, display: "flex", flexDirection: "column",
+            padding: "2rem", overflowY: "auto",
+          }}>
+            <button
+              onClick={() => setSelectedDocument(null)}
+              style={{
+                alignSelf: "flex-end", background: "none",
+                border: "none", fontSize: "1.5rem",
+                cursor: "pointer", color: "#6b7280", marginBottom: "1rem",
+              }}
+            >✕</button>
+
+            <span style={{
+              fontSize: "0.75rem", fontWeight: 600, color: "#3b82f6",
+              textTransform: "uppercase", letterSpacing: "0.08em",
+              marginBottom: "0.5rem",
+            }}>
+              {selectedDocument.category ?? "Document"}
+            </span>
+
+            <h2 style={{
+              fontSize: "1.2rem", fontWeight: 700, color: "#111827",
+              marginBottom: "0.75rem", lineHeight: 1.4,
+            }}>
+              {selectedDocument.name?.split("/").pop()?.replace(".pdf", "") ?? selectedDocument.description ?? "Document"}
+            </h2>
+
+            {selectedDocument.description && (
+              <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "1.5rem" }}>
+                {selectedDocument.description}
+              </p>
+            )}
+
+            {selectedDocument.date && (
+              <p style={{ fontSize: "0.8rem", color: "#9ca3af", marginBottom: "1.5rem" }}>
+                {selectedDocument.date}
+              </p>
+            )}
+
+            <a
+              href={selectedDocument.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-block", background: "#3b82f6",
+                color: "#ffffff", padding: "0.625rem 1.25rem",
+                borderRadius: "6px", fontWeight: 600,
+                fontSize: "0.875rem", textDecoration: "none",
+                textAlign: "center",
+              }}
+            >
+              View Document
+            </a>
+          </div>
+        </>
+      )}
 
       {/* Modal for document preview */}
       {isModalOpen && (

@@ -7,6 +7,7 @@ import "./index.css";
 import RootLayout from "./root-layout/Root-layout";
 import Homepage from "./route/homepage/App";
 import Bulletin from "./route/bulletin/Bulletin";
+import DocumentsPage from "./route/documents/Documents";
 import Officers from "./route/officers/Officers";
 import Borrow from "./route/borrow/Borrow";
 
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Homepage /> },
       { path: "bulletin", element: <Bulletin /> },
+      { path: "documents", element: <DocumentsPage /> },
       { path: "officers", element: <Officers /> },
       { path: "borrow", element: <Borrow /> },
     ],
