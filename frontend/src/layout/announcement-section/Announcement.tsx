@@ -1,29 +1,34 @@
-import { useEffect, useState } from "react";
-import AnnouncementCard from "../../components/announcement-card/Announcement-card";
+import { useState } from "react";
 import "./announcement.css";
 import Modal from "../../components/modal/Modal";
 import Button from "../../components/button/Button";
 import { Link, useOutletContext } from "react-router-dom";
-import type {
-  Announcement,
-  OutletContext,
-} from "../../root-layout/Root-layout";
+import type { Announcement, OutletContext } from "../../root-layout/Root-layout";
+
+function getTagClass(type?: string) {
+  if (!type) return "tag-notice";
+  const t = type.toLowerCase();
+  if (t.includes("event"))  return "tag-event";
+  if (t.includes("update")) return "tag-update";
+  return "tag-notice";
+}
+function getTagLabel(type?: string) {
+  if (!type) return "Notice";
+  const t = type.toLowerCase();
+  if (t.includes("event"))  return "Event";
+  if (t.includes("update")) return "Update";
+  return "Notice";
+}
 
 export default function AnnouncementSection() {
   const { bulletin } = useOutletContext<OutletContext>();
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [selectedAnnouncement, setSelectedAnnouncement] =
-    useState<Announcement | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
   const [open, setOpen] = useState(false);
 
   const formatDate = (date: string): string => {
     const d = new Date(date);
     if (isNaN(d.getTime())) return date;
-    return d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
   const handleCardClick = (announcement: Announcement) => {
@@ -31,26 +36,15 @@ export default function AnnouncementSection() {
     setOpen(true);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => {
-        if (prev + 1 >= bulletin.length) return 0;
-        return prev + 1;
-      });
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const scroll = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const scroll = () => { window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   const pinned = bulletin.find((a) => a.is_pinned);
-  const currentAnnouncement = bulletin[currentSlide];
+  const cards  = bulletin.filter((a) => !a.is_pinned).slice(0, 3);
 
   return (
     <section className="announcement-container" id="announcement">
       <div className="announcement-layout">
+
         {/* Section header */}
         <div className="section-head">
           <div className="kicker">From the council</div>
@@ -60,11 +54,7 @@ export default function AnnouncementSection() {
 
         {/* Pinned strip */}
         {pinned && (
-          <button
-            type="button"
-            className="pinned-strip"
-            onClick={() => handleCardClick(pinned)}
-          >
+          <button type="button" className="pinned-strip" onClick={() => handleCardClick(pinned)}>
             <span className="pinned-badge">📌 Pinned</span>
             <span className="pinned-title">{pinned.title}</span>
             <span className="pinned-date">{formatDate(pinned.date)}</span>
@@ -72,28 +62,45 @@ export default function AnnouncementSection() {
           </button>
         )}
 
-        {/* Slideshow card */}
-        <div className="announcement-content">
-          {currentAnnouncement && (
-            <AnnouncementCard
-              title={currentAnnouncement.title}
-              description={currentAnnouncement.content}
-              date={formatDate(currentAnnouncement.date) || "Not Available"}
-              image={currentAnnouncement.imgUrl}
-              variant="default"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleCardClick(currentAnnouncement)}
-            />
-          )}
-        </div>
+        {/* 3-card grid — same visual style as dedicated /announcements page */}
+        {cards.length > 0 && (
+          <div className="ann-home-grid">
+            {cards.map((ann) => (
+              <div
+                key={ann.id}
+                className="ann-home-card card"
+                onClick={() => handleCardClick(ann)}
+              >
+                {/* Image area */}
+                <div className="ann-card-img-wrap">
+                  {ann.imgUrl && (
+                    <img
+                      src={ann.imgUrl}
+                      alt={ann.title}
+                      className="ann-card-img"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                    />
+                  )}
+                  <span className={`tag ${getTagClass((ann as any).type)} ann-card-tag`}>
+                    {getTagLabel((ann as any).type)}
+                  </span>
+                </div>
+
+                {/* Card body */}
+                <div className="ann-card-body">
+                  <p className="ann-card-meta">{formatDate(ann.date)}</p>
+                  <h3 className="ann-card-title">{ann.title}</h3>
+                  <p className="ann-card-desc">{ann.content}</p>
+                  <span className="ann-card-link">Read more →</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="view-btn">
           <Button variant="primary">
-            <Link
-              to="/bulletin"
-              style={{ textDecoration: "none", color: "white" }}
-              onClick={scroll}
-            >
+            <Link to="/bulletin" style={{ textDecoration: "none", color: "white" }} onClick={scroll}>
               VIEW ALL
             </Link>
           </Button>

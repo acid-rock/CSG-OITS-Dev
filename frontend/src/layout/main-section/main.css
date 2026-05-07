@@ -1,185 +1,327 @@
-/* Wave 11A — Hero / Main */
-.hero-container{
-  background:var(--gradient-hero);
-  min-height:auto;
-  width:100%;
-  padding:96px 60px 88px;
-  display:flex;flex-direction:column;
-  position:relative;overflow:hidden;
-  box-sizing:border-box;
-}
-.hero-container::before{
-  content:"";position:absolute;inset:0;
-  background-image:
-    radial-gradient(circle at 12% 18%,rgba(255,255,255,0.35) 0,transparent 30%),
-    radial-gradient(circle at 88% 90%,rgba(79,111,209,0.3) 0,transparent 35%);
-  pointer-events:none;
-}
-.hero-container::after{
-  content:"";position:absolute;inset:0;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><defs><pattern id='g' width='32' height='32' patternUnits='userSpaceOnUse'><circle cx='1' cy='1' r='1' fill='%230f1729' opacity='0.06'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
-  opacity:0.6;pointer-events:none;
+/* ── Hero / Main section — restyled to Figma design tokens ── */
+
+/* ═══════════════════════════════════════════════════════════
+   OUTER CONTAINER
+   Full-viewport gradient background, soft fade top → bottom.
+   ═══════════════════════════════════════════════════════════ */
+.hero-container {
+  background: linear-gradient(
+    to bottom,
+    var(--color-background-hero),       /* #7B8FD4 */
+    var(--color-background-hero-end)    /* #B8C4E8 */
+  );
+  min-height: 100vh;
+  width: 100%;
+  padding: var(--section-padding-y) var(--section-padding-x);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
-.hero-layout{
-  display:grid;grid-template-columns:1.05fr 0.95fr;
-  gap:60px;align-items:center;
-  max-width:1400px;width:100%;
-  margin:0 auto;height:auto;
-  position:relative;z-index:2;
-  padding:4rem 0;
+/* Remove old radial-glow and dot-pattern overlays */
+.hero-container::before,
+.hero-container::after {
+  display: none;
 }
 
-/* TEXT */
-.hero-text{
-  display:flex;flex-direction:column;gap:0;
-  min-width:0;flex:initial;
+/* ═══════════════════════════════════════════════════════════
+   INNER LAYOUT — two-column flex row, max-width constrained
+   ═══════════════════════════════════════════════════════════ */
+.hero-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-16);                 /* 64px between columns */
+  max-width: var(--max-width-content);  /* 1200px (was 1400px) */
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;                           /* remove old 4rem 0 padding */
+  position: relative;
+  z-index: 2;
+  height: auto;
 }
-.hero-eyebrow{
-  display:inline-flex;align-items:center;gap:8px;
-  width:fit-content;
-  font-size:11px;font-weight:700;
-  letter-spacing:0.8px;text-transform:uppercase;
-  color:var(--color-text-primary);
-  background:rgba(255,255,255,0.55);
-  padding:6px 12px 6px 8px;
-  border-radius:var(--radius-pill);
-  margin-bottom:24px;
-  backdrop-filter:blur(8px);
-  border:1px solid rgba(255,255,255,0.6);
+
+/* ═══════════════════════════════════════════════════════════
+   LEFT COLUMN — text content (~50% width)
+   ═══════════════════════════════════════════════════════════ */
+.hero-text {
+  flex: 1 1 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
-.hero-eyebrow .dot{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--color-primary);
-  box-shadow:0 0 0 3px rgba(79,111,209,0.2);
+
+/* ── Session badge ──────────────────────────────────────── */
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);                        /* 8px */
+  width: fit-content;
+  background: var(--color-badge-session-bg);  /* rgba(255,255,255,0.18) */
+  border: 1px solid var(--color-badge-session-border); /* rgba(255,255,255,0.35) */
+  border-radius: var(--radius-full);
+  color: var(--color-badge-session-text);     /* #0D1117 — dark on light hero */
+  font-size: var(--font-size-xs);             /* 0.75rem */
+  font-weight: var(--font-weight-semibold);   /* 600 */
+  letter-spacing: var(--letter-spacing-wide); /* 0.06em */
+  text-transform: uppercase;
+  padding: 6px 16px;
+  margin-bottom: var(--space-6);              /* 24px */
+  backdrop-filter: none;                      /* removed old blur */
+  -webkit-backdrop-filter: none;
 }
+
+/* Swap the blue dot for the ✦ sparkle glyph */
+.hero-eyebrow .dot {
+  display: none;
+}
+.hero-eyebrow::before {
+  content: "✦";
+  font-size: 10px;
+  line-height: 1;
+  color: inherit;
+}
+
+/* ── Main heading ───────────────────────────────────────── */
 .hero-text h1,
-.hero-headline{
-  color:var(--color-text-primary);
-  font-size:clamp(36px,4.6vw,56px);
-  font-weight:800;line-height:1.05;
-  margin:0 0 20px;
-  letter-spacing:-0.025em;
+.hero-headline {
+  font-size: clamp(2.25rem, 5vw, 3.5rem);       /* was clamp(36px,4.6vw,56px) */
+  font-weight: var(--font-weight-extrabold);     /* 800 */
+  line-height: var(--line-height-tight);         /* 1.2 (was 1.05) */
+  color: var(--color-text-primary);              /* #0D1117 */
+  letter-spacing: var(--letter-spacing-tight);   /* -0.02em (was -0.025em) */
+  margin: 0 0 var(--space-6);                    /* 0 0 24px (was 0 0 20px) */
 }
+
+/* <em>student</em> — italic serif accent */
 .hero-text h1 em,
-.hero-headline em{
-  font-family:var(--font-serif);font-style:italic;
-  font-weight:400;color:var(--color-primary-deep);
-  letter-spacing:-0.02em;
+.hero-headline em {
+  font-family: var(--font-family-italic-accent); /* Georgia, serif (was --font-serif) */
+  font-style: italic;
+  font-weight: var(--font-weight-normal);         /* 400 */
+  color: var(--color-accent-italic);              /* #4F6EF7 (was --color-primary-deep) */
+  letter-spacing: inherit;
 }
+
+/* ── Subtext paragraph ──────────────────────────────────── */
 .hero-text p,
-.hero-subtext{
-  color:var(--color-text-secondary);
-  font-size:15.5px;line-height:1.65;
-  max-width:540px;margin:0 0 32px;
-  font-weight:450;
+.hero-subtext {
+  font-size: var(--font-size-base);          /* 1rem (was 15.5px) */
+  font-weight: var(--font-weight-normal);    /* 400 (was 450) */
+  color: var(--color-text-secondary);        /* #374151 */
+  line-height: var(--line-height-relaxed);   /* 1.75 (was 1.65) */
+  max-width: 480px;                          /* was 540px */
+  margin: 0 0 var(--space-8);               /* 0 0 32px (was 0 0 32px) */
 }
 
-/* BUTTONS */
-.hero-buttons{
-  display:flex;gap:12px;align-items:center;
-  flex-wrap:wrap;margin-top:0;
+/* ── CTA buttons row ────────────────────────────────────── */
+.hero-buttons {
+  display: flex;
+  gap: var(--space-3);                      /* 12px (was 12px — same) */
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 0;
 }
 
-/* Stat tiles */
-.hero-stats{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  gap:12px;margin-top:36px;max-width:540px;
-}
-.hero-stat{
-  background:rgba(255,255,255,0.65);
-  border-radius:12px;
-  padding:16px 18px;
-  backdrop-filter:blur(8px);
-  border:1px solid rgba(255,255,255,0.7);
-  transition:var(--transition);
-}
-.hero-stat:hover{
-  transform:translateY(-2px);
-  background:rgba(255,255,255,0.85);
-}
-.hero-stat-num{
-  font-size:26px;font-weight:800;
-  color:var(--color-text-primary);
-  line-height:1;letter-spacing:-0.03em;
-}
-.hero-stat-num em{
-  font-family:var(--font-serif);font-style:italic;
-  font-weight:400;color:var(--color-primary-deep);
-  font-size:18px;margin-left:2px;
-}
-.hero-stat-lbl{
-  font-size:11.5px;color:var(--color-text-secondary);
-  margin-top:6px;font-weight:500;
+/* ── Stat cards ─────────────────────────────────────────── */
+.hero-stats {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-3);                      /* 12px (was 12px) */
+  margin-top: var(--space-10);              /* 40px (was 36px) */
+  max-width: none;                          /* remove old 540px cap */
 }
 
-/* Image side */
+.hero-stat {
+  flex: 1;
+  background: rgba(255,255,255,0.55);       /* was rgba(255,255,255,0.65) */
+  border-radius: var(--radius-xl);          /* 16px (was 12px) */
+  padding: var(--space-4) var(--space-5);   /* 16px 20px (was 16px 18px) */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.6);  /* unchanged */
+  transition: var(--transition-base);
+}
+.hero-stat:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.75);       /* was rgba(255,255,255,0.85) */
+}
+
+.hero-stat-num {
+  font-size: var(--font-size-3xl);           /* 1.875rem ≈ 30px (was 26px) */
+  font-weight: var(--font-weight-extrabold); /* 800 */
+  color: var(--color-stat-value);            /* #0D1117 — live API number preserved */
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+/* Remove old italic-suffix styling inside stat numbers */
+.hero-stat-num em {
+  font-size: inherit;
+  font-family: inherit;
+  font-style: normal;
+  font-weight: inherit;
+  color: inherit;
+  margin-left: 0;
+}
+
+.hero-stat-lbl {
+  font-size: var(--font-size-xs);            /* 0.75rem (was 11.5px) */
+  color: var(--color-stat-label);            /* #6B7280 */
+  margin-top: var(--space-1);               /* 4px (was 6px) */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-base);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RIGHT COLUMN — image frame + floating badges (~45% width)
+   ═══════════════════════════════════════════════════════════ */
 .hero-image-container,
-.hero-photo-wrap{
-  position:relative;
-  justify-self:end;
-  width:100%;max-width:540px;
-  flex:initial;overflow:visible;
-  box-shadow:none;
+.hero-photo-wrap {
+  flex: 0 0 45%;
+  width: 45%;
+  max-width: 540px;
+  position: relative;
+  overflow: visible;      /* badges hang outside the container — do NOT clip */
+  justify-self: unset;
+  box-shadow: none;
 }
+
+/* Rounded image frame (carousel track acts as the visual border) */
 .hero-image-container .image-carousel-track,
-.hero-photo{
-  border-radius:var(--radius-card-lg);
-  overflow:hidden;
-  box-shadow:0 30px 80px -20px rgba(15,23,41,0.35),0 10px 30px -8px rgba(79,111,209,0.25);
-  background:var(--color-white);
-  aspect-ratio:5/4;
-  position:relative;
-  border:1px solid rgba(255,255,255,0.5);
-  width:100%;animation:none;
+.hero-photo {
+  border-radius: var(--radius-2xl);          /* 24px (was 18px) */
+  overflow: hidden;                          /* clip images to rounded corners */
+  min-height: 340px;
+  background: var(--color-border);           /* placeholder fill while loading */
+  width: 100%;
+  aspect-ratio: 5/4;
+  box-shadow: var(--shadow-lg);              /* was heavy 30px/80px spread */
+  border: 1px solid rgba(255,255,255,0.5);
+  position: relative;
+  animation: none;
 }
-.hero-image-container .slide{width:100%;flex-shrink:0;aspect-ratio:5/4}
-.hero-image-container .slide img{width:100%;height:100%;object-fit:cover}
+
+.hero-image-container .slide {
+  width: 100%;
+  flex-shrink: 0;
+  aspect-ratio: 5/4;
+}
+.hero-image-container .slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Remove ghost pseudo-elements on image container */
 .hero-image-container::before,
-.hero-image-container::after{display:none}
-
-.hero-badge{
-  position:absolute;
-  background:var(--color-white);
-  border-radius:14px;padding:14px 18px;
-  box-shadow:0 18px 40px -12px rgba(15,23,41,0.25),0 4px 10px -4px rgba(79,111,209,0.18);
-  display:flex;align-items:center;gap:12px;
-  border:1px solid var(--color-border-soft);
-  z-index:3;
-}
-.hero-badge.bg1{top:24px;left:-28px}
-.hero-badge.bg2{bottom:32px;right:-20px}
-.hero-badge .ico{
-  width:36px;height:36px;border-radius:10px;
-  background:rgba(79,111,209,0.1);
-  color:var(--color-primary);
-  display:flex;align-items:center;justify-content:center;
-  font-weight:700;font-size:15px;
-}
-.hero-badge .lbl{
-  font-size:10.5px;color:var(--color-text-muted);
-  font-weight:600;text-transform:uppercase;letter-spacing:0.5px;
-}
-.hero-badge .val{
-  font-size:14px;color:var(--color-text-primary);
-  font-weight:700;
+.hero-image-container::after {
+  display: none;
 }
 
-@media (max-width:1024px){
-  .hero-container{padding:64px 32px 56px}
-  .hero-layout{grid-template-columns:1fr;gap:40px;padding:2rem 0}
-  .hero-image-container,.hero-photo-wrap{justify-self:stretch;max-width:100%}
-  .hero-badge.bg1{left:12px}
-  .hero-badge.bg2{right:12px}
-  .hero-stats{max-width:100%}
+/* ── Floating badge cards ───────────────────────────────── */
+.hero-badge {
+  position: absolute;
+  background: var(--color-surface);          /* #FFFFFF */
+  border-radius: var(--radius-xl);           /* 16px (was 14px) */
+  padding: var(--space-3) var(--space-4);    /* 12px 16px (was 14px 18px) */
+  box-shadow: var(--shadow-hero-badge);      /* 0 4px 16px rgba(0,0,0,0.12) */
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);                       /* 12px (was 12px) */
+  border: none;                              /* remove old border-soft */
+  z-index: 3;
+  min-width: 160px;
 }
-@media (max-width:768px){
-  .hero-container{padding:48px 20px 40px}
-  .hero-layout{padding:1.5rem 0}
-  .hero-stats{grid-template-columns:1fr 1fr 1fr;gap:8px}
-  .hero-stat{padding:12px 14px}
-  .hero-stat-num{font-size:20px}
+
+/* "PINNED NOW" — top-left of image, offset above edge */
+.hero-badge.bg1 {
+  top: -16px;
+  left: 24px;
+  bottom: unset;
+  right: unset;
 }
-@media (max-width:480px){
-  .hero-stats{grid-template-columns:1fr}
+
+/* "EQUIPMENT ONLINE" — bottom-right of image, offset below edge */
+.hero-badge.bg2 {
+  bottom: -16px;
+  right: 24px;
+  top: unset;
+  left: unset;
+}
+
+/* Default icon box (used by bg1 pin badge) */
+.hero-badge .ico {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);           /* 12px (was 10px) */
+  background: rgba(239,68,68,0.10);          /* light red tint for pin */
+  color: #EF4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+/* bg2 .ico is fully overridden by the inline style in Main.tsx:
+   { background: "#22C55E", color: "#fff", borderRadius: "50%",
+     width: "20px", height: "20px", display: "flex",
+     alignItems: "center", justifyContent: "center",
+     fontSize: "11px", fontWeight: "700", flexShrink: 0 }
+*/
+
+/* Badge text */
+.hero-badge .lbl {
+  font-size: var(--font-size-xs);             /* 0.75rem (was 10.5px) */
+  font-weight: var(--font-weight-semibold);   /* 600 */
+  color: var(--color-text-muted);             /* #6B7280 */
+  letter-spacing: var(--letter-spacing-wider); /* 0.1em */
+  text-transform: uppercase;                  /* "PINNED NOW" / "EQUIPMENT ONLINE" */
+  display: block;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.hero-badge .val {
+  font-size: var(--font-size-sm);             /* 0.875rem (was 14px) */
+  font-weight: var(--font-weight-semibold);   /* 600 */
+  color: var(--color-text-primary);           /* #0D1117 — live API data preserved */
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .hero-container  { padding: var(--space-16) var(--space-8); min-height: unset; }
+  .hero-layout     { flex-direction: column; gap: var(--space-10); padding: 0; }
+  .hero-text       { flex: none; width: 100%; max-width: 100%; }
+  .hero-image-container,
+  .hero-photo-wrap { flex: none; width: 100%; max-width: 100%; }
+  .hero-text p,
+  .hero-subtext    { max-width: 100%; }
+  .hero-badge.bg1  { left: 12px; }
+  .hero-badge.bg2  { right: 12px; }
+}
+
+@media (max-width: 768px) {
+  .hero-container  { padding: var(--space-12) var(--space-6); }
+  .hero-text h1,
+  .hero-headline   { font-size: clamp(1.75rem, 6vw, 2.5rem); }
+  .hero-stats      { flex-wrap: wrap; }
+  .hero-stat       { min-width: calc(50% - var(--space-2)); }
+  .hero-stat-num   { font-size: var(--font-size-2xl); }
+  .hero-badge      { min-width: 140px; }
+}
+
+@media (max-width: 480px) {
+  .hero-container  { padding: var(--space-10) var(--space-4); }
+  .hero-stats      { flex-direction: column; }
+  .hero-stat       { min-width: 100%; }
+  .hero-badge      { display: none; } /* badges hidden on very small screens */
 }

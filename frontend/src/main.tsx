@@ -8,7 +8,9 @@ import RootLayout from "./root-layout/Root-layout";
 import Homepage from "./route/homepage/App";
 import Bulletin from "./route/bulletin/Bulletin";
 import DocumentsPage from "./route/documents/Documents";
+import EventsPage from "./route/events/Events";
 import Officers from "./route/officers/Officers";
+import AboutPage from "./route/about/AboutPage";
 import Borrow from "./route/borrow/Borrow";
 
 // Admin Login (Public)
@@ -27,6 +29,8 @@ const router = createBrowserRouter([
       { index: true, element: <Homepage /> },
       { path: "bulletin", element: <Bulletin /> },
       { path: "documents", element: <DocumentsPage /> },
+      { path: "events",   element: <EventsPage /> },
+      { path: "about",    element: <AboutPage /> },
       { path: "officers", element: <Officers /> },
       { path: "borrow", element: <Borrow /> },
     ],

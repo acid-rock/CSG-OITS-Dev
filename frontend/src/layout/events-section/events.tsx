@@ -1,6 +1,4 @@
 import { useState } from "react";
-import Card from "../../components/event-card/Card";
-import Typography from "../../components/typography/Typography";
 import "./event.css";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Modal from "../../components/modal/Modal";
@@ -21,99 +19,139 @@ export default function Events() {
     currentPage * EVENTS_PER_PAGE + EVENTS_PER_PAGE,
   );
 
-  const nextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
-  };
-
-  const prevPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 0));
-  };
+  const nextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
+  const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
 
   const handleCardClick = (event: any) => {
     setSelectedEvent(event);
     setOpen(true);
   };
 
+  const featured = currentPageEvents[0] ?? null;
+  const sidebar  = currentPageEvents.slice(1);
+
   return (
     <>
       <div className="event-container">
         <div className="event-layout">
+
+          {/* Section header */}
           <div className="event-texts">
-            <Typography size="text-lg" color="text-dark">
-              Events
-            </Typography>
-            <Typography size="text-sm" color="text-ghost">
-              Explore official events from students government
-            </Typography>
+            <h2 className="ev-heading">
+              Upcoming <em className="italic-accent">events</em>
+            </h2>
+            <p className="ev-sub">Explore official events from the student government.</p>
           </div>
 
-          {/* 4-cards-per-page flex row */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: "1rem",
-              alignItems: "stretch",
-            }}
-          >
-            {currentPageEvents.map((event) => (
+          {/* Two-column layout: featured + sidebar */}
+          <div className="ev-two-col">
+
+            {/* FEATURED card */}
+            {featured && (
               <div
-                key={event.id}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  cursor: "pointer",
-                }}
-                onClick={() => handleCardClick(event)}
+                className="ev-featured card"
+                onClick={() => handleCardClick(featured)}
               >
-                <Card
-                  title={event.name}
-                  description={event.description}
-                  image={event.images[0]}
-                  date={event.date}
-                  variant="default"
-                  style={{ flex: 1 }}
-                />
+                {/* Image — Fix 2: always render image area with placeholder */}
+                <div className="ev-feat-img">
+                  {featured.images?.[0] ? (
+                    <img
+                      src={featured.images[0]}
+                      alt={featured.name}
+                      className="ev-feat-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="ev-feat-placeholder" />
+                  )}
+                  <span className="tag tag-featured ev-feat-badge">Featured</span>
+                  {/* Fix 3B applied here: NO date overlay badge */}
+                </div>
+                {/* Card body */}
+                <div className="ev-feat-body">
+                  <p className="ev-feat-date">&bull;&nbsp;{featured.date}</p>
+                  <h3 className="ev-feat-title">{featured.name}</h3>
+                  <p className="ev-feat-desc">{featured.description}</p>
+                </div>
               </div>
-            ))}
+            )}
+
+            {/* SIDEBAR list — with thumbnail image */}
+            {sidebar.length > 0 && (
+              <div className="ev-sidebar">
+                {sidebar.map((event) => (
+                  <div
+                    key={event.id}
+                    className="ev-side-card card"
+                    onClick={() => handleCardClick(event)}
+                  >
+                    {/* Thumbnail */}
+                    <div className="ev-side-img">
+                      {event.images?.[0] ? (
+                        <img
+                          src={event.images[0]}
+                          alt={event.name}
+                          className="ev-side-thumb"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                        />
+                      ) : (
+                        <img src="/CSG_logo.svg" alt="CSG" className="ev-side-logo" />
+                      )}
+                    </div>
+                    {/* Text */}
+                    <div className="ev-side-text">
+                      <p className="ev-side-date">&bull;&nbsp;{event.date}</p>
+                      <h3 className="ev-side-title">{event.name}</h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="carousel-controls">
+          {/* Fix 5: ALL pagination in ONE flex container */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "var(--space-4)",
+            marginTop: "var(--space-8)",
+          }}>
             <button
               className="event-button"
               type="button"
               onClick={prevPage}
-              aria-label="Previous page"
-              title="Previous page"
               disabled={currentPage === 0}
+              aria-label="Previous page"
             >
-              <ChevronLeft size={30} />
+              <ChevronLeft size={20} />
             </button>
+
+            <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  aria-label={`Go to page ${index + 1}`}
+                  className={`dot ${index === currentPage ? "active" : ""}`}
+                  onClick={() => setCurrentPage(index)}
+                />
+              ))}
+            </div>
+
             <button
               className="event-button"
               type="button"
               onClick={nextPage}
-              aria-label="Next page"
-              title="Next page"
               disabled={currentPage >= totalPages - 1}
+              aria-label="Next page"
             >
-              <ChevronRight size={30} />
+              <ChevronRight size={20} />
             </button>
           </div>
 
-          <div className="dot-indicators">
-            {Array.from({ length: totalPages }).map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                aria-label={`Go to page ${index + 1}`}
-                className={`dot ${index === currentPage ? "active" : ""}`}
-                onClick={() => setCurrentPage(index)}
-              />
-            ))}
-          </div>
         </div>
       </div>
 

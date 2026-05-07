@@ -52,7 +52,11 @@ export default function OfficerCard({
       onClick={onClick}
     >
       <div className="officer-card-image">
-        {showInitials ? (
+        {!image ? (
+          /* No avatar URL at all → initials circle */
+          <div className="officer-initials" aria-label={id}>{initials}</div>
+        ) : imgError ? (
+          /* Valid URL that failed to load → CSG logo fallback (locked behaviour) */
           <img
             src="/CSG_logo.svg"
             alt={title}
@@ -60,6 +64,7 @@ export default function OfficerCard({
             onError={(e) => { e.currentTarget.src = "/CSG_logo.svg"; }}
           />
         ) : (
+          /* Valid URL → actual photo; onError triggers CSG logo above */
           <img
             src={image}
             alt={title}

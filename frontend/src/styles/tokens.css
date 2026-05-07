@@ -1,0 +1,113 @@
+:root {
+  /* Colors */
+  --color-primary: #4F6EF7;
+  --color-primary-dark: #3D5CE8;
+  --color-primary-light: #EEF1FE;
+  --color-secondary: #6C63FF;
+  --color-background: #F8F9FF;
+  --color-background-hero: #7B8FD4;
+  --color-background-hero-end: #B8C4E8;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-border: #E8EAF0;
+  --color-border-focus: #4F6EF7;
+  --color-text-primary: #0D1117;
+  --color-text-secondary: #374151;
+  --color-text-muted: #6B7280;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-on-hero: #0D1117;
+  --color-accent-italic: #4F6EF7;
+  --color-success: #16A34A;
+  --color-danger: #DC2626;
+  --color-warning: #D97706;
+  --color-tag-update-bg: #FFF7ED;
+  --color-tag-update-text: #C2410C;
+  --color-tag-event-bg: #F0FDF4;
+  --color-tag-event-text: #15803D;
+  --color-tag-notice-bg: #EFF6FF;
+  --color-tag-notice-text: #1D4ED8;
+  --color-tag-featured-bg: #EEF1FE;
+  --color-tag-featured-text: #4F6EF7;
+  --color-pinned-bg: #4F6EF7;
+  --color-pinned-text: #FFFFFF;
+  --color-footer-bg: #2D3A6B;
+  --color-footer-text: #FFFFFF;
+  --color-footer-muted: rgba(255,255,255,0.65);
+  --color-blockquote-border: #4F6EF7;
+  --color-blockquote-text: #374151;
+  --color-stat-value: #0D1117;
+  --color-stat-label: #6B7280;
+  --color-badge-session-bg: rgba(255,255,255,0.18);
+  --color-badge-session-border: rgba(255,255,255,0.35);
+  --color-badge-session-text: #0D1117;
+  --color-pillar-icon-bg: #EEF1FE;
+  --color-pillar-icon-text: #4F6EF7;
+
+  /* Typography */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-italic-accent: Georgia, 'Times New Roman', serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.375;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.75;
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.06em;
+  --letter-spacing-wider: 0.1em;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
+  --shadow-card: 0 2px 8px rgba(79,110,247,0.08);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,0.15);
+  --shadow-hero-badge: 0 4px 16px rgba(0,0,0,0.12);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  /* Layout */
+  --max-width-content: 1200px;
+  --nav-height: 64px;
+  --section-padding-x: clamp(1.5rem, 5vw, 4rem);
+  --section-padding-y: clamp(3rem, 8vw, 6rem);
+}

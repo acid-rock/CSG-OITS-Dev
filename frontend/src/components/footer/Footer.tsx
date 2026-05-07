@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import Typography from '../typography/Typography';
 import logo from '../../assets/CSG_logo.svg';
 import './footer.css';
 import { FaFacebook } from 'react-icons/fa';
 import { MdEmail } from 'react-icons/md';
 
-// TODO: Replace with real Google Form URL
+/* ─── Google Form (Send Feedback) URL — preserve exactly ─── */
 const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdpXwlDybMgEV8rrfazdYuQoHz8G5UCKTZg1zErSKZMK6Nnjg/viewform?usp=header";
 
 type PolicyType = 'privacy' | 'terms' | 'cookies' | null;
@@ -68,50 +67,29 @@ function FooterModal({ type, onClose }: { type: PolicyType; onClose: () => void 
     <div
       onClick={onClose}
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        background: 'rgba(0,0,0,0.5)',
-        zIndex: 2000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        position: 'fixed', top: 0, left: 0,
+        width: '100vw', height: '100vh',
+        background: 'rgba(0,0,0,0.5)', zIndex: 2000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#fff',
-          borderRadius: '10px',
-          padding: '2rem',
-          maxWidth: '600px',
-          width: '90%',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          position: 'relative',
-          color: '#111',
-          lineHeight: 1.7,
+          background: '#fff', borderRadius: '10px', padding: '2rem',
+          maxWidth: '600px', width: '90%', maxHeight: '80vh',
+          overflowY: 'auto', position: 'relative', color: '#111', lineHeight: 1.7,
         }}
       >
         <button
           onClick={onClose}
           style={{
-            position: 'absolute',
-            top: '1rem',
-            right: '1rem',
-            background: 'none',
-            border: 'none',
-            fontSize: '1.4rem',
-            cursor: 'pointer',
-            lineHeight: 1,
-            color: '#374151',
+            position: 'absolute', top: '1rem', right: '1rem',
+            background: 'none', border: 'none', fontSize: '1.4rem',
+            cursor: 'pointer', lineHeight: 1, color: '#374151',
           }}
           aria-label='Close'
-        >
-          ×
-        </button>
+        >×</button>
         <h2 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1.2rem', fontWeight: 700 }}>
           {content.title}
         </h2>
@@ -127,108 +105,96 @@ export default function Footer() {
   return (
     <>
       <footer className='footer-container'>
-        <div className='footer-main'>
-          <div className='footer-newsletter'>
-            <div className='footer-logo'>
-              <img src={logo} alt='Logo' className='logo-image' />
+        <div className='footer-inner'>
+
+          {/* ── LEFT: brand block ── */}
+          <div className='footer-brand-col'>
+            <div className='footer-brand-row'>
+              <img src={logo} alt='CSG Logo' className='footer-logo-img' />
+              <span className='footer-brand-name'>Central Student Government</span>
             </div>
-            <Typography size='text-light' color='text-dark'>
-              Stay informed about student government updates and campus
-              initiatives
-            </Typography>
-            <div className='newsletter-form'>
-              {/* Fix 3D: replaced email input + Feedback button with a single Google Form link */}
-              <a
-                href={GOOGLE_FORM_URL || '#'}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='newsletter-button'
-                style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}
-                onClick={GOOGLE_FORM_URL ? undefined : (e) => e.preventDefault()}
-              >
-                Send Feedback
-              </a>
-            </div>
-            <Typography size='text-light' color='text-dark'>
-              Help us improve — share your feedback via our Google Form
-            </Typography>
+            <p className='footer-brand-sub'>
+              Cavite State University — Imus Campus &nbsp;·&nbsp; csg.imus@cvsu.edu.ph
+            </p>
           </div>
 
-          <div className='footer-columns'>
-            <div className='footer-column'>
-              <Typography size='text-sm' color='text-ghost'>
-                Connect with us
-              </Typography>
-              <ul className='footer-social'>
-                {/* Facebook: icon + label wrapped in single anchor */}
-                <li className='social-item'>
-                  <a
-                    href='https://www.facebook.com/csg.imus'
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'none', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <span className='social-icon'>
-                      <FaFacebook style={{ color: '#ffffff' }} />
-                    </span>
-                    Facebook
-                  </a>
-                </li>
-                {/* Email: icon + label wrapped in single clickable button */}
-                <li className='social-item'>
-                  <button
-                    type='button'
-                    onClick={() => window.open('https://mail.google.com/mail/?view=cm&to=csg.imus@cvsu.edu.ph', '_blank', 'noopener,noreferrer')}
-                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', padding: 0, color: 'rgba(255,255,255,0.85)', fontSize: '13px' }}
-                  >
-                    <span className='social-icon'>
-                      <MdEmail style={{ color: '#ffffff' }} />
-                    </span>
-                    csg.imus@cvsu.edu.ph
-                  </button>
-                </li>
-              </ul>
-            </div>
+          {/* ── RIGHT: links + copyright ── */}
+          <div className='footer-right-col'>
+            <nav className='footer-nav'>
+              {/* Contact — preserves Gmail window.open handler */}
+              <button
+                type='button'
+                className='footer-nav-link'
+                onClick={() => window.open('https://mail.google.com/mail/?view=cm&to=csg.imus@cvsu.edu.ph', '_blank', 'noopener,noreferrer')}
+              >
+                Contact
+              </button>
+              <span className='footer-nav-sep'>|</span>
+
+              {/* Privacy — preserves modal handler */}
+              <button
+                type='button'
+                className='footer-nav-link'
+                onClick={() => setOpenPolicy('privacy')}
+              >
+                Privacy
+              </button>
+              <span className='footer-nav-sep'>|</span>
+
+              {/* Transparency → Terms modal — preserves modal handler */}
+              <button
+                type='button'
+                className='footer-nav-link'
+                onClick={() => setOpenPolicy('terms')}
+              >
+                Transparency
+              </button>
+
+              {/* Facebook — preserves href exactly */}
+              <span className='footer-nav-sep'>|</span>
+              <a
+                href='https://www.facebook.com/csg.imus'
+                target='_blank'
+                rel='noopener noreferrer'
+                className='footer-nav-link footer-fb-link'
+              >
+                <FaFacebook style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+                Facebook
+              </a>
+            </nav>
+
+            <p className='footer-copyright'>© 2026 CSG-OITS</p>
           </div>
         </div>
 
-        <div className='footer-bottom'>
-          <div className='footer-layout'>
-            {/* Fix 3B: updated copyright text */}
-            <div className='footer-text'>
-              <Typography size='text-light' color='text-dark'>
-                © 2026 Central Student Government Transparency Project. All Rights Reserved
-              </Typography>
-            </div>
-            {/* Fix 3C: policy links open modals */}
-            <div className='footer-links'>
-              <button
-                type='button'
-                className='footer-link'
-                onClick={() => setOpenPolicy('privacy')}
-              >
-                Privacy Policy
-              </button>
-              <button
-                type='button'
-                className='footer-link'
-                onClick={() => setOpenPolicy('terms')}
-              >
-                Terms of Service
-              </button>
-              <button
-                type='button'
-                className='footer-link'
-                onClick={() => setOpenPolicy('cookies')}
-              >
-                Cookie Settings
-              </button>
-            </div>
-          </div>
+        {/* ── Bottom divider line ── */}
+        <div className='footer-divider' />
+
+        {/* ── Send Feedback text link ── */}
+        <div className='footer-feedback-row'>
+          <a
+            href={GOOGLE_FORM_URL || '#'}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='footer-feedback-link'
+            onClick={GOOGLE_FORM_URL ? undefined : (e) => e.preventDefault()}
+          >
+            Send Feedback →
+          </a>
+
+          {/* Cookie settings — preserves modal handler */}
+          <button
+            type='button'
+            className='footer-nav-link'
+            style={{ fontSize: 'var(--font-size-xs)' }}
+            onClick={() => setOpenPolicy('cookies')}
+          >
+            Cookie Settings
+          </button>
         </div>
       </footer>
 
-      {/* Fix 3C: policy modals */}
+      {/* Policy modals — preserve all handlers */}
       <FooterModal type={openPolicy} onClose={() => setOpenPolicy(null)} />
     </>
   );

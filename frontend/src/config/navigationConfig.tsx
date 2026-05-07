@@ -14,14 +14,9 @@ export const navigationConfig = [
     href: 'document',
     route: '/documents',
   },
-  { id: 'events-btn', label: 'Events', variant: 'navigation', href: 'events' },
-  { id: 'about-btn', label: 'About', variant: 'navigation', href: 'about' },
-  {
-    id: 'officers-btn',
-    label: 'Officers',
-    variant: 'navigation',
-    href: 'officers',
-  },
+  { id: 'events-btn', label: 'Events', variant: 'navigation', href: 'events', route: '/events' },
+  { id: 'about-btn', label: 'About', variant: 'navigation', href: 'about', route: '/about' },
+  { id: 'officers-btn', label: 'Officers', variant: 'navigation', href: 'officers', route: '/officers' },
   {
     id: 'borrow-btn',
     label: 'Equipment',

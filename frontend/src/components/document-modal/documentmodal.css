@@ -1,12 +1,14 @@
+/* Wave 11A — Document Modal */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 24px;
+  animation: wave-fadeIn 200ms ease;
 }
 
 .modal {
@@ -14,11 +16,12 @@
   width: 100%;
   max-width: 860px;
   height: 90vh;
-  background: #fff;
-  border-radius: 8px;
+  background: var(--color-white);
+  border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-modal);
 }
 
 /* X button — floats over the top-right corner */
@@ -31,18 +34,18 @@
   height: 36px;
   border-radius: 50%;
   border: none;
-  background: #1e40af;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-white);
   font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: var(--transition-base);
 }
 
 .modal__close:hover {
-  background: #1e3a8a;
+  background: var(--color-primary-dark);
 }
 
 /* iframe fills the entire modal */
@@ -64,3 +67,5 @@
     border-radius: 0;
   }
 }
+
+@keyframes wave-fadeIn { from { opacity: 0; } to { opacity: 1; } }

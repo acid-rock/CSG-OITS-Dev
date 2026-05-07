@@ -1,7 +1,5 @@
 import { useState } from "react";
-import DocumentCard from "../../components/document-card/Document-card";
 import "./bulletinDocument.css";
-import Typography from "../../components/typography/Typography";
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
 import type {
   Document,
@@ -9,34 +7,41 @@ import type {
 } from "../../root-layout/Root-layout.tsx";
 import { useOutletContext } from "react-router-dom";
 
+/* Fix 7: letter helper removed — CSG logo used instead */
+
+/* ── Helper: map category to a tag colour class ── */
+function getDocTagClass(doc: Document): string {
+  const cat = (doc.category || "").toLowerCase();
+  if (cat.includes("event") || cat.includes("bulletin")) return "tag-event";
+  if (cat.includes("memo")  || cat.includes("update"))   return "tag-update";
+  return "tag-notice";
+}
+
 export default function BulletinDocument() {
+  /* ══════════════════════════════════════════════════
+     LOCKED DATA BINDINGS — do not modify
+     ══════════════════════════════════════════════════ */
   const { documents } = useOutletContext<OutletContext>();
+
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedTerm, setSelectedTerm] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
-    null,
-  );
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTerm,     setSelectedTerm]     = useState("all");
+  const [searchQuery,      setSearchQuery]      = useState("");
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [isModalOpen,      setIsModalOpen]      = useState(false);
 
-  // selectedDocument remains null until the user explicitly clicks "View" on a document
-
-  // Derive unique categories directly from the documents array
-  const uniqueCategories = Array.from(
-    new Set(documents.map((doc) => doc.category)),
-  );
-
+  /* Derived category list — locked logic */
+  const uniqueCategories = Array.from(new Set(documents.map((doc) => doc.category)));
   const categories = [
     { id: "all", label: "All Documents" },
     ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
   ];
 
-  // Derive unique terms for the term filter
+  /* Derived term list — locked logic */
   const uniqueTerms = Array.from(
     new Set(documents.map((doc) => doc.term).filter(Boolean) as string[]),
   ).sort();
 
-  // Apply category + term + search filters — all must match
+  /* Filtered documents — locked logic */
   const filteredDocuments = documents
     .filter((doc) =>
       selectedCategory === "all" ? true : doc.category === selectedCategory,
@@ -53,6 +58,7 @@ export default function BulletinDocument() {
       );
     });
 
+  /* Locked handlers */
   const handleSelect = (doc: Document) => {
     setSelectedDocument(doc);
   };
@@ -62,201 +68,205 @@ export default function BulletinDocument() {
     setIsModalOpen(true);
   };
 
+  /* ── Category count helper (new — no binding change) ── */
+  const catCount = (catId: string) =>
+    catId === "all"
+      ? documents.length
+      : documents.filter((d) => d.category === catId).length;
+
   return (
-    <section id="documents" className="bulletin-document-container">
-      <div className="bulletin-document-header">
-        <Typography size="text-md" color="text-dark">
-          Documents
-        </Typography>
-        <Typography size="text-sm" color="text-ghost">
-          Access official records, resolutions, and proceedings of the Central
-          Student Government.
-        </Typography>
-      </div>
+    <section id="documents" className="bd-page">
 
-      <div className="bulletin-document-layout-wrapper">
-        <div className="bulletin-document-layout">
-          {/* Sidebar Navigation */}
-          <aside className="bulletin-document-navigation">
-            {/* Search bar */}
-            <input
-              type="text"
-              placeholder="Search documents..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "0.45rem 0.75rem",
-                marginBottom: "0.75rem",
-                fontSize: "0.875rem",
-                border: "1px solid #d1d5db",
-                borderRadius: "6px",
-                boxSizing: "border-box",
-                outline: "none",
-              }}
-            />
+      {/* ════════════════════════════════════════
+          PAGE HEADER (centered, white bg)
+          ════════════════════════════════════════ */}
+      <header className="bd-header">
+        <span className="section-label bd-kicker">Public Archive</span>
+        <h1 className="bd-heading">
+          <em className="italic-accent">Documents</em>
+          {" "}&amp; filings
+        </h1>
+        <p className="bd-subheading">
+          Resolutions, memoranda, and reports filed by the CSG and its committees.
+        </p>
+      </header>
 
-            <Typography size="text-sm" color="text-dark">
-              Categories
-            </Typography>
-            <nav className="bulletin-nav-menu">
-              {categories.map((category) => (
+      {/* ════════════════════════════════════════
+          TWO-COLUMN LAYOUT
+          ════════════════════════════════════════ */}
+      <div className="bd-layout">
+
+        {/* ── LEFT SIDEBAR ── */}
+        <aside className="bd-sidebar">
+
+          {/* Search — preserves searchQuery state */}
+          <input
+            type="text"
+            placeholder="Search documents..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bd-search"
+          />
+
+          {/* Categories — preserves selectedCategory + setSelectedCategory */}
+          <span className="section-label bd-cat-label">Categories</span>
+          <ul className="bd-cat-list">
+            {categories.map((cat) => (
+              <li key={cat.id}>
                 <button
-                  key={category.id}
                   type="button"
-                  className={`bulletin-nav-item ${
-                    selectedCategory === category.id ? "active" : ""
-                  }`}
-                  onClick={() => setSelectedCategory(category.id)}
+                  className={`bd-cat-item${selectedCategory === cat.id ? " bd-cat-active" : ""}`}
+                  onClick={() => setSelectedCategory(cat.id)}
                 >
-                  {category.label}
+                  <span className="bd-cat-name">{cat.label}</span>
+                  <span className="bd-cat-count">{catCount(cat.id)}</span>
                 </button>
-              ))}
-            </nav>
+              </li>
+            ))}
+          </ul>
 
-            {uniqueTerms.length > 0 && (
-              <>
-                <Typography size="text-sm" color="text-dark" style={{ marginTop: "1rem" }}>
-                  Term
-                </Typography>
-                <nav className="bulletin-nav-menu">
+          {/* Terms — preserves selectedTerm + setSelectedTerm */}
+          {uniqueTerms.length > 0 && (
+            <>
+              <span className="section-label bd-cat-label">Term</span>
+              <ul className="bd-cat-list">
+                <li>
                   <button
                     type="button"
-                    className={`bulletin-nav-item ${selectedTerm === "all" ? "active" : ""}`}
+                    className={`bd-cat-item${selectedTerm === "all" ? " bd-cat-active" : ""}`}
                     onClick={() => setSelectedTerm("all")}
                   >
-                    All Terms
+                    <span className="bd-cat-name">All Terms</span>
                   </button>
-                  {uniqueTerms.map((t) => (
+                </li>
+                {uniqueTerms.map((t) => (
+                  <li key={t}>
                     <button
-                      key={t}
                       type="button"
-                      className={`bulletin-nav-item ${selectedTerm === t ? "active" : ""}`}
+                      className={`bd-cat-item${selectedTerm === t ? " bd-cat-active" : ""}`}
                       onClick={() => setSelectedTerm(t)}
                     >
-                      {t}
+                      <span className="bd-cat-name">{t}</span>
                     </button>
-                  ))}
-                </nav>
-              </>
-            )}
-          </aside>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </aside>
 
-          {/* Document Grid */}
-          <main className="bulletin-document-content">
-            {filteredDocuments.length === 0 ? (
-              <div className="bulletin-document-empty">
-                <p className="bulletin-document-empty-title">
-                  No documents found
-                </p>
-                <p className="bulletin-document-empty-sub">
-                  Try a different search term or category.
-                </p>
-              </div>
-            ) : (
-              <div className="bulletin-document-grid">
-                {filteredDocuments.map((doc) => (
-                  <div key={doc.id} style={{ position: "relative" }}>
-                    {doc.term && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: "0.4rem",
-                          right: "0.4rem",
-                          fontSize: "0.65rem",
-                          background: "#eff6ff",
-                          color: "#3b82f6",
-                          border: "1px solid #bfdbfe",
-                          borderRadius: "4px",
-                          padding: "0.1rem 0.35rem",
-                          zIndex: 1,
+        {/* ── RIGHT DOCUMENT GRID ── */}
+        <main className="bd-grid-area">
+          {filteredDocuments.length === 0 ? (
+            <div className="bd-empty">
+              <p className="bd-empty-title">No documents found</p>
+              <p className="bd-empty-sub">Try a different search term or category.</p>
+            </div>
+          ) : (
+            <div className="bd-grid">
+              {filteredDocuments.map((doc) => {
+                const tagClass = getDocTagClass(doc);
+                return (
+                  <div
+                    key={doc.id}
+                    className="bd-doc-card card"
+                    onClick={() => handleSelect(doc)}   /* locked: handleSelect */
+                  >
+                    {/* Fix 7: CSG logo placeholder instead of letter circle */}
+                    <div style={{
+                      width: "100%",
+                      height: "160px",
+                      background: "var(--color-primary-light)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: "var(--radius-xl) var(--radius-xl) 0 0",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}>
+                      <span className={`tag ${tagClass} bd-doc-type-tag`}>
+                        {doc.category ?? "Document"}
+                      </span>
+                      <img
+                        src="/CSG_logo.svg"
+                        alt="CSG"
+                        style={{ width: "72px", height: "72px", objectFit: "contain", opacity: 0.7 }}
+                      />
+                    </div>
+
+                    {/* Card body */}
+                    <div className="bd-doc-body">
+                      <span className="bd-doc-cat">{doc.category}</span>
+
+                      {/* Title — locked: file_path / description binding */}
+                      <h3 className="bd-doc-title">
+                        {doc.name?.split("/").pop()?.replace(/\.pdf$/i, "") ?? doc.description}
+                      </h3>
+
+                      {/* Meta row — locked: created_at / term binding */}
+                      <div className="bd-doc-meta">
+                        <span>{doc.date}</span>
+                        {doc.term && <span>{doc.term}</span>}
+                      </div>
+
+                      {/* View button — locked: handleView */}
+                      <button
+                        type="button"
+                        className="btn btn-ghost bd-view-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleView(doc);               /* locked: handleView */
                         }}
                       >
-                        {doc.term}
-                      </span>
-                    )}
-                    <DocumentCard
-                      id={doc.id}
-                      title={doc.description}
-                      description={doc.category}
-                      date={doc.date}
-                      onSelect={() => handleSelect(doc)}
-                      onView={() => handleView(doc)}
-                    />
+                        View Document
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </main>
-        </div>
-
+                );
+              })}
+            </div>
+          )}
+        </main>
       </div>
 
-      {/* Slide-in detail panel */}
+      {/* ════════════════════════════════════════
+          SLIDE-IN DETAIL PANEL
+          All selectedDocument.* bindings locked
+          ════════════════════════════════════════ */}
       {selectedDocument && (
         <>
           <div
             onClick={() => setSelectedDocument(null)}
-            style={{
-              position: "fixed", inset: 0,
-              background: "rgba(0,0,0,0.3)", zIndex: 999,
-            }}
+            className="bd-panel-backdrop"
           />
-          <div style={{
-            position: "fixed", top: 0, right: 0,
-            width: "400px", height: "100vh",
-            background: "#ffffff",
-            boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
-            zIndex: 1000, display: "flex", flexDirection: "column",
-            padding: "2rem", overflowY: "auto",
-          }}>
+          <div className="bd-panel">
             <button
               onClick={() => setSelectedDocument(null)}
-              style={{
-                alignSelf: "flex-end", background: "none",
-                border: "none", fontSize: "1.5rem",
-                cursor: "pointer", color: "#6b7280", marginBottom: "1rem",
-              }}
+              className="bd-panel-close"
+              aria-label="Close"
             >✕</button>
 
-            <span style={{
-              fontSize: "0.75rem", fontWeight: 600, color: "#3b82f6",
-              textTransform: "uppercase", letterSpacing: "0.08em",
-              marginBottom: "0.5rem",
-            }}>
-              {selectedDocument.category ?? "Document"}
+            <span className="bd-panel-cat">
+              {selectedDocument.category ?? "Document"}  {/* locked binding */}
             </span>
 
-            <h2 style={{
-              fontSize: "1.2rem", fontWeight: 700, color: "#111827",
-              marginBottom: "0.75rem", lineHeight: 1.4,
-            }}>
-              {selectedDocument.name?.split("/").pop()?.replace(".pdf", "") ?? selectedDocument.description ?? "Document"}
-            </h2>
+            <h2 className="bd-panel-title">
+              {selectedDocument.name?.split("/").pop()?.replace(/\.pdf$/i, "") ?? selectedDocument.description ?? "Document"}
+            </h2>  {/* locked: name binding */}
 
             {selectedDocument.description && (
-              <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "1.5rem" }}>
-                {selectedDocument.description}
-              </p>
+              <p className="bd-panel-desc">{selectedDocument.description}</p>  /* locked binding */
             )}
 
             {selectedDocument.date && (
-              <p style={{ fontSize: "0.8rem", color: "#9ca3af", marginBottom: "1.5rem" }}>
-                {selectedDocument.date}
-              </p>
+              <p className="bd-panel-date">{selectedDocument.date}</p>  /* locked binding */
             )}
 
             <a
-              href={selectedDocument.url}
+              href={selectedDocument.url}           /* locked: url binding */
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                display: "inline-block", background: "#3b82f6",
-                color: "#ffffff", padding: "0.625rem 1.25rem",
-                borderRadius: "6px", fontWeight: 600,
-                fontSize: "0.875rem", textDecoration: "none",
-                textAlign: "center",
-              }}
+              className="btn btn-primary bd-panel-link"
             >
               View Document
             </a>
@@ -264,13 +274,16 @@ export default function BulletinDocument() {
         </>
       )}
 
-      {/* Modal for document preview */}
+      {/* ════════════════════════════════════════
+          DOCUMENT MODAL
+          All selectedDocument.* bindings locked
+          ════════════════════════════════════════ */}
       {isModalOpen && (
         <DocumentModal
           selected={{
-            title: selectedDocument?.name ?? "",
-            date: selectedDocument?.date ?? "",
-            memoSrc: selectedDocument?.url ?? "",
+            title:   selectedDocument?.name ?? "",          /* locked binding */
+            date:    selectedDocument?.date ?? "",          /* locked binding */
+            memoSrc: selectedDocument?.url  ?? "",          /* locked binding */
           }}
           onClose={() => setIsModalOpen(false)}
         />

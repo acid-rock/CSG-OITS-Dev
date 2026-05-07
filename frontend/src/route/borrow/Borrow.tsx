@@ -57,6 +57,9 @@ export default function Borrow() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // ── Equipment filter (list view) — must be at top level, not after early returns ──
+  const [equipFilter, setEquipFilter] = useState<"all" | "available" | "unavailable">("all");
+
   const FALLBACK_INVENTORY: InventoryItem[] = [
     { id: "9091ce6a-871d-4de2-9008-0cd84ae4fa54", name: "Basketball", quantity: 1, max_quantity: 1, is_available: true },
     { id: "dfa76261-a0f4-4436-959a-41f337cc4ded", name: "HDMI Cable", quantity: 1, max_quantity: 1, is_available: true },
@@ -410,46 +413,104 @@ export default function Borrow() {
   }
 
   // ── List view (default) ──
+  const visibleInventory = inventory.filter((item) => {
+    if (equipFilter === "available")   return item.is_available;
+    if (equipFilter === "unavailable") return !item.is_available;
+    return true;
+  });
+
   return (
-    <div className="borrow-page">
-      <div className="borrow-header">
-        <h1>Equipment</h1>
-        <p>Browse available CSG equipment and submit a borrow request.</p>
+    <div className="eq-page">
+      {/* Hero header */}
+      <div className="eq-hero">
+        <div className="eq-hero-inner">
+          <h1 className="eq-hero-heading">
+            <em className="italic-accent">Borrow</em> equipment
+          </h1>
+          <p className="eq-hero-sub">
+            Borrow CSG-managed equipment for your org events, classes, or campus
+            activities. Submit a request and we&rsquo;ll get back to you within 24 hours.
+          </p>
+        </div>
       </div>
 
-      {loadingInventory && <p className="borrow-loading">Loading equipment...</p>}
-      {inventoryError && <p className="borrow-error">{inventoryError}</p>}
-
-      {!loadingInventory && !inventoryError && (
-        <div className="borrow-grid">
-          {inventory.map((item) => (
-            <div key={item.id} className="borrow-card">
-              {item.image && (
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 8, marginBottom: '0.75rem' }}
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                />
-              )}
-              <div className="borrow-card-name">{item.name}</div>
-              <div className="borrow-card-qty">
-                {item.quantity} / {item.max_quantity} units available
-              </div>
-              <span className={`borrow-badge ${item.is_available ? "borrow-badge-available" : "borrow-badge-unavailable"}`}>
-                {item.is_available ? "Available" : "Unavailable"}
-              </span>
+      {/* Inventory section */}
+      <div className="eq-content">
+        <div className="eq-inventory-header">
+          <h2 className="eq-inventory-title">Equipment inventory</h2>
+          {/* Filter pills — local state, no API call */}
+          <div className="eq-filters">
+            {(["all", "available", "unavailable"] as const).map((f) => (
               <button
-                className="borrow-btn-primary"
-                disabled={!item.is_available || item.quantity === 0}
-                onClick={() => handleBorrowClick(item)}
+                key={f}
+                type="button"
+                className={`eq-pill${equipFilter === f ? " eq-pill-active" : ""}`}
+                onClick={() => setEquipFilter(f)}
               >
-                {item.is_available ? "Request to Borrow" : "Unavailable"}
+                {f === "all" ? "All" : f === "available" ? "Available" : "Unavailable"}
               </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      )}
+
+        {loadingInventory && <p className="borrow-loading">Loading equipment...</p>}
+        {inventoryError   && <p className="borrow-error">{inventoryError}</p>}
+
+        {!loadingInventory && !inventoryError && (
+          <div className="eq-grid">
+            {visibleInventory.map((item) => (
+              <div key={item.id} className="eq-card card">
+                {/* Status badge */}
+                <span className={`eq-status ${item.is_available ? "eq-status-ok" : "eq-status-out"}`}>
+                  ● {item.is_available ? "AVAILABLE" : "OUT"}
+                </span>
+
+                {/* Image zone — CSG logo if no image */}
+                <div className="eq-thumb">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="eq-thumb-img"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                        (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute("style");
+                      }}
+                    />
+                  ) : null}
+                  {/* CSG logo fallback — always rendered, hidden when real image loads */}
+                  <img
+                    src="/CSG_logo.svg"
+                    alt="CSG"
+                    className="eq-thumb-logo"
+                    style={item.image ? { display: "none" } : undefined}
+                  />
+                </div>
+
+                {/* Card body */}
+                <div className="eq-card-body">
+                  <div className="eq-item-name">{item.name}</div>
+                  <div className="eq-item-stock">
+                    {item.quantity} of {item.max_quantity} in stock
+                  </div>
+                  <button
+                    className={`btn ${item.is_available && item.quantity > 0 ? "btn-primary" : ""} eq-req-btn`}
+                    disabled={!item.is_available || item.quantity === 0}
+                    onClick={() => item.is_available && item.quantity > 0 && handleBorrowClick(item)}
+                    style={
+                      !item.is_available || item.quantity === 0
+                        ? { background: "var(--color-border)", color: "var(--color-text-muted)", cursor: "not-allowed" }
+                        : undefined
+                    }
+                  >
+                    {item.is_available && item.quantity > 0 ? "Request to Borrow" : "Out of Stock"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

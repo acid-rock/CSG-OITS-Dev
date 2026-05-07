@@ -121,7 +121,7 @@ export default function Main() {
             </div>
           </div>
           <div className="hero-badge bg2">
-            <div className="ico" style={{ background: "rgba(34,197,94,0.12)", color: "#15803d" }}>✓</div>
+            <div className="ico" style={{ background: "#22C55E", color: "#fff", borderRadius: "50%", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "700", flexShrink: 0 }}>✓</div>
             <div>
               <div className="lbl">Equipment online</div>
               <div className="val">{equipmentLabel}</div>

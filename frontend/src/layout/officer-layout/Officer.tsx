@@ -5,13 +5,17 @@ import "./officer.css";
 import type { Officer, OutletContext } from "../../root-layout/Root-layout";
 
 export default function OfficerSection() {
+  /* ══════════════════════════════════════════
+     LOCKED DATA BINDINGS — do not modify
+     ══════════════════════════════════════════ */
   const { officers } = useOutletContext<OutletContext>();
 
+  /* Group by type field — locked */
   const executives = officers?.filter((o) => o.type === "executive");
-  const board = officers?.filter((o) => o.type === "board");
-  const advisers = officers?.filter((o) => o.type === "adviser");
+  const board       = officers?.filter((o) => o.type === "board");
+  const advisers    = officers?.filter((o) => o.type === "adviser");
 
-  // President spotlight: first executive whose position includes "president" (case-insensitive, not vice)
+  /* Find president — locked: position field */
   const president = executives?.find((o) => {
     const pos = Array.isArray(o.position) ? o.position[0] : o.position;
     return /president/i.test(pos) && !/vice/i.test(pos);
@@ -20,13 +24,12 @@ export default function OfficerSection() {
     ? executives?.filter((o) => o !== president)
     : executives;
 
-  const scroll = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const scroll = () => { window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return (
     <section className="officer-container" id="officers">
       <div className="officer-layout">
+
         {/* Section header */}
         <div className="section-head">
           <div className="kicker">Elected by the student body</div>
@@ -39,22 +42,22 @@ export default function OfficerSection() {
           <div className="officer-pres">
             <span className="officer-pres-crown">President</span>
             <OfficerCard
-              id={president.full_name}
+              id={president.full_name}                    /* locked: full_name */
               title={Array.isArray(president.position) ? president.position[0] : president.position}
-              image={president.avatar}
-              socials={president.socials}
+              image={president.avatar}                    /* locked: avatar */
+              socials={president.socials}                 /* locked: socials */
               term={president.year_serving}
-              officerType={president.type}
+              officerType={president.type}               /* locked: type */
               variant="default"
             />
           </div>
         )}
 
-        {/* Other executives */}
+        {/* Other executive officers */}
         {otherExecs && otherExecs.length > 0 && (
           <>
             <div className="officer-texts" style={{ textAlign: "center" }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              <span className="section-label" style={{ color: "#ffffff" }}>
                 Executive Officers
               </span>
             </div>
@@ -64,10 +67,10 @@ export default function OfficerSection() {
                   <OfficerCard
                     id={o.full_name}
                     title={Array.isArray(o.position) ? o.position[0] : o.position}
-                    image={o.avatar}
-                    socials={o.socials}
+                    image={o.avatar}                      /* locked: avatar */
+                    socials={o.socials}                   /* locked: socials */
                     term={o.year_serving}
-                    officerType={o.type}
+                    officerType={o.type}                  /* locked: type */
                     variant="default"
                   />
                 </div>
@@ -80,7 +83,7 @@ export default function OfficerSection() {
         {board && board.length > 0 && (
           <>
             <div className="officer-texts">
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              <span className="section-label" style={{ color: "#ffffff" }}>
                 Board Members
               </span>
             </div>
@@ -90,9 +93,9 @@ export default function OfficerSection() {
                   <OfficerCard
                     id={b.full_name}
                     title={Array.isArray(b.position) ? b.position[0] : b.position}
-                    image={b.avatar}
-                    socials={b.socials}
-                    officerType={b.type}
+                    image={b.avatar}                      /* locked: avatar */
+                    socials={b.socials}                   /* locked: socials */
+                    officerType={b.type}                  /* locked: type */
                     variant="default"
                   />
                 </div>
@@ -105,7 +108,7 @@ export default function OfficerSection() {
         {advisers && advisers.length > 0 && (
           <>
             <div className="officer-texts">
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              <span className="section-label" style={{ color: "#ffffff" }}>
                 Advisers
               </span>
             </div>
@@ -115,8 +118,8 @@ export default function OfficerSection() {
                   <OfficerCard
                     id={a.full_name}
                     title={Array.isArray(a.position) ? a.position[0] : a.position}
-                    image={a.avatar}
-                    officerType={a.type}
+                    image={a.avatar}                      /* locked: avatar */
+                    officerType={a.type}                  /* locked: type — hides FB */
                     variant="default"
                   />
                 </div>
@@ -125,6 +128,7 @@ export default function OfficerSection() {
           </>
         )}
 
+        {/* VIEW ALL — preserved */}
         <div className="view-btn">
           <Button variant="primary">
             <Link
@@ -136,6 +140,7 @@ export default function OfficerSection() {
             </Link>
           </Button>
         </div>
+
       </div>
     </section>
   );

@@ -1,134 +1,211 @@
 import "./officers.css";
-import { Facebook, ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
+import { FaFacebook } from "react-icons/fa";
+import { useState, useEffect } from "react";
 import type { Officer, OutletContext } from "../../root-layout/Root-layout";
-import fetchCommittees from "../../config/committeeConfig";
 
-type Committee = {
-  id: number;
-  name: string;
-};
+/* ── Initials helper ── */
+function getInitials(fullName: string): string {
+  return fullName
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
+/* ── Inline officer card (full control over size and layout) ── */
+interface OfficerCardProps {
+  officer: Officer;
+  avatarSize?: number;   /* px */
+  isAdviser?: boolean;
+}
+
+function OCard({ officer, avatarSize = 80, isAdviser = false }: OfficerCardProps) {
+  const [imgError, setImgError] = useState(false);
+  useEffect(() => { setImgError(false); }, [officer.avatar]);
+
+  const initials = getInitials(officer.full_name);   /* locked: full_name binding */
+  const pos = Array.isArray(officer.position) ? officer.position[0] : officer.position;
+
+  return (
+    <div className="oc-card card">
+      {/* Avatar — locked: avatar binding + CSG logo fallback for broken URLs */}
+      <div
+        className="oc-avatar"
+        style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.33 }}
+      >
+        {!officer.avatar ? (
+          <div className="oc-initials" style={{ fontSize: avatarSize * 0.33 }}>
+            {initials}
+          </div>
+        ) : imgError ? (
+          <img
+            src="/CSG_logo.svg"
+            alt={officer.full_name}
+            className="oc-avatar-img"
+            onError={(e) => { e.currentTarget.src = "/CSG_logo.svg"; }}
+          />
+        ) : (
+          <img
+            src={officer.avatar}                    /* locked: avatar binding */
+            alt={officer.full_name}
+            className="oc-avatar-img"
+            onError={() => setImgError(true)}       /* locked: onError fallback */
+          />
+        )}
+      </div>
+
+      {/* Text */}
+      <h3 className="oc-name">{officer.full_name}</h3>  {/* locked: full_name */}
+      <p className="oc-pos">{pos}</p>                    {/* locked: position */}
+      {officer.year_serving && (
+        <p className="oc-year">{officer.year_serving}</p>
+      )}
+
+      {/* Facebook — locked: socials binding; hidden for advisers */}
+      {!isAdviser && (
+        <a
+          href={officer.socials || "#"}              /* locked: socials binding */
+          target={officer.socials ? "_blank" : undefined}
+          rel={officer.socials ? "noopener noreferrer" : undefined}
+          className="oc-fb"
+          style={!officer.socials ? { opacity: 0.3, cursor: "default", pointerEvents: "none" } : undefined}
+          onClick={(e) => { if (!officer.socials) e.preventDefault(); }}
+          aria-label={`${officer.full_name} on Facebook`}
+        >
+          <FaFacebook size={16} />
+        </a>
+      )}
+    </div>
+  );
+}
+
+/* ── Main Officers page ── */
 const Officers = () => {
-  const [committees, setCommittees] = useState<Committee[]>();
+  /* ══════════════════════════════════════════
+     LOCKED DATA BINDINGS — do not modify
+     ══════════════════════════════════════════ */
   const { officers } = useOutletContext<OutletContext>();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchCommittees();
-      console.log(data);
-      setCommittees(data);
-    };
+  /* Group by type field — locked */
+  const executives = officers?.filter((o) => o.type === "executive") ?? [];
+  const board      = officers?.filter((o) => o.type === "board")     ?? [];
+  const advisers   = officers?.filter((o) => o.type === "adviser")   ?? [];
 
-    fetchData();
-  }, []);
-
-  const officials = officers?.filter((officer) => {
-    return officer.is_committee_official;
+  /* Find president — locked: position field */
+  const president = executives.find((o) => {
+    const pos = Array.isArray(o.position) ? o.position[0] : o.position;
+    return /president/i.test(pos) && !/vice/i.test(pos);
   });
+  const otherExecs = president
+    ? executives.filter((o) => o !== president)
+    : executives;
 
-  function committeeOfficials(committee_id: number, officials: Officer[]) {
-    if (!officials) return [];
-    return officials.filter((o: Officer) => {
-      return o.committee == committee_id;
-    });
-  }
-
-  function committeeMembers(committee_id: number, officers: Officer[]) {
-    if (!officers) return [];
-    return officers.filter((o: Officer) => {
-      return o.committee == committee_id && o.is_committee_official !== true;
-    });
-  }
-
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const handleToggle = (idx: number) => {
-    setOpenIndex(openIndex === idx ? null : idx);
-  };
   return (
-    <div className="officers-container">
-      <div className="officers-layout">
-        {committees?.map((committee: Committee, idx: number) => (
-          <div key={idx} className="committee-section">
-            <h2 className="committee-title">{committee.name}</h2>
+    <div className="op-page">
 
-            <div className="committee-layout">
-              {/* Board Members Cards */}
-              <div className="officials-section">
-                {committeeOfficials(committee.id, officials)?.map(
-                  (official, i) => (
-                    <div key={i} className="officer-card">
-                      <img
-                        src={official.avatar}
-                        alt={official.id}
-                        className="officer-image"
-                      />
-                      <h3 className="officer-name">{official.full_name}</h3>
-                      <p className="officer-title">{official.position[0]}</p>
-                      <div className="social-icons">
-                        {official.socials ? (
-                          <a
-                            href={official.socials}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="social-icon"
-                          >
-                            <Facebook size={20} className="fb-icon" />
-                          </a>
-                        ) : null}
-                      </div>
-                    </div>
-                  ),
+      {/* ════════════════════════════════════
+          PAGE HEADER
+          ════════════════════════════════════ */}
+      <header className="op-header">
+        <span className="section-label op-kicker">Elected by the student body</span>
+        <h1 className="op-heading">
+          Meet your <em className="italic-accent">executive</em> officers
+        </h1>
+        <p className="op-subtext">AY 2025–2026 · CSG-CVSU Imus Campus</p>
+      </header>
+
+      <div className="op-content">
+
+        {/* ════════════════════════════════════
+            PRESIDENT (centered, single card)
+            ════════════════════════════════════ */}
+        {president && (
+          <div className="op-pres-wrap">
+            <div className="op-pres-card card">
+              {/* Badge */}
+              <span className="op-pres-badge">President</span>
+
+              {/* Avatar — 96px */}
+              <div className="op-pres-avatar">
+                {!president.avatar ? (
+                  <div className="oc-initials op-pres-initials">
+                    {getInitials(president.full_name)}
+                  </div>
+                ) : (
+                  <img
+                    src={president.avatar}                  /* locked: avatar */
+                    alt={president.full_name}
+                    className="oc-avatar-img"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/CSG_logo.svg"; }}
+                  />
                 )}
               </div>
 
-              {/* Members Dropdown - Pure CSS */}
-              <div className="members-section">
-                <details
-                  key={idx}
-                  className="members-dropdown"
-                  open={openIndex === idx} // Only opens if the index matches
-                >
-                  <summary
-                    className="dropdown-toggle"
-                    onClick={(e) => {
-                      e.preventDefault(); // Stop default HTML behavior
-                      handleToggle(idx); // Pass the current index
-                    }}
-                  >
-                    <div className="dropdown-toggle-content">
-                      Members (
-                      {committeeMembers(committee.id, officers)?.length})
-                      <div className="dropdown-icons">
-                        {openIndex === idx ? (
-                          <ChevronUp size={24} />
-                        ) : (
-                          <ChevronDown size={24} />
-                        )}
-                      </div>
-                    </div>
-                  </summary>
-                  <div className="dropdown-content">
-                    {committeeMembers(committee.id, officers || []).map(
-                      (member, i) => (
-                        <div key={i} className="member-item">
-                          <span className="member-name">
-                            {member.full_name}
-                          </span>
-                          <span className="member-role">
-                            {member.position[0]}
-                          </span>
-                        </div>
-                      ),
-                    )}
-                  </div>
-                </details>
-              </div>
+              <h3 className="op-pres-name">{president.full_name}</h3>
+              <p className="op-pres-pos">
+                {Array.isArray(president.position) ? president.position[0] : president.position}
+              </p>
+              {president.year_serving && (
+                <p className="op-pres-year">{president.year_serving}</p>
+              )}
+              <a
+                href={president.socials || "#"}             /* locked: socials */
+                target={president.socials ? "_blank" : undefined}
+                rel={president.socials ? "noopener noreferrer" : undefined}
+                className="oc-fb op-pres-fb"
+                style={!president.socials ? { opacity: 0.3, pointerEvents: "none" } : undefined}
+                onClick={(e) => { if (!president.socials) e.preventDefault(); }}
+              >
+                <FaFacebook size={16} />
+              </a>
             </div>
           </div>
-        ))}
+        )}
+
+        {/* ════════════════════════════════════
+            EXECUTIVE OFFICERS
+            ════════════════════════════════════ */}
+        {otherExecs.length > 0 && (
+          <div className="op-group">
+            <span className="section-label op-group-label">Executive Officers</span>
+            <div className="op-exec-grid">
+              {otherExecs.map((o) => (
+                <OCard key={o.id} officer={o} avatarSize={80} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════
+            BOARD MEMBERS
+            ════════════════════════════════════ */}
+        {board.length > 0 && (
+          <div className="op-group">
+            <span className="section-label op-group-label">Board Members</span>
+            <div className="op-board-grid">
+              {board.map((o) => (
+                <OCard key={o.id} officer={o} avatarSize={80} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════
+            ADVISERS
+            ════════════════════════════════════ */}
+        {advisers.length > 0 && (
+          <div className="op-group">
+            <span className="section-label op-group-label">Advisers</span>
+            <div className="op-adviser-grid">
+              {advisers.map((o) => (
+                <OCard key={o.id} officer={o} avatarSize={80} isAdviser={true} />
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
