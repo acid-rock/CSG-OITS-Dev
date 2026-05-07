@@ -2,7 +2,11 @@
 // MANUAL STEP: ALTER TABLE officers ADD COLUMN IF NOT EXISTS archived_at timestamptz;
 
 import { Router } from "express";
-import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.js";
+import {
+  anonSupabase,
+  supabase,
+  createUserClient,
+} from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
@@ -88,8 +92,14 @@ router.post(
   upload.single("avatar"),
   asyncHandler(async (req, res) => {
     const {
-      full_name, position, type, socials,
-      year_serving, student_number, committee, is_committee_official,
+      full_name,
+      position,
+      type,
+      socials,
+      year_serving,
+      student_number,
+      committee,
+      is_committee_official,
     } = req.body;
 
     if (!full_name) throw new ApiError(400, "full_name is required.");
@@ -127,7 +137,10 @@ router.post(
 
     if (insertError) {
       if (insertError.code === "23505") {
-        throw new ApiError(409, "An officer with this name and term already exists.");
+        throw new ApiError(
+          409,
+          "An officer with this name and term already exists.",
+        );
       }
       throw new ApiError(500, "Failed to add officer: " + insertError.message);
     }
@@ -136,16 +149,28 @@ router.post(
     let avatarPath = null;
     if (req.file) {
       try {
-        const ext = req.file.originalname?.split(".").pop() || req.file.mimetype.split("/")[1] || "jpg";
+        const ext =
+          req.file.originalname?.split(".").pop() ||
+          req.file.mimetype.split("/")[1] ||
+          "jpg";
         const fileName = `${data.id}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from("officers")
-          .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+          .upload(fileName, req.file.buffer, {
+            contentType: req.file.mimetype,
+            upsert: true,
+          });
         if (!uploadError) {
           avatarPath = fileName;
-          await supabase.from("officers").update({ avatar: avatarPath }).eq("id", data.id);
+          await supabase
+            .from("officers")
+            .update({ avatar: avatarPath })
+            .eq("id", data.id);
         } else {
-          console.error("[ADD OFFICER] Avatar upload failed:", uploadError.message);
+          console.error(
+            "[ADD OFFICER] Avatar upload failed:",
+            uploadError.message,
+          );
         }
       } catch (avatarEx) {
         console.error("[ADD OFFICER] Avatar exception:", avatarEx.message);
@@ -162,8 +187,15 @@ router.post(
   upload.single("avatar"),
   asyncHandler(async (req, res) => {
     const {
-      id, full_name, position, type, socials,
-      year_serving, student_number, committee, is_committee_official,
+      id,
+      full_name,
+      position,
+      type,
+      socials,
+      year_serving,
+      student_number,
+      committee,
+      is_committee_official,
     } = req.body;
 
     if (!id) throw new ApiError(400, "id is required.");
@@ -177,8 +209,10 @@ router.post(
     if (type !== undefined) updates.type = type;
     if (socials !== undefined) updates.socials = socials || null;
     if (year_serving !== undefined) updates.year_serving = year_serving || null;
-    if (student_number !== undefined) updates.student_number = student_number || null;
-    if (committee !== undefined) updates.committee = committee ? parseInt(committee) : null;
+    if (student_number !== undefined)
+      updates.student_number = student_number || null;
+    if (committee !== undefined)
+      updates.committee = committee ? parseInt(committee) : null;
     if (is_committee_official !== undefined) {
       updates.is_committee_official =
         is_committee_official === "true" || is_committee_official === true;
@@ -209,6 +243,7 @@ router.post(
     }
 
     if (Object.keys(updates).length === 0) return res.sendStatus(200);
+    console.log(id);
 
     const { error } = await userSupabase
       .from("officers")
@@ -284,7 +319,10 @@ router.post(
     console.log("[OFFICER ARCHIVE] service key error:", JSON.stringify(error));
     if (error) throw new ApiError(500, "Archive failed: " + error.message);
     if (!data || data.length === 0) {
-      throw new ApiError(404, "No officers found — confirm the status column migration has run");
+      throw new ApiError(
+        404,
+        "No officers found — confirm the status column migration has run",
+      );
     }
     return res.json({ archived: data.length });
   }),
