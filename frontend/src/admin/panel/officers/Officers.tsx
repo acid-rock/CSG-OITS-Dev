@@ -74,8 +74,6 @@ const OfficersPanel = () => {
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
 
-  console.log(data);
-
   const fetchData = useCallback(async () => {
     setLoading(true);
     setFetchError(null);
