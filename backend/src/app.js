@@ -11,6 +11,8 @@ import auditlogRoutes from "./routes/auditlog.routes.js";
 import borrowingRoutes from "./routes/borrowing.routes.js";
 import equipmentRoutes from "./routes/equipment.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
+import changelogRoutes from "./routes/changelog.routes.js";
+import organizationRoutes from "./routes/organizations.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -68,6 +70,8 @@ app.use("/api/v1/settings", adminLimiter, settingsRoutes);
 app.use("/api/v1/analytics", adminLimiter, analyticsRoutes);
 app.use("/api/v1/auditlog", adminLimiter, auditlogRoutes);
 app.use("/api/v1/borrowing", adminLimiter, borrowingRoutes);
+app.use("/api/v1/changelog", publicLimiter, changelogRoutes);
+app.use("/api/v1/organizations", publicLimiter, organizationRoutes);
 
 // Health route
 app.get("/health", (req, res) => {

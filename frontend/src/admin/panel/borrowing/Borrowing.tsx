@@ -172,6 +172,7 @@ const BorrowingPanel = () => {
   const [requestsLoading, setRequestsLoading] = useState(true);
   const [requestsError, setRequestsError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [requestSearch, setRequestSearch] = useState('');
 
   const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
 
@@ -189,6 +190,7 @@ const BorrowingPanel = () => {
   const [showInventoryForm, setShowInventoryForm] = useState(false);
   const [editingInventory, setEditingInventory] = useState<InventoryItem | undefined>(undefined);
   const [deleteInvId, setDeleteInvId] = useState<string | null>(null);
+  const [inventorySearch, setInventorySearch] = useState('');
 
   const fetchRequests = useCallback(async () => {
     setRequestsLoading(true);
@@ -311,6 +313,13 @@ const BorrowingPanel = () => {
         <>
           <div className="announce-toolbar">
             <span className="announce-file-count">{requests.length} Requests</span>
+            <input
+              type="text"
+              placeholder="Search requests..."
+              value={requestSearch}
+              onChange={(e) => setRequestSearch(e.target.value)}
+              style={{ flex: 1, padding: '0.35rem 0.75rem', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: '0.875rem', minWidth: 0 }}
+            />
             <div className="announce-toolbar-actions">
               <select
                 value={statusFilter}
@@ -347,7 +356,7 @@ const BorrowingPanel = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {requests.map((r) => {
+                  {requests.filter((r) => !requestSearch || (r.borrower_name ?? '').toLowerCase().includes(requestSearch.toLowerCase()) || (r.borrower_id ?? '').toLowerCase().includes(requestSearch.toLowerCase())).map((r) => {
                     const isExpanded = expandedRequestId === r.id;
                     return (
                       <>
@@ -449,6 +458,13 @@ const BorrowingPanel = () => {
         <>
           <div className="announce-toolbar">
             <span className="announce-file-count">{inventory.length} Items</span>
+            <input
+              type="text"
+              placeholder="Search equipment..."
+              value={inventorySearch}
+              onChange={(e) => setInventorySearch(e.target.value)}
+              style={{ flex: 1, padding: '0.35rem 0.75rem', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: '0.875rem', minWidth: 0 }}
+            />
             <div className="announce-toolbar-actions">
               <button
                 className="announce-add-btn"
@@ -486,7 +502,7 @@ const BorrowingPanel = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {inventory.map((item) => (
+                  {inventory.filter((item) => !inventorySearch || item.name.toLowerCase().includes(inventorySearch.toLowerCase())).map((item) => (
                     <tr key={item.id} className="announce-table-row">
                       <td>
                         {item.image

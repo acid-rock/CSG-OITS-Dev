@@ -11,8 +11,8 @@ type SidebarProps = {
 // Map each button to its nav section (Overview / Content / Operations)
 const SECTIONS: { label: string; names: string[] }[] = [
   { label: 'Overview', names: ['dashboard'] },
-  { label: 'Content', names: ['announcement', 'documents', 'events', 'officers', 'committees'] },
-  { label: 'Operations', names: ['borrowing', 'contributors', 'auditlog', 'settings', 'bin'] },
+  { label: 'Content', names: ['announcement', 'documents', 'events', 'officers', 'committees', 'organizations'] },
+  { label: 'Operations', names: ['borrowing', 'auditlog', 'contributors', 'settings', 'bin'] },
 ];
 
 const Sidebar = ({ panel, setPanel }: SidebarProps) => {
@@ -71,11 +71,8 @@ const Sidebar = ({ panel, setPanel }: SidebarProps) => {
         {/* ── Welcome block (SOURCE B addition) ── */}
         <div className='sidebar-welcome'>
           <div className='sidebar-avatar'>{initials || 'A'}</div>
-          <div className='sidebar-welcome-text'>
-            <div className='hi'>Hi, {adminName.split(' ')[0]}</div>
-            <div className='role'>Admin</div>
-          </div>
           <div className='sidebar-status-dot' />
+          <span className='sidebar-admin-name'>{adminName}</span>
         </div>
 
         {/* ── Section-grouped nav (SOURCE B structure, SOURCE A handlers) ── */}
@@ -106,7 +103,6 @@ const Sidebar = ({ panel, setPanel }: SidebarProps) => {
 
       {/* ── Logout ── */}
       <div className='sidebar-logout'>
-        <h4>Welcome, {adminName}!</h4>
         <button className='logout-button' onClick={handleLogout}>
           <img src='/logout.png' alt='' />
           Log Out

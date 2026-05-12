@@ -1,5 +1,6 @@
 import './deleteModal.css';
 import axios from 'axios';
+import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -73,6 +74,7 @@ const DeleteModal = ({
   title = 'Delete',
   message = "This action can't be undone. Please confirm if you want to proceed.",
 }: DeleteModalProps) => {
+  useLockBodyScroll(isOpen);
   if (!isOpen) return null;
 
   const handleConfirm = () => {

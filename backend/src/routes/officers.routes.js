@@ -72,15 +72,38 @@ router.get(
     }
 
     const statusFilter = req.query.status || "active";
+    const termFilter = req.query.term || null;
+    const termYearFilter = req.query.term_year || null;
 
-    const { data, error } = await anonSupabase
+    let query = anonSupabase
       .from("officers")
       .select()
       .eq("status", statusFilter)
       .order("created_at", { ascending: true });
+
+    if (termFilter) query = query.eq("year_serving", termFilter);
+    if (termYearFilter) query = query.eq("year_serving", termYearFilter);
+
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
 
     return res.status(200).json(data.map(transformOfficer));
+  }),
+);
+
+router.get(
+  "/terms",
+  asyncHandler(async (req, res) => {
+    const { data, error } = await anonSupabase
+      .from("officers")
+      .select("year_serving")
+      .eq("status", "archived")
+      .not("year_serving", "is", null)
+      .order("year_serving", { ascending: false });
+    if (error) throw new ApiError(500, error.message);
+
+    const distinct = [...new Set((data ?? []).map((r) => r.year_serving))];
+    return res.status(200).json(distinct);
   }),
 );
 
@@ -225,20 +248,21 @@ router.post(
         .eq("id", id)
         .single();
 
-      if (existing?.avatar) {
-        await userSupabase.storage.from("officers").remove([existing.avatar]);
-      }
-
       const ext = req.file.mimetype.split("/")[1] || "jpg";
       const avatarPath = `${id}.${ext}`;
 
-      const { error: uploadError } = await userSupabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("officers")
         .upload(avatarPath, req.file.buffer, {
           contentType: req.file.mimetype,
           upsert: true,
         });
-      if (uploadError) throw new Error(uploadError.message);
+      if (uploadError) throw new ApiError(500, uploadError.message);
+
+      if (existing?.avatar && existing.avatar !== avatarPath) {
+        await supabase.storage.from("officers").remove([existing.avatar]);
+      }
+
       updates.avatar = avatarPath;
     }
 

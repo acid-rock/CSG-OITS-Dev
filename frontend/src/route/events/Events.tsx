@@ -3,9 +3,11 @@ import { useOutletContext } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Modal from "../../components/modal/Modal";
 import type { OutletContext } from "../../root-layout/Root-layout";
+import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
+import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 import "./events.css";
 
-const EVENTS_PER_PAGE = 4; /* locked — same as homepage section */
+const EVENTS_PER_PAGE = 2;
 
 export default function EventsPage() {
 
@@ -17,9 +19,25 @@ export default function EventsPage() {
   const [currentPage,    setCurrentPage]    = useState<number>(0);
   const [open,           setOpen]           = useState(false);
   const [selectedEvent,  setSelectedEvent]  = useState<any>(null);
+  const [searchQuery,    setSearchQuery]    = useState("");
+  const [termFilter,     setTermFilter]     = useState("");
 
-  const totalPages       = Math.ceil(events.length / EVENTS_PER_PAGE);
-  const currentPageEvents = events.slice(
+  const termOptions = [...new Set(events.map((e) => (e as any).term_year).filter(Boolean))].sort().reverse() as string[];
+
+  useLockBodyScroll(open);
+
+  /* Search + term filtered list */
+  const filtered = events.filter((e) => {
+    const matchesSearch = !searchQuery.trim() || (
+      e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (e.description ?? "").toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const matchesTerm = !termFilter || (e as any).term_year === termFilter;
+    return matchesSearch && matchesTerm;
+  });
+
+  const totalPages       = Math.ceil(filtered.length / EVENTS_PER_PAGE);
+  const currentPageEvents = filtered.slice(
     currentPage * EVENTS_PER_PAGE,
     currentPage * EVENTS_PER_PAGE + EVENTS_PER_PAGE,
   );
@@ -30,15 +48,16 @@ export default function EventsPage() {
   const prevPage = () =>
     setCurrentPage((prev) => Math.max(prev - 1, 0));
 
+  const handleSearchChange = (q: string) => {
+    setSearchQuery(q);
+    setCurrentPage(0);
+  };
+
   /* Locked modal handler */
   const handleCardClick = (event: any) => {
     setSelectedEvent(event);
     setOpen(true);
   };
-
-  /* ── Derived layout data ── */
-  const featured      = currentPageEvents[0] ?? null;
-  const sidebarEvents = currentPageEvents.slice(1);   /* remaining 3 */
 
   return (
     <>
@@ -59,129 +78,97 @@ export default function EventsPage() {
       </div>
 
       {/* ════════════════════════════════════════
+          SEARCH + TERM FILTER BAR
+          ════════════════════════════════════════ */}
+      <div className="bl-toolbar-wrap">
+        <div style={{ maxWidth: 600, margin: "0 auto", width: "100%", padding: "0 var(--section-padding-x)" }}>
+          <SearchFilterBar
+            searchValue={searchQuery}
+            onSearchChange={(v) => { handleSearchChange(v); }}
+            termValue={termFilter}
+            onTermChange={(v) => { setTermFilter(v); setCurrentPage(0); }}
+            termOptions={termOptions}
+            searchPlaceholder="Search events..."
+          />
+        </div>
+      </div>
+
+      {/* ════════════════════════════════════════
           MAIN CONTENT
           ════════════════════════════════════════ */}
       <div className="ep-content">
 
-        {events.length === 0 ? (
-          <p className="ep-empty">No events yet.</p>
+        {filtered.length === 0 ? (
+          <p className="ep-empty">{searchQuery ? "No events match your search." : "No events yet."}</p>
         ) : (
           <>
-            {/* ── Two-column layout ── */}
-            <div className="ep-two-col">
-
-              {/* FEATURED card (left, ~60%) */}
-              {featured && (
+            {/* ── 2-column card grid ── */}
+            <div className="ep-card-grid">
+              {currentPageEvents.map((event) => (
                 <div
-                  className="ep-featured card"
-                  onClick={() => handleCardClick(featured)}   /* locked handler */
+                  key={event.id}
+                  className="ep-grid-card card"
+                  onClick={() => handleCardClick(event)}
                 >
-                  {/* Image area */}
-                  <div className="ep-featured-img">
-                    {featured.images?.[0] && (               /* locked: images[0] binding */
+                  {/* Full-cover image at top */}
+                  <div className="ep-grid-img">
+                    {event.images?.[0] ? (
                       <img
-                        src={featured.images[0]}
-                        alt={featured.name}
-                        className="ep-featured-cover"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = "none";
-                        }}
+                        src={event.images[0]}
+                        alt={event.name}
+                        className="ep-grid-cover"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                       />
+                    ) : (
+                      <img src="/CSG_logo.svg" alt="CSG" className="ep-grid-logo" />
                     )}
-                    {/* "FEATURED" tag overlay */}
-                    <span className="tag tag-featured ep-feat-tag">Featured</span>
-                    {/* Fix 3B: date overlay removed — date shown in card body only */}
                   </div>
-
                   {/* Card body */}
-                  <div className="ep-featured-body">
-                    <p className="ep-feat-date-line">
-                      &bull;&nbsp;{featured.date}           {/* locked: date binding */}
-                    </p>
-                    <h2 className="ep-feat-title">
-                      {featured.name}                       {/* locked: name binding */}
-                    </h2>
-                    <p className="ep-feat-desc">
-                      {featured.description}                {/* locked: description binding */}
-                    </p>
+                  <div className="ep-grid-body">
+                    <p className="ep-sidebar-date">&bull;&nbsp;{event.date}</p>
+                    <h3 className="ep-feat-title">{event.name}</h3>
+                    <p className="ep-feat-desc">{event.description}</p>
                   </div>
                 </div>
-              )}
-
-              {/* SIDEBAR list (right, ~38%) — with thumbnail image */}
-              {sidebarEvents.length > 0 && (
-                <div className="ep-sidebar">
-                  {sidebarEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      className="ep-sidebar-card card"
-                      onClick={() => handleCardClick(event)}  /* locked handler */
-                    >
-                      {/* Thumbnail */}
-                      <div className="ev-side-img">
-                        {event.images?.[0] ? (
-                          <img
-                            src={event.images[0]}
-                            alt={event.name}
-                            className="ev-side-thumb"
-                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                          />
-                        ) : (
-                          <img src="/CSG_logo.svg" alt="CSG" className="ev-side-logo" />
-                        )}
-                      </div>
-                      {/* Text */}
-                      <div className="ev-side-text">
-                        <p className="ep-sidebar-date">
-                          &bull;&nbsp;{event.date}         {/* locked: date binding */}
-                        </p>
-                        <h3 className="ep-sidebar-title">
-                          {event.name}                    {/* locked: name binding */}
-                        </h3>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
 
             {/* ── Pagination ── */}
-            <div className="ep-pagination">
-              {/* Prev arrow — locked handler */}
-              <button
-                type="button"
-                className="ep-arrow"
-                onClick={prevPage}
-                disabled={currentPage === 0}
-                aria-label="Previous page"
-              >
-                <ChevronLeft size={20} />
-              </button>
+            {totalPages > 1 && (
+              <div className="ep-pagination">
+                <button
+                  type="button"
+                  className="ep-arrow"
+                  onClick={prevPage}
+                  disabled={currentPage === 0}
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={20} />
+                </button>
 
-              {/* Dot indicators — locked: setCurrentPage handler */}
-              <div className="ep-dots">
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className={`ep-dot${i === currentPage ? " ep-dot-active" : ""}`}
-                    onClick={() => setCurrentPage(i)}
-                    aria-label={`Go to page ${i + 1}`}
-                  />
-                ))}
+                <div className="ep-dots">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={`ep-dot${i === currentPage ? " ep-dot-active" : ""}`}
+                      onClick={() => setCurrentPage(i)}
+                      aria-label={`Go to page ${i + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="ep-arrow"
+                  onClick={nextPage}
+                  disabled={currentPage >= totalPages - 1}
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={20} />
+                </button>
               </div>
-
-              {/* Next arrow — locked handler */}
-              <button
-                type="button"
-                className="ep-arrow"
-                onClick={nextPage}
-                disabled={currentPage >= totalPages - 1}
-                aria-label="Next page"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
+            )}
           </>
         )}
       </div>
@@ -194,12 +181,12 @@ export default function EventsPage() {
           type="event"
           isOpen={open}
           setOpen={setOpen}
-          imageSrc={selectedEvent.images?.[0]}     /* locked: images[0] binding */
-          imageAlt={selectedEvent.name}            /* locked: name binding */
-          date={selectedEvent.date}               /* locked: date binding */
-          title={selectedEvent.name}              /* locked: name binding */
-          description={selectedEvent.description} /* locked: description binding */
-          extraImage={selectedEvent.images}       /* locked: full images array */
+          imageSrc={selectedEvent.images?.[0]}
+          imageAlt={selectedEvent.name}
+          date={selectedEvent.date}
+          title={selectedEvent.name}
+          description={selectedEvent.description}
+          extraImage={selectedEvent.images}
         />
       )}
     </>

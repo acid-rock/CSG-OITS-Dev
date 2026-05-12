@@ -11,6 +11,7 @@ import OfficersPanel from '../panel/officers/Officers';
 import CommitteesPanel from '../panel/committees/Committees';
 import Bin from '../../route/bin/Bin';
 import BorrowingPanel from '../panel/borrowing/Borrowing';
+import OrganizationsPanel from '../panel/organizations/Organizations';
 
 const panel = [
   { name: 'dashboard',    content: <Dashboard /> },
@@ -24,6 +25,7 @@ const panel = [
   { name: 'contributors', content: <Contributor /> },
   { name: 'settings',     content: <Settings /> },
   { name: 'bin',          content: <Bin /> },
+  { name: 'organizations', content: <OrganizationsPanel /> },
 ];
 
 const ContentPanel = ({ active }: { active: string | null }) => {

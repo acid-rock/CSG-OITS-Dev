@@ -58,9 +58,9 @@
   white-space: nowrap;
 }
 
-/* Subtitle line "CVSU · IMUS CAMPUS" — CSS-only, no JSX change */
+/* Subtitle line — CSS-only, no JSX change */
 .nav-left h1::after {
-  content: "CVSU · IMUS CAMPUS";
+  content: "Cavite State University · Imus Campus";
   display: block;
   font-size: var(--font-size-xs);        /* 0.75rem */
   font-weight: var(--font-weight-normal); /* 400 */

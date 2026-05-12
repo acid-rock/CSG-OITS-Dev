@@ -51,6 +51,7 @@ router.get(
         date: row.created_at,
         created_at: row.created_at,
         is_pinned: row.is_pinned ?? false,
+        category: row.category ?? 'CSG Updates',
       };
     });
 
@@ -65,7 +66,7 @@ router.post(
   auditLogger(),
   asyncHandler(async (req, res) => {
     const token = req.token;
-    const { title, content } = req.body;
+    const { title, content, category } = req.body;
 
     const userSupabase = createUserClient(token);
     const { data, error } = await userSupabase
@@ -75,6 +76,7 @@ router.post(
           title: title,
           content: content,
           owner_id: req.user.sub,
+          category: category || 'CSG Updates',
         },
         { onConflict: "title" },
       )
@@ -103,13 +105,15 @@ router.post(
   auditLogger(),
   asyncHandler(async (req, res) => {
     if (!req.body) throw new ApiError(400, "No valid request body is found.");
-    const { id, title, content } = req.body;
+    const { id, title, content, category } = req.body;
     const token = req.token;
 
     const userSupabase = createUserClient(token);
+    const updates = { title, content };
+    if (category) updates.category = category;
     const { error } = await userSupabase
       .from("bulletin")
-      .update({ title, content })
+      .update(updates)
       .eq("id", id);
     if (error) throw new Error(error.message);
 
@@ -181,15 +185,13 @@ router.get(
   "/archived",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-
     const { data, error } = await supabase
       .from("bulletin")
       .select()
-      .not("deleted_at", "is", null)
-      .order("deleted_at", { ascending: false });
-    if (error) throw new Error(error.message);
+      .eq("is_archived", true)
+      .is("deleted_at", null)
+      .order("archived_at", { ascending: false });
+    if (error) throw new ApiError(500, error.message);
 
     const payload = data.map((row) => {
       const imgPath = `${row.id}.jpg`;
@@ -212,6 +214,36 @@ router.get(
   }),
 );
 
+router.get(
+  "/bin",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { data, error } = await supabase
+      .from("bulletin")
+      .select()
+      .not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
+    if (error) throw new ApiError(500, error.message);
+
+    const payload = data.map((row) => {
+      const imgPath = `${row.id}.jpg`;
+      const imgUrl = anonSupabase.storage
+        .from("bulletin")
+        .getPublicUrl(imgPath).data.publicUrl;
+      return {
+        id: row.id,
+        imgUrl,
+        title: row.title,
+        content: row.content,
+        date: row.created_at,
+        deleted_at: row.deleted_at,
+      };
+    });
+
+    return res.status(200).json(payload);
+  }),
+);
+
 router.post(
   "/archive",
   requireAuth,
@@ -220,14 +252,12 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
-    const token = req.token;
-    const userSupabase = createUserClient(token);
     const now = new Date().toISOString();
-    const { error } = await userSupabase
+    const { error } = await supabase
       .from("bulletin")
-      .update({ is_archived: true, archived_at: now, deleted_at: now })
+      .update({ is_archived: true, archived_at: now })
       .in("id", ids);
-    if (error) throw new Error(error.message);
+    if (error) throw new ApiError(500, error.message);
     return res.sendStatus(200);
   }),
 );
@@ -242,9 +272,43 @@ router.post(
     }
     const { error } = await supabase
       .from("bulletin")
-      .update({ is_archived: false, archived_at: null, deleted_at: null })
+      .update({ is_archived: false, archived_at: null })
       .in("id", ids);
     if (error) throw new ApiError(500, "Restore failed: " + error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/bin",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const { error } = await supabase
+      .from("bulletin")
+      .update({ deleted_at: new Date().toISOString() })
+      .in("id", ids);
+    if (error) throw new ApiError(500, error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/restore-from-bin",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const { error } = await supabase
+      .from("bulletin")
+      .update({ deleted_at: null, is_archived: false })
+      .in("id", ids);
+    if (error) throw new ApiError(500, error.message);
     return res.sendStatus(200);
   }),
 );

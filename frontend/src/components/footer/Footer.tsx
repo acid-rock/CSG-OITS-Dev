@@ -2,7 +2,6 @@ import { useState } from 'react';
 import logo from '../../assets/CSG_logo.svg';
 import './footer.css';
 import { FaFacebook } from 'react-icons/fa';
-import { MdEmail } from 'react-icons/md';
 
 /* ─── Google Form (Send Feedback) URL — preserve exactly ─── */
 const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdpXwlDybMgEV8rrfazdYuQoHz8G5UCKTZg1zErSKZMK6Nnjg/viewform?usp=header";
@@ -111,7 +110,7 @@ export default function Footer() {
           <div className='footer-brand-col'>
             <div className='footer-brand-row'>
               <img src={logo} alt='CSG Logo' className='footer-logo-img' />
-              <span className='footer-brand-name'>Central Student Government</span>
+              <span className='footer-brand-name'>Central Student Government - Imus</span>
             </div>
             <p className='footer-brand-sub'>
               Cavite State University — Imus Campus &nbsp;·&nbsp; csg.imus@cvsu.edu.ph

@@ -1,4 +1,5 @@
 import './confirmationModal.css';
+import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 
 interface confirmationProps {
   onClose: () => void;
@@ -6,6 +7,7 @@ interface confirmationProps {
 }
 
 const ConfimationModal = ({ onConfirm, onClose }: confirmationProps) => {
+  useLockBodyScroll(true);
   return (
     <div className='admin-confirm-overlay'>
       <div className='admin-confirm-container'>

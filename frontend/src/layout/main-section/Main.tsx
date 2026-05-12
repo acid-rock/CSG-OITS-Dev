@@ -1,9 +1,11 @@
 import "./main.css";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Button from "../../components/button/Button";
 
 export default function Main() {
+  const navigate = useNavigate();
   const [docs, setDocs] = useState<string>("—");
   const [committees, setCommittees] = useState<string>("—");
   const [officers, setOfficers] = useState<string>("—");
@@ -80,7 +82,10 @@ export default function Main() {
           </p>
 
           <div className="hero-buttons">
-            <Button variant="primary" onClick={() => scrollToSection("document")}>
+            <Button variant="primary" onClick={() => navigate("/borrow")}>
+              Borrow Equipment →
+            </Button>
+            <Button variant="secondary" onClick={() => navigate("/documents")}>
               Documents
             </Button>
           </div>

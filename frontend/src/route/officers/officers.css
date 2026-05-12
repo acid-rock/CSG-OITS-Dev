@@ -11,8 +11,12 @@
 .op-header {
   text-align: center;
   padding: var(--space-16) var(--section-padding-x) var(--space-10);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: linear-gradient(
+    to bottom,
+    var(--color-background-hero)        0%,
+    rgba(184, 196, 232, 0.25)          60%,
+    var(--color-background)           100%
+  );
 }
 
 .op-kicker {
@@ -299,4 +303,134 @@
   .op-exec-grid { grid-template-columns: repeat(2, 1fr); }
   .op-board-grid .oc-card,
   .op-adviser-grid .oc-card { width: 100%; }
+}
+
+/* ── Committee cards ── */
+.op-committee-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.op-committee-card {
+  padding: var(--space-4) var(--space-5);
+  text-align: center;
+}
+
+.op-committee-name {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  margin: 0 0 var(--space-1);
+}
+
+.op-committee-head {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Clickable committee card */
+.op-committee-card-clickable {
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.op-committee-card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.op-committee-view {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  margin-top: var(--space-2);
+}
+
+/* Committee modal */
+.op-committee-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.op-committee-modal {
+  background: var(--color-surface, #fff);
+  border-radius: var(--radius-xl, 12px);
+  padding: var(--space-8);
+  max-width: 440px;
+  width: 92%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: var(--shadow-modal, 0 10px 40px rgba(0,0,0,0.2));
+}
+
+.op-committee-modal-close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-5);
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.op-committee-modal-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-5);
+}
+
+.op-cm-section {
+  margin-bottom: var(--space-5);
+}
+
+.op-cm-section-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--space-3);
+}
+
+.op-cm-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.op-cm-row:last-child { border-bottom: none; }
+
+.op-cm-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.op-cm-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.op-cm-pos {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
 }

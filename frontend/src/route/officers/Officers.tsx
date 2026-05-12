@@ -2,7 +2,12 @@ import "./officers.css";
 import { useOutletContext } from "react-router-dom";
 import { FaFacebook } from "react-icons/fa";
 import { useState, useEffect } from "react";
+import axios from "axios";
 import type { Officer, OutletContext } from "../../root-layout/Root-layout";
+import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
+import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
+
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 /* ── Initials helper ── */
 function getInitials(fullName: string): string {
@@ -88,10 +93,32 @@ const Officers = () => {
      ══════════════════════════════════════════ */
   const { officers } = useOutletContext<OutletContext>();
 
+  const [committees, setCommittees] = useState<{ id: number; name: string }[]>([]);
+  const [selectedCommittee, setSelectedCommittee] = useState<{ id: number; name: string } | null>(null);
+  const [officerSearch, setOfficerSearch] = useState("");
+  const [officerTerm, setOfficerTerm] = useState("");
+  useLockBodyScroll(!!selectedCommittee);
+
+  const officerTermOptions = [...new Set(officers.map((o) => o.year_serving).filter(Boolean))].sort().reverse() as string[];
+
+  useEffect(() => {
+    axios.get(`${API_URL}/committees`).then(({ data }) => setCommittees(data)).catch(() => {});
+  }, []);
+
+  /* Filter by search + term */
+  const filteredOfficers = officers?.filter((o) => {
+    const matchesSearch = !officerSearch || (
+      o.full_name.toLowerCase().includes(officerSearch.toLowerCase()) ||
+      (Array.isArray(o.position) ? o.position[0] : o.position).toLowerCase().includes(officerSearch.toLowerCase())
+    );
+    const matchesTerm = !officerTerm || o.year_serving === officerTerm;
+    return matchesSearch && matchesTerm;
+  }) ?? [];
+
   /* Group by type field — locked */
-  const executives = officers?.filter((o) => o.type === "executive") ?? [];
-  const board      = officers?.filter((o) => o.type === "board")     ?? [];
-  const advisers   = officers?.filter((o) => o.type === "adviser")   ?? [];
+  const executives = filteredOfficers.filter((o) => o.type === "executive");
+  const board      = filteredOfficers.filter((o) => o.type === "board");
+  const advisers   = filteredOfficers.filter((o) => o.type === "adviser");
 
   /* Find president — locked: position field */
   const president = executives.find((o) => {
@@ -103,6 +130,7 @@ const Officers = () => {
     : executives;
 
   return (
+    <>
     <div className="op-page">
 
       {/* ════════════════════════════════════
@@ -115,6 +143,20 @@ const Officers = () => {
         </h1>
         <p className="op-subtext">AY 2025–2026 · CSG-CVSU Imus Campus</p>
       </header>
+
+      {/* Search + Term filter */}
+      <div className="bl-toolbar-wrap">
+        <div style={{ maxWidth: 600, margin: "0 auto", width: "100%", padding: "0 var(--section-padding-x)" }}>
+          <SearchFilterBar
+            searchValue={officerSearch}
+            onSearchChange={setOfficerSearch}
+            termValue={officerTerm}
+            onTermChange={setOfficerTerm}
+            termOptions={officerTermOptions}
+            searchPlaceholder="Search officers..."
+          />
+        </div>
+      </div>
 
       <div className="op-content">
 
@@ -206,8 +248,113 @@ const Officers = () => {
           </div>
         )}
 
+        {/* ════════════════════════════════════
+            COMMITTEES
+            ════════════════════════════════════ */}
+        {committees.length > 0 && (
+          <div className="op-group">
+            <span className="section-label op-group-label">Committees</span>
+            <div className="op-committee-grid">
+              {committees.map((c) => {
+                const head = officers.find(
+                  (o) => o.committee === c.id && o.is_committee_official
+                );
+                return (
+                  <div
+                    key={c.id}
+                    className="op-committee-card card op-committee-card-clickable"
+                    onClick={() => setSelectedCommittee(c)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === "Enter" && setSelectedCommittee(c)}
+                  >
+                    <p className="op-committee-name">{c.name}</p>
+                    {head && (
+                      <p className="op-committee-head">{head.full_name}</p>
+                    )}
+                    <span className="op-committee-view">View members →</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
+
+    {/* Committee members modal */}
+    {selectedCommittee && (
+      <div
+        className="op-committee-modal-overlay"
+        onClick={() => setSelectedCommittee(null)}
+      >
+        <div
+          className="op-committee-modal"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="op-committee-modal-close"
+            onClick={() => setSelectedCommittee(null)}
+            aria-label="Close"
+          >×</button>
+          <h2 className="op-committee-modal-title">{selectedCommittee.name}</h2>
+
+          {/* Officials first */}
+          {(() => {
+            const members = officers.filter((o) => o.committee === selectedCommittee.id);
+            const officials = members.filter((o) => o.is_committee_official);
+            const regulars  = members.filter((o) => !o.is_committee_official);
+            return (
+              <>
+                {officials.length > 0 && (
+                  <div className="op-cm-section">
+                    <p className="op-cm-section-label">Officials</p>
+                    {officials.map((o) => (
+                      <div key={o.id} className="op-cm-row">
+                        <img
+                          src={o.avatar || "/CSG_logo.svg"}
+                          alt={o.full_name}
+                          className="op-cm-avatar"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/CSG_logo.svg"; }}
+                        />
+                        <div>
+                          <p className="op-cm-name">{o.full_name}</p>
+                          <p className="op-cm-pos">{Array.isArray(o.position) ? o.position[0] : o.position}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {regulars.length > 0 && (
+                  <div className="op-cm-section">
+                    <p className="op-cm-section-label">Members</p>
+                    {regulars.map((o) => (
+                      <div key={o.id} className="op-cm-row">
+                        <img
+                          src={o.avatar || "/CSG_logo.svg"}
+                          alt={o.full_name}
+                          className="op-cm-avatar"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/CSG_logo.svg"; }}
+                        />
+                        <div>
+                          <p className="op-cm-name">{o.full_name}</p>
+                          <p className="op-cm-pos">{Array.isArray(o.position) ? o.position[0] : o.position}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {members.length === 0 && (
+                  <p style={{ color: "var(--color-text-muted)", fontSize: "var(--font-size-sm)" }}>No members assigned.</p>
+                )}
+              </>
+            );
+          })()}
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

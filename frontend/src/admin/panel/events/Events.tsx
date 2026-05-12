@@ -21,7 +21,7 @@ interface EventEntry {
 const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
 const sortOptions = ['Name (A-Z)', 'Name (Z-A)', 'Date (Newest)', 'Date (Oldest)'];
 
-type Tab = 'active' | 'archived';
+type Tab = 'active' | 'archived' | 'bin';
 
 const filterByDate = (date: string, filter: string): boolean => {
   if (!filter || filter === 'All') return true;
@@ -76,6 +76,7 @@ const Events = () => {
   const [sort, setSort] = useState<string>('');
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -84,6 +85,8 @@ const Events = () => {
     try {
       const endpoint = tab === 'archived'
         ? `${API_URL}/events/archived`
+        : tab === 'bin'
+        ? `${API_URL}/events/bin`
         : `${API_URL}/events`;
       const { data: responseData } = await axios.get(endpoint, { withCredentials: true });
       setData(responseData);
@@ -113,9 +116,8 @@ const Events = () => {
   };
 
   const handleSoftDelete = async (id: string) => {
-    if (!window.confirm('Move this item to the bin?')) return;
     try {
-      await axios.post(`${API_URL}/events/archive`, { ids: [id] }, { withCredentials: true });
+      await axios.post(`${API_URL}/events/bin`, { ids: [id] }, { withCredentials: true });
       setData(prev => prev.filter(item => item.id !== id));
     } catch (err: unknown) {
       setFetchError('Failed to move to bin: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? (err instanceof Error ? err.message : 'Unknown')));
@@ -126,6 +128,13 @@ const Events = () => {
     await axios.post(`${API_URL}/events/restore`, { ids: [entryId] }, { withCredentials: true });
     setData(prev => prev.filter(e => e.id !== entryId));
     fetchData();
+  };
+
+  const handleRestoreFromBin = async (entryId: string) => {
+    try {
+      await axios.post(`${API_URL}/events/restore-from-bin`, { ids: [entryId] }, { withCredentials: true });
+      setData(prev => prev.filter(e => e.id !== entryId));
+    } catch { fetchData(); }
   };
 
   const handlePermanentDelete = async (id: string) => {
@@ -173,12 +182,20 @@ const Events = () => {
       <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
         <button style={tabStyle('active')} onClick={() => setTab('active')}>Active</button>
         <button style={tabStyle('archived')} onClick={() => setTab('archived')}>Archived</button>
+        <button style={tabStyle('bin')} onClick={() => setTab('bin')}>Bin</button>
       </div>
 
       {fetchError && <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>}
 
       <div className='announce-toolbar'>
         <span className='announce-file-count'>{data.length} Events</span>
+        <input
+          type='text'
+          placeholder='Search...'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ flex: 1, padding: '0.35rem 0.75rem', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: '0.875rem', minWidth: 0 }}
+        />
         <div className='announce-toolbar-actions'>
           <FilterSelect options={filterOptions} value={filter} onChange={setFilter} label='Filter' />
           <FilterSelect options={sortOptions} value={sort} onChange={setSort} label='Sort' />
@@ -226,6 +243,7 @@ const Events = () => {
             <tbody>
               {data
                 .filter((entry) => filterByDate(entry.date, filter))
+                .filter((entry) => !searchQuery || entry.name.toLowerCase().includes(searchQuery.toLowerCase()) || (entry.description ?? '').toLowerCase().includes(searchQuery.toLowerCase()))
                 .sort((a, b) => {
                   if (sort === 'Name (A-Z)') return a.name.localeCompare(b.name);
                   if (sort === 'Name (Z-A)') return b.name.localeCompare(a.name);
@@ -274,7 +292,7 @@ const Events = () => {
                 ))}
             </tbody>
           </table>
-        ) : (
+        ) : tab === 'archived' ? (
           <>
             {sortedTerms.length === 0 && (
               <p style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.875rem' }}>No archived events.</p>
@@ -350,7 +368,34 @@ const Events = () => {
               </div>
             ))}
           </>
-        )}
+        ) : tab === 'bin' ? (
+          <>
+            {data.length === 0 && <p style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.875rem' }}>No items in bin.</p>}
+            {data.length > 0 && (
+              <table>
+                <thead>
+                  <tr className='announce-table-header-light'>
+                    <th>Name</th><th>Description</th><th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((entry) => (
+                    <tr key={entry.id} className='announce-table-row'>
+                      <td>{entry.name}</td>
+                      <td style={{ maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.description}</td>
+                      <td style={{ padding: '0.5rem 1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button onClick={() => handleRestoreFromBin(entry.id)} style={{ color: '#16a34a', background: 'none', border: '1px solid #16a34a', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}>Restore</button>
+                          <button onClick={() => { setId(entry.id); setIsModalOpen(true); }} style={{ color: '#dc2626', background: 'none', border: '1px solid #dc2626', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}>Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </>
+        ) : null}
       </div>
 
       {isModalOpen && (

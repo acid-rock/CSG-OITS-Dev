@@ -50,4 +50,75 @@ router.post(
   }),
 );
 
+// ── Term management (key-value settings table) ───────────────────────────────
+
+router.get(
+  "/term",
+  asyncHandler(async (req, res) => {
+    const { data, error } = await supabase
+      .from("settings")
+      .select("key, value")
+      .eq("key", "active_term")
+      .maybeSingle();
+
+    if (error) throw new ApiError(500, error.message);
+
+    return res.status(200).json(
+      data ?? { key: "active_term", value: "AY 2025-2026" }
+    );
+  }),
+);
+
+router.post(
+  "/term",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { value } = req.body;
+    if (!value || !value.trim()) throw new ApiError(400, "value is required.");
+
+    const { error } = await supabase
+      .from("settings")
+      .upsert({ key: "active_term", value: value.trim() }, { onConflict: "key" });
+
+    if (error) throw new ApiError(500, error.message);
+
+    return res.sendStatus(200);
+  }),
+);
+
+router.get(
+  "/:key",
+  asyncHandler(async (req, res) => {
+    const { key } = req.params;
+    const { data, error } = await supabase
+      .from("settings")
+      .select("key, value")
+      .eq("key", key)
+      .maybeSingle();
+
+    if (error) throw new ApiError(500, error.message);
+    if (!data) throw new ApiError(404, `Setting '${key}' not found.`);
+
+    return res.status(200).json(data);
+  }),
+);
+
+router.post(
+  "/:key",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { key } = req.params;
+    const { value } = req.body;
+    if (!value) throw new ApiError(400, "value is required.");
+
+    const { error } = await supabase
+      .from("settings")
+      .upsert({ key, value }, { onConflict: "key" });
+
+    if (error) throw new ApiError(500, error.message);
+
+    return res.sendStatus(200);
+  }),
+);
+
 export default router;

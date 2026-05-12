@@ -45,11 +45,7 @@
 /* ════════════════════════════════════════════════════
    SEARCH + FILTER TOOLBAR
    ════════════════════════════════════════════════════ */
-.bl-toolbar-wrap {
-  background: var(--color-background);
-  padding: var(--space-5) var(--section-padding-x);
-  border-bottom: 1px solid var(--color-border);
-}
+/* .bl-toolbar-wrap defined globally in index.css */
 
 .bl-toolbar {
   max-width: var(--max-width-content);
@@ -62,6 +58,42 @@
 }
 /* Fix 6B: when only search bar is present, keep it centred */
 .bl-toolbar-center { justify-content: center; }
+
+/* Category filter chips */
+.bl-chips-wrap {
+  padding: var(--space-4) var(--section-padding-x) 0;
+  display: flex;
+  justify-content: center;
+}
+
+.bl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.bl-chip {
+  padding: 0.35rem 0.875rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary, var(--color-text-muted));
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.bl-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.bl-chip-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
 
 /* Search input */
 .bl-search-wrap {

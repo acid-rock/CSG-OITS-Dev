@@ -24,8 +24,10 @@ const NAV_GROUPS = [
   {
     label: "About",
     items: [
-      { label: "About",    href: "/about"    },
-      { label: "Officers", href: "/officers" },
+      { label: "About",         href: "/about"              },
+      { label: "Officers",      href: "/officers"           },
+      { label: "Organizations", href: "/about#organizations"},
+      { label: "Contributors",  href: "/contributors"       },
     ],
   },
 ] as const;
@@ -63,7 +65,7 @@ export default function Navigation() {
         {/* ── Left: logo + brand ── */}
         <div className="nav-left" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
           <img className="logo" src={logo} alt="CSG Logo" />
-          <Typography color="text-dark">Central Student Government</Typography>
+          <Typography color="text-dark">Central Student Government - Imus</Typography>
         </div>
 
         {/* ── Desktop: grouped nav ── */}

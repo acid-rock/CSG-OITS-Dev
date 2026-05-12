@@ -3,7 +3,6 @@ import axios from "axios";
 import FilterSelect from "../../components/filter/Filter";
 import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
 import OfficerForm from "./OfficerForm";
-import { filterByDate } from "../../utils/filterByDate";
 import { Archive, ArchiveRestore } from "lucide-react";
 import Actionbar from "../../components/action-bar/Actionbar";
 
@@ -29,7 +28,7 @@ interface OfficerEntry {
   archived_at?: string;
 }
 
-const filterOptions = ["All", "Today", "This Week", "This Month"];
+const filterOptions = ["All", "Executive", "Board", "Adviser", "Former"];
 const sortOptions = [
   "Name (A-Z)",
   "Name (Z-A)",
@@ -37,7 +36,7 @@ const sortOptions = [
   "Date (Oldest)",
 ];
 
-type Tab = "active" | "archived";
+type Tab = "active" | "archived" | "bin";
 
 function displayPosition(pos: string | string[]): string {
   return Array.isArray(pos) ? pos[0] : pos;
@@ -73,6 +72,7 @@ const OfficersPanel = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -82,6 +82,8 @@ const OfficersPanel = () => {
       const officersEndpoint =
         tab === "archived"
           ? `${API_URL}/officers/archived`
+          : tab === "bin"
+          ? `${API_URL}/officers?deleted_at_not_null=true`
           : `${API_URL}/officers`;
       const [officersRes, committeesRes] = await Promise.all([
         axios.get<OfficerEntry[]>(officersEndpoint, { withCredentials: true }),
@@ -218,6 +220,9 @@ const OfficersPanel = () => {
         <button style={tabStyle("archived")} onClick={() => setTab("archived")}>
           Archived
         </button>
+        <button style={tabStyle("bin")} onClick={() => setTab("bin")}>
+          Bin
+        </button>
       </div>
 
       {fetchError && (
@@ -226,6 +231,13 @@ const OfficersPanel = () => {
 
       <div className="announce-toolbar">
         <span className="announce-file-count">{data.length} Officers</span>
+        <input
+          type="text"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ flex: 1, padding: '0.35rem 0.75rem', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: '0.875rem', minWidth: 0 }}
+        />
         <div className="announce-toolbar-actions">
           <FilterSelect
             options={filterOptions}
@@ -303,7 +315,8 @@ const OfficersPanel = () => {
             </thead>
             <tbody>
               {data
-                .filter((e) => filterByDate(e.created_at, filter))
+                .filter((e) => filter === 'All' || !filter || e.type === filter.toLowerCase())
+                .filter((e) => !searchQuery || e.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || (Array.isArray(e.position) ? e.position[0] : e.position).toLowerCase().includes(searchQuery.toLowerCase()))
                 .sort((a, b) => {
                   if (sort === "Name (A-Z)")
                     return a.full_name.localeCompare(b.full_name);

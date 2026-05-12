@@ -12,6 +12,7 @@ import EventsPage from "./route/events/Events";
 import Officers from "./route/officers/Officers";
 import AboutPage from "./route/about/AboutPage";
 import Borrow from "./route/borrow/Borrow";
+import ContributorsPage from "./route/contributors/Contributors";
 
 // Admin Login (Public)
 import Login from "./admin/admin-loginpage/login/Login";
@@ -32,7 +33,8 @@ const router = createBrowserRouter([
       { path: "events",   element: <EventsPage /> },
       { path: "about",    element: <AboutPage /> },
       { path: "officers", element: <Officers /> },
-      { path: "borrow", element: <Borrow /> },
+      { path: "borrow",        element: <Borrow /> },
+      { path: "contributors", element: <ContributorsPage /> },
     ],
   },
   // Admin Public Routes (Login)

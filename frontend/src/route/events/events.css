@@ -4,10 +4,14 @@
    PAGE HEADER
    ════════════════════════════════════════════════════ */
 .ep-header {
-  background: var(--color-surface);
+  background: linear-gradient(
+    to bottom,
+    var(--color-background-hero)        0%,
+    rgba(184, 196, 232, 0.25)          60%,
+    var(--color-background)           100%
+  );
   padding: var(--space-16) var(--section-padding-x) var(--space-10);
   text-align: center;
-  border-bottom: 1px solid var(--color-border);
 }
 
 .ep-header-inner {
@@ -310,4 +314,88 @@
 @media (max-width: 480px) {
   .ep-sidebar-card { flex-direction: column; gap: var(--space-3); }
   .ep-feat-date-badge { font-size: var(--font-size-xs); }
+}
+
+/* ── Search bar wrapper (kept for backward-compat; canonical wrapper is bl-toolbar-wrap) ── */
+.ep-search-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) var(--section-padding-x) 0;
+  max-width: var(--max-width-content);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── 2-column card grid — equal-height cards ── */
+.ep-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: stretch;
+  gap: var(--space-6);
+}
+
+.ep-grid-card {
+  align-self: stretch;
+  height: 100%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.ep-grid-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover, 0 8px 24px rgba(0,0,0,0.12));
+}
+
+/* Fixed image height — same as homepage grid */
+.ep-grid-img {
+  height: 220px;
+  width: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  position: relative;
+}
+
+.ep-grid-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.ep-grid-card:hover .ep-grid-cover {
+  transform: scale(1.03);
+}
+
+.ep-grid-logo {
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.3;
+}
+
+.ep-grid-body {
+  padding: var(--space-5) var(--space-6);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Description inside grid cards — clamp to 3 lines */
+.ep-grid-body .ep-feat-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .ep-card-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
 }

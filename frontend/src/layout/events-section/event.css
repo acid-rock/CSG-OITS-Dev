@@ -373,6 +373,88 @@
   width: 24px;
 }
 
+/* ── 2-column card grid — equal-height cards ── */
+.ev-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: stretch;   /* default — each row's cards match the tallest */
+  gap: var(--space-6);
+}
+
+.ev-grid-card {
+  /* grid-item sizing: explicit stretch + fill guarantee equal row heights */
+  align-self: stretch;
+  height: 100%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.ev-grid-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Fixed image height — guarantees both cards' images are identical height */
+.ev-grid-img {
+  height: 220px;
+  width: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  position: relative;
+}
+
+.ev-grid-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-base);
+}
+
+.ev-grid-card:hover .ev-grid-cover {
+  transform: scale(1.03);
+}
+
+/* Body fills remaining card height so cards in the same row are bottom-aligned */
+.ev-grid-body {
+  padding: var(--space-5) var(--space-6);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ev-grid-date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-1);
+}
+
+.ev-grid-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-2);
+  line-height: 1.35;
+}
+
+.ev-grid-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .ev-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
+}
+
 /* ── Backward-compat ── */
 .events-layout {
   display: grid;

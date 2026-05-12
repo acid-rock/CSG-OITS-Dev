@@ -34,15 +34,14 @@ router.post(
     const { name } = req.body;
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
 
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-
-    const { error } = await userSupabase
+    const { data, error } = await supabase
       .from("committees")
-      .insert({ name: name.trim() });
-    if (error) throw new Error(error.message);
+      .insert({ name: name.trim(), status: "active" })
+      .select()
+      .single();
+    if (error) throw new ApiError(500, error.message);
 
-    return res.sendStatus(200);
+    return res.status(200).json(data);
   }),
 );
 

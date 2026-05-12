@@ -4,14 +4,17 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Modal from "../../components/modal/Modal";
 import { useOutletContext } from "react-router-dom";
 import type { OutletContext } from "../../root-layout/Root-layout";
+import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 
-const EVENTS_PER_PAGE = 4;
+const EVENTS_PER_PAGE = 2;
 
 export default function Events() {
   const { events } = useOutletContext<OutletContext>();
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [open, setOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+
+  useLockBodyScroll(open);
 
   const totalPages = Math.ceil(events.length / EVENTS_PER_PAGE);
   const currentPageEvents = events.slice(
@@ -27,9 +30,6 @@ export default function Events() {
     setOpen(true);
   };
 
-  const featured = currentPageEvents[0] ?? null;
-  const sidebar  = currentPageEvents.slice(1);
-
   return (
     <>
       <div className="event-container">
@@ -43,75 +43,43 @@ export default function Events() {
             <p className="ev-sub">Explore official events from the student government.</p>
           </div>
 
-          {/* Two-column layout: featured + sidebar */}
-          <div className="ev-two-col">
-
-            {/* FEATURED card */}
-            {featured && (
+          {/* 2×2 card grid */}
+          <div className="ev-grid">
+            {currentPageEvents.map((event) => (
               <div
-                className="ev-featured card"
-                onClick={() => handleCardClick(featured)}
+                key={event.id}
+                className="ev-grid-card card"
+                onClick={() => handleCardClick(event)}
               >
-                {/* Image — Fix 2: always render image area with placeholder */}
-                <div className="ev-feat-img">
-                  {featured.images?.[0] ? (
+                {/* Cover image */}
+                <div className="ev-grid-img">
+                  {event.images?.[0] ? (
                     <img
-                      src={featured.images[0]}
-                      alt={featured.name}
-                      className="ev-feat-cover"
+                      key={event.id}
+                      src={event.images[0]}
+                      alt={event.name}
+                      className="ev-grid-cover"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                        (e.currentTarget as HTMLImageElement).src = "/CSG_logo.svg";
+                        (e.currentTarget as HTMLImageElement).style.objectFit = "contain";
+                        (e.currentTarget as HTMLImageElement).style.opacity = "0.3";
                       }}
                     />
                   ) : (
-                    <div className="ev-feat-placeholder" />
+                    <img src="/CSG_logo.svg" alt="CSG" className="ev-grid-cover" style={{ objectFit: "contain", opacity: 0.3 }} />
                   )}
-                  <span className="tag tag-featured ev-feat-badge">Featured</span>
-                  {/* Fix 3B applied here: NO date overlay badge */}
                 </div>
                 {/* Card body */}
-                <div className="ev-feat-body">
-                  <p className="ev-feat-date">&bull;&nbsp;{featured.date}</p>
-                  <h3 className="ev-feat-title">{featured.name}</h3>
-                  <p className="ev-feat-desc">{featured.description}</p>
+                <div className="ev-grid-body">
+                  <p className="ev-grid-date">&bull;&nbsp;{event.date}</p>
+                  <h3 className="ev-grid-title">{event.name}</h3>
+                  <p className="ev-grid-desc">{event.description}</p>
                 </div>
               </div>
-            )}
-
-            {/* SIDEBAR list — with thumbnail image */}
-            {sidebar.length > 0 && (
-              <div className="ev-sidebar">
-                {sidebar.map((event) => (
-                  <div
-                    key={event.id}
-                    className="ev-side-card card"
-                    onClick={() => handleCardClick(event)}
-                  >
-                    {/* Thumbnail */}
-                    <div className="ev-side-img">
-                      {event.images?.[0] ? (
-                        <img
-                          src={event.images[0]}
-                          alt={event.name}
-                          className="ev-side-thumb"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                        />
-                      ) : (
-                        <img src="/CSG_logo.svg" alt="CSG" className="ev-side-logo" />
-                      )}
-                    </div>
-                    {/* Text */}
-                    <div className="ev-side-text">
-                      <p className="ev-side-date">&bull;&nbsp;{event.date}</p>
-                      <h3 className="ev-side-title">{event.name}</h3>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
 
-          {/* Fix 5: ALL pagination in ONE flex container */}
+          {/* Pagination */}
           <div style={{
             display: "flex",
             alignItems: "center",
@@ -160,7 +128,7 @@ export default function Events() {
           type="event"
           isOpen={open}
           setOpen={setOpen}
-          imageSrc={selectedEvent.images[0]}
+          imageSrc={selectedEvent.images?.[0] ?? "/CSG_logo.svg"}
           imageAlt={selectedEvent.name}
           date={selectedEvent.date}
           title={selectedEvent.name}

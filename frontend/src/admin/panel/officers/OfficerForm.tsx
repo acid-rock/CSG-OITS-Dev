@@ -56,6 +56,16 @@ const OfficerForm = ({
       .catch(() => {});
   }, []);
 
+  // Auto-fill yearServing from active term if not editing
+  useEffect(() => {
+    if (!initialData.year_serving) {
+      axios
+        .get(`${API_URL}/settings/term`, { withCredentials: true })
+        .then(({ data }) => { if (data?.value) setYearServing(data.value); })
+        .catch(() => {});
+    }
+  }, []);
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {

@@ -28,10 +28,12 @@ interface PaginatedOfficers {
 export default async function fetchOfficers(
   page?: number,
   limit?: number,
+  term?: string,
 ): Promise<OfficerItem[] | PaginatedOfficers> {
-  const params: Record<string, number> = {};
+  const params: Record<string, string | number> = {};
   if (page !== undefined) params.page = page;
   if (limit !== undefined) params.limit = limit;
+  if (term) params.term = term;
 
   const { data } = await axios.get(`${API_URL}/officers`, {
     params: Object.keys(params).length > 0 ? params : undefined,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 import "./borrow.css";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
@@ -33,6 +34,7 @@ export default function Borrow() {
   // ── Section 1: Request Information ──
   const [requesterName, setRequesterName] = useState("");
   const [studentNumber, setStudentNumber] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
   const [organization, setOrganization] = useState("");
   const [positionInOrg, setPositionInOrg] = useState("");
@@ -59,6 +61,7 @@ export default function Borrow() {
 
   // ── Equipment filter (list view) — must be at top level, not after early returns ──
   const [equipFilter, setEquipFilter] = useState<"all" | "available" | "unavailable">("all");
+  const [equipSearch, setEquipSearch] = useState("");
 
   const FALLBACK_INVENTORY: InventoryItem[] = [
     { id: "9091ce6a-871d-4de2-9008-0cd84ae4fa54", name: "Basketball", quantity: 1, max_quantity: 1, is_available: true },
@@ -125,8 +128,13 @@ export default function Borrow() {
     e.preventDefault();
     setSubmitError(null);
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!requesterName.trim() || !studentNumber.trim() || !dateOfUse) {
       setSubmitError("Please fill in all required fields.");
+      return;
+    }
+    if (!studentEmail.trim() || !emailRegex.test(studentEmail.trim())) {
+      setSubmitError("Please enter a valid student email address.");
       return;
     }
     if (equipmentRows.some((r) => !r.equipment_id)) {
@@ -143,7 +151,8 @@ export default function Borrow() {
       await axios.post(`${API_URL}/borrowing/request`, {
         borrower_name: requesterName,
         borrower_id: studentNumber,
-        borrower_email: undefined,
+        borrower_email: studentEmail.trim(),
+        student_email: studentEmail.trim(),
         contact_number: contactNumber || undefined,
         organization: organization || undefined,
         position_in_org: positionInOrg || undefined,
@@ -170,7 +179,7 @@ export default function Borrow() {
   };
 
   const resetForm = () => {
-    setRequesterName(""); setStudentNumber(""); setContactNumber("");
+    setRequesterName(""); setStudentNumber(""); setStudentEmail(""); setContactNumber("");
     setOrganization(""); setPositionInOrg("");
     setPurposeType(""); setPurposeOthersDetail("");
     setActivityName(""); setVenue(""); setDateOfUse(""); setTimeOfUse("");
@@ -231,6 +240,10 @@ export default function Borrow() {
               <div className="borrow-field">
                 <label>Student Number *</label>
                 <input type="text" value={studentNumber} onChange={(e) => setStudentNumber(e.target.value)} placeholder="e.g. 2021-00123" required />
+              </div>
+              <div className="borrow-field">
+                <label>Student Email *</label>
+                <input type="email" value={studentEmail} onChange={(e) => setStudentEmail(e.target.value)} placeholder="your.email@cvsu.edu.ph" required />
               </div>
               <div className="borrow-field">
                 <label>Position</label>
@@ -414,8 +427,9 @@ export default function Borrow() {
 
   // ── List view (default) ──
   const visibleInventory = inventory.filter((item) => {
-    if (equipFilter === "available")   return item.is_available;
-    if (equipFilter === "unavailable") return !item.is_available;
+    if (equipFilter === "available"   && !item.is_available) return false;
+    if (equipFilter === "unavailable" &&  item.is_available) return false;
+    if (equipSearch.trim() && !item.name.toLowerCase().includes(equipSearch.toLowerCase())) return false;
     return true;
   });
 
@@ -424,6 +438,7 @@ export default function Borrow() {
       {/* Hero header */}
       <div className="eq-hero">
         <div className="eq-hero-inner">
+          <span className="section-label" style={{ display: "block", textAlign: "center", marginBottom: "var(--space-3)" }}>CSG Resources</span>
           <h1 className="eq-hero-heading">
             <em className="italic-accent">Borrow</em> equipment
           </h1>
@@ -431,6 +446,18 @@ export default function Borrow() {
             Borrow CSG-managed equipment for your org events, classes, or campus
             activities. Submit a request and we&rsquo;ll get back to you within 24 hours.
           </p>
+        </div>
+      </div>
+
+      {/* Search bar */}
+      <div className="bl-toolbar-wrap">
+        <div style={{ maxWidth: 600, margin: "0 auto", width: "100%", padding: "0 var(--section-padding-x)" }}>
+        <SearchFilterBar
+          searchValue={equipSearch}
+          onSearchChange={setEquipSearch}
+          showTermFilter={false}
+          searchPlaceholder="Search equipment..."
+        />
         </div>
       </div>
 

@@ -190,15 +190,31 @@ router.post(
       .eq("id", id);
     if (updateError) throw new Error(updateError.message);
 
-    const { error: copyError } = await userSupabase.storage
-      .from("documents")
-      .copy(oldFile[0].file_path, filepath);
-    const { error: deleteError } = await userSupabase.storage
-      .from("documents")
-      .remove([oldFile[0].file_path]);
+    const oldPath = oldFile[0].file_path;
+    if (oldPath !== filepath) {
+      const { error: copyError } = await userSupabase.storage
+        .from("documents")
+        .copy(oldPath, filepath);
 
-    if (copyError) throw new Error(copyError.message);
-    if (deleteError) throw new Error(deleteError.message);
+      if (copyError) {
+        const { data: fileBlob } = await userSupabase.storage
+          .from("documents")
+          .download(oldPath);
+        if (fileBlob) {
+          const { error: uploadError } = await supabase.storage
+            .from("documents")
+            .upload(filepath, fileBlob, { upsert: true });
+          if (uploadError) throw new ApiError(500, uploadError.message);
+        } else {
+          throw new ApiError(500, copyError.message);
+        }
+      }
+
+      const { error: deleteError } = await userSupabase.storage
+        .from("documents")
+        .remove([oldPath]);
+      if (deleteError) throw new ApiError(500, deleteError.message);
+    }
 
     return res.sendStatus(200);
   }),
@@ -255,25 +271,19 @@ router.get(
 );
 
 router.post(
-  "/restore",
+  "/restore-from-bin",
   requireAuth,
   asyncHandler(async (req, res) => {
-    // Accept either { ids: [...] } or a raw array for backward compat
     const ids = Array.isArray(req.body) ? req.body : req.body?.ids;
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids must be a non-empty array");
     }
 
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-
-    console.log("[DOC RESTORE] ids received:", ids);
-    const { data, error } = await userSupabase
+    const { data, error } = await supabase
       .from("documents")
       .update({ is_deleted: false, is_archived: false, archived_at: null, deleted_at: null })
       .in("id", ids)
       .select();
-    console.log("[DOC RESTORE] rows updated:", data?.length ?? 0, "error:", error?.message ?? null);
     if (error) throw new ApiError(500, "Failed to restore documents: " + error.message);
     if (!data || data.length === 0) {
       throw new ApiError(404, "No documents found with those IDs, or they are not in the bin");
@@ -328,10 +338,11 @@ router.get(
     const { data: files, error } = await supabase
       .from("documents")
       .select("*")
-      .not("deleted_at", "is", null)
-      .order("deleted_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return res.status(200).json(files.map((f) => ({ ...transformDocument(f), deleted_at: f.deleted_at })));
+      .eq("is_archived", true)
+      .is("deleted_at", null)
+      .order("archived_at", { ascending: false });
+    if (error) throw new ApiError(500, error.message);
+    return res.status(200).json(files.map((f) => ({ ...transformDocument(f), archived_at: f.archived_at })));
   }),
 );
 
@@ -359,9 +370,9 @@ router.post(
     const now = new Date().toISOString();
     const { error } = await userSupabase
       .from("documents")
-      .update({ is_archived: true, archived_at: now, deleted_at: now })
+      .update({ is_archived: true, archived_at: now })
       .in("id", ids);
-    if (error) throw new Error(error.message);
+    if (error) throw new ApiError(500, error.message);
     return res.sendStatus(200);
   }),
 );
@@ -374,13 +385,28 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-    const { error } = await userSupabase
+    const { error } = await supabase
       .from("documents")
-      .update({ is_archived: false, archived_at: null, deleted_at: null })
+      .update({ is_archived: false, archived_at: null })
       .in("id", ids);
-    if (error) throw new Error(error.message);
+    if (error) throw new ApiError(500, "Restore failed: " + error.message);
+    return res.sendStatus(200);
+  }),
+);
+
+router.post(
+  "/bin",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ApiError(400, "ids array is required.");
+    }
+    const { error } = await supabase
+      .from("documents")
+      .update({ deleted_at: new Date().toISOString(), is_deleted: true })
+      .in("id", ids);
+    if (error) throw new ApiError(500, error.message);
     return res.sendStatus(200);
   }),
 );

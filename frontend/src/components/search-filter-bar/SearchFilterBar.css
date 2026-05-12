@@ -1,0 +1,70 @@
+/* ── SearchFilterBar — shared search + term filter row ── */
+.sfb-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.sfb-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.sfb-search-icon {
+  position: absolute;
+  left: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  line-height: 0;
+  pointer-events: none;
+}
+
+.sfb-search {
+  width: 100%;
+  height: 44px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  padding: 0 var(--space-4) 0 calc(var(--space-4) + 20px);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.sfb-search::placeholder {
+  color: var(--color-text-muted);
+}
+
+.sfb-search:focus {
+  border-color: var(--color-border-focus, var(--color-primary));
+  box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.10);
+}
+
+.sfb-term {
+  height: 44px;
+  width: 160px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-surface);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.sfb-term:focus {
+  border-color: var(--color-border-focus, var(--color-primary));
+}
+
+@media (max-width: 480px) {
+  .sfb-row { flex-direction: column; align-items: stretch; }
+  .sfb-term { width: 100%; }
+}

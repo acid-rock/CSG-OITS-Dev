@@ -39,16 +39,21 @@ export const buttonConfig = [
     icon: <img src='/document.png' alt='Equipment' width={18} height={18} />,
   },
   {
-    label: 'Contributors',
-    name: 'contributors',
-    icon: (
-      <img src='/user-solid.png' alt='Contributors' width={18} height={18} />
-    ),
+    label: 'Organizations',
+    name: 'organizations',
+    icon: <img src='/user-solid.png' alt='Organizations' width={18} height={18} />,
   },
   {
     label: 'Audit Log',
     name: 'auditlog',
     icon: <img src='/document.png' alt='Audit Log' width={18} height={18} />,
+  },
+  {
+    label: 'Contributors',
+    name: 'contributors',
+    icon: (
+      <img src='/user-solid.png' alt='Contributors' width={18} height={18} />
+    ),
   },
   {
     label: 'Settings',

@@ -11,7 +11,7 @@ interface CommitteeEntry {
   archived_at?: string;
 }
 
-type Tab = 'active' | 'archived';
+type Tab = 'active' | 'archived' | 'bin';
 
 const CommitteesPanel = () => {
   const [tab, setTab] = useState<Tab>('active');
@@ -35,6 +35,12 @@ const CommitteesPanel = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setFetchError(null);
+    // Bin tab requires the deleted_at column (migration not yet run) — show empty state
+    if (tab === 'bin') {
+      setData([]);
+      setLoading(false);
+      return;
+    }
     try {
       const endpoint = tab === 'archived'
         ? `${API_URL}/committees?status=archived`
@@ -154,6 +160,7 @@ const CommitteesPanel = () => {
       <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
         <button style={tabStyle('active')} onClick={() => setTab('active')}>Active</button>
         <button style={tabStyle('archived')} onClick={() => setTab('archived')}>Archived</button>
+        <button style={tabStyle('bin')} onClick={() => setTab('bin')}>Bin</button>
       </div>
 
       {fetchError && (
@@ -207,7 +214,16 @@ const CommitteesPanel = () => {
         </div>
       )}
 
-      <div className='announce-file-table'>
+      {tab === 'bin' && (
+        <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
+          <p style={{ fontWeight: 600, color: 'var(--color-text, #374151)', marginBottom: '0.5rem' }}>No items in bin</p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted, #6b7280)' }}>
+            Bin functionality requires a database migration. Please contact your system administrator.
+          </p>
+        </div>
+      )}
+
+      {tab !== 'bin' && <div className='announce-file-table'>
         <table>
           <thead>
             <tr className='announce-table-header-light'>
@@ -297,7 +313,7 @@ const CommitteesPanel = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      </div>}
 
       {isModalOpen && (
         <div className='announce-modal-position'>

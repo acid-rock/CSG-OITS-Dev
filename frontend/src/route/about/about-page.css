@@ -52,3 +52,13 @@
   .ap-stats { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 480px) { .ap-stats { grid-template-columns: 1fr; } }
+
+/* Organizations section — anchor scroll offset for sticky navbar */
+#organizations { scroll-margin-top: 80px; }
+.ap-orgs-heading { text-align: center; }
+.ap-orgs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-5);
+}
+@media (max-width: 640px) { .ap-orgs-grid { grid-template-columns: repeat(2, 1fr); } }

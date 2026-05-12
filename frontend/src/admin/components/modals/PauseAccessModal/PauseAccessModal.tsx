@@ -1,4 +1,5 @@
 import './pauseAccessModal.css';
+import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
 
 interface PauseAccessModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ const PauseAccessModal = ({
   onConfirm,
   title = 'Pause Access',
 }: PauseAccessModalProps) => {
+  useLockBodyScroll(isOpen);
   if (!isOpen) return null;
 
   const message = isPause ? (

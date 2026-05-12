@@ -7,6 +7,14 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL as string;
 
 // TASK 5: extended forType to include 'event'
+const ANNOUNCEMENT_CATEGORIES = [
+  'CSG Updates',
+  'Class Advisories',
+  'Examinations',
+  'University Events',
+  'Official CVSU',
+] as const;
+
 interface FormProps {
   forType: "announcement" | "document" | "event";
   id?: string | null;
@@ -15,6 +23,7 @@ interface FormProps {
   initialDate?: string;
   initialType?: string;   // pre-populate type select for document edits
   initialImages?: string[]; // current image URLs shown as previews in event edit mode
+  initialCategory?: string; // announcement category
   setOpen: (open: boolean) => void;
   onSuccess?: () => void; // called after a successful API submission
 }
@@ -27,6 +36,7 @@ const Form = ({
   initialDate = "",
   initialType = "",
   initialImages = [],
+  initialCategory = 'CSG Updates',
   setOpen,
   onSuccess,
 }: FormProps) => {
@@ -47,6 +57,7 @@ const Form = ({
   const [announcementImage, setAnnouncementImage] = useState<File | null>(null);
   const [type, setType] = useState(initialType);
   const [term, setTerm] = useState("");
+  const [category, setCategory] = useState(initialCategory);
 
   // Helpers
   const undoHandler = () => {
@@ -83,6 +94,7 @@ const Form = ({
     if (forType === "announcement") {
       // Backend expects 'content' not 'description'
       formData.append("content", description);
+      formData.append("category", category);
     }
 
     if (forType === "document") {
@@ -232,6 +244,16 @@ const Form = ({
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
+          {forType === "announcement" && (
+            <div className="form-group">
+              <label htmlFor="category">Category</label>
+              <select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
+                {ANNOUNCEMENT_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+          )}
           {forType === "document" && (
             <div className="form-group">
               <label htmlFor="term">Term (S.Y.)</label>

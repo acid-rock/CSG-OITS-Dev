@@ -5,7 +5,6 @@ import Form from '../../components/form/Form';
 import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
 import Actionbar from '../../components/action-bar/Actionbar';
 import axios from 'axios';
-import { filterByDate } from '../../utils/filterByDate';
 import { Archive, ArchiveRestore } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
@@ -22,7 +21,7 @@ interface DocumentEntry {
   deleted_at?: string;
 }
 
-const filterOptions = ['All', 'Today', 'This Week', 'This Month'];
+// filterOptions is now computed dynamically inside the component from data
 const sortOptions = ['Name (A-Z)', 'Name (Z-A)', 'Date (Newest)', 'Date (Oldest)'];
 
 const formatDate = (iso: string): string => {
@@ -30,7 +29,7 @@ const formatDate = (iso: string): string => {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
-type Tab = 'active' | 'archived';
+type Tab = 'active' | 'archived' | 'bin';
 
 const groupByTerm = (items: DocumentEntry[]): Record<string, DocumentEntry[]> => {
   const groups: Record<string, DocumentEntry[]> = {};
@@ -62,6 +61,7 @@ const Documents = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -70,6 +70,8 @@ const Documents = () => {
     try {
       const endpoint = tab === 'archived'
         ? `${API_URL}/documents/archived?t=${Date.now()}`
+        : tab === 'bin'
+        ? `${API_URL}/documents/bin?t=${Date.now()}`
         : `${API_URL}/documents`;
       const { data: responseData } = await axios.get<DocumentEntry[]>(endpoint, { withCredentials: true });
       setData(Array.isArray(responseData) ? responseData : (responseData as any).data ?? []);
@@ -99,9 +101,8 @@ const Documents = () => {
   };
 
   const handleSoftDelete = async (id: string) => {
-    if (!window.confirm('Move this item to the bin?')) return;
     try {
-      await axios.post(`${API_URL}/documents/archive`, { ids: [id] }, { withCredentials: true });
+      await axios.post(`${API_URL}/documents/bin`, { ids: [id] }, { withCredentials: true });
       setData(prev => prev.filter(item => item.id !== id));
     } catch (err: unknown) {
       setFetchError('Failed to move to bin: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? (err instanceof Error ? err.message : 'Unknown')));
@@ -138,6 +139,13 @@ const Documents = () => {
   const toggleTerm = (term: string) =>
     setOpenTerms(prev => ({ ...prev, [term]: !prev[term] }));
 
+  // Dynamic filter options derived from fetched document categories
+  const formatTypeLabel = (raw: string) =>
+    raw.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+  const docTypes = [...new Set(data.map((d) => d.category).filter(Boolean))].sort();
+  const filterOptions = ['All', ...docTypes.map(formatTypeLabel)];
+
   const archivedGroups = tab === 'archived' ? groupByTerm(data) : {};
   const sortedTerms = Object.keys(archivedGroups).sort((a, b) => b.localeCompare(a));
   const isOpen = (term: string) =>
@@ -159,12 +167,20 @@ const Documents = () => {
       <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
         <button style={tabStyle('active')} onClick={() => setTab('active')}>Active</button>
         <button style={tabStyle('archived')} onClick={() => setTab('archived')}>Archived</button>
+        <button style={tabStyle('bin')} onClick={() => setTab('bin')}>Bin</button>
       </div>
 
       {fetchError && <p style={{ padding: '0.5rem 1rem', color: 'red' }}>{fetchError}</p>}
 
       <div className='docs-toolbar'>
         <span className='docs-file-count'>{data.length} Files</span>
+        <input
+          type='text'
+          placeholder='Search...'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ flex: 1, padding: '0.35rem 0.75rem', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: '0.875rem', minWidth: 0 }}
+        />
         <div className='docs-toolbar-actions'>
           <FilterSelect options={filterOptions} value={filter} onChange={setFilter} label='Filter' />
           <FilterSelect options={sortOptions} value={sort} onChange={setSort} label='Sort' />
@@ -213,7 +229,8 @@ const Documents = () => {
             </thead>
             <tbody>
               {data
-                .filter((entry) => filterByDate(entry.createdAt, filter))
+                .filter((entry) => filter === 'All' || !filter || formatTypeLabel(entry.category ?? '') === filter)
+                .filter((entry) => !searchQuery || entry.name.toLowerCase().includes(searchQuery.toLowerCase()) || (entry.description ?? '').toLowerCase().includes(searchQuery.toLowerCase()))
                 .sort((a, b) => {
                   if (sort === 'Name (A-Z)') return a.name.localeCompare(b.name);
                   if (sort === 'Name (Z-A)') return b.name.localeCompare(a.name);
@@ -263,7 +280,7 @@ const Documents = () => {
                 ))}
             </tbody>
           </table>
-        ) : (
+        ) : tab === 'archived' ? (
           <>
             {sortedTerms.length === 0 && (
               <p style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.875rem' }}>No archived documents.</p>
@@ -342,7 +359,34 @@ const Documents = () => {
               </div>
             ))}
           </>
-        )}
+        ) : tab === 'bin' ? (
+          <>
+            {data.length === 0 && <p style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.875rem' }}>No items in bin.</p>}
+            {data.length > 0 && (
+              <table>
+                <thead>
+                  <tr className='docs-table-header-light'>
+                    <th>Name</th><th>Description</th><th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((entry) => (
+                    <tr key={entry.id} className='announce-table-row'>
+                      <td>{entry.name}</td>
+                      <td style={{ maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.description}</td>
+                      <td style={{ padding: '0.5rem 1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button onClick={() => handleRestore(entry.id)} style={{ color: '#16a34a', background: 'none', border: '1px solid #16a34a', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}>Restore</button>
+                          <button onClick={() => handlePermanentDelete(entry.id)} style={{ color: '#dc2626', background: 'none', border: '1px solid #dc2626', borderRadius: '4px', padding: '0.25rem 0.625rem', fontSize: '0.75rem', cursor: 'pointer' }}>Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </>
+        ) : null}
       </div>
 
       {open && (

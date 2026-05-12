@@ -19,7 +19,7 @@ export async function requireAuth(req, res, next) {
     return next();
   } catch (error) {
     if (!refreshToken) {
-      return res.status(403).json({ message: "Session expired." });
+      return res.status(401).json({ error: "Session expired" });
     }
 
     try {
@@ -46,7 +46,7 @@ export async function requireAuth(req, res, next) {
       req.user = data.session.user;
       next();
     } catch (error) {
-      return res.status(403).json({ message: "Invalid refresh token." });
+      return res.status(401).json({ error: "Session expired" });
     }
   }
 }

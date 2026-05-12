@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import Modal from "../../components/modal/Modal";
 import type { Announcement, OutletContext } from "../../root-layout/Root-layout";
+import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
+import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 import "./bulletin.css";
 
 function getTagClass(type?: string): string {
@@ -25,9 +27,16 @@ const Bulletin = () => {
   const { bulletin } = useOutletContext<OutletContext>();
   const [selected, setSelected] = useState<Announcement | null>(null);
   const [open, setOpen]         = useState(false);
+  useLockBodyScroll(open);
 
-  /* Fix 6B: search only — no filter pills */
   const [query, setQuery] = useState("");
+  const [activeTerm, setActiveTerm] = useState<string>("");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+
+  const CATEGORIES = ["All", "CSG Updates", "Class Advisories", "Examinations", "University Events", "Official CVSU"];
+
+  // Derive distinct term_year values from bulletin data
+  const termOptions = [...new Set(bulletin.map((a) => (a as any).term_year).filter(Boolean))].sort().reverse() as string[];
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -43,14 +52,15 @@ const Bulletin = () => {
 
   const pinned = bulletin.find((a) => a.is_pinned);
 
-  /* Fix 6B: filter by search only */
+  /* Filter by search + category + term (AND logic) */
   const filtered = bulletin.filter((a) => {
-    if (!query) return true;
-    const q = query.toLowerCase();
-    return (
-      a.title?.toLowerCase().includes(q) ||
-      a.content?.toLowerCase().includes(q)
+    const matchesSearch = !query || (
+      a.title?.toLowerCase().includes(query.toLowerCase()) ||
+      a.content?.toLowerCase().includes(query.toLowerCase())
     );
+    const matchesCategory = activeCategory === "All" || (a.category ?? "CSG Updates") === activeCategory;
+    const matchesTerm = !activeTerm || (a as any).term_year === activeTerm;
+    return matchesSearch && matchesCategory && matchesTerm;
   });
 
   const remaining = filtered.filter((a) => !a.is_pinned);
@@ -71,25 +81,33 @@ const Bulletin = () => {
         </div>
       </div>
 
-      {/* Fix 6B: search bar only — no filter pills */}
+      {/* Search + term filter bar */}
       <div className="bl-toolbar-wrap">
-        <div className="bl-toolbar bl-toolbar-center">
-          <div className="bl-search-wrap">
-            <span className="bl-search-icon" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-              </svg>
-            </span>
-            <input
-              type="text"
-              className="bl-search"
-              placeholder="Search announcements..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
+        <div style={{ maxWidth: 600, margin: "0 auto", width: "100%", padding: "0 var(--section-padding-x)" }}>
+          <SearchFilterBar
+            searchValue={query}
+            onSearchChange={setQuery}
+            termValue={activeTerm}
+            onTermChange={setActiveTerm}
+            termOptions={termOptions}
+            searchPlaceholder="Search announcements..."
+          />
+        </div>
+      </div>
+
+      {/* Category filter chips */}
+      <div className="bl-chips-wrap">
+        <div className="bl-chips">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              className={`bl-chip${activeCategory === cat ? " bl-chip-active" : ""}`}
+              onClick={() => setActiveCategory(cat)}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
       </div>
 

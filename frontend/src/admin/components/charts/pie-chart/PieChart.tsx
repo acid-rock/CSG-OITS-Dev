@@ -3,19 +3,13 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
+const LIMIT_MB = 1024;
+const WARN_MB = 900;
 
 interface BucketStat {
   name: string;
   size: number;
 }
-
-const SLICE_COLORS = [
-  "rgba(59, 130, 246, 0.8)",   // blue
-  "rgba(34, 197, 94, 0.8)",    // green
-  "rgba(249, 115, 22, 0.8)",   // orange
-  "rgba(168, 85, 247, 0.8)",   // purple
-  "rgba(239, 68, 68, 0.8)",    // red
-];
 
 const PieChart = () => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
@@ -30,7 +24,6 @@ const PieChart = () => {
         `${API_URL}/dashboard/storage`,
         { withCredentials: true },
       );
-      console.log("[PIE CHART] Storage data received:", data);
       if ("error" in data) {
         setUnavailable(true);
       } else {
@@ -52,19 +45,25 @@ const PieChart = () => {
       chartInstanceRef.current.destroy();
     }
 
-    const labels = buckets.map(
-      (b) => `${b.name} (${(b.size / 1024 / 1024).toFixed(1)} MB)`,
-    );
-    const values = buckets.map((b) => b.size);
+    const totalBytes = buckets.reduce((sum, b) => sum + b.size, 0);
+    const totalMB = totalBytes / (1024 * 1024);
+    const remainingMB = Math.max(0, LIMIT_MB - totalMB);
+    const nearFull = totalMB >= WARN_MB;
 
     chartInstanceRef.current = new Chart(chartRef.current, {
       type: "doughnut",
       data: {
-        labels,
+        labels: [
+          `Used (${totalMB.toFixed(1)} MB)`,
+          `Remaining (${remainingMB.toFixed(1)} MB)`,
+        ],
         datasets: [
           {
-            data: values,
-            backgroundColor: SLICE_COLORS.slice(0, buckets.length),
+            data: [totalMB, remainingMB],
+            backgroundColor: [
+              nearFull ? "rgba(220, 38, 38, 0.8)" : "rgba(249, 115, 22, 0.8)",
+              "rgba(156, 163, 175, 0.4)",
+            ],
             borderWidth: 2,
           },
         ],
@@ -105,9 +104,9 @@ const PieChart = () => {
   }
 
   const totalBytes = buckets.reduce((sum, b) => sum + b.size, 0);
-  const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
-  const limitMB = 1024;
-  const percentUsed = ((totalBytes / (limitMB * 1024 * 1024)) * 100).toFixed(1);
+  const totalMB = totalBytes / (1024 * 1024);
+  const remainingMB = Math.max(0, LIMIT_MB - totalMB);
+  const nearFull = totalMB >= WARN_MB;
 
   return (
     <div style={{ padding: "1rem" }}>
@@ -117,7 +116,13 @@ const PieChart = () => {
       </div>
       {buckets.length > 0 && (
         <div style={{ marginTop: "0.75rem", fontSize: "0.8rem", color: "#374151", textAlign: "center" }}>
-          <strong>{totalMB} MB</strong> used of <strong>1 GB</strong> ({percentUsed}% full)
+          <strong>{totalMB.toFixed(1)} MB</strong> used ·{" "}
+          <strong>{remainingMB.toFixed(1)} MB</strong> remaining of 1 GB
+        </div>
+      )}
+      {nearFull && (
+        <div style={{ marginTop: "0.5rem", fontSize: "0.78rem", color: "#dc2626", textAlign: "center", fontWeight: 600 }}>
+          ⚠ Storage nearly full
         </div>
       )}
     </div>
