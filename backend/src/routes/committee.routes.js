@@ -6,6 +6,13 @@ import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
+import { getCached, setCache, invalidateCachePrefix } from "../lib/cache.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import {
+  addCommitteeSchema,
+  editCommitteeSchema,
+  committeeIdsSchema,
+} from "../schemas/index.js";
 
 const router = Router();
 
@@ -15,12 +22,18 @@ router.get(
   "/",
   asyncHandler(async (req, res) => {
     const status = req.query.status ?? "active";
+    const cacheKey = `committees:${status}`;
+    const cached = getCached(cacheKey);
+    if (cached) return res.status(200).json(cached);
+
     const { data, error } = await anonSupabase
       .from("committees")
       .select("*")
       .eq("status", status)
       .order("id", { ascending: true });
     if (error) throw new Error(error.message);
+
+    setCache(cacheKey, data, 60_000);
     return res.status(200).json(data);
   }),
 );
@@ -30,6 +43,7 @@ router.get(
 router.post(
   "/add",
   requireAuth,
+  validate(addCommitteeSchema),
   asyncHandler(async (req, res) => {
     const { name } = req.body;
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
@@ -41,6 +55,7 @@ router.post(
       .single();
     if (error) throw new ApiError(500, error.message);
 
+    invalidateCachePrefix("committees:");
     return res.status(200).json(data);
   }),
 );
@@ -48,6 +63,7 @@ router.post(
 router.post(
   "/edit",
   requireAuth,
+  validate(editCommitteeSchema),
   asyncHandler(async (req, res) => {
     const { id, name } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
@@ -61,6 +77,7 @@ router.post(
       .eq("id", intId);
     if (error) throw new ApiError(500, "Update failed: " + error.message);
 
+    invalidateCachePrefix("committees:");
     return res.sendStatus(200);
   }),
 );
@@ -68,6 +85,7 @@ router.post(
 router.delete(
   "/delete",
   requireAuth,
+  validate(committeeIdsSchema),
   asyncHandler(async (req, res) => {
     const ids = Array.isArray(req.body) ? req.body : req.body?.ids;
     if (!Array.isArray(ids) || ids.length === 0)
@@ -76,6 +94,7 @@ router.delete(
     if (intIds.length === 0) throw new ApiError(400, "Invalid committee IDs");
     const { error } = await supabase.from("committees").delete().in("id", intIds);
     if (error) throw new ApiError(500, "Delete failed: " + error.message);
+    invalidateCachePrefix("committees:");
     return res.sendStatus(200);
   }),
 );
@@ -101,6 +120,7 @@ router.get(
 router.post(
   "/archive",
   requireAuth,
+  validate(committeeIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -114,6 +134,7 @@ router.post(
       .update({ status: "archived" })
       .in("id", intIds);
     if (error) throw new ApiError(500, "Archive failed: " + error.message);
+    invalidateCachePrefix("committees:");
     return res.sendStatus(200);
   }),
 );
@@ -121,6 +142,7 @@ router.post(
 router.post(
   "/restore",
   requireAuth,
+  validate(committeeIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -133,6 +155,7 @@ router.post(
       .update({ status: "active" })
       .in("id", intIds);
     if (error) throw new ApiError(500, "Restore failed: " + error.message);
+    invalidateCachePrefix("committees:");
     return res.sendStatus(200);
   }),
 );

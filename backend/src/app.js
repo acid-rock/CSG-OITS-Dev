@@ -21,6 +21,7 @@ import morgan from "morgan";
 import "dotenv/config";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "";
+const supabaseHost = new URL(process.env.SUPABASE_URL || "https://placeholder.supabase.co").hostname;
 
 // Public routes — stricter limit
 const publicLimiter = rateLimit({
@@ -45,7 +46,26 @@ const app = express();
 app.set("trust proxy", 1);
 
 // Middlewares
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:     ["'self'"],
+      scriptSrc:      ["'self'"],
+      styleSrc:       ["'self'", "'unsafe-inline'"],
+      imgSrc:         ["'self'", `https://${supabaseHost}`, "data:", "blob:"],
+      mediaSrc:       ["'self'", `https://${supabaseHost}`],
+      connectSrc:     ["'self'", `https://${supabaseHost}`],
+      frameSrc:       ["'self'", `https://${supabaseHost}`],
+      fontSrc:        ["'self'", "data:"],
+      objectSrc:      ["'none'"],
+      baseUri:        ["'self'"],
+      formAction:     ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
 app.use(
   cors({
     origin: FRONTEND_URL,
@@ -53,9 +73,9 @@ app.use(
   }),
 );
 app.use(morgan("combined"));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes — public (stricter) vs admin (generous)
 app.use("/api/v1/announcements", publicLimiter, announcementRoutes);
@@ -83,22 +103,23 @@ app.use((req, res, next) => {
   return res.status(404).json({ message: "Route/endpoint not found." });
 });
 
-// Global Error handler
+// Global Error handler — must be last middleware
 app.use((err, req, res, next) => {
-  const status = err.status || 500;
+  const isDev = process.env.NODE_ENV !== "production";
 
   if (err.isOperational) {
-    return res.status(status).json({
-      status: "error",
-      message: err.message,
+    return res.status(err.status || 500).json({
+      error: err.message,
     });
   }
 
-  console.error(err);
+  console.error("Unexpected error:", err);
 
-  res.status(500).json({
-    status: "error",
-    message: "Something went wrong.",
+  return res.status(500).json({
+    error: isDev
+      ? err.message
+      : "An unexpected error occurred. Please try again later.",
+    ...(isDev && { stack: err.stack }),
   });
 });
 

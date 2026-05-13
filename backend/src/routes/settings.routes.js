@@ -3,6 +3,8 @@ import { supabase } from "../lib/supabaseClient.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
 import asyncHandler from "express-async-handler";
+import { validate } from "../middlewares/validate.middleware.js";
+import { settingValueSchema } from "../schemas/index.js";
 
 const router = Router();
 
@@ -72,6 +74,7 @@ router.get(
 router.post(
   "/term",
   requireAuth,
+  validate(settingValueSchema),
   asyncHandler(async (req, res) => {
     const { value } = req.body;
     if (!value || !value.trim()) throw new ApiError(400, "value is required.");
@@ -106,6 +109,7 @@ router.get(
 router.post(
   "/:key",
   requireAuth,
+  validate(settingValueSchema),
   asyncHandler(async (req, res) => {
     const { key } = req.params;
     const { value } = req.body;

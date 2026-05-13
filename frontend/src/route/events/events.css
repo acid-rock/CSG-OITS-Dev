@@ -335,6 +335,7 @@
 }
 
 .ep-grid-card {
+  min-width: 0;
   align-self: stretch;
   height: 100%;
   overflow: hidden;

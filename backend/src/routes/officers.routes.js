@@ -11,6 +11,16 @@ import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
 import multer from "multer";
+import { getCached, setCache, invalidateCachePrefix } from "../lib/cache.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import {
+  addOfficerSchema,
+  editOfficerSchema,
+  deleteIdsSchema,
+  archiveOfficerSchema,
+  singleIdSchema,
+} from "../schemas/index.js";
+import { validateImageUpload } from "../lib/uploadValidation.js";
 
 const router = Router();
 
@@ -75,6 +85,10 @@ router.get(
     const termFilter = req.query.term || null;
     const termYearFilter = req.query.term_year || null;
 
+    const cacheKey = `officers:${statusFilter}:${termFilter ?? "all"}`;
+    const cached = getCached(cacheKey);
+    if (cached) return res.status(200).json(cached);
+
     let query = anonSupabase
       .from("officers")
       .select()
@@ -87,7 +101,9 @@ router.get(
     const { data, error } = await query;
     if (error) throw new Error(error.message);
 
-    return res.status(200).json(data.map(transformOfficer));
+    const transformed = data.map(transformOfficer);
+    setCache(cacheKey, transformed, 60_000);
+    return res.status(200).json(transformed);
   }),
 );
 
@@ -113,7 +129,9 @@ router.post(
   "/add",
   requireAuth,
   upload.single("avatar"),
+  validate(addOfficerSchema),
   asyncHandler(async (req, res) => {
+    validateImageUpload(req.file, false);
     const {
       full_name,
       position,
@@ -200,6 +218,7 @@ router.post(
       }
     }
 
+    invalidateCachePrefix("officers:");
     return res.status(201).json({ ...data, avatar: avatarPath });
   }),
 );
@@ -208,7 +227,9 @@ router.post(
   "/edit",
   requireAuth,
   upload.single("avatar"),
+  validate(editOfficerSchema),
   asyncHandler(async (req, res) => {
+    validateImageUpload(req.file, false);
     const {
       id,
       full_name,
@@ -275,6 +296,7 @@ router.post(
       .eq("id", id);
     if (error) throw new Error(error.message);
 
+    invalidateCachePrefix("officers:");
     return res.sendStatus(200);
   }),
 );
@@ -282,6 +304,7 @@ router.post(
 router.delete(
   "/delete",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const ids = Array.isArray(req.body) ? req.body : req.body?.ids;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -302,6 +325,7 @@ router.delete(
     const { error } = await supabase.from("officers").delete().in("id", ids);
     if (error) throw new ApiError(500, "Delete failed: " + error.message);
 
+    invalidateCachePrefix("officers:");
     return res.sendStatus(200);
   }),
 );
@@ -327,17 +351,14 @@ router.get(
 router.post(
   "/archive",
   requireAuth,
+  validate(archiveOfficerSchema),
   asyncHandler(async (req, res) => {
-    const { ids } = req.body;
-    if (!Array.isArray(ids) || ids.length === 0) {
-      throw new ApiError(400, "ids array is required.");
-    }
-    const { term_year } = req.body;
-    console.log("[OFFICER ARCHIVE] ids:", ids, "term_year:", term_year ?? null);
+    const { id, term_year } = req.body;
+    console.log("[OFFICER ARCHIVE] id:", id, "term_year:", term_year ?? null);
     const { data, error } = await supabase
       .from("officers")
       .update({ status: "archived", term_year: term_year ?? "2025-2026" })
-      .in("id", ids)
+      .eq("id", id)
       .select("id, status");
     console.log("[OFFICER ARCHIVE] service key result:", JSON.stringify(data));
     console.log("[OFFICER ARCHIVE] service key error:", JSON.stringify(error));
@@ -348,6 +369,7 @@ router.post(
         "No officers found — confirm the status column migration has run",
       );
     }
+    invalidateCachePrefix("officers:");
     return res.json({ archived: data.length });
   }),
 );
@@ -355,16 +377,16 @@ router.post(
 router.post(
   "/restore",
   requireAuth,
+  validate(singleIdSchema),
   asyncHandler(async (req, res) => {
-    const { ids } = req.body;
-    if (!Array.isArray(ids) || ids.length === 0) {
-      throw new ApiError(400, "ids array is required.");
-    }
+    const { id } = req.body;
+    if (!id) throw new ApiError(400, "id is required.");
     const { error } = await supabase
       .from("officers")
       .update({ status: "active" })
-      .in("id", ids);
+      .eq("id", id);
     if (error) throw new ApiError(500, "Failed to restore officers");
+    invalidateCachePrefix("officers:");
     return res.sendStatus(200);
   }),
 );

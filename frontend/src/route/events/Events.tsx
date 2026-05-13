@@ -68,7 +68,7 @@ export default function EventsPage() {
         <div className="ep-header-inner">
           <span className="section-label ep-kicker">What&rsquo;s happening</span>
           <h1 className="ep-heading">
-            Upcoming{" "}
+            Latest{" "}
             <em className="italic-accent">events</em>
           </h1>
           <p className="ep-subheading">

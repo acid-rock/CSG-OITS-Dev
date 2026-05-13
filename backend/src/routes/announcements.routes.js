@@ -13,6 +13,15 @@ import { requireAuth } from "../middlewares/auth.middleware.js";
 import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { auditLogger } from "../middlewares/audit.middleware.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import {
+  addAnnouncementSchema,
+  editAnnouncementSchema,
+  deleteIdsSchema,
+  singleIdSchema,
+} from "../schemas/index.js";
+import { validateImageUpload } from "../lib/uploadValidation.js";
+import { sanitizeContent } from "../lib/sanitize.js";
 
 const router = Router();
 
@@ -63,10 +72,13 @@ router.post(
   "/add",
   requireAuth,
   upload.single("image"),
+  validate(addAnnouncementSchema),
   auditLogger(),
   asyncHandler(async (req, res) => {
+    validateImageUpload(req.file, true);
     const token = req.token;
     const { title, content, category } = req.body;
+    const sanitizedContent = sanitizeContent(content);
 
     const userSupabase = createUserClient(token);
     const { data, error } = await userSupabase
@@ -74,7 +86,7 @@ router.post(
       .upsert(
         {
           title: title,
-          content: content,
+          content: sanitizedContent,
           owner_id: req.user.sub,
           category: category || 'CSG Updates',
         },
@@ -102,14 +114,17 @@ router.post(
   "/edit",
   requireAuth,
   upload.single("image"), // optional — only present when the admin replaces the cover image
+  validate(editAnnouncementSchema),
   auditLogger(),
   asyncHandler(async (req, res) => {
+    validateImageUpload(req.file, false);
     if (!req.body) throw new ApiError(400, "No valid request body is found.");
     const { id, title, content, category } = req.body;
+    const sanitizedContent = sanitizeContent(content);
     const token = req.token;
 
     const userSupabase = createUserClient(token);
-    const updates = { title, content };
+    const updates = { title, content: sanitizedContent };
     if (category) updates.category = category;
     const { error } = await userSupabase
       .from("bulletin")
@@ -136,6 +151,7 @@ router.post(
 router.post(
   "/pin",
   requireAuth,
+  validate(singleIdSchema),
   asyncHandler(async (req, res) => {
     const { id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
@@ -156,17 +172,18 @@ router.post(
 router.delete(
   "/delete",
   requireAuth,
+  validate(deleteIdsSchema),
   auditLogger(),
   asyncHandler(async (req, res) => {
     const token = req.token;
     const userSupabase = createUserClient(token);
 
-    for (const item of req.body) {
-      const imgPath = `${item.id}.jpg`;
+    for (const id of req.body.ids) {
+      const imgPath = `${id}.jpg`;
       const { error } = await userSupabase
         .from("bulletin")
         .delete()
-        .eq("id", item.id);
+        .eq("id", id);
       if (error) throw new Error(error.message);
 
       const { data, error: deleteImgError } = await userSupabase.storage
@@ -247,6 +264,7 @@ router.get(
 router.post(
   "/archive",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -265,6 +283,7 @@ router.post(
 router.post(
   "/restore",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -282,6 +301,7 @@ router.post(
 router.post(
   "/bin",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -299,6 +319,7 @@ router.post(
 router.post(
   "/restore-from-bin",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {

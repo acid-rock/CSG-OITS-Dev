@@ -38,7 +38,7 @@ export default function Events() {
           {/* Section header */}
           <div className="event-texts">
             <h2 className="ev-heading">
-              Upcoming <em className="italic-accent">events</em>
+              Latest <em className="italic-accent">events</em>
             </h2>
             <p className="ev-sub">Explore official events from the student government.</p>
           </div>

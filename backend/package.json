@@ -5,7 +5,11 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +30,14 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "sanitize-html": "^2.17.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/sanitize-html": "^2.16.1",
+    "@vitest/coverage-v8": "^4.1.6",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.6"
   }
 }

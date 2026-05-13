@@ -16,6 +16,13 @@ import { createUserClient, supabase } from "../lib/supabaseClient.js";
 import multer from "multer";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { auditLogger } from "../middlewares/audit.middleware.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import {
+  addDocumentSchema,
+  editDocumentSchema,
+  deleteIdsSchema,
+} from "../schemas/index.js";
+import { validatePdfUpload } from "../lib/uploadValidation.js";
 import FormData from "form-data";
 import "dotenv/config";
 import asyncHandler from "express-async-handler";
@@ -101,10 +108,13 @@ router.post(
   "/add",
   upload.single("file"),
   requireAuth,
+  validate(addDocumentSchema),
   auditLogger(),
   asyncHandler(async (req, res) => {
+    validatePdfUpload(req.file, true);
     const token = req.token;
-    const { name, type, boxes, description } = req.body;
+    const { name, type, description } = req.body;
+    const boxes = req.body.boxes;
 
     const filepath = `${type}/${name}.pdf`;
 
@@ -152,7 +162,7 @@ router.post(
       .upload(imgName, thumbnail, { thumbnailContentType, upsert: true });
     if (thumbnailError) throw new Error(thumbnailError.message);
 
-    const { term } = req.body;
+    const term = req.body.term;
     const { error: tableError } = await userSupabase.from("documents").upsert(
       { id: data.id, file_path: filepath, description, term: term ?? null, owner_id: req.user.sub, is_deleted: false },
       { onConflict: "id" },
@@ -167,6 +177,7 @@ router.post(
   "/edit",
   upload.none(), // parse multipart/form-data text fields without accepting a file upload
   requireAuth,
+  validate(editDocumentSchema),
   auditLogger(),
   asyncHandler(async (req, res) => {
     const token = req.token;
@@ -225,21 +236,18 @@ router.post(
 router.delete(
   "/delete",
   requireAuth,
+  validate(deleteIdsSchema),
   auditLogger(),
   asyncHandler(async (req, res) => {
-    if (!Array.isArray(req.body) || req.body.length === 0) {
-      throw new ApiError(400, "Array of document objects required.");
-    }
-
     const token = req.token;
     const userSupabase = createUserClient(token);
     const deletedAt = new Date().toISOString();
 
-    for (const document of req.body) {
+    for (const id of req.body.ids) {
       const { error } = await userSupabase
         .from("documents")
         .update({ is_deleted: true, deleted_at: deletedAt })
-        .eq("id", document.id);
+        .eq("id", id);
       if (error) throw new Error(error.message);
     }
 
@@ -349,6 +357,7 @@ router.get(
 router.post(
   "/archive",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -380,6 +389,7 @@ router.post(
 router.post(
   "/restore",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -397,6 +407,7 @@ router.post(
 router.post(
   "/bin",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {

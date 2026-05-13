@@ -3,6 +3,8 @@ import { supabase, anonSupabase, createUserClient } from "../lib/supabaseClient.
 import asyncHandler from "express-async-handler";
 import ApiError from "../lib/apiError.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import { loginSchema } from "../schemas/index.js";
 
 const router = Router();
 
@@ -52,6 +54,7 @@ router.post(
 
 router.post(
   "/login",
+  validate(loginSchema),
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
@@ -69,15 +72,15 @@ router.post(
     res.cookie("sb_access_token", data.session.access_token, {
       httpOnly: true,
       secure: true,
-      sameSite: "none",
-      maxAge: data.session.expires_in * 1000,
+      sameSite: "strict",
+      maxAge: 60 * 60 * 1000,
     });
 
     res.cookie("sb_refresh_token", data.session.refresh_token, {
       httpOnly: true,
       secure: true,
-      sameSite: "none",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({ message: "Login successful." });
@@ -90,12 +93,12 @@ router.post(
     res.clearCookie("sb_access_token", {
       httpOnly: true,
       secure: true,
-      sameSite: "none",
+      sameSite: "strict",
     });
     res.clearCookie("sb_refresh_token", {
       httpOnly: true,
       secure: true,
-      sameSite: "none",
+      sameSite: "strict",
     });
     return res.sendStatus(200);
   }),

@@ -1,0 +1,40 @@
+{
+  "name": "csg-oits-dev",
+  "version": "1.0.0",
+  "description": "The Online Information Transparency System (OITS) is the official website and content management system for the Central Student Government (CSG) of Cavite State University Imus Campus. It provides CVSU-Imus students with open access to CSG announcements, official documents, event records, and officer information. Authenticated CSG administrators can create, update, and delete all content through a protected admin panel.",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky",
+    "lint:frontend": "cd frontend && npx eslint src/",
+    "lint:backend": "cd backend && npx eslint src/",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "typecheck": "cd frontend && npx tsc --noEmit",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run test && npm run test:e2e",
+    "test:coverage": "npm run test:backend -- --coverage && npm run test:frontend -- --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acid-rock/CSG-OITS-Dev.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/acid-rock/CSG-OITS-Dev/issues"
+  },
+  "homepage": "https://github.com/acid-rock/CSG-OITS-Dev#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.4"
+  },
+  "dependencies": {
+    "docx": "^9.6.1"
+  }
+}

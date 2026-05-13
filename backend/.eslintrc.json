@@ -1,0 +1,31 @@
+{
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-var": "error",
+    "prefer-const": "error",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "eqeqeq": ["error", "always"],
+    "no-duplicate-imports": "error",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "CallExpression[callee.name='require']",
+        "message": "require() is forbidden. This is an ESM project — use import instead."
+      }
+    ],
+    "no-restricted-globals": [
+      "error",
+      {
+        "name": "window",
+        "message": "window is not available in Node.js backend code."
+      }
+    ]
+  }
+}

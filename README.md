@@ -1,207 +1,146 @@
 # CSG-OITS — Online Information Transparency System
 
-The Online Information Transparency System (OITS) is the official website and content management system for the Central Student Government (CSG) of Cavite State University Imus Campus. It provides CVSU-Imus students with open access to CSG announcements, official documents, event records, and officer information. Authenticated CSG administrators can create, update, and delete all content through a protected admin panel.
+CSG-OITS is the official digital transparency platform for the Central Student Government of Cavite State University – Imus Campus. It gives every student on-campus read-only access to CSG announcements, documents, events, officer rosters, and equipment borrowing — while giving CSG administrators a private panel to manage all content without touching a database.
+
+![Status](https://img.shields.io/badge/status-active-success)
+![Stack](https://img.shields.io/badge/stack-React%2019%20%2B%20Express%205-blue)
+![DB](https://img.shields.io/badge/database-Supabase-3ecf8e)
 
 ---
 
-## Architecture
+## What is OITS?
 
-```
-CSG-OITS-Dev/
-├── backend/     Express 5 REST API (Node.js ESM)
-└── frontend/    React 19 + TypeScript SPA (Vite)
-```
+From a student's perspective, OITS is a simple website: open it in a browser, no login required, and you can read all CSG announcements, download official documents, see upcoming and past events, browse officer profiles, view affiliated student organizations, and submit equipment borrow requests. Everything is filtered by academic term so older records stay available without cluttering the current view.
 
-**Backend** — Express 5 serves a REST API under `/api/v1`. Authentication is handled via Supabase Auth (email/password). The server issues httpOnly cookies (`sb_access_token`, `sb_refresh_token`) on login and verifies JWTs on protected routes.
-
-**Frontend** — React 19 + TypeScript built with Vite. Public pages consume the backend API via Axios. The admin panel is guarded by a `ProtectedRoute` component that checks a localStorage session flag; the backend `requireAuth` middleware is the real enforcement layer.
-
-**Database / Auth / Storage** — [Supabase](https://supabase.com) (PostgreSQL). Tables: `bulletin`, `documents`, `events`, `officers`, `committees`, `profiles`, `settings`, `whitelist`. Storage buckets: `bulletin`, `documents`, `thumbnails`, `events`, `officers`. Row Level Security (RLS) is enforced at the Supabase level.
-
-**PDF Redaction Microservice** — An external service at `PDF_REDACT_URL`. When an admin uploads a document, the backend sends the PDF to this service which redacts the selected areas and returns the cleaned PDF. The service also generates a thumbnail PNG. The microservice source is currently located at `frontend/src/admin/components/pdf-selector-components/main.py` and should be extracted to its own service directory.
+From a CSG admin's perspective, OITS is a full content management panel. After logging in with a CSG-issued account, an admin can draft and publish announcements (with images), upload and redact official PDF documents, add event photo galleries, manage officer and committee rosters, track equipment borrow requests, view the system audit trail, and configure term settings — all without writing SQL or touching Supabase directly.
 
 ---
 
-## Prerequisites
+## Two audiences
 
-- Node.js >= 18
-- npm >= 9
+| Audience | Access | What they can do |
+|---|---|---|
+| Students (public) | No login required | Read announcements, download documents, browse events, view officer profiles and committees, see organizations, submit equipment borrow requests |
+| CSG Admins | Email + password login | Full CRUD on all content; archive and bin management; equipment inventory; borrow request approval; audit log; system settings |
 
 ---
 
-## Local Setup
+## Live features
+
+| Feature | Status | Notes |
+|---|---|---|
+| Public homepage (hero, stats, sections) | ✅ IMPLEMENTED | |
+| Announcements page (`/bulletin`) | ✅ IMPLEMENTED | Search, category filter, term filter, pinned hero card |
+| Documents page (`/documents`) | ✅ IMPLEMENTED | PDF viewer, sidebar category filter — approved design, do not modify |
+| Events page (`/events`) | ✅ IMPLEMENTED | Image carousel modal, pagination |
+| Officers page (`/officers`) | ✅ IMPLEMENTED | President highlight, committees modal, search/term filter |
+| About page (`/about`) | ✅ IMPLEMENTED | Live stats (officers, documents, organizations) |
+| Equipment borrow form (`/borrow`) | ✅ IMPLEMENTED | Multi-item borrow form, inventory grid, fallback inventory |
+| Contributors page (`/contributors`) | ✅ IMPLEMENTED | Team list with officer avatar lookup |
+| Admin login / forgot / reset password | ✅ IMPLEMENTED | Supabase Auth, httpOnly cookies |
+| Admin dashboard | ✅ IMPLEMENTED | Stats cards, bar chart, recent audit activity |
+| Admin announcements panel | ✅ IMPLEMENTED | Archive / Bin / Pin system, category filter |
+| Admin documents panel | ✅ IMPLEMENTED | PDF upload + redaction via microservice, thumbnail generation |
+| Admin events panel | ✅ IMPLEMENTED | Up to 3 images per event, date filter |
+| Admin officers panel | ✅ IMPLEMENTED | Avatar upload, committee assignment, type filter |
+| Admin committees panel | ✅ IMPLEMENTED | Inline rename, bulk archive |
+| Admin organizations panel | ✅ IMPLEMENTED | Logo upload, Facebook link |
+| Admin equipment borrowing panel | ✅ IMPLEMENTED | Approve / Reject / Return workflow + inventory CRUD |
+| Admin audit log panel | ✅ IMPLEMENTED | All write operations logged with user, IP, timestamp |
+| Admin settings panel | ✅ IMPLEMENTED | Active term, account list, password change, changelog modal |
+| Admin bin panel | ✅ IMPLEMENTED | Deleted + Archived tabs, restore / permanent delete |
+| Admin analytics | ✅ IMPLEMENTED | 6-month monthly chart, 8-week weekly chart |
+| 30-day automatic purge | ⚠️ PARTIAL | Policy documented; no automated scheduler implemented |
+| Remove admin account (Settings) | ⚠️ PARTIAL | Button visible; handler is a placeholder |
+| Committees bin view | ⚠️ PARTIAL | Tab exists; `deleted_at` migration not yet run on production |
+
+---
+
+## Tech stack
+
+| Layer | Technology | Version |
+|---|---|---|
+| Frontend framework | React | 19.2.0 |
+| Frontend language | TypeScript | 5.9.3 |
+| Build tool | Vite | 7.2.2 |
+| Routing | React Router DOM | 7.10.1 |
+| HTTP client | Axios | 1.13.5 |
+| Backend framework | Express | 5.2.1 |
+| Backend runtime | Node.js ESM (no `require()`) | — |
+| Database | Supabase (PostgreSQL + RLS) | JS client 2.93.0 |
+| Auth | Supabase Auth — JWT + httpOnly cookies | — |
+| Storage | Supabase Storage | — |
+| Validation | Zod | 4.4.3 |
+| File uploads | Multer | 2.0.2 |
+| Security | Helmet, sanitize-html, express-rate-limit | — |
+| Charts | Chart.js + Luxon | 4.5.1 / 3.7.2 |
+| Icons | lucide-react, react-icons | 0.555.0 / 5.5.0 |
+| PDF rendering (public) | pdfjs-dist | 5.4.624 |
+
+---
+
+## Quick start
+
+Full guide: [docs/local-setup.md](docs/local-setup.md)
 
 ```bash
-# 1. Clone the repository
+# 1. Clone
 git clone <repo-url>
 cd CSG-OITS-Dev
 
-# 2. Set up backend environment
-cd backend
-cp .env.example .env
-# Edit .env and fill in all required values
+# 2. Install dependencies
+cd backend && npm install
+cd ../frontend && npm install
 
-# 3. Install backend dependencies
-npm install
+# 3. Configure environment variables
+cp backend/.env.example backend/.env    # fill in Supabase keys
+cp frontend/.env.example frontend/.env  # set VITE_API_URL
 
-# 4. Set up frontend environment
-cd ../frontend
-cp .env.example .env
-# Edit .env — set VITE_API_URL to http://localhost:3000/api/v1
+# 4. Set up local HTTPS (required for cookie auth)
+# See docs/local-setup.md → Step 3 for mkcert instructions
 
-# 5. Install frontend dependencies
-npm install
-
-# 6. Start the backend (from /backend)
-cd ../backend
-npm run dev
-
-# 7. Start the frontend (from /frontend, in a separate terminal)
-cd ../frontend
-npm run dev
+# 5. Run dev servers
+cd backend && npm run dev    # https://localhost:3000
+cd frontend && npm run dev   # http://localhost:5173
 ```
 
-The frontend will be available at `http://localhost:5173`.
-The backend API will be available at `http://localhost:3000`.
+---
+
+## Documentation index
+
+| Document | Description |
+|---|---|
+| [Architecture](docs/architecture.md) | System design, request flows, caching, rate limiting |
+| [API Reference](docs/api-reference.md) | All 14 route modules — every endpoint documented |
+| [Database Schema](docs/database.md) | Tables, columns, RLS rules, storage buckets, migrations |
+| [Frontend Guide](docs/frontend.md) | Pages, routing, outlet context, component inventory |
+| [Admin Panel Guide](docs/admin-guide.md) | Every admin panel: fields, actions, forms, tabs |
+| [Auth Flow](docs/auth.md) | Login, cookies, requireAuth middleware, session expiry |
+| [Data Lifecycle](docs/data-lifecycle.md) | Archive / Bin / Delete — state transitions and queries |
+| [Design System](docs/design-system.md) | All tokens, utility classes, design conventions |
+| [Local Setup](docs/local-setup.md) | Step-by-step development environment setup |
+| [Deployment](docs/deployment.md) | Production deployment guide and pre-launch checklist |
+| [Security](docs/security.md) | Security measures, CSP, rate limiting, known concerns |
+| [Testing](docs/testing.md) | Test suite guide, mocking strategy, CI integration |
+| [Contributing](CONTRIBUTING.md) | Rules and conventions for contributors |
+| [Changelog](CHANGELOG.md) | Version history |
 
 ---
 
-## API Endpoint Reference
+## Project team
 
-All endpoints are prefixed with `/api/v1`. A rate limit of 100 requests per 15 minutes applies to all routes.
-
-### User
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/user/login` | No | Sign in with email/password; sets httpOnly session cookies |
-| POST | `/user/logout` | No | Clear session cookies |
-| POST | `/user/register` | Yes | Create a new admin account (admin only) |
-| POST | `/user/forgot-password` | No | Send a Supabase password reset email |
-| GET | `/user/whitelist` | Yes | List all whitelisted emails |
-| POST | `/user/whitelist` | Yes | Add an email to the whitelist |
-| DELETE | `/user/whitelist` | Yes | Remove an entry from the whitelist |
-
-### Announcements (Bulletin)
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/announcements/` | No | List all bulletin items with image URLs |
-| POST | `/announcements/add` | Yes | Create a bulletin item and upload image to storage |
-| POST | `/announcements/edit` | Yes | Update a bulletin item |
-| DELETE | `/announcements/delete` | Yes | Delete bulletin items (array body) |
-
-### Documents
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/documents/` | No | List all documents (supports `?page=&limit=` for pagination) |
-| POST | `/documents/add` | Yes | Upload and redact a PDF, generate thumbnail, insert DB record |
-| POST | `/documents/edit` | Yes | Rename/re-describe a document and move the storage file |
-| DELETE | `/documents/delete` | Yes | Delete document rows and storage files (array body) |
-
-### Events
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/events/` | No | List all events with image URLs from storage |
-| POST | `/events/add` | Yes | Create an event and upload up to 3 images |
-| POST | `/events/edit` | Yes | Update event name, description, date |
-| DELETE | `/events/delete` | Yes | Delete an event and all its images (`{id}` body) |
-
-### Officers
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/officers/` | No | List all officers with resolved avatar URLs (supports `?page=&limit=`) |
-
-### Committees
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/committees/` | No | List all committees ordered by ID |
-
-### Settings
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/settings/` | No | Get system settings (system name, logo, access state) |
-| POST | `/settings/` | Yes | Upsert system settings |
-
-### Health
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/health` | No | Returns `200 OK` for uptime monitoring |
+| Name | Role |
+|---|---|
+| John Harold R. Magma | Project Coordinator / GAD Representative |
+| Ivan P. Duran | Committee Chair — Web Development |
+| Lorenz E. Tuboro | Back-End Developer |
+| Ralph Kenneth B. Perez | UI/UX Designer |
+| Jerald D. Estrella | Front-End Developer |
+| Taisei Domingo | Front-End Developer |
+| Gerald D. Alansalon | Documentation Officer |
 
 ---
 
-## Database Setup
+## License
 
-The database schema is managed through SQL migration files in `supabase/migrations/`. Run them in order using the **SQL Editor** in your Supabase dashboard.
-
-### Steps
-
-1. **Create a new Supabase project** at [supabase.com](https://supabase.com).
-
-2. **Run migrations in order** — paste each file into the Supabase SQL Editor and execute:
-   - `supabase/migrations/001_initial_schema.sql` — creates all base tables and the audit infrastructure
-   - `supabase/migrations/002_soft_delete_documents.sql` — adds `is_deleted` and `deleted_at` to the documents table
-   - `supabase/migrations/003_announcement_pinning.sql` — adds `is_pinned` to the bulletin table
-
-3. **Run the seed file** — paste `supabase/seed.sql` into the SQL Editor and execute. Edit the committee names in the seed file to match your actual CSG committee names before running.
-
-4. **Copy credentials into `backend/.env`** — from Supabase dashboard → Project Settings → API:
-   - `SUPABASE_URL` — your project URL
-   - `SUPABASE_ANON_KEY` — the anon/public key
-   - `SUPABASE_SERVICE_KEY` — the service_role key
-   - `SUPABASE_JWT_SECRET` — from API Settings → JWT Settings → JWT Secret
-
-5. **Create the required storage buckets** in Supabase dashboard → Storage → New Bucket (set each to Public):
-   - `bulletin`
-   - `documents`
-   - `thumbnails`
-   - `events`
-   - `officers`
-
-6. **Enable Row Level Security (RLS)** on all tables. The backend uses the service role key for admin operations (bypasses RLS) and the anon key with user-scoped JWTs for authenticated writes (enforces RLS). Configure RLS policies as appropriate for your security requirements.
-
-### Optional: View Tracking
-
-If you want to track per-document view counts, create the following PostgreSQL function in the SQL Editor:
-
-```sql
--- Add a views column to each table you want to track
-ALTER TABLE bulletin   ADD COLUMN IF NOT EXISTS views integer NOT NULL DEFAULT 0;
-ALTER TABLE documents  ADD COLUMN IF NOT EXISTS views integer NOT NULL DEFAULT 0;
-ALTER TABLE events     ADD COLUMN IF NOT EXISTS views integer NOT NULL DEFAULT 0;
-
--- Atomic increment function (safe for concurrent requests)
-CREATE OR REPLACE FUNCTION increment_views(row_id uuid, table_name text)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  EXECUTE format(
-    'UPDATE %I SET views = views + 1 WHERE id = $1',
-    table_name
-  ) USING row_id;
-END;
-$$;
-```
-
-Then uncomment the `supabase.rpc('increment_views', ...)` calls in the backend GET routes (announcements, documents, events).
-
----
-
-## PDF Redaction Microservice
-
-The document upload flow sends PDFs to an external redaction service at `PDF_REDACT_URL` before storing them in Supabase. The service exposes two endpoints:
-
-- `POST /api/v1/redact` — accepts a PDF and a list of bounding boxes, returns a redacted PDF
-- `POST /api/v1/thumbnail/create` — accepts a PDF, returns a PNG thumbnail of the first page
-
-The admin panel includes a visual area-selector tool ([pdf-selector.tsx](frontend/src/admin/components/pdf-selector-components/pdf-selector.tsx)) that lets admins draw redaction boxes on the PDF before uploading.
-
-**The microservice source code** is currently located at `frontend/src/admin/components/pdf-selector-components/main.py`. It should be moved to a dedicated `services/redact/` directory and documented separately before production deployment.
+Academic project — Central Student Government, Cavite State University – Imus Campus, AY 2025–2026. All rights reserved.

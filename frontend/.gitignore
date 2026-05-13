@@ -25,5 +25,6 @@ dist-ssr
 
 .env
 .env.local
-.env.example
 *.env
+# Allow the example template so new developers know what variables are needed
+!.env.example

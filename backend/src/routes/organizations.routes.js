@@ -4,6 +4,13 @@ import { anonSupabase, supabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import {
+  addOrganizationSchema,
+  editOrganizationSchema,
+  singleIdSchema,
+} from "../schemas/index.js";
+import { validateImageUpload } from "../lib/uploadValidation.js";
 
 const router = Router();
 
@@ -36,7 +43,9 @@ router.post(
   "/add",
   requireAuth,
   upload.single("logo"),
+  validate(addOrganizationSchema),
   asyncHandler(async (req, res) => {
+    validateImageUpload(req.file, false);
     const { name, description, facebook_link } = req.body;
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
 
@@ -72,7 +81,9 @@ router.post(
   "/edit",
   requireAuth,
   upload.single("logo"),
+  validate(editOrganizationSchema),
   asyncHandler(async (req, res) => {
+    validateImageUpload(req.file, false);
     const { id, name, description, facebook_link } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
@@ -103,6 +114,7 @@ router.post(
 router.delete(
   "/delete",
   requireAuth,
+  validate(singleIdSchema),
   asyncHandler(async (req, res) => {
     const { id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
@@ -158,6 +170,7 @@ router.get(
 router.post(
   "/archive",
   requireAuth,
+  validate(singleIdSchema),
   asyncHandler(async (req, res) => {
     const { id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
@@ -170,6 +183,7 @@ router.post(
 router.post(
   "/restore",
   requireAuth,
+  validate(singleIdSchema),
   asyncHandler(async (req, res) => {
     const { id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
@@ -182,6 +196,7 @@ router.post(
 router.post(
   "/bin",
   requireAuth,
+  validate(singleIdSchema),
   asyncHandler(async (req, res) => {
     const { id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");

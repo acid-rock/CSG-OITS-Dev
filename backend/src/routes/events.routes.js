@@ -5,6 +5,15 @@ import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
 import multer from "multer";
 import { auditLogger } from "../middlewares/audit.middleware.js";
+import { validate } from "../middlewares/validate.middleware.js";
+import {
+  addEventSchema,
+  editEventSchema,
+  singleIdSchema,
+  deleteIdsSchema,
+} from "../schemas/index.js";
+import { validateImageUpload } from "../lib/uploadValidation.js";
+import { sanitizeContent } from "../lib/sanitize.js";
 
 const router = Router();
 
@@ -83,9 +92,16 @@ router.post(
   "/add",
   upload.array("images", 3),
   requireAuth,
+  validate(addEventSchema),
   auditLogger(),
   asyncHandler(async (req, res) => {
+    if (req.files?.length) {
+      for (const file of req.files) {
+        validateImageUpload(file, false);
+      }
+    }
     const { name, description, date_happened } = req.body;
+    const sanitizedDescription = sanitizeContent(description);
     const images = req.files;
     const token = req.token;
     const supabase = createUserClient(token);
@@ -96,7 +112,7 @@ router.post(
     const { data: eventData, error: eventError } = await supabase
       .from("events")
       .upsert(
-        { name, description, date_happened, ip_address, user_agent },
+        { name, description: sanitizedDescription, date_happened, ip_address, user_agent },
         { onConflict: "name" },
       )
       .select();
@@ -124,16 +140,25 @@ router.post(
     { name: "image_2", maxCount: 1 },
   ]),
   requireAuth,
+  validate(editEventSchema),
   auditLogger(),
   asyncHandler(async (req, res) => {
+    if (req.files) {
+      for (const slotFiles of Object.values(req.files)) {
+        for (const file of slotFiles) {
+          validateImageUpload(file, false);
+        }
+      }
+    }
     const { id, name, description, date } = req.body;
+    const sanitizedDescription = sanitizeContent(description);
     const token = req.token;
     const supabase = createUserClient(token);
     const eventBucket = supabase.storage.from("events");
 
     const { error } = await supabase
       .from("events")
-      .update({ name, description, date_happened: date })
+      .update({ name, description: sanitizedDescription, date_happened: date })
       .eq("id", id);
     if (error) throw new Error(error.message);
 
@@ -158,6 +183,7 @@ router.post(
 router.delete(
   "/delete",
   requireAuth,
+  validate(singleIdSchema),
   auditLogger(),
   asyncHandler(async (req, res) => {
     const { id } = req.body;
@@ -259,6 +285,7 @@ router.get(
 router.post(
   "/archive",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -277,6 +304,7 @@ router.post(
 router.post(
   "/restore",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -294,6 +322,7 @@ router.post(
 router.post(
   "/bin",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -311,6 +340,7 @@ router.post(
 router.post(
   "/restore-from-bin",
   requireAuth,
+  validate(deleteIdsSchema),
   asyncHandler(async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {

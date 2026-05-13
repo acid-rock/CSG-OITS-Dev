@@ -75,17 +75,26 @@ const Dashboard = () => {
   const [weeklyDataFallback, setWeeklyDataFallback] = useState(false);
   const [activeOfficerCount, setActiveOfficerCount] = useState<number | null>(null);
 
-  const fetchAnalytics = useCallback(async () => {
+  const fetchSummary = useCallback(async () => {
     setLoading(true);
     setFetchError(null);
     try {
-      const { data } = await axios.get<AnalyticsData>(`${API_URL}/analytics`, {
+      const { data } = await axios.get(`${API_URL}/dashboard/summary`, {
         withCredentials: true,
       });
-      setAnalytics(data);
+      setAnalytics({
+        total_officers: data.officers?.active ?? 0,
+        total_documents: data.documents?.active ?? 0,
+        documents_this_week: 0,
+        total_announcements: data.announcements?.active ?? 0,
+        total_events: data.events?.active ?? 0,
+        uploads_by_month: [],
+        views_by_week: [],
+      });
+      setActiveOfficerCount(data.officers?.active ?? 0);
     } catch (err: unknown) {
       const msg =
-        err instanceof Error ? err.message : "Failed to load analytics.";
+        err instanceof Error ? err.message : "Failed to load dashboard data.";
       setFetchError(msg);
     } finally {
       setLoading(false);
@@ -137,23 +146,11 @@ const Dashboard = () => {
     }
   }, []);
 
-  const fetchActiveOfficers = useCallback(async () => {
-    try {
-      const { data } = await axios.get(`${API_URL}/officers/?status=active`, {
-        withCredentials: true,
-      });
-      setActiveOfficerCount(Array.isArray(data) ? data.length : (data.data?.length ?? 0));
-    } catch {
-      // fall back to analytics value
-    }
-  }, []);
-
   useEffect(() => {
-    fetchAnalytics();
+    fetchSummary();
     fetchRecentLogs();
     fetchWeeklyUploads();
-    fetchActiveOfficers();
-  }, [fetchAnalytics, fetchRecentLogs, fetchWeeklyUploads, fetchActiveOfficers]);
+  }, [fetchSummary, fetchRecentLogs, fetchWeeklyUploads]);
 
   // Bar chart — Document Uploads by week (real data)
   const barLabels = weeklyUploads.length
