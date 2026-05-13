@@ -43,6 +43,12 @@ import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
 import multer from "multer";
+import { sendEmail } from "../lib/mailer.js";
+import {
+  submissionConfirmationEmail,
+  approvalEmail,
+  rejectionEmail,
+} from "../lib/emailTemplates.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -342,6 +348,40 @@ router.post(
     });
     if (error) throw new ApiError(500, error.message);
 
+    // Send submission confirmation email (fire-and-forget — non-fatal)
+    if (borrower_email) {
+      // Enrich equipment_items with names for the email
+      const enrichedItems = await Promise.all(
+        equipment_items.map(async (item) => {
+          const { data: inv } = await anonSupabase
+            .from("inventory")
+            .select("name")
+            .eq("id", item.equipment_id)
+            .single();
+          return { ...item, name: inv?.name ?? item.equipment_id };
+        }),
+      );
+
+      const { subject, html } = submissionConfirmationEmail({
+        borrowerName: borrower_name,
+        borrowerEmail: borrower_email,
+        equipmentItems: enrichedItems,
+        equipmentName: enrichedItems[0]?.name,
+        quantityRequested: parseInt(firstItem.quantity_requested),
+        borrowDate: borrow_date,
+        organization: organization || null,
+        activityName: activity_name || null,
+        requestId: (await anonSupabase
+          .from("borrowing_requests")
+          .select("id")
+          .eq("borrower_id", borrower_id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single()).data?.id ?? "",
+      });
+      sendEmail({ to: borrower_email, subject, html });
+    }
+
     return res.status(201).json({ message: "Request submitted successfully." });
   }),
 );
@@ -421,6 +461,43 @@ router.post(
       throw new ApiError(500, reqUpdateError.message);
     }
 
+    // Send approval notification email to student (fire-and-forget — non-fatal)
+    if (request.borrower_email) {
+      // Resolve equipment name for the email
+      const { data: inv } = await userSupabase
+        .from("inventory")
+        .select("name")
+        .eq("id", request.equipment_id)
+        .single();
+
+      // Enrich equipment_items with names if stored as JSONB
+      const enrichedItems = Array.isArray(request.equipment_items)
+        ? await Promise.all(
+            request.equipment_items.map(async (item) => {
+              if (item.name) return item;
+              const { data: itemInv } = await userSupabase
+                .from("inventory")
+                .select("name")
+                .eq("id", item.equipment_id)
+                .single();
+              return { ...item, name: itemInv?.name ?? item.equipment_id };
+            }),
+          )
+        : null;
+
+      const { subject, html } = approvalEmail({
+        borrowerName: request.borrower_name,
+        equipmentItems: enrichedItems,
+        equipmentName: inv?.name ?? "Equipment",
+        quantityRequested: request.quantity_requested,
+        borrowDate: request.borrow_date,
+        returnDate: request.return_date,
+        adminNotes: admin_notes || null,
+        requestId: request_id,
+      });
+      sendEmail({ to: request.borrower_email, subject, html });
+    }
+
     return res.sendStatus(200);
   }),
 );
@@ -437,7 +514,7 @@ router.post(
 
     const { data: request, error: reqError } = await userSupabase
       .from("borrowing_requests")
-      .select("status")
+      .select("status, borrower_email")
       .eq("id", request_id)
       .single();
     if (reqError || !request) throw new ApiError(404, "Request not found.");
@@ -455,6 +532,49 @@ router.post(
       })
       .eq("id", request_id);
     if (error) throw new ApiError(500, error.message);
+
+    // Send rejection notification email to student (fire-and-forget — non-fatal)
+    if (request.borrower_email) {
+      // Fetch full request details for the email (we only selected 'status' above)
+      const { data: fullRequest } = await userSupabase
+        .from("borrowing_requests")
+        .select("*")
+        .eq("id", request_id)
+        .single();
+
+      if (fullRequest) {
+        const { data: inv } = await userSupabase
+          .from("inventory")
+          .select("name")
+          .eq("id", fullRequest.equipment_id)
+          .single();
+
+        const enrichedItems = Array.isArray(fullRequest.equipment_items)
+          ? await Promise.all(
+              fullRequest.equipment_items.map(async (item) => {
+                if (item.name) return item;
+                const { data: itemInv } = await userSupabase
+                  .from("inventory")
+                  .select("name")
+                  .eq("id", item.equipment_id)
+                  .single();
+                return { ...item, name: itemInv?.name ?? item.equipment_id };
+              }),
+            )
+          : null;
+
+        const { subject, html } = rejectionEmail({
+          borrowerName: fullRequest.borrower_name,
+          equipmentItems: enrichedItems,
+          equipmentName: inv?.name ?? "Equipment",
+          quantityRequested: fullRequest.quantity_requested,
+          borrowDate: fullRequest.borrow_date,
+          adminNotes: admin_notes || null,
+          requestId: request_id,
+        });
+        sendEmail({ to: request.borrower_email, subject, html });
+      }
+    }
 
     return res.sendStatus(200);
   }),
