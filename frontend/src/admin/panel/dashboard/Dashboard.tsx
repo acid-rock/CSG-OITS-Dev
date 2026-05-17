@@ -74,6 +74,7 @@ const Dashboard = () => {
   const [weeklyUploads, setWeeklyUploads] = useState<{ label: string; count: number }[]>([]);
   const [weeklyDataFallback, setWeeklyDataFallback] = useState(false);
   const [activeOfficerCount, setActiveOfficerCount] = useState<number | null>(null);
+  const [documentsThisWeek, setDocumentsThisWeek] = useState<number | null>(null);
 
   const fetchSummary = useCallback(async () => {
     setLoading(true);
@@ -139,7 +140,9 @@ const Dashboard = () => {
         );
         if (match) match.count++;
       });
-      setWeeklyUploads(weeks.map((w) => ({ label: w.label, count: w.count })));
+      const mapped = weeks.map((w) => ({ label: w.label, count: w.count }));
+      setWeeklyUploads(mapped);
+      setDocumentsThisWeek(mapped[mapped.length - 1]?.count ?? 0);
       setWeeklyDataFallback(false);
     } catch {
       setWeeklyDataFallback(true);
@@ -314,7 +317,7 @@ const Dashboard = () => {
               </div>
               <div className="stat-info">
                 <span className="stat-number">
-                  {loading ? "—" : (analytics?.documents_this_week ?? 0)}
+                  {loading || documentsThisWeek === null ? "—" : documentsThisWeek}
                 </span>
                 <span className="stat-label">Documents Uploaded this Week</span>
               </div>

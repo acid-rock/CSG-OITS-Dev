@@ -267,3 +267,90 @@
   width: 20px;
   height: 20px;
 }
+
+/* ── Action type select ── */
+.audit-action-select {
+  height: 34px;
+  padding: 0 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: var(--color-surface);
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.audit-action-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* ── Date range ── */
+.audit-date-range {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.audit-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.audit-date-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.audit-date-input {
+  height: 34px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: var(--color-surface);
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: var(--color-text-secondary);
+}
+
+.audit-date-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.audit-date-clear {
+  height: 34px;
+  width: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: var(--color-surface);
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: border-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.audit-date-clear:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* ── Filter count ── */
+.audit-filter-count {
+  padding: 0.35rem 1.5rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  background: var(--color-primary-light);
+  border-bottom: 1px solid var(--color-border);
+  margin: 0;
+}

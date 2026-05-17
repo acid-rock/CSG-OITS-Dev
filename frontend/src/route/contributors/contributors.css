@@ -127,9 +127,12 @@
   align-items: center;
 }
 
-.cp-link:hover {
-  color: var(--color-primary);
-}
+.cp-link:hover { color: var(--color-primary); }
+
+.cp-link--github:hover    { color: #333; }
+.cp-link--facebook:hover  { color: #1877f2; }
+.cp-link--email:hover     { color: var(--color-primary); }
+.cp-link--instagram:hover { color: #e1306c; }
 
 /* Responsive */
 @media (max-width: 1024px) {

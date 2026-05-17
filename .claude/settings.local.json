@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(node -e \"const p=JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); const dv=p.devDependencies; console.log\\(JSON.stringify\\(Object.fromEntries\\(Object.entries\\(dv\\).filter\\(\\([k]\\)=>['vitest','@vitest/coverage-v8','@testing-library/react','@testing-library/user-event','@testing-library/jest-dom','jsdom','msw'].includes\\(k\\)\\)\\),null,2\\)\\)\")",
+      "PowerShell(if \\(!\\(Test-Path \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\\\\docs\"\\)\\) { New-Item -ItemType Directory -Path \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\\\\docs\" | Out-Null; Write-Host \"created\" } else { Write-Host \"exists\" })",
+      "Bash(npx tsc *)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}

@@ -66,7 +66,7 @@ router.get(
     if (error) throw new ApiError(500, error.message);
 
     return res.status(200).json(
-      data ?? { key: "active_term", value: "AY 2025-2026" }
+      data ?? { key: "active_term", value: "2025-2026" }
     );
   }),
 );

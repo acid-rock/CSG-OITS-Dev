@@ -5,7 +5,8 @@ import Form from '../../components/form/Form';
 import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
 import Actionbar from '../../components/action-bar/Actionbar';
 import axios from 'axios';
-import { Pin, PinOff, Archive, ArchiveRestore } from 'lucide-react';
+import { Pin, PinOff, Archive, ArchiveRestore, Eye } from 'lucide-react';
+import PublicPreviewModal from '../../components/modals/PublicPreviewModal/PublicPreviewModal';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -54,6 +55,7 @@ const Announcement = () => {
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [previewItem, setPreviewItem] = useState<BulletinEntry | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -279,6 +281,10 @@ const Announcement = () => {
                     <td className='announce-file-btn'>
                       {hoveredRowId === entry.id && (
                       <div className='announce-file-btn-inner'>
+                        <button title='Preview public view' onClick={() => setPreviewItem(entry)}
+                          className='action-btn action-btn--preview'>
+                          <Eye size={16} />
+                        </button>
                         <button title={entry.is_pinned ? 'Unpin' : 'Pin to top'} onClick={() => handlePin(entry.id)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: entry.is_pinned ? '#f59e0b' : '#9ca3af', display: 'flex', alignItems: 'center' }}>
                           {entry.is_pinned ? <PinOff size={16} /> : <Pin size={16} />}
@@ -419,6 +425,15 @@ const Announcement = () => {
             setOpen={setOpen} onSuccess={fetchData}
           />
         </div>
+      )}
+
+      {previewItem && (
+        <PublicPreviewModal
+          isOpen={true}
+          onClose={() => setPreviewItem(null)}
+          type='announcement'
+          item={previewItem as unknown as Record<string, unknown>}
+        />
       )}
     </div>
   );

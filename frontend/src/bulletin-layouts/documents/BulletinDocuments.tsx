@@ -68,6 +68,7 @@ export default function BulletinDocument() {
     setIsModalOpen(true);
   };
 
+
   /* ── Category count helper (new — no binding change) ── */
   const catCount = (catId: string) =>
     catId === "all"
@@ -172,7 +173,6 @@ export default function BulletinDocument() {
                     className="bd-doc-card card"
                     onClick={() => handleSelect(doc)}   /* locked: handleSelect */
                   >
-                    {/* Fix 7: CSG logo placeholder instead of letter circle */}
                     <div style={{
                       width: "100%",
                       height: "160px",
@@ -187,10 +187,25 @@ export default function BulletinDocument() {
                       <span className={`tag ${tagClass} bd-doc-type-tag`}>
                         {doc.category ?? "Document"}
                       </span>
+                      {doc.thumbnail ? (
+                        <img
+                          src={doc.thumbnail}
+                          alt={doc.description}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            (e.currentTarget.nextElementSibling as HTMLElement | null)?.style?.setProperty("display", "flex");
+                          }}
+                        />
+                      ) : null}
                       <img
                         src="/CSG_logo.svg"
                         alt="CSG"
-                        style={{ width: "72px", height: "72px", objectFit: "contain", opacity: 0.7 }}
+                        style={{
+                          width: "72px", height: "72px", objectFit: "contain", opacity: 0.7,
+                          display: doc.thumbnail ? "none" : "block",
+                          position: "absolute",
+                        }}
                       />
                     </div>
 
@@ -209,17 +224,6 @@ export default function BulletinDocument() {
                         {doc.term && <span>{doc.term}</span>}
                       </div>
 
-                      {/* View button — locked: handleView */}
-                      <button
-                        type="button"
-                        className="btn btn-ghost bd-view-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleView(doc);               /* locked: handleView */
-                        }}
-                      >
-                        View Document
-                      </button>
                     </div>
                   </div>
                 );
@@ -247,43 +251,47 @@ export default function BulletinDocument() {
             >✕</button>
 
             <span className="bd-panel-cat">
-              {selectedDocument.category ?? "Document"}  {/* locked binding */}
+              {selectedDocument.category ?? "Document"}
             </span>
 
             <h2 className="bd-panel-title">
               {selectedDocument.name?.split("/").pop()?.replace(/\.pdf$/i, "") ?? selectedDocument.description ?? "Document"}
-            </h2>  {/* locked: name binding */}
+            </h2>
 
             {selectedDocument.description && (
-              <p className="bd-panel-desc">{selectedDocument.description}</p>  /* locked binding */
+              <p className="bd-panel-desc">{selectedDocument.description}</p>
             )}
 
             {selectedDocument.date && (
-              <p className="bd-panel-date">{selectedDocument.date}</p>  /* locked binding */
+              <p className="bd-panel-date">{selectedDocument.date}</p>
             )}
 
-            <a
-              href={selectedDocument.url}           /* locked: url binding */
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary bd-panel-link"
+            {/* Document thumbnail preview */}
+            {selectedDocument.thumbnail && (
+              <img
+                src={selectedDocument.thumbnail}
+                alt={selectedDocument.description}
+                className="bd-panel-preview"
+              />
+            )}
+
+            <button
+              type="button"
+              className="btn btn-primary bd-panel-view-btn"
+              onClick={() => handleView(selectedDocument)}
             >
               View Document
-            </a>
+            </button>
           </div>
         </>
       )}
 
-      {/* ════════════════════════════════════════
-          DOCUMENT MODAL
-          All selectedDocument.* bindings locked
-          ════════════════════════════════════════ */}
-      {isModalOpen && (
+      {isModalOpen && selectedDocument && (
         <DocumentModal
           selected={{
-            title:   selectedDocument?.name ?? "",          /* locked binding */
-            date:    selectedDocument?.date ?? "",          /* locked binding */
-            memoSrc: selectedDocument?.url  ?? "",          /* locked binding */
+            title:   selectedDocument.name ?? "",
+            date:    selectedDocument.date ?? "",
+            memoSrc: selectedDocument.url  ?? "",
           }}
           onClose={() => setIsModalOpen(false)}
         />

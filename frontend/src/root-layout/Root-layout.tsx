@@ -2,13 +2,14 @@ import { Outlet } from "react-router-dom";
 import Navigation from "../components/navigation/Navigation";
 import Footer from "../components/footer/Footer";
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
 import fetchBulletinData from "../config/bulletinConfig";
 import fetchDocuments from "../config/documentsConfig";
 import fetchEvents from "../config/eventConfig";
 import fetchOfficers from "../config/officerConfig";
+import { fetchOrganizations } from "../config/organizationsConfig";
+import type { Organization } from "../config/organizationsConfig";
+export type { Organization };
 
-const API_URL = import.meta.env.VITE_API_URL as string;
 
 export type Announcement = {
   id: string;
@@ -27,6 +28,7 @@ export type Document = {
   description: string;
   category: string;
   url: string;
+  thumbnail?: string;
   date: string;
   created_at?: string;
   term?: string | null;
@@ -54,14 +56,6 @@ export type Officer = {
   is_committee_official: boolean;
 };
 
-export type Organization = {
-  id: string;
-  name: string;
-  description: string | null;
-  logo_path: string | null;
-  facebook_link: string | null;
-  created_at: string;
-};
 
 export interface OutletContext {
   bulletin: Announcement[];
@@ -84,22 +78,13 @@ const Root = () => {
     setLoading(true);
     setError(null);
 
-    // Fetch active term for officer filtering (silent fail — fallback: no filter)
-    let activeTerm: string | undefined;
-    try {
-      const { data } = await axios.get(`${API_URL}/settings/term`);
-      activeTerm = data?.value || undefined;
-    } catch {
-      activeTerm = undefined;
-    }
-
     const [bulletinResult, documentsResult, eventsResult, officersResult, orgsResult] =
       await Promise.allSettled([
         fetchBulletinData(),
         fetchDocuments(),
         fetchEvents(),
-        fetchOfficers(undefined, undefined, activeTerm),
-        axios.get(`${API_URL}/organizations`).then((r) => r.data as Organization[]),
+        fetchOfficers(),
+        fetchOrganizations(),
       ]);
 
     const allFailed = [bulletinResult, documentsResult, eventsResult, officersResult]

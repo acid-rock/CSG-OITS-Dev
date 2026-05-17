@@ -365,11 +365,18 @@
   margin: 0 0 var(--space-6);
 }
 
-.bd-panel-link {
+.bd-panel-preview {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: block;
+  margin-bottom: var(--space-5);
+}
+
+.bd-panel-view-btn {
+  width: 100%;
   text-align: center;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
 }
 

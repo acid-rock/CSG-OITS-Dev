@@ -58,6 +58,7 @@ export default function Borrow() {
   // ── Submit state ──
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
 
   // ── Equipment filter (list view) — must be at top level, not after early returns ──
   const [equipFilter, setEquipFilter] = useState<"all" | "available" | "unavailable">("all");
@@ -145,6 +146,10 @@ export default function Borrow() {
       setSubmitError("Please provide your signature (typed name).");
       return;
     }
+    if (!privacyConsent) {
+      setSubmitError("Please read and accept the Data Privacy Act consent before submitting.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -185,6 +190,7 @@ export default function Borrow() {
     setActivityName(""); setVenue(""); setDateOfUse(""); setTimeOfUse("");
     setEquipmentRows([{ equipment_id: "", quantity_requested: 1 }]);
     setSignature("");
+    setPrivacyConsent(false);
     setSelectedFromList(null);
     fetchInventory();
     setView("list");
@@ -414,9 +420,40 @@ export default function Borrow() {
               </div>
             </div>
 
+            {/* ── Data Privacy Act Consent ── */}
+            <div className="borrow-privacy-box">
+              <p className="borrow-privacy-title">Data Privacy Act Consent</p>
+              <p className="borrow-privacy-body">
+                In compliance with Republic Act No. 10173 (Data Privacy Act of 2012), the
+                Central Student Government of Cavite State University – Imus Campus collects
+                and processes your personal information (name, student number, email address,
+                and contact number) solely for the purpose of processing your equipment borrow
+                request. Your data will not be shared with third parties without your consent
+                and will be retained only for the duration necessary to fulfill this purpose.
+                You have the right to access, correct, or request deletion of your personal
+                data at any time by contacting the CSG office.
+              </p>
+              <label className="borrow-privacy-check">
+                <input
+                  type="checkbox"
+                  checked={privacyConsent}
+                  onChange={(e) => setPrivacyConsent(e.target.checked)}
+                />
+                <span>
+                  I have read and understood the Data Privacy Act consent above. I voluntarily
+                  authorize the CSG to collect and use my personal information for this
+                  equipment borrow request. <strong>*</strong>
+                </span>
+              </label>
+            </div>
+
             {submitError && <p className="borrow-error">{submitError}</p>}
 
-            <button type="submit" className="borrow-btn-primary borrow-btn-full" disabled={submitting}>
+            <button
+              type="submit"
+              className="borrow-btn-primary borrow-btn-full"
+              disabled={submitting || !privacyConsent}
+            >
               {submitting ? "Submitting..." : "Submit Request"}
             </button>
           </form>

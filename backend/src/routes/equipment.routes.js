@@ -6,6 +6,11 @@ import { getCached, setCache } from "../lib/cache.js";
 
 const router = Router();
 
+const resolveImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  return anonSupabase.storage.from("equipment").getPublicUrl(imagePath).data.publicUrl;
+};
+
 // GET /api/v1/equipment/ — returns all inventory rows, no auth required
 router.get(
   "/",
@@ -20,8 +25,9 @@ router.get(
       .order("name", { ascending: true });
     if (error) throw new ApiError(500, error.message);
 
-    setCache(cacheKey, data, 60_000);
-    return res.status(200).json(data);
+    const transformed = data.map((item) => ({ ...item, image: resolveImageUrl(item.image) }));
+    setCache(cacheKey, transformed, 60_000);
+    return res.status(200).json(transformed);
   }),
 );
 

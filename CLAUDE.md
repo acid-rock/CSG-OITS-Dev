@@ -208,3 +208,19 @@ Auth loop:        Implemented (login → session → protected routes)
 Pending:          Supabase migrations not yet run in production database
                   (backend developer availability required)
 ```
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues at `acid-rock/CSG-OITS-Dev`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout — `CONTEXT.md` at root (create via `/grill-with-docs`), `docs/decisions/` for architectural decisions. See `docs/agents/domain.md`.

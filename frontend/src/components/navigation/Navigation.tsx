@@ -26,7 +26,7 @@ const NAV_GROUPS = [
     items: [
       { label: "About",         href: "/about"              },
       { label: "Officers",      href: "/officers"           },
-      { label: "Organizations", href: "/about#organizations"},
+      { label: "Organizations", href: "/organizations"      },
       { label: "Contributors",  href: "/contributors"       },
     ],
   },

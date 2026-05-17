@@ -1,11 +1,10 @@
 import "./about-page.css";
 import { useOutletContext } from "react-router-dom";
 import type { OutletContext } from "../../root-layout/Root-layout";
-import OrganizationCard from "../../components/organization-card/OrganizationCard";
 
 export default function AboutPage() {
   /* Live counts from outlet context — no new API calls */
-  const { officers, documents, organizations } = useOutletContext<OutletContext>();
+  const { officers, documents } = useOutletContext<OutletContext>();
 
   return (
     <div className="ap-page">
@@ -51,7 +50,7 @@ export default function AboutPage() {
           <blockquote className="ap-blockquote">
             <span className="ap-quote-mark">&ldquo;</span>
             <p className="ap-quote-text">
-              Para sa kabusuhenyo,{" "}
+              Para sa kabsuhenyo,{" "}
               <strong style={{ color: "var(--color-primary)" }}>puso</strong>{" "}
               ang magiging sentro ng serbisyo.
             </p>
@@ -139,24 +138,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      {/* ══ SECTION 5: Organizations ══ */}
-      {organizations && organizations.length > 0 && (
-        <section className="ap-section" id="organizations">
-          <div className="ap-orgs-heading">
-            <span className="section-label" style={{ display: "block", marginBottom: "var(--space-2)" }}>Student organizations</span>
-            <h2 style={{ margin: "0 0 var(--space-2)", fontSize: "var(--font-size-2xl)", fontWeight: 700 }}>Organizations at CVSU-Imus</h2>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "var(--font-size-base)", marginBottom: "var(--space-8)" }}>
-              Student organizations recognized by the Central Student Government
-            </p>
-          </div>
-          <div className="ap-orgs-grid">
-            {organizations.map((org) => (
-              <OrganizationCard key={org.id} org={org} />
-            ))}
-          </div>
-        </section>
-      )}
 
     </div>
   );

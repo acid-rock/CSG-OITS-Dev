@@ -344,3 +344,6 @@
   width: 20px;
   height: 20px;
 }
+
+.action-btn--preview { color: var(--color-primary); background: transparent; border: none; cursor: pointer; padding: 4px; border-radius: var(--radius-sm); display: flex; align-items: center; transition: background var(--transition-fast); }
+.action-btn--preview:hover { background: var(--color-primary-light); }

@@ -108,7 +108,8 @@ const OrganizationsPanel = () => {
       }
       setFormOpen(false);
     } catch (err: unknown) {
-      setSubmitError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to save organization.');
+      const errData = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      setSubmitError(errData?.error ?? errData?.message ?? 'Failed to save organization.');
     } finally {
       setSubmitting(false);
     }

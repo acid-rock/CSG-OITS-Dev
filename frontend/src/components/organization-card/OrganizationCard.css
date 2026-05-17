@@ -1,3 +1,8 @@
+:root {
+  --color-facebook: #1877f2;
+  --color-facebook-dark: #1565d6;
+}
+
 .org-card {
   cursor: pointer;
   padding: var(--space-5);
@@ -56,7 +61,7 @@
 }
 
 .org-fb {
-  color: #1877f2;
+  color: var(--color-facebook);
   margin-top: var(--space-1);
 }
 
@@ -134,8 +139,8 @@
   display: inline-flex;
   align-items: center;
   padding: 0.5rem 1.25rem;
-  background: #1877f2;
-  color: #fff;
+  background: var(--color-facebook);
+  color: var(--color-surface);
   border-radius: 6px;
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -144,5 +149,5 @@
 }
 
 .org-modal-fb-btn:hover {
-  background: #1565d6;
+  background: var(--color-facebook-dark);
 }

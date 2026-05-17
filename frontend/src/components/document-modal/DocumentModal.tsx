@@ -38,7 +38,7 @@ export default function DocumentModal({
               justifyContent: 'center',
               gap: '1rem',
               padding: '3rem 2rem',
-              color: '#6b7280',
+              color: 'var(--color-text-muted)',
               fontSize: '0.9rem',
               textAlign: 'center',
             }}
@@ -50,9 +50,9 @@ export default function DocumentModal({
               onClick={onClose}
               style={{
                 padding: '0.5rem 1.25rem',
-                border: '1px solid #d1d5db',
+                border: '1px solid var(--color-border)',
                 borderRadius: 8,
-                background: '#fff',
+                background: 'var(--color-surface)',
                 cursor: 'pointer',
               }}
             >
@@ -62,7 +62,7 @@ export default function DocumentModal({
         ) : (
           <iframe
             className='modal__iframe'
-            src={`${selected.memoSrc}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+            src={`https://docs.google.com/viewer?url=${encodeURIComponent(selected.memoSrc)}&embedded=true`}
             title={selected.title}
             onError={() => setIframeError(true)}
           />

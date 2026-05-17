@@ -4,7 +4,8 @@ import Form from '../../components/form/Form';
 import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
 import Actionbar from '../../components/action-bar/Actionbar';
 import axios from 'axios';
-import { Archive, ArchiveRestore } from 'lucide-react';
+import { Archive, ArchiveRestore, Eye } from 'lucide-react';
+import PublicPreviewModal from '../../components/modals/PublicPreviewModal/PublicPreviewModal';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -77,6 +78,7 @@ const Events = () => {
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [previewItem, setPreviewItem] = useState<EventEntry | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -272,6 +274,10 @@ const Events = () => {
                     <td className='announce-file-btn'>
                       {hoveredRowId === entry.id && (
                       <div className='announce-file-btn-inner'>
+                        <button title='Preview public view' onClick={() => setPreviewItem(entry)}
+                          className='action-btn action-btn--preview'>
+                          <Eye size={16} />
+                        </button>
                         <button title='Archive' onClick={() => handleArchive(entry.id)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
                           <Archive size={16} />
@@ -413,6 +419,15 @@ const Events = () => {
             initialDate={editDate} initialImages={editImages} setOpen={setOpen} onSuccess={fetchData}
           />
         </div>
+      )}
+
+      {previewItem && (
+        <PublicPreviewModal
+          isOpen={true}
+          onClose={() => setPreviewItem(null)}
+          type='event'
+          item={previewItem as unknown as Record<string, unknown>}
+        />
       )}
     </div>
   );

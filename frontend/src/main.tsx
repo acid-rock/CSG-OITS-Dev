@@ -13,6 +13,7 @@ import Officers from "./route/officers/Officers";
 import AboutPage from "./route/about/AboutPage";
 import Borrow from "./route/borrow/Borrow";
 import ContributorsPage from "./route/contributors/Contributors";
+import OrganizationsPage from "./route/organizations/OrganizationsPage";
 
 // Admin Login (Public)
 import Login from "./admin/admin-loginpage/login/Login";
@@ -34,7 +35,8 @@ const router = createBrowserRouter([
       { path: "about",    element: <AboutPage /> },
       { path: "officers", element: <Officers /> },
       { path: "borrow",        element: <Borrow /> },
-      { path: "contributors", element: <ContributorsPage /> },
+      { path: "contributors",  element: <ContributorsPage /> },
+      { path: "organizations", element: <OrganizationsPage /> },
     ],
   },
   // Admin Public Routes (Login)

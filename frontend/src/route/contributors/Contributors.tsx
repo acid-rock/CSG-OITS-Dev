@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaGithub, FaEnvelope, FaFacebook } from "react-icons/fa";
+import { FaGithub, FaEnvelope, FaFacebook, FaInstagram } from "react-icons/fa";
 import "./contributors.css";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
@@ -10,57 +10,64 @@ const CONTRIBUTORS = [
     name: "Ivan P. Duran",
     role: "Committee Chair — Web Development",
     initials: "ID",
-    github: "https://github.com/hexizen",
-    email: null as string | null,
-    facebook: null as string | null,
+    github:    "https://github.com/sleepdeprive-gray",
+    facebook:  "https://www.facebook.com/infectious.ivan",
+    email:     "ayban.duran@gmail.com",
+    instagram: "https://www.instagram.com/not.aybann",
   },
   {
     name: "John Harold R. Magma",
     role: "GAD Representative / Project Coordinator",
     initials: "JM",
-    github: "https://github.com/johnharold8888",
-    email: "johnharold8888@gmail.com",
-    facebook: null as string | null,
+    github:    "https://github.com/Hexizen",
+    facebook:  "https://www.facebook.com/jhnhrldmgm",
+    email:     "johnharold8888@gmail.com",
+    instagram: "https://www.instagram.com/j.h.magma",
   },
   {
     name: "Lorenz E. Tuboro",
     role: "Back-End Developer",
     initials: "LT",
-    github: null as string | null,
-    email: null as string | null,
-    facebook: null as string | null,
+    github:    "https://github.com/acid-rock",
+    facebook:  "https://www.facebook.com/herelieszee3/",
+    email:     "lorenztuboro00@gmail.com",
+    instagram: "https://www.instagram.com/thisiszee3/",
   },
   {
     name: "Ralph Kenneth B. Perez",
     role: "UI/UX Designer",
     initials: "RP",
-    github: null as string | null,
-    email: null as string | null,
-    facebook: null as string | null,
+    github:    "https://github.com/rkenbperez",
+    facebook:  "https://www.facebook.com/Ralph.Ken.Perez",
+    email:     "rken.perez@gmail.com",
+    instagram: "https://www.instagram.com/si_kenp",
   },
   {
     name: "Jerald D. Estrella",
     role: "Front-End Developer",
     initials: "JE",
-    github: null as string | null,
-    email: null as string | null,
-    facebook: null as string | null,
+    github:    "https://github.com/JeraldEstrella",
+    facebook:  "https://www.facebook.com/jerald.estrellaii",
+    email:     "jeraldestrella127@gmail.com",
+    instagram: "https://www.instagram.com/jrldstellar",
   },
   {
     name: "Taisei Domingo",
     role: "Front-End Developer",
     initials: "TD",
-    github: null as string | null,
-    email: null as string | null,
-    facebook: null as string | null,
+    github:    "https://github.com/TaiseiD",
+    facebook:  "https://www.facebook.com/iiseiich",
+    email:     "domingo.taisei070606@gmail.com",
+    instagram: "https://www.instagram.com/iiseichi",
   },
   {
     name: "Gerald D. Alansalon",
     role: "Documentation Officer",
     initials: "GA",
-    github: null as string | null,
-    email: null as string | null,
-    facebook: null as string | null,
+    github:    "https://github.com/GeraldTheTeenGR",
+    facebook:  "https://www.facebook.com/GDomingoA",
+    email:     "geraldalansalon@gmail.com",
+    instagram: "https://www.instagram.com/iamgerald_12",
   },
 ];
 
@@ -134,21 +141,23 @@ export default function ContributorsPage() {
 
                 {/* Icon links */}
                 <div className="cp-links">
-                  {c.github && (
-                    <a href={c.github} target="_blank" rel="noopener noreferrer" aria-label={`${c.name} on GitHub`} className="cp-link">
-                      <FaGithub size={18} />
-                    </a>
-                  )}
-                  {c.email && (
-                    <a href={`mailto:${c.email}`} aria-label={`Email ${c.name}`} className="cp-link">
-                      <FaEnvelope size={18} />
-                    </a>
-                  )}
-                  {c.facebook && (
-                    <a href={c.facebook} target="_blank" rel="noopener noreferrer" aria-label={`${c.name} on Facebook`} className="cp-link">
-                      <FaFacebook size={18} />
-                    </a>
-                  )}
+                  <a href={c.github} target="_blank" rel="noopener noreferrer"
+                    aria-label={`${c.name} on GitHub`} className="cp-link cp-link--github">
+                    <FaGithub size={18} />
+                  </a>
+                  <a href={c.facebook} target="_blank" rel="noopener noreferrer"
+                    aria-label={`${c.name} on Facebook`} className="cp-link cp-link--facebook">
+                    <FaFacebook size={18} />
+                  </a>
+                  <a href={`https://mail.google.com/mail/?view=cm&to=${c.email}`}
+                    target="_blank" rel="noopener noreferrer"
+                    aria-label={`Email ${c.name}`} className="cp-link cp-link--email">
+                    <FaEnvelope size={18} />
+                  </a>
+                  <a href={c.instagram} target="_blank" rel="noopener noreferrer"
+                    aria-label={`${c.name} on Instagram`} className="cp-link cp-link--instagram">
+                    <FaInstagram size={18} />
+                  </a>
                 </div>
               </div>
             );

@@ -1,12 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "./form.css";
 import type { Box } from "../pdf-selector-components/pdf-selector";
 import PdfSelector from "../pdf-selector-components/pdf-selector";
+import ContentPreview from "../content-preview/ContentPreview";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
-// TASK 5: extended forType to include 'event'
 const ANNOUNCEMENT_CATEGORIES = [
   'CSG Updates',
   'Class Advisories',
@@ -21,11 +21,11 @@ interface FormProps {
   initialTitle?: string;
   initialDescription?: string;
   initialDate?: string;
-  initialType?: string;   // pre-populate type select for document edits
-  initialImages?: string[]; // current image URLs shown as previews in event edit mode
-  initialCategory?: string; // announcement category
+  initialType?: string;
+  initialImages?: string[];
+  initialCategory?: string;
   setOpen: (open: boolean) => void;
-  onSuccess?: () => void; // called after a successful API submission
+  onSuccess?: () => void;
 }
 
 const Form = ({
@@ -51,15 +51,23 @@ const Form = ({
   const [description, setDescription] = useState(initialDescription);
   const [date, setDate] = useState(initialDate);
   const [eventImages, setEventImages] = useState<File[]>([]);
-  // For event edit mode: one optional replacement per slot (0, 1, 2)
   const [replaceImages, setReplaceImages] = useState<[File | null, File | null, File | null]>([null, null, null]);
-  // Stores the selected image file for announcement add/edit (non-PDF images are not stored in `pdf`)
   const [announcementImage, setAnnouncementImage] = useState<File | null>(null);
   const [type, setType] = useState(initialType);
   const [term, setTerm] = useState("");
   const [category, setCategory] = useState(initialCategory);
 
-  // Helpers
+  // Live preview image URL (URL.createObjectURL for uploaded images)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [pdfName, setPdfName] = useState<string | null>(null);
+
+  // Revoke object URL on unmount or when it changes
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    };
+  }, [imagePreviewUrl]);
+
   const undoHandler = () => {
     setSelectedBoxes((prev) => prev.slice(0, -1));
   };
@@ -68,37 +76,29 @@ const Form = ({
     setType(event.target.value);
   };
 
-  // TASK 1: correct endpoint paths using VITE_API_URL
   const getUrl = (): string => {
     if (forType === "announcement") {
-      return id
-        ? `${API_URL}/announcements/edit`
-        : `${API_URL}/announcements/add`;
+      return id ? `${API_URL}/announcements/edit` : `${API_URL}/announcements/add`;
     }
     if (forType === "document") {
       return id ? `${API_URL}/documents/edit` : `${API_URL}/documents/add`;
     }
-    // event
     return id ? `${API_URL}/events/edit` : `${API_URL}/events/add`;
   };
 
-  // TASK 1: replaced fetch with axios + withCredentials; made async
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData();
 
-    // Common fields
     formData.append("title", title);
     formData.append("description", description);
 
     if (forType === "announcement") {
-      // Backend expects 'content' not 'description'
       formData.append("content", description);
       formData.append("category", category);
     }
 
     if (forType === "document") {
-      // Backend expects 'name' not 'title' and requires 'type'
       formData.append("name", title);
       formData.append("type", type);
       if (term) formData.append("term", term);
@@ -109,30 +109,22 @@ const Form = ({
     }
 
     if (forType === "event") {
-      // Backend expects 'name' not 'title', and 'date_happened'
       formData.append("name", title);
       formData.append("date_happened", date);
-
       if (id) {
-        // Edit mode: send individual slot replacements as image_0 / image_1 / image_2
         replaceImages.forEach((file, i) => {
           if (file) formData.append(`image_${i}`, file);
         });
       } else {
-        // Add mode: send all images under the 'images' field
         eventImages.forEach((img) => formData.append("images", img));
       }
     }
 
-    // Bug 1 fix: use announcementImage (non-PDF file) not pdf (PDF file)
     if (forType === "announcement" && announcementImage) {
       formData.append("image", announcementImage);
     }
 
-    // Include id for edit operations
-    if (id) {
-      formData.append("id", id);
-    }
+    if (id) formData.append("id", id);
 
     await axios.post(getUrl(), formData, { withCredentials: true });
     onSuccess?.();
@@ -146,36 +138,43 @@ const Form = ({
         setPreview(file.name);
         setPdf(file);
         setPdfUrl(URL.createObjectURL(file));
-        if (forType === "document") {
-          setShowPdfSelector(true);
-        }
+        setPdfName(file.name);
+        setImagePreviewUrl(null);
+        if (forType === "document") setShowPdfSelector(true);
       } else {
-        // Image file (announcement cover photo, etc.)
         setAnnouncementImage(file);
         const reader = new FileReader();
         reader.onloadend = () => setPreview(reader.result as string);
         reader.readAsDataURL(file);
         setPdf(null);
         setPdfUrl(null);
+        setPdfName(null);
         setShowPdfSelector(false);
+        // Set live preview URL
+        if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+        setImagePreviewUrl(URL.createObjectURL(file));
       }
     } else {
       setPreview(null);
       setPdf(null);
       setPdfUrl(null);
+      setPdfName(null);
       setAnnouncementImage(null);
       setShowPdfSelector(false);
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl(null);
     }
   };
 
-  // TASK 5: event-specific multi-image handler
   const handleEventImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []).slice(0, 3);
     setEventImages(files);
     if (files.length > 0) {
-      // Revoke old blob URL to avoid memory leak
       if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
-      setPreview(URL.createObjectURL(files[0]));
+      const blobUrl = URL.createObjectURL(files[0]);
+      setPreview(blobUrl);
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl(URL.createObjectURL(files[0]));
     }
   };
 
@@ -184,7 +183,7 @@ const Form = ({
   };
 
   return (
-    <div className="form-container">
+    <div className="form-container form-container--wide">
       <div className="form-header">
         <h2>{id ? "Update File" : "Add New File"}</h2>
       </div>
@@ -201,17 +200,12 @@ const Form = ({
                   className="btn btn-secondary"
                   onClick={() => {
                     setShowPdfSelector(false);
-                    // debug
                     console.log(selectedBoxes);
                   }}
                 >
                   Done ({selectedBoxes.length} selected)
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={undoHandler}
-                >
+                <button type="button" className="btn btn-secondary" onClick={undoHandler}>
                   Undo last box
                 </button>
               </div>
@@ -227,249 +221,226 @@ const Form = ({
         </div>
       )}
 
-      <form className="form-layout" onSubmit={handleSubmit}>
-        <div className="form-fields">
-          <div className="form-group">
-            <label htmlFor="title">
-              {forType === "event" ? "Event Name" : "Title"}
-            </label>
-            <input
-              type="text"
-              id="title"
-              placeholder={
-                forType === "event" ? "Leadership Summit" : "System Maintenance"
-              }
-              name="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-          {forType === "announcement" && (
+      <form className="form-layout form-layout--with-preview" onSubmit={handleSubmit}>
+
+        {/* ── Left: form fields + upload ── */}
+        <div className="form-left-col">
+          <div className="form-fields">
             <div className="form-group">
-              <label htmlFor="category">Category</label>
-              <select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
-                {ANNOUNCEMENT_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          {forType === "document" && (
-            <div className="form-group">
-              <label htmlFor="term">Term (S.Y.)</label>
+              <label htmlFor="title">
+                {forType === "event" ? "Event Name" : "Title"}
+              </label>
               <input
                 type="text"
-                id="term"
-                placeholder="e.g. S.Y. 2024-2025"
-                value={term}
-                onChange={(e) => setTerm(e.target.value)}
+                id="title"
+                placeholder={forType === "event" ? "Leadership Summit" : "System Maintenance"}
+                name="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
               />
             </div>
-          )}
-          {forType === "document" && (
+            {forType === "announcement" && (
+              <div className="form-group">
+                <label htmlFor="category">Category</label>
+                <select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
+                  {ANNOUNCEMENT_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {forType === "document" && (
+              <div className="form-group">
+                <label htmlFor="term">Term (S.Y.)</label>
+                <input
+                  type="text"
+                  id="term"
+                  placeholder="e.g. S.Y. 2024-2025"
+                  value={term}
+                  onChange={(e) => setTerm(e.target.value)}
+                />
+              </div>
+            )}
+            {forType === "document" && (
+              <div className="form-group">
+                <label htmlFor="type">Type</label>
+                <select value={type} onChange={typeChangeHandler}>
+                  <option value="activity-proposal">Activity Proposal</option>
+                  <option value="resolution">Resolution</option>
+                  <option value="project-proposal">Project Proposal</option>
+                  <option value="accomplishment-report">Accomplishment Report</option>
+                  <option value="financial-statement">Financial Statement</option>
+                  <option value="sponsorship-letter">Sponsorship Letter</option>
+                  <option value="excuse-letter">Excuse Letter</option>
+                  <option value="office-memorandum">Office Memorandum</option>
+                  <option value="minutes-of-the-meeting">Minutes of the Meeting</option>
+                </select>
+              </div>
+            )}
             <div className="form-group">
-              <label htmlFor="type">Type</label>
-              <select value={type} onChange={typeChangeHandler}>
-                <option value="activity-proposal">Activity Proposal</option>
-                <option value="resolution">Resolution</option>
-                <option value="project-proposal">Project Proposal</option>
-                <option value="accomplishment-report">
-                  Accomplishment Report
-                </option>
-                <option value="financial-statement">Financial Statement</option>
-                <option value="sponsorship-letter">Sponsorship Letter</option>
-                <option value="excuse-letter">Excuse Letter</option>
-                <option value="office-memorandum">Office Memorandum</option>
-                <option value="minutes-of-the-meeting">
-                  Minutes of the Meeting
-                </option>
-              </select>
-            </div>
-          )}
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              placeholder={
-                forType === "event"
-                  ? "Annual leadership summit for CSG officers..."
-                  : "Scheduled maintenance for system updates..."
-              }
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            ></textarea>
-          </div>
-          {/* TASK 5: date field for events only */}
-          {forType === "event" && (
-            <div className="form-group">
-              <label htmlFor="date">Date</label>
-              <input
-                type="date"
-                id="date"
-                name="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+              <label htmlFor="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                placeholder={
+                  forType === "event"
+                    ? "Annual leadership summit for CSG officers..."
+                    : "Scheduled maintenance for system updates..."
+                }
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-          )}
-        </div>
-
-        <div className="image-upload">
-          <label>
-            {forType === "announcement"
-              ? "Image"
-              : forType === "event"
-                ? "Photos (up to 3)"
-                : "File"}
-          </label>
-          <div
-            className={`image-preview${preview ? " has-image" : ""}`}
-            id="imagePreview"
-            onClick={handleImageClick}
-          >
-            {!preview ? (
-              <div className="image-placeholder">
-                <div className="upload-icon">📁</div>
-                <div className="upload-text">
-                  <strong>Click to upload</strong>
-                  <br />
-                  {forType === "announcement"
-                    ? "PNG, JPG, JPEG"
-                    : forType === "event"
-                      ? "PNG, JPG (up to 3 images)"
-                      : "PDF files"}
-                </div>
+            {forType === "event" && (
+              <div className="form-group">
+                <label htmlFor="date">Date</label>
+                <input
+                  type="date"
+                  id="date"
+                  name="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
               </div>
-            ) : preview?.endsWith(".pdf") ? (
-              <div className="pdf-preview">
-                <div className="upload-icon">📄</div>
-                <div className="upload-text">{preview}</div>
-                {forType === "document" && (
-                  <>
-                    {selectedBoxes.length > 0 && (
-                      <div className="pdf-selected-count">
-                        ✓ {selectedBoxes.length} area(s) selected
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="btn btn-edit-selections"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowPdfSelector(true);
-                      }}
-                    >
-                      Edit selections
-                    </button>
-                  </>
-                )}
-              </div>
-            ) : (
-              <img id="previewImage" alt="Preview" src={preview} />
             )}
           </div>
 
-          {/* Event edit mode: 3 individual replacement slots */}
-          {forType === "event" && id ? (
+          <div className="image-upload">
+            <label>
+              {forType === "announcement"
+                ? "Image"
+                : forType === "event"
+                  ? "Photos (up to 3)"
+                  : "File"}
+            </label>
             <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.75rem",
-                marginTop: "0.5rem",
-              }}
+              className={`image-preview${preview ? " has-image" : ""}`}
+              id="imagePreview"
+              onClick={handleImageClick}
             >
-              {([0, 1, 2] as const).map((i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.25rem",
-                  }}
-                >
-                  <label style={{ fontSize: "0.85rem", color: "#6b7280" }}>
-                    Replace Image {i + 1} (optional)
-                  </label>
-                  {initialImages[i] && !replaceImages[i] && (
-                    <img
-                      src={initialImages[i]}
-                      alt={`Current image ${i + 1}`}
-                      style={{
-                        width: 72,
-                        height: 72,
-                        objectFit: "cover",
-                        borderRadius: 4,
-                        border: "1px solid #e5e7eb",
-                      }}
-                    />
-                  )}
-                  {replaceImages[i] && (
-                    <img
-                      src={URL.createObjectURL(replaceImages[i]!)}
-                      alt={`New image ${i + 1}`}
-                      style={{
-                        width: 72,
-                        height: 72,
-                        objectFit: "cover",
-                        borderRadius: 4,
-                        border: "2px solid #3b82f6",
-                      }}
-                    />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    title={`Replace image slot ${i + 1}`}
-                    style={{ fontSize: "0.85rem" }}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0] ?? null;
-                      setReplaceImages((prev) => {
-                        const next = [...prev] as [
-                          File | null,
-                          File | null,
-                          File | null,
-                        ];
-                        next[i] = file;
-                        return next;
-                      });
-                    }}
-                  />
+              {!preview ? (
+                <div className="image-placeholder">
+                  <div className="upload-icon">📁</div>
+                  <div className="upload-text">
+                    <strong>Click to upload</strong>
+                    <br />
+                    {forType === "announcement"
+                      ? "PNG, JPG, JPEG"
+                      : forType === "event"
+                        ? "PNG, JPG (up to 3 images)"
+                        : "PDF files"}
+                  </div>
                 </div>
-              ))}
+              ) : preview?.endsWith(".pdf") ? (
+                <div className="pdf-preview">
+                  <div className="upload-icon">📄</div>
+                  <div className="upload-text">{preview}</div>
+                  {forType === "document" && (
+                    <>
+                      {selectedBoxes.length > 0 && (
+                        <div className="pdf-selected-count">
+                          ✓ {selectedBoxes.length} area(s) selected
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className="btn btn-edit-selections"
+                        onClick={(e) => { e.stopPropagation(); setShowPdfSelector(true); }}
+                      >
+                        Edit selections
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <img id="previewImage" alt="Preview" src={preview} />
+              )}
             </div>
-          ) : forType === "event" ? (
-            /* Event add mode: single multi-image input */
-            <input
-              type="file"
-              ref={fileInputRef}
-              title="Select up to 3 photos"
-              accept="image/*"
-              multiple
-              onChange={handleEventImagesChange}
-              className="file-input-hidden"
-            />
-          ) : (
-            <input
-              type="file"
-              ref={fileInputRef}
-              title="Select a file to upload"
-              accept={
-                forType === "announcement" ? "image/*" : "application/pdf"
-              }
-              onChange={handleFileChange}
-              className="file-input-hidden"
-            />
-          )}
+
+            {forType === "event" && id ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "0.5rem" }}>
+                {([0, 1, 2] as const).map((i) => (
+                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                    <label style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                      Replace Image {i + 1} (optional)
+                    </label>
+                    {initialImages[i] && !replaceImages[i] && (
+                      <img
+                        src={initialImages[i]}
+                        alt={`Current image ${i + 1}`}
+                        style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 4, border: "1px solid var(--color-border)" }}
+                      />
+                    )}
+                    {replaceImages[i] && (
+                      <img
+                        src={URL.createObjectURL(replaceImages[i]!)}
+                        alt={`New image ${i + 1}`}
+                        style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 4, border: "2px solid var(--color-primary)" }}
+                      />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      title={`Replace image slot ${i + 1}`}
+                      style={{ fontSize: "0.85rem" }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        setReplaceImages((prev) => {
+                          const next = [...prev] as [File | null, File | null, File | null];
+                          next[i] = file;
+                          return next;
+                        });
+                        if (i === 0 && file) {
+                          if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+                          setImagePreviewUrl(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : forType === "event" ? (
+              <input
+                type="file"
+                ref={fileInputRef}
+                title="Select up to 3 photos"
+                accept="image/*"
+                multiple
+                onChange={handleEventImagesChange}
+                className="file-input-hidden"
+              />
+            ) : (
+              <input
+                type="file"
+                ref={fileInputRef}
+                title="Select a file to upload"
+                accept={forType === "announcement" ? "image/*" : "application/pdf"}
+                onChange={handleFileChange}
+                className="file-input-hidden"
+              />
+            )}
+          </div>
+        </div>
+
+        {/* ── Right: live preview ── */}
+        <div className="form-preview-col">
+          <ContentPreview
+            type={forType}
+            formValues={{
+              title,
+              description,
+              category,
+              date,
+              docType: type,
+              term,
+              pdfName,
+            }}
+            imagePreviewUrl={imagePreviewUrl}
+          />
         </div>
 
         <div className="form-actions">
-          <button
-            type="button"
-            className="btn btn-cancel"
-            onClick={() => setOpen(false)}
-          >
+          <button type="button" className="btn btn-cancel" onClick={() => setOpen(false)}>
             Cancel
           </button>
           <button type="submit" className="btn btn-submit">
