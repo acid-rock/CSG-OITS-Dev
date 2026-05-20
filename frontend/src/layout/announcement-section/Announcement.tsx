@@ -3,32 +3,40 @@ import "./announcement.css";
 import Modal from "../../components/modal/Modal";
 import Button from "../../components/button/Button";
 import { Link, useOutletContext } from "react-router-dom";
-import type { Announcement, OutletContext } from "../../root-layout/Root-layout";
+import type {
+  Announcement,
+  OutletContext,
+} from "../../root-layout/Root-layout";
 
 function getTagClass(type?: string) {
   if (!type) return "tag-notice";
   const t = type.toLowerCase();
-  if (t.includes("event"))  return "tag-event";
+  if (t.includes("event")) return "tag-event";
   if (t.includes("update")) return "tag-update";
   return "tag-notice";
 }
 function getTagLabel(type?: string) {
   if (!type) return "Notice";
   const t = type.toLowerCase();
-  if (t.includes("event"))  return "Event";
+  if (t.includes("event")) return "Event";
   if (t.includes("update")) return "Update";
   return "Notice";
 }
 
 export default function AnnouncementSection() {
   const { bulletin } = useOutletContext<OutletContext>();
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] =
+    useState<Announcement | null>(null);
   const [open, setOpen] = useState(false);
 
   const formatDate = (date: string): string => {
     const d = new Date(date);
     if (isNaN(d.getTime())) return date;
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const handleCardClick = (announcement: Announcement) => {
@@ -36,25 +44,32 @@ export default function AnnouncementSection() {
     setOpen(true);
   };
 
-  const scroll = () => { window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const pinned = bulletin.find((a) => a.is_pinned);
-  const cards  = bulletin.filter((a) => !a.is_pinned).slice(0, 3);
+  const cards = bulletin.filter((a) => !a.is_pinned).slice(0, 3);
 
   return (
     <section className="announcement-container" id="announcement">
       <div className="announcement-layout">
-
         {/* Section header */}
         <div className="section-head">
           <div className="kicker">From the council</div>
-          <h2>Latest <em>announcements</em></h2>
+          <h2>
+            Latest <em>announcements</em>
+          </h2>
           <p>Notices, advisories, and updates from your CSG officers.</p>
         </div>
 
         {/* Pinned strip */}
         {pinned && (
-          <button type="button" className="pinned-strip" onClick={() => handleCardClick(pinned)}>
+          <button
+            type="button"
+            className="pinned-strip"
+            onClick={() => handleCardClick(pinned)}
+          >
             <span className="pinned-badge">📌 Pinned</span>
             <span className="pinned-title">{pinned.title}</span>
             <span className="pinned-date">{formatDate(pinned.date)}</span>
@@ -78,10 +93,15 @@ export default function AnnouncementSection() {
                       src={ann.imgUrl}
                       alt={ann.title}
                       className="ann-card-img"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          "none";
+                      }}
                     />
                   )}
-                  <span className={`tag ${getTagClass((ann as any).type)} ann-card-tag`}>
+                  <span
+                    className={`tag ${getTagClass((ann as any).type)} ann-card-tag`}
+                  >
                     {getTagLabel((ann as any).type)}
                   </span>
                 </div>
@@ -100,7 +120,11 @@ export default function AnnouncementSection() {
 
         <div className="view-btn">
           <Button variant="primary">
-            <Link to="/bulletin" style={{ textDecoration: "none", color: "white" }} onClick={scroll}>
+            <Link
+              to="/bulletin"
+              style={{ textDecoration: "none", color: "white" }}
+              onClick={scroll}
+            >
               VIEW ALL
             </Link>
           </Button>

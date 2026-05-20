@@ -3,11 +3,15 @@ import Typography from "../../components/typography/Typography";
 import { useOutletContext } from "react-router-dom";
 import { useState } from "react";
 import Modal from "../../components/modal/Modal";
-import type { Announcement, OutletContext } from "../../root-layout/Root-layout";
+import type {
+  Announcement,
+  OutletContext,
+} from "../../root-layout/Root-layout";
 
 const LatestUpdates = () => {
   const { bulletin } = useOutletContext<OutletContext>();
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] =
+    useState<Announcement | null>(null);
   const [open, setOpen] = useState(false);
 
   if (!bulletin.length) {
@@ -17,7 +21,8 @@ const LatestUpdates = () => {
   const latest = [...bulletin]
     .sort(
       (a, b) =>
-        new Date(b.created_at ?? b.date).getTime() - new Date(a.created_at ?? a.date).getTime(),
+        new Date(b.created_at ?? b.date).getTime() -
+        new Date(a.created_at ?? a.date).getTime(),
     )
     .slice(0, 3);
 

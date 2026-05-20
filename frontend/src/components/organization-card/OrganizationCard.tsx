@@ -1,6 +1,6 @@
-import { FaFacebook } from 'react-icons/fa';
-import type { Organization } from '../../config/organizationsConfig';
-import './OrganizationCard.css';
+import { FaFacebook } from "react-icons/fa";
+import type { Organization } from "../../config/organizationsConfig";
+import "./OrganizationCard.css";
 
 interface OrganizationCardProps {
   organization: Organization;
@@ -8,17 +8,25 @@ interface OrganizationCardProps {
 }
 
 function getInitials(name: string): string {
-  return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
-export default function OrganizationCard({ organization, onClick }: OrganizationCardProps) {
+export default function OrganizationCard({
+  organization,
+  onClick,
+}: OrganizationCardProps) {
   return (
     <div
       className="org-card card"
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      onKeyDown={(e) => e.key === "Enter" && onClick()}
     >
       <div className="org-avatar">
         {organization.logo_url ? (

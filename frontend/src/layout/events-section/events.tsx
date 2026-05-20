@@ -22,7 +22,8 @@ export default function Events() {
     currentPage * EVENTS_PER_PAGE + EVENTS_PER_PAGE,
   );
 
-  const nextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
+  const nextPage = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
   const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
 
   const handleCardClick = (event: any) => {
@@ -34,13 +35,14 @@ export default function Events() {
     <>
       <div className="event-container">
         <div className="event-layout">
-
           {/* Section header */}
           <div className="event-texts">
             <h2 className="ev-heading">
               Latest <em className="italic-accent">events</em>
             </h2>
-            <p className="ev-sub">Explore official events from the student government.</p>
+            <p className="ev-sub">
+              Explore official events from the student government.
+            </p>
           </div>
 
           {/* 2×2 card grid */}
@@ -60,13 +62,21 @@ export default function Events() {
                       alt={event.name}
                       className="ev-grid-cover"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = "/CSG_logo.svg";
-                        (e.currentTarget as HTMLImageElement).style.objectFit = "contain";
-                        (e.currentTarget as HTMLImageElement).style.opacity = "0.3";
+                        (e.currentTarget as HTMLImageElement).src =
+                          "/CSG_logo.svg";
+                        (e.currentTarget as HTMLImageElement).style.objectFit =
+                          "contain";
+                        (e.currentTarget as HTMLImageElement).style.opacity =
+                          "0.3";
                       }}
                     />
                   ) : (
-                    <img src="/CSG_logo.svg" alt="CSG" className="ev-grid-cover" style={{ objectFit: "contain", opacity: 0.3 }} />
+                    <img
+                      src="/CSG_logo.svg"
+                      alt="CSG"
+                      className="ev-grid-cover"
+                      style={{ objectFit: "contain", opacity: 0.3 }}
+                    />
                   )}
                 </div>
                 {/* Card body */}
@@ -80,13 +90,15 @@ export default function Events() {
           </div>
 
           {/* Pagination */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "var(--space-4)",
-            marginTop: "var(--space-8)",
-          }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "var(--space-4)",
+              marginTop: "var(--space-8)",
+            }}
+          >
             <button
               className="event-button"
               type="button"
@@ -97,7 +109,13 @@ export default function Events() {
               <ChevronLeft size={20} />
             </button>
 
-            <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "var(--space-2)",
+                alignItems: "center",
+              }}
+            >
               {Array.from({ length: totalPages }).map((_, index) => (
                 <button
                   key={index}
@@ -119,7 +137,6 @@ export default function Events() {
               <ChevronRight size={20} />
             </button>
           </div>
-
         </div>
       </div>
 

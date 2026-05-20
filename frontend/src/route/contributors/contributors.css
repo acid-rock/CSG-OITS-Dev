@@ -127,23 +127,42 @@
   align-items: center;
 }
 
-.cp-link:hover { color: var(--color-primary); }
+.cp-link:hover {
+  color: var(--color-primary);
+}
 
-.cp-link--github:hover    { color: #333; }
-.cp-link--facebook:hover  { color: #1877f2; }
-.cp-link--email:hover     { color: var(--color-primary); }
-.cp-link--instagram:hover { color: #e1306c; }
+.cp-link--github:hover {
+  color: #333;
+}
+.cp-link--facebook:hover {
+  color: #1877f2;
+}
+.cp-link--email:hover {
+  color: var(--color-primary);
+}
+.cp-link--instagram:hover {
+  color: #e1306c;
+}
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .cp-card { flex: 0 0 calc(50% - var(--space-6)); }
+  .cp-card {
+    flex: 0 0 calc(50% - var(--space-6));
+  }
 }
 
 @media (max-width: 768px) {
-  .cp-heading { font-size: var(--font-size-3xl); }
-  .cp-card { flex: 0 0 calc(50% - var(--space-6)); }
+  .cp-heading {
+    font-size: var(--font-size-3xl);
+  }
+  .cp-card {
+    flex: 0 0 calc(50% - var(--space-6));
+  }
 }
 
 @media (max-width: 640px) {
-  .cp-card { flex: 0 0 100%; max-width: 320px; }
+  .cp-card {
+    flex: 0 0 100%;
+    max-width: 320px;
+  }
 }

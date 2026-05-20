@@ -83,8 +83,8 @@ const OfficersPanel = () => {
         tab === "archived"
           ? `${API_URL}/officers/archived`
           : tab === "bin"
-          ? `${API_URL}/officers?deleted_at_not_null=true`
-          : `${API_URL}/officers`;
+            ? `${API_URL}/officers?deleted_at_not_null=true`
+            : `${API_URL}/officers`;
       const [officersRes, committeesRes] = await Promise.all([
         axios.get<OfficerEntry[]>(officersEndpoint, { withCredentials: true }),
         axios.get<Committee[]>(`${API_URL}/committees`, {
@@ -236,7 +236,14 @@ const OfficersPanel = () => {
           placeholder="Search..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ flex: 1, padding: '0.35rem 0.75rem', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: '0.875rem', minWidth: 0 }}
+          style={{
+            flex: 1,
+            padding: "0.35rem 0.75rem",
+            border: "1px solid #e5e7eb",
+            borderRadius: 6,
+            fontSize: "0.875rem",
+            minWidth: 0,
+          }}
         />
         <div className="announce-toolbar-actions">
           <FilterSelect
@@ -315,8 +322,22 @@ const OfficersPanel = () => {
             </thead>
             <tbody>
               {data
-                .filter((e) => filter === 'All' || !filter || e.type === filter.toLowerCase())
-                .filter((e) => !searchQuery || e.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || (Array.isArray(e.position) ? e.position[0] : e.position).toLowerCase().includes(searchQuery.toLowerCase()))
+                .filter(
+                  (e) =>
+                    filter === "All" ||
+                    !filter ||
+                    e.type === filter.toLowerCase(),
+                )
+                .filter(
+                  (e) =>
+                    !searchQuery ||
+                    e.full_name
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase()) ||
+                    (Array.isArray(e.position) ? e.position[0] : e.position)
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase()),
+                )
                 .sort((a, b) => {
                   if (sort === "Name (A-Z)")
                     return a.full_name.localeCompare(b.full_name);

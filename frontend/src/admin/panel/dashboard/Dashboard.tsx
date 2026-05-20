@@ -52,7 +52,9 @@ const shortId = (uuid: string | null): string =>
 
 // Returns the ISO week number for a given date
 function getISOWeek(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const d = new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+  );
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
@@ -71,10 +73,16 @@ const Dashboard = () => {
   const [logsError, setLogsError] = useState(false);
 
   // Real weekly upload counts from documents API
-  const [weeklyUploads, setWeeklyUploads] = useState<{ label: string; count: number }[]>([]);
+  const [weeklyUploads, setWeeklyUploads] = useState<
+    { label: string; count: number }[]
+  >([]);
   const [weeklyDataFallback, setWeeklyDataFallback] = useState(false);
-  const [activeOfficerCount, setActiveOfficerCount] = useState<number | null>(null);
-  const [documentsThisWeek, setDocumentsThisWeek] = useState<number | null>(null);
+  const [activeOfficerCount, setActiveOfficerCount] = useState<number | null>(
+    null,
+  );
+  const [documentsThisWeek, setDocumentsThisWeek] = useState<number | null>(
+    null,
+  );
 
   const fetchSummary = useCallback(async () => {
     setLoading(true);
@@ -120,9 +128,12 @@ const Dashboard = () => {
 
   const fetchWeeklyUploads = useCallback(async () => {
     try {
-      const { data } = await axios.get<{ createdAt: string }[]>(`${API_URL}/documents/`, {
-        withCredentials: true,
-      });
+      const { data } = await axios.get<{ createdAt: string }[]>(
+        `${API_URL}/documents/`,
+        {
+          withCredentials: true,
+        },
+      );
       // Build last-8-weeks buckets
       const now = new Date();
       const weeks: { label: string; count: number; weekStart: Date }[] = [];
@@ -136,7 +147,8 @@ const Dashboard = () => {
         const wk = getISOWeek(created);
         const yr = created.getFullYear();
         const match = weeks.find(
-          (w) => getISOWeek(w.weekStart) === wk && w.weekStart.getFullYear() === yr,
+          (w) =>
+            getISOWeek(w.weekStart) === wk && w.weekStart.getFullYear() === yr,
         );
         if (match) match.count++;
       });
@@ -169,15 +181,15 @@ const Dashboard = () => {
         },
       ]
     : analytics
-    ? [
-        {
-          label: "Documents",
-          data: analytics.uploads_by_month.map((m) => m.documents),
-          borderColor: "rgb(51, 236, 236)",
-          backgroundColor: "rgba(17, 255, 255, 0.81)",
-        },
-      ]
-    : [];
+      ? [
+          {
+            label: "Documents",
+            data: analytics.uploads_by_month.map((m) => m.documents),
+            borderColor: "rgb(51, 236, 236)",
+            backgroundColor: "rgba(17, 255, 255, 0.81)",
+          },
+        ]
+      : [];
 
   // Line chart — flat zeros (view tracking not yet implemented)
   const placeholderWeeks = Array.from({ length: 8 }, (_, i) => `Wk ${i + 1}`);
@@ -213,27 +225,70 @@ const Dashboard = () => {
         {/* Charts — Bar (uploads) | Line (views placeholder) | Pie (storage) */}
         <div
           className="graph-container"
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1.5rem", width: "100%", alignItems: "start" }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: "1.5rem",
+            width: "100%",
+            alignItems: "start",
+          }}
         >
           {loading ? (
-            <p style={{ padding: "1rem", gridColumn: "1/-1" }}>Loading charts...</p>
+            <p style={{ padding: "1rem", gridColumn: "1/-1" }}>
+              Loading charts...
+            </p>
           ) : (
             <>
-              <div style={{ minHeight: "360px", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+              <div
+                style={{
+                  minHeight: "360px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-start",
+                }}
+              >
                 <Barcharts labels={barLabels} datasets={barDatasets} />
                 {weeklyDataFallback && (
-                  <p style={{ fontSize: "0.75rem", color: "#f59e0b", textAlign: "center", marginTop: "0.25rem" }}>
+                  <p
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#f59e0b",
+                      textAlign: "center",
+                      marginTop: "0.25rem",
+                    }}
+                  >
                     ⚠ Using sample data
                   </p>
                 )}
               </div>
-              <div style={{ minHeight: "360px", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+              <div
+                style={{
+                  minHeight: "360px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-start",
+                }}
+              >
                 <Linechart labels={lineLabels} datasets={lineDatasets} />
-                <p style={{ fontSize: "0.75rem", color: "#9ca3af", textAlign: "center", marginTop: "0.25rem" }}>
+                <p
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#9ca3af",
+                    textAlign: "center",
+                    marginTop: "0.25rem",
+                  }}
+                >
                   View tracking coming soon
                 </p>
               </div>
-              <div style={{ minHeight: "360px", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+              <div
+                style={{
+                  minHeight: "360px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-start",
+                }}
+              >
                 <PieChart />
               </div>
             </>
@@ -292,7 +347,9 @@ const Dashboard = () => {
               </div>
               <div className="stat-info">
                 <span className="stat-number">
-                  {loading ? "—" : (activeOfficerCount ?? analytics?.total_officers ?? 0)}
+                  {loading
+                    ? "—"
+                    : (activeOfficerCount ?? analytics?.total_officers ?? 0)}
                 </span>
                 <span className="stat-label">Total Officers</span>
               </div>
@@ -317,7 +374,9 @@ const Dashboard = () => {
               </div>
               <div className="stat-info">
                 <span className="stat-number">
-                  {loading || documentsThisWeek === null ? "—" : documentsThisWeek}
+                  {loading || documentsThisWeek === null
+                    ? "—"
+                    : documentsThisWeek}
                 </span>
                 <span className="stat-label">Documents Uploaded this Week</span>
               </div>

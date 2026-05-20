@@ -8,11 +8,11 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL as string;
 
 const ANNOUNCEMENT_CATEGORIES = [
-  'CSG Updates',
-  'Class Advisories',
-  'Examinations',
-  'University Events',
-  'Official CVSU',
+  "CSG Updates",
+  "Class Advisories",
+  "Examinations",
+  "University Events",
+  "Official CVSU",
 ] as const;
 
 interface FormProps {
@@ -36,7 +36,7 @@ const Form = ({
   initialDate = "",
   initialType = "",
   initialImages = [],
-  initialCategory = 'CSG Updates',
+  initialCategory = "CSG Updates",
   setOpen,
   onSuccess,
 }: FormProps) => {
@@ -51,7 +51,9 @@ const Form = ({
   const [description, setDescription] = useState(initialDescription);
   const [date, setDate] = useState(initialDate);
   const [eventImages, setEventImages] = useState<File[]>([]);
-  const [replaceImages, setReplaceImages] = useState<[File | null, File | null, File | null]>([null, null, null]);
+  const [replaceImages, setReplaceImages] = useState<
+    [File | null, File | null, File | null]
+  >([null, null, null]);
   const [announcementImage, setAnnouncementImage] = useState<File | null>(null);
   const [type, setType] = useState(initialType);
   const [term, setTerm] = useState("");
@@ -78,7 +80,9 @@ const Form = ({
 
   const getUrl = (): string => {
     if (forType === "announcement") {
-      return id ? `${API_URL}/announcements/edit` : `${API_URL}/announcements/add`;
+      return id
+        ? `${API_URL}/announcements/edit`
+        : `${API_URL}/announcements/add`;
     }
     if (forType === "document") {
       return id ? `${API_URL}/documents/edit` : `${API_URL}/documents/add`;
@@ -205,7 +209,11 @@ const Form = ({
                 >
                   Done ({selectedBoxes.length} selected)
                 </button>
-                <button type="button" className="btn btn-secondary" onClick={undoHandler}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={undoHandler}
+                >
                   Undo last box
                 </button>
               </div>
@@ -221,8 +229,10 @@ const Form = ({
         </div>
       )}
 
-      <form className="form-layout form-layout--with-preview" onSubmit={handleSubmit}>
-
+      <form
+        className="form-layout form-layout--with-preview"
+        onSubmit={handleSubmit}
+      >
         {/* ── Left: form fields + upload ── */}
         <div className="form-left-col">
           <div className="form-fields">
@@ -233,7 +243,11 @@ const Form = ({
               <input
                 type="text"
                 id="title"
-                placeholder={forType === "event" ? "Leadership Summit" : "System Maintenance"}
+                placeholder={
+                  forType === "event"
+                    ? "Leadership Summit"
+                    : "System Maintenance"
+                }
                 name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -242,9 +256,15 @@ const Form = ({
             {forType === "announcement" && (
               <div className="form-group">
                 <label htmlFor="category">Category</label>
-                <select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
+                <select
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
                   {ANNOUNCEMENT_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -268,12 +288,18 @@ const Form = ({
                   <option value="activity-proposal">Activity Proposal</option>
                   <option value="resolution">Resolution</option>
                   <option value="project-proposal">Project Proposal</option>
-                  <option value="accomplishment-report">Accomplishment Report</option>
-                  <option value="financial-statement">Financial Statement</option>
+                  <option value="accomplishment-report">
+                    Accomplishment Report
+                  </option>
+                  <option value="financial-statement">
+                    Financial Statement
+                  </option>
                   <option value="sponsorship-letter">Sponsorship Letter</option>
                   <option value="excuse-letter">Excuse Letter</option>
                   <option value="office-memorandum">Office Memorandum</option>
-                  <option value="minutes-of-the-meeting">Minutes of the Meeting</option>
+                  <option value="minutes-of-the-meeting">
+                    Minutes of the Meeting
+                  </option>
                 </select>
               </div>
             )}
@@ -345,7 +371,10 @@ const Form = ({
                       <button
                         type="button"
                         className="btn btn-edit-selections"
-                        onClick={(e) => { e.stopPropagation(); setShowPdfSelector(true); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowPdfSelector(true);
+                        }}
                       >
                         Edit selections
                       </button>
@@ -358,24 +387,55 @@ const Form = ({
             </div>
 
             {forType === "event" && id ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "0.5rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.75rem",
+                  marginTop: "0.5rem",
+                }}
+              >
                 {([0, 1, 2] as const).map((i) => (
-                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                    <label style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.25rem",
+                    }}
+                  >
+                    <label
+                      style={{
+                        fontSize: "0.85rem",
+                        color: "var(--color-text-muted)",
+                      }}
+                    >
                       Replace Image {i + 1} (optional)
                     </label>
                     {initialImages[i] && !replaceImages[i] && (
                       <img
                         src={initialImages[i]}
                         alt={`Current image ${i + 1}`}
-                        style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 4, border: "1px solid var(--color-border)" }}
+                        style={{
+                          width: 72,
+                          height: 72,
+                          objectFit: "cover",
+                          borderRadius: 4,
+                          border: "1px solid var(--color-border)",
+                        }}
                       />
                     )}
                     {replaceImages[i] && (
                       <img
                         src={URL.createObjectURL(replaceImages[i]!)}
                         alt={`New image ${i + 1}`}
-                        style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 4, border: "2px solid var(--color-primary)" }}
+                        style={{
+                          width: 72,
+                          height: 72,
+                          objectFit: "cover",
+                          borderRadius: 4,
+                          border: "2px solid var(--color-primary)",
+                        }}
                       />
                     )}
                     <input
@@ -386,12 +446,17 @@ const Form = ({
                       onChange={(e) => {
                         const file = e.target.files?.[0] ?? null;
                         setReplaceImages((prev) => {
-                          const next = [...prev] as [File | null, File | null, File | null];
+                          const next = [...prev] as [
+                            File | null,
+                            File | null,
+                            File | null,
+                          ];
                           next[i] = file;
                           return next;
                         });
                         if (i === 0 && file) {
-                          if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+                          if (imagePreviewUrl)
+                            URL.revokeObjectURL(imagePreviewUrl);
                           setImagePreviewUrl(URL.createObjectURL(file));
                         }
                       }}
@@ -414,7 +479,9 @@ const Form = ({
                 type="file"
                 ref={fileInputRef}
                 title="Select a file to upload"
-                accept={forType === "announcement" ? "image/*" : "application/pdf"}
+                accept={
+                  forType === "announcement" ? "image/*" : "application/pdf"
+                }
                 onChange={handleFileChange}
                 className="file-input-hidden"
               />
@@ -440,7 +507,11 @@ const Form = ({
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn btn-cancel" onClick={() => setOpen(false)}>
+          <button
+            type="button"
+            className="btn btn-cancel"
+            onClick={() => setOpen(false)}
+          >
             Cancel
           </button>
           <button type="submit" className="btn btn-submit">

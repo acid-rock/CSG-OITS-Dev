@@ -8,17 +8,17 @@ These components are the building blocks of the admin panel UI. They are not use
 
 ## Contents
 
-| Subdirectory | Purpose |
-|---|---|
-| `sidebar/` | Admin sidebar with navigation buttons (from `dashboard-buttonConfig.tsx`), admin user info, and logout button |
-| `form/` | Universal `Form.tsx` component for Announcements, Documents, Events — controlled by `forType` prop |
-| `modals/` | Shared modal components: `DeleteModal`, `ConfimationModal`, `SessionExpiredModal`, `ChangelogModal`, `PauseAccessModal` |
-| `action-bar/` | `Actionbar.tsx` — floating bar shown when rows are selected, with bulk Archive and Delete buttons |
-| `filter/` | Filter dropdown and sort components for admin table toolbars |
-| `avatar/` | Admin avatar/initials fallback component |
-| `charts/` | Dashboard chart components using Chart.js (bar chart, line chart, pie chart) |
-| `content-preview/` | Content preview helpers used in table rows |
-| `settings-form/` | `PasswordForm` and other settings-specific form components |
+| Subdirectory               | Purpose                                                                                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sidebar/`                 | Admin sidebar with navigation buttons (from `dashboard-buttonConfig.tsx`), admin user info, and logout button                                                           |
+| `form/`                    | Universal `Form.tsx` component for Announcements, Documents, Events — controlled by `forType` prop                                                                      |
+| `modals/`                  | Shared modal components: `DeleteModal`, `ConfimationModal`, `SessionExpiredModal`, `ChangelogModal`, `PauseAccessModal`                                                 |
+| `action-bar/`              | `Actionbar.tsx` — floating bar shown when rows are selected, with bulk Archive and Delete buttons                                                                       |
+| `filter/`                  | Filter dropdown and sort components for admin table toolbars                                                                                                            |
+| `avatar/`                  | Admin avatar/initials fallback component                                                                                                                                |
+| `charts/`                  | Dashboard chart components using Chart.js (bar chart, line chart, pie chart)                                                                                            |
+| `content-preview/`         | Content preview helpers used in table rows                                                                                                                              |
+| `settings-form/`           | `PasswordForm` and other settings-specific form components                                                                                                              |
 | `pdf-selector-components/` | PDF redaction UI — `pdf-selector.tsx` lets admins draw redaction boxes over PDF pages before upload. Also contains `main.py` (the Python redaction microservice source) |
 
 ## Key components

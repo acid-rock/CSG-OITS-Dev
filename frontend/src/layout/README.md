@@ -8,15 +8,15 @@ These components render the individual sections of the homepage (`/`). Each sect
 
 ## Contents
 
-| Subdirectory | Component | Section |
-|---|---|---|
-| `main-section/` | `Main.tsx` | Hero section with live stats (officer count, document count, etc.) |
-| `announcement-section/` | `Announcement.tsx` | Latest announcements strip — shows the pinned announcement and recent posts |
-| `events-section/` | `events.tsx` | Latest events with image carousel and pagination |
-| `officer-layout/` | `Officer.tsx` | Officer preview grid showing active officers |
-| `about-section/` | `About.tsx` | Static about CSG section |
-| `document-section/` | `BulletinDocuments.tsx` | Document section preview on homepage |
-| `organizations-section/` | — | Student organizations preview |
+| Subdirectory             | Component               | Section                                                                     |
+| ------------------------ | ----------------------- | --------------------------------------------------------------------------- |
+| `main-section/`          | `Main.tsx`              | Hero section with live stats (officer count, document count, etc.)          |
+| `announcement-section/`  | `Announcement.tsx`      | Latest announcements strip — shows the pinned announcement and recent posts |
+| `events-section/`        | `events.tsx`            | Latest events with image carousel and pagination                            |
+| `officer-layout/`        | `Officer.tsx`           | Officer preview grid showing active officers                                |
+| `about-section/`         | `About.tsx`             | Static about CSG section                                                    |
+| `document-section/`      | `BulletinDocuments.tsx` | Document section preview on homepage                                        |
+| `organizations-section/` | —                       | Student organizations preview                                               |
 
 ## Data source
 

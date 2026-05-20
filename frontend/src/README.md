@@ -8,28 +8,28 @@ The `src/` directory is organized by role. Page-level routes are in `route/`, ho
 
 ## Directory Map
 
-| Path | Purpose |
-|---|---|
-| `main.tsx` | Router definition — all public and admin routes declared here |
-| `index.css` | Global base styles, Wave 11A design tokens, utility classes, Google Fonts import |
-| `styles/tokens.css` | Design system CSS custom properties (legacy + Wave 11A tokens) |
-| `root-layout/` | `Root-layout.tsx` — parallel data fetch on mount, outlet context provider, wraps all public routes |
-| `route/` | Page-level route components (one subdirectory per route) |
-| `layout/` | Homepage section components (assembled in `route/homepage/App.tsx`) |
-| `components/` | Shared public UI components (Navigation, Footer, Modal, SearchFilterBar, etc.) |
-| `config/` | Axios fetch functions and the shared axios instance |
-| `hooks/` | Custom React hooks |
-| `admin/` | Entire admin panel — `AdminPage.tsx`, `ProtectedRoute.tsx`, panels, sidebar, forms, modals |
-| `bulletin-layouts/` | Bulletin/announcement layout components used by the public pages |
-| `assets/` | Static image assets |
+| Path                | Purpose                                                                                            |
+| ------------------- | -------------------------------------------------------------------------------------------------- |
+| `main.tsx`          | Router definition — all public and admin routes declared here                                      |
+| `index.css`         | Global base styles, Wave 11A design tokens, utility classes, Google Fonts import                   |
+| `styles/tokens.css` | Design system CSS custom properties (legacy + Wave 11A tokens)                                     |
+| `root-layout/`      | `Root-layout.tsx` — parallel data fetch on mount, outlet context provider, wraps all public routes |
+| `route/`            | Page-level route components (one subdirectory per route)                                           |
+| `layout/`           | Homepage section components (assembled in `route/homepage/App.tsx`)                                |
+| `components/`       | Shared public UI components (Navigation, Footer, Modal, SearchFilterBar, etc.)                     |
+| `config/`           | Axios fetch functions and the shared axios instance                                                |
+| `hooks/`            | Custom React hooks                                                                                 |
+| `admin/`            | Entire admin panel — `AdminPage.tsx`, `ProtectedRoute.tsx`, panels, sidebar, forms, modals         |
+| `bulletin-layouts/` | Bulletin/announcement layout components used by the public pages                                   |
+| `assets/`           | Static image assets                                                                                |
 
 ## Key files
 
-| File | Purpose |
-|---|---|
-| `main.tsx` | `createBrowserRouter` definition — source of truth for all URL paths |
-| `index.css` | All utility classes (`.btn-*`, `.card`, `.tag-*`, `.section-*`, etc.) + Wave 11A tokens |
-| `styles/tokens.css` | All CSS custom property tokens — import this via `index.css` |
+| File                | Purpose                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| `main.tsx`          | `createBrowserRouter` definition — source of truth for all URL paths                    |
+| `index.css`         | All utility classes (`.btn-*`, `.card`, `.tag-*`, `.section-*`, etc.) + Wave 11A tokens |
+| `styles/tokens.css` | All CSS custom property tokens — import this via `index.css`                            |
 
 ## Conventions
 

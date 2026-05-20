@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -10,7 +10,7 @@ export interface Organization {
   logo_url: string | null;
   facebook_link: string | null;
   created_at: string;
-  org_type: 'academic' | 'non-academic' | 'spu' | null;
+  org_type: "academic" | "non-academic" | "spu" | null;
 }
 
 export async function fetchOrganizations(): Promise<Organization[]> {

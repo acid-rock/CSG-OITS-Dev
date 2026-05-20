@@ -20,17 +20,25 @@ export default function SearchFilterBar({
   searchPlaceholder = "Search...",
   showTermFilter = true,
 }: SearchFilterBarProps) {
-  const hasTerm = showTermFilter && (termOptions.length > 0 || termValue !== "");
+  const hasTerm =
+    showTermFilter && (termOptions.length > 0 || termValue !== "");
 
   return (
     <div className="sfb-row">
       {/* Search input */}
       <div className="sfb-search-wrap">
         <span className="sfb-search-icon" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
           </svg>
         </span>
         <input
@@ -43,7 +51,7 @@ export default function SearchFilterBar({
       </div>
 
       {/* Term dropdown — only shown when there are options or an active value */}
-      {(showTermFilter) && (
+      {showTermFilter && (
         <select
           className="sfb-term"
           value={termValue}
@@ -51,7 +59,9 @@ export default function SearchFilterBar({
         >
           <option value="">All Terms</option>
           {termOptions.map((t) => (
-            <option key={t} value={t}>{t}</option>
+            <option key={t} value={t}>
+              {t}
+            </option>
           ))}
         </select>
       )}

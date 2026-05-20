@@ -1,11 +1,17 @@
-import './deleteModal.css';
-import axios from 'axios';
-import { useLockBodyScroll } from '../../../../hooks/useLockBodyScroll';
+import "./deleteModal.css";
+import axios from "axios";
+import { useLockBodyScroll } from "../../../../hooks/useLockBodyScroll";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
 // TASK 2: added 'event' source; settings endpoint placeholder for Wave 3
-type DeleteSource = 'announcement' | 'document' | 'event' | 'settings' | 'officer' | 'committee';
+type DeleteSource =
+  | "announcement"
+  | "document"
+  | "event"
+  | "settings"
+  | "officer"
+  | "committee";
 
 interface DeleteModalProps {
   isOpen: boolean;
@@ -35,32 +41,32 @@ const sourceConfig: Record<
   announcement: {
     endpoint: `${API_URL}/announcements/delete`,
     buildBody: (id) => [{ id }],
-    label: 'announcement',
+    label: "announcement",
   },
   document: {
     endpoint: `${API_URL}/documents/delete`,
     buildBody: (id, name) => [{ id, name: name ?? id }],
-    label: 'document',
+    label: "document",
   },
   event: {
     endpoint: `${API_URL}/events/delete`,
     buildBody: (id) => ({ id }),
-    label: 'event',
+    label: "event",
   },
   settings: {
     endpoint: `${API_URL}/user/whitelist`,
     buildBody: (id) => ({ id }),
-    label: 'user from whitelist',
+    label: "user from whitelist",
   },
   officer: {
     endpoint: `${API_URL}/officers/delete`,
     buildBody: (id) => [id],
-    label: 'officer',
+    label: "officer",
   },
   committee: {
     endpoint: `${API_URL}/committees/delete`,
     buildBody: (id) => ({ id: parseInt(id) }),
-    label: 'committee',
+    label: "committee",
   },
 };
 
@@ -71,7 +77,7 @@ const DeleteModal = ({
   source,
   id,
   name,
-  title = 'Delete',
+  title = "Delete",
   message = "This action can't be undone. Please confirm if you want to proceed.",
 }: DeleteModalProps) => {
   useLockBodyScroll(isOpen);
@@ -97,51 +103,51 @@ const DeleteModal = ({
   const config = sourceConfig[source];
 
   return (
-    <div className='admin-delete-overlay' onClick={onClose}>
+    <div className="admin-delete-overlay" onClick={onClose}>
       <div
-        className='admin-delete-container'
+        className="admin-delete-container"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className='admin-delete-content'>
-          <div className='admin-delete-icon'>
-            <svg width='60' height='60' viewBox='0 0 60 60' fill='none'>
+        <div className="admin-delete-content">
+          <div className="admin-delete-icon">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
               <path
-                d='M30 5L5 50H55L30 5Z'
-                fill='#FF9F66'
-                stroke='#FF9F66'
-                strokeWidth='2'
+                d="M30 5L5 50H55L30 5Z"
+                fill="#FF9F66"
+                stroke="#FF9F66"
+                strokeWidth="2"
               />
               <path
-                d='M30 20V32M30 38V40'
-                stroke='white'
-                strokeWidth='3'
-                strokeLinecap='round'
+                d="M30 20V32M30 38V40"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
               />
             </svg>
           </div>
 
-          <h2 className='admin-delete-title'>{title}</h2>
+          <h2 className="admin-delete-title">{title}</h2>
 
-          <p className='admin-delete-message'>
+          <p className="admin-delete-message">
             {message}
             {id && (
-              <span className='admin-delete-target'>
-                {' '}
+              <span className="admin-delete-target">
+                {" "}
                 You are deleting <strong>{config.label}</strong>: <em>{id}</em>
               </span>
             )}
           </p>
 
-          <div className='admin-delete-actions'>
+          <div className="admin-delete-actions">
             <button
-              className='admin-delete-btn admin-delete-btn--confirm'
+              className="admin-delete-btn admin-delete-btn--confirm"
               onClick={handleConfirm}
               disabled={!id}
             >
               Delete
             </button>
             <button
-              className='admin-delete-btn admin-delete-btn--cancel'
+              className="admin-delete-btn admin-delete-btn--cancel"
               onClick={onClose}
             >
               Cancel

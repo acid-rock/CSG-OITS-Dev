@@ -1,28 +1,28 @@
-import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import type { OutletContext } from '../../root-layout/Root-layout';
-import type { Organization } from '../../config/organizationsConfig';
-import OrganizationCard from '../../components/organization-card/OrganizationCard';
-import OrganizationModal from '../../components/organization-card/OrganizationModal';
-import './OrganizationsSection.css';
+import { useState } from "react";
+import { useOutletContext } from "react-router-dom";
+import type { OutletContext } from "../../root-layout/Root-layout";
+import type { Organization } from "../../config/organizationsConfig";
+import OrganizationCard from "../../components/organization-card/OrganizationCard";
+import OrganizationModal from "../../components/organization-card/OrganizationModal";
+import "./OrganizationsSection.css";
 
-const ORG_GROUPS: { key: Organization['org_type']; label: string }[] = [
-  { key: 'academic',     label: 'Academic Organizations'      },
-  { key: 'non-academic', label: 'Non-Academic Organizations'  },
-  { key: 'spu',          label: 'Student Publication Unit'    },
+const ORG_GROUPS: { key: Organization["org_type"]; label: string }[] = [
+  { key: "academic", label: "Academic Organizations" },
+  { key: "non-academic", label: "Non-Academic Organizations" },
+  { key: "spu", label: "Student Publication Unit" },
 ];
 
 export default function OrganizationsSection() {
   const { organizations } = useOutletContext<OutletContext>();
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
-  const grouped = ORG_GROUPS.map(group => ({
+  const grouped = ORG_GROUPS.map((group) => ({
     ...group,
-    items: organizations.filter(o => o.org_type === group.key),
-  })).filter(group => group.items.length > 0);
+    items: organizations.filter((o) => o.org_type === group.key),
+  })).filter((group) => group.items.length > 0);
 
   const ungrouped = organizations.filter(
-    o => !ORG_GROUPS.some(g => g.key === o.org_type),
+    (o) => !ORG_GROUPS.some((g) => g.key === o.org_type),
   );
 
   return (
@@ -31,8 +31,8 @@ export default function OrganizationsSection() {
         <p className="section-label orgs-kicker">Student organizations</p>
         <h2 className="orgs-heading">Recognized Student Organizations</h2>
         <p className="orgs-sub">
-          Student organizations recognized by the Central Student Government
-          of Cavite State University – Imus Campus.
+          Student organizations recognized by the Central Student Government of
+          Cavite State University – Imus Campus.
         </p>
 
         {organizations.length === 0 ? (
@@ -41,11 +41,11 @@ export default function OrganizationsSection() {
           </div>
         ) : (
           <div className="orgs-groups">
-            {grouped.map(group => (
+            {grouped.map((group) => (
               <div key={group.key} className="orgs-group">
                 <h3 className="orgs-group-heading">{group.label}</h3>
                 <div className="orgs-grid">
-                  {group.items.map(org => (
+                  {group.items.map((org) => (
                     <OrganizationCard
                       key={org.id}
                       organization={org}
@@ -60,7 +60,7 @@ export default function OrganizationsSection() {
               <div className="orgs-group">
                 <h3 className="orgs-group-heading">Other Organizations</h3>
                 <div className="orgs-grid">
-                  {ungrouped.map(org => (
+                  {ungrouped.map((org) => (
                     <OrganizationCard
                       key={org.id}
                       organization={org}

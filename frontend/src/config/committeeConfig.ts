@@ -6,4 +6,3 @@ export default async function fetchCommittees() {
 
   return data;
 }
-

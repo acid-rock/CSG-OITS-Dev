@@ -54,21 +54,36 @@ export default function OfficerCard({
       <div className="officer-card-image">
         {!image ? (
           /* No avatar URL at all → initials circle */
-          <div className="officer-initials" aria-label={id}>{initials}</div>
+          <div className="officer-initials" aria-label={id}>
+            {initials}
+          </div>
         ) : imgError ? (
           /* Valid URL that failed to load → CSG logo fallback (locked behaviour) */
           <img
             src="/CSG_logo.svg"
             alt={title}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            onError={(e) => { e.currentTarget.src = "/CSG_logo.svg"; }}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+            }}
+            onError={(e) => {
+              e.currentTarget.src = "/CSG_logo.svg";
+            }}
           />
         ) : (
           /* Valid URL → actual photo; onError triggers CSG logo above */
           <img
             src={image}
             alt={title}
-            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "top center",
+              display: "block",
+            }}
             onError={() => setImgError(true)}
           />
         )}
@@ -77,7 +92,14 @@ export default function OfficerCard({
         <h3>{id}</h3>
         {title && <h3 className="officer-card-title">{title}</h3>}
         {term && (
-          <p style={{ fontSize: "0.85rem", color: "inherit", margin: "0.25rem 0 0", textAlign: "center" }}>
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "inherit",
+              margin: "0.25rem 0 0",
+              textAlign: "center",
+            }}
+          >
             {term}
           </p>
         )}

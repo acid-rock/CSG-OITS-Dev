@@ -1,4 +1,4 @@
-import './button.css';
+import "./button.css";
 
 type buttonProps = {
   variant: string;
@@ -20,7 +20,7 @@ export default function Button({
     <button
       id={id}
       onClick={onClick}
-      type='button'
+      type="button"
       className={`button ${variant}`}
       style={style}
       disabled={disabled}

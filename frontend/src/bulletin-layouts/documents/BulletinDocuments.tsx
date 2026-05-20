@@ -13,7 +13,7 @@ import { useOutletContext } from "react-router-dom";
 function getDocTagClass(doc: Document): string {
   const cat = (doc.category || "").toLowerCase();
   if (cat.includes("event") || cat.includes("bulletin")) return "tag-event";
-  if (cat.includes("memo")  || cat.includes("update"))   return "tag-update";
+  if (cat.includes("memo") || cat.includes("update")) return "tag-update";
   return "tag-notice";
 }
 
@@ -24,13 +24,17 @@ export default function BulletinDocument() {
   const { documents } = useOutletContext<OutletContext>();
 
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedTerm,     setSelectedTerm]     = useState("all");
-  const [searchQuery,      setSearchQuery]      = useState("");
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [isModalOpen,      setIsModalOpen]      = useState(false);
+  const [selectedTerm, setSelectedTerm] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null,
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   /* Derived category list — locked logic */
-  const uniqueCategories = Array.from(new Set(documents.map((doc) => doc.category)));
+  const uniqueCategories = Array.from(
+    new Set(documents.map((doc) => doc.category)),
+  );
   const categories = [
     { id: "all", label: "All Documents" },
     ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
@@ -68,7 +72,6 @@ export default function BulletinDocument() {
     setIsModalOpen(true);
   };
 
-
   /* ── Category count helper (new — no binding change) ── */
   const catCount = (catId: string) =>
     catId === "all"
@@ -77,18 +80,17 @@ export default function BulletinDocument() {
 
   return (
     <section id="documents" className="bd-page">
-
       {/* ════════════════════════════════════════
           PAGE HEADER (centered, white bg)
           ════════════════════════════════════════ */}
       <header className="bd-header">
         <span className="section-label bd-kicker">Public Archive</span>
         <h1 className="bd-heading">
-          <em className="italic-accent">Documents</em>
-          {" "}&amp; filings
+          <em className="italic-accent">Documents</em> &amp; filings
         </h1>
         <p className="bd-subheading">
-          Resolutions, memoranda, and reports filed by the CSG and its committees.
+          Resolutions, memoranda, and reports filed by the CSG and its
+          committees.
         </p>
       </header>
 
@@ -96,10 +98,8 @@ export default function BulletinDocument() {
           TWO-COLUMN LAYOUT
           ════════════════════════════════════════ */}
       <div className="bd-layout">
-
         {/* ── LEFT SIDEBAR ── */}
         <aside className="bd-sidebar">
-
           {/* Search — preserves searchQuery state */}
           <input
             type="text"
@@ -161,7 +161,9 @@ export default function BulletinDocument() {
           {filteredDocuments.length === 0 ? (
             <div className="bd-empty">
               <p className="bd-empty-title">No documents found</p>
-              <p className="bd-empty-sub">Try a different search term or category.</p>
+              <p className="bd-empty-sub">
+                Try a different search term or category.
+              </p>
             </div>
           ) : (
             <div className="bd-grid">
@@ -171,19 +173,21 @@ export default function BulletinDocument() {
                   <div
                     key={doc.id}
                     className="bd-doc-card card"
-                    onClick={() => handleSelect(doc)}   /* locked: handleSelect */
+                    onClick={() => handleSelect(doc)} /* locked: handleSelect */
                   >
-                    <div style={{
-                      width: "100%",
-                      height: "160px",
-                      background: "var(--color-primary-light)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: "var(--radius-xl) var(--radius-xl) 0 0",
-                      position: "relative",
-                      overflow: "hidden",
-                    }}>
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "160px",
+                        background: "var(--color-primary-light)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "var(--radius-xl) var(--radius-xl) 0 0",
+                        position: "relative",
+                        overflow: "hidden",
+                      }}
+                    >
                       <span className={`tag ${tagClass} bd-doc-type-tag`}>
                         {doc.category ?? "Document"}
                       </span>
@@ -191,10 +195,18 @@ export default function BulletinDocument() {
                         <img
                           src={doc.thumbnail}
                           alt={doc.description}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "top",
+                          }}
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
-                            (e.currentTarget.nextElementSibling as HTMLElement | null)?.style?.setProperty("display", "flex");
+                            (
+                              e.currentTarget
+                                .nextElementSibling as HTMLElement | null
+                            )?.style?.setProperty("display", "flex");
                           }}
                         />
                       ) : null}
@@ -202,7 +214,10 @@ export default function BulletinDocument() {
                         src="/CSG_logo.svg"
                         alt="CSG"
                         style={{
-                          width: "72px", height: "72px", objectFit: "contain", opacity: 0.7,
+                          width: "72px",
+                          height: "72px",
+                          objectFit: "contain",
+                          opacity: 0.7,
                           display: doc.thumbnail ? "none" : "block",
                           position: "absolute",
                         }}
@@ -215,7 +230,10 @@ export default function BulletinDocument() {
 
                       {/* Title — locked: file_path / description binding */}
                       <h3 className="bd-doc-title">
-                        {doc.name?.split("/").pop()?.replace(/\.pdf$/i, "") ?? doc.description}
+                        {doc.name
+                          ?.split("/")
+                          .pop()
+                          ?.replace(/\.pdf$/i, "") ?? doc.description}
                       </h3>
 
                       {/* Meta row — locked: created_at / term binding */}
@@ -223,7 +241,6 @@ export default function BulletinDocument() {
                         <span>{doc.date}</span>
                         {doc.term && <span>{doc.term}</span>}
                       </div>
-
                     </div>
                   </div>
                 );
@@ -248,14 +265,21 @@ export default function BulletinDocument() {
               onClick={() => setSelectedDocument(null)}
               className="bd-panel-close"
               aria-label="Close"
-            >✕</button>
+            >
+              ✕
+            </button>
 
             <span className="bd-panel-cat">
               {selectedDocument.category ?? "Document"}
             </span>
 
             <h2 className="bd-panel-title">
-              {selectedDocument.name?.split("/").pop()?.replace(/\.pdf$/i, "") ?? selectedDocument.description ?? "Document"}
+              {selectedDocument.name
+                ?.split("/")
+                .pop()
+                ?.replace(/\.pdf$/i, "") ??
+                selectedDocument.description ??
+                "Document"}
             </h2>
 
             {selectedDocument.description && (
@@ -289,9 +313,9 @@ export default function BulletinDocument() {
       {isModalOpen && selectedDocument && (
         <DocumentModal
           selected={{
-            title:   selectedDocument.name ?? "",
-            date:    selectedDocument.date ?? "",
-            memoSrc: selectedDocument.url  ?? "",
+            title: selectedDocument.name ?? "",
+            date: selectedDocument.date ?? "",
+            memoSrc: selectedDocument.url ?? "",
           }}
           onClose={() => setIsModalOpen(false)}
         />

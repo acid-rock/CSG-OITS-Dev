@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useRef, useState, useEffect } from "react";
+import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -33,14 +33,18 @@ const OfficerForm = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [committees, setCommittees] = useState<Committee[]>([]);
 
-  const [fullName, setFullName] = useState(initialData.full_name ?? '');
-  const [position, setPosition] = useState(initialData.position ?? '');
-  const [type, setType] = useState(initialData.type ?? 'executive');
-  const [socials, setSocials] = useState(initialData.socials ?? '');
-  const [yearServing, setYearServing] = useState(initialData.year_serving ?? '');
-  const [studentNumber, setStudentNumber] = useState(initialData.student_number ?? '');
+  const [fullName, setFullName] = useState(initialData.full_name ?? "");
+  const [position, setPosition] = useState(initialData.position ?? "");
+  const [type, setType] = useState(initialData.type ?? "executive");
+  const [socials, setSocials] = useState(initialData.socials ?? "");
+  const [yearServing, setYearServing] = useState(
+    initialData.year_serving ?? "",
+  );
+  const [studentNumber, setStudentNumber] = useState(
+    initialData.student_number ?? "",
+  );
   const [committee, setCommittee] = useState<string>(
-    initialData.committee != null ? String(initialData.committee) : '',
+    initialData.committee != null ? String(initialData.committee) : "",
   );
   const [isCommitteeOfficial, setIsCommitteeOfficial] = useState(
     initialData.is_committee_official ?? false,
@@ -61,7 +65,9 @@ const OfficerForm = ({
     if (!initialData.year_serving) {
       axios
         .get(`${API_URL}/settings/term`, { withCredentials: true })
-        .then(({ data }) => { if (data?.value) setYearServing(data.value); })
+        .then(({ data }) => {
+          if (data?.value) setYearServing(data.value);
+        })
         .catch(() => {});
     }
   }, []);
@@ -81,16 +87,16 @@ const OfficerForm = ({
     setError(null);
 
     const formData = new FormData();
-    formData.append('full_name', fullName);
-    formData.append('position', position);
-    formData.append('type', type);
-    formData.append('socials', socials);
-    formData.append('year_serving', yearServing);
-    formData.append('student_number', studentNumber);
-    formData.append('committee', committee);
-    formData.append('is_committee_official', String(isCommitteeOfficial));
-    if (id) formData.append('id', id);
-    if (avatarFile) formData.append('avatar', avatarFile);
+    formData.append("full_name", fullName);
+    formData.append("position", position);
+    formData.append("type", type);
+    formData.append("socials", socials);
+    formData.append("year_serving", yearServing);
+    formData.append("student_number", studentNumber);
+    formData.append("committee", committee);
+    formData.append("is_committee_official", String(isCommitteeOfficial));
+    if (id) formData.append("id", id);
+    if (avatarFile) formData.append("avatar", avatarFile);
 
     try {
       const endpoint = id
@@ -100,74 +106,77 @@ const OfficerForm = ({
       onSuccess?.();
       setOpen(false);
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-        ?? (err instanceof Error ? err.message : 'Failed to save officer.');
+      const status = (err as { response?: { status?: number } })?.response
+        ?.status;
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ??
+        (err instanceof Error ? err.message : "Failed to save officer.");
       if (status === 409) {
         setError(msg);
       } else {
-        setError('Failed to add officer. Please try again.');
+        setError("Failed to add officer. Please try again.");
       }
     }
   };
 
   return (
-    <div className='form-container'>
-      <div className='form-header'>
-        <h2>{id ? 'Edit Officer' : 'Add Officer'}</h2>
+    <div className="form-container">
+      <div className="form-header">
+        <h2>{id ? "Edit Officer" : "Add Officer"}</h2>
       </div>
 
-      {error && <p style={{ color: 'red', padding: '0 1rem' }}>{error}</p>}
+      {error && <p style={{ color: "red", padding: "0 1rem" }}>{error}</p>}
 
-      <form className='form-layout' onSubmit={handleSubmit}>
-        <div className='form-fields'>
-          <div className='form-group'>
-            <label htmlFor='full_name'>Full Name *</label>
+      <form className="form-layout" onSubmit={handleSubmit}>
+        <div className="form-fields">
+          <div className="form-group">
+            <label htmlFor="full_name">Full Name *</label>
             <input
-              type='text'
-              id='full_name'
+              type="text"
+              id="full_name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder='Juan Dela Cruz'
+              placeholder="Juan Dela Cruz"
               required
             />
           </div>
 
-          <div className='form-group'>
-            <label htmlFor='position'>Position *</label>
+          <div className="form-group">
+            <label htmlFor="position">Position *</label>
             <input
-              type='text'
-              id='position'
+              type="text"
+              id="position"
               value={position}
               onChange={(e) => setPosition(e.target.value)}
-              placeholder='President'
+              placeholder="President"
               required
             />
           </div>
 
-          <div className='form-group'>
-            <label htmlFor='type'>Type *</label>
+          <div className="form-group">
+            <label htmlFor="type">Type *</label>
             <select
-              id='type'
+              id="type"
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
-              <option value='executive'>Executive</option>
-              <option value='board'>Board Member</option>
-              <option value='adviser'>Adviser</option>
-              <option value='member'>Member</option>
-              <option value='former'>Former</option>
+              <option value="executive">Executive</option>
+              <option value="board">Board Member</option>
+              <option value="adviser">Adviser</option>
+              <option value="member">Member</option>
+              <option value="former">Former</option>
             </select>
           </div>
 
-          <div className='form-group'>
-            <label htmlFor='committee'>Committee</label>
+          <div className="form-group">
+            <label htmlFor="committee">Committee</label>
             <select
-              id='committee'
+              id="committee"
               value={committee}
               onChange={(e) => setCommittee(e.target.value)}
             >
-              <option value=''>— None —</option>
+              <option value="">— None —</option>
               {committees.map((c) => (
                 <option key={c.id} value={String(c.id)}>
                   {c.name}
@@ -176,72 +185,85 @@ const OfficerForm = ({
             </select>
           </div>
 
-          <div className='form-group'>
-            <label htmlFor='socials'>Facebook URL</label>
+          <div className="form-group">
+            <label htmlFor="socials">Facebook URL</label>
             <input
-              type='url'
-              id='socials'
+              type="url"
+              id="socials"
               value={socials}
               onChange={(e) => setSocials(e.target.value)}
-              placeholder='https://facebook.com/...'
+              placeholder="https://facebook.com/..."
             />
           </div>
 
-          <div className='form-group'>
-            <label htmlFor='year_serving'>
-              Term (S.Y.){type === 'former' ? ' *' : ''}
+          <div className="form-group">
+            <label htmlFor="year_serving">
+              Term (S.Y.){type === "former" ? " *" : ""}
             </label>
             <input
-              type='text'
-              id='year_serving'
+              type="text"
+              id="year_serving"
               value={yearServing}
               onChange={(e) => setYearServing(e.target.value)}
-              placeholder='e.g. 2025-2026'
-              required={type === 'former'}
+              placeholder="e.g. 2025-2026"
+              required={type === "former"}
             />
-            {type === 'former' && (
-              <span style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.2rem' }}>
+            {type === "former" && (
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  color: "#6b7280",
+                  marginTop: "0.2rem",
+                }}
+              >
                 Required for former officers — used to group in archived view.
               </span>
             )}
           </div>
 
-          <div className='form-group'>
-            <label htmlFor='student_number'>Student Number</label>
+          <div className="form-group">
+            <label htmlFor="student_number">Student Number</label>
             <input
-              type='text'
-              id='student_number'
+              type="text"
+              id="student_number"
               value={studentNumber}
               onChange={(e) => setStudentNumber(e.target.value)}
-              placeholder='2021-XXXXX'
+              placeholder="2021-XXXXX"
             />
           </div>
 
-          <div className='form-group' style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+          <div
+            className="form-group"
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
             <input
-              type='checkbox'
-              id='is_committee_official'
+              type="checkbox"
+              id="is_committee_official"
               checked={isCommitteeOfficial}
               onChange={(e) => setIsCommitteeOfficial(e.target.checked)}
             />
-            <label htmlFor='is_committee_official' style={{ marginBottom: 0 }}>
+            <label htmlFor="is_committee_official" style={{ marginBottom: 0 }}>
               Committee Official (Chair/Vice)
             </label>
           </div>
         </div>
 
-        <div className='image-upload'>
+        <div className="image-upload">
           <label>Avatar (optional)</label>
           <div
-            className={`image-preview${avatarPreview ? ' has-image' : ''}`}
+            className={`image-preview${avatarPreview ? " has-image" : ""}`}
             onClick={() => fileInputRef.current?.click()}
           >
             {avatarPreview ? (
-              <img id='previewImage' alt='Avatar preview' src={avatarPreview} />
+              <img id="previewImage" alt="Avatar preview" src={avatarPreview} />
             ) : (
-              <div className='image-placeholder'>
-                <div className='upload-icon'>📁</div>
-                <div className='upload-text'>
+              <div className="image-placeholder">
+                <div className="upload-icon">📁</div>
+                <div className="upload-text">
                   <strong>Click to upload</strong>
                   <br />
                   PNG, JPG
@@ -250,20 +272,24 @@ const OfficerForm = ({
             )}
           </div>
           <input
-            type='file'
+            type="file"
             ref={fileInputRef}
-            accept='image/*'
+            accept="image/*"
             onChange={handleAvatarChange}
-            className='file-input-hidden'
+            className="file-input-hidden"
           />
         </div>
 
-        <div className='form-actions'>
-          <button type='button' className='btn btn-cancel' onClick={() => setOpen(false)}>
+        <div className="form-actions">
+          <button
+            type="button"
+            className="btn btn-cancel"
+            onClick={() => setOpen(false)}
+          >
             Cancel
           </button>
-          <button type='submit' className='btn btn-submit'>
-            {id ? 'Update' : 'Add'}
+          <button type="submit" className="btn btn-submit">
+            {id ? "Update" : "Add"}
           </button>
         </div>
       </form>

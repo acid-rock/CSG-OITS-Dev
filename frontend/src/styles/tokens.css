@@ -1,52 +1,54 @@
 :root {
   /* Colors */
-  --color-primary: #4F6EF7;
-  --color-primary-dark: #3D5CE8;
-  --color-primary-light: #EEF1FE;
-  --color-secondary: #6C63FF;
-  --color-background: #F8F9FF;
-  --color-background-hero: #7B8FD4;
-  --color-background-hero-end: #B8C4E8;
-  --color-surface: #FFFFFF;
-  --color-surface-elevated: #FFFFFF;
-  --color-border: #E8EAF0;
-  --color-border-focus: #4F6EF7;
-  --color-text-primary: #0D1117;
+  --color-primary: #4f6ef7;
+  --color-primary-dark: #3d5ce8;
+  --color-primary-light: #eef1fe;
+  --color-secondary: #6c63ff;
+  --color-background: #f8f9ff;
+  --color-background-hero: #7b8fd4;
+  --color-background-hero-end: #b8c4e8;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-border: #e8eaf0;
+  --color-border-focus: #4f6ef7;
+  --color-text-primary: #0d1117;
   --color-text-secondary: #374151;
-  --color-text-muted: #6B7280;
-  --color-text-on-primary: #FFFFFF;
-  --color-text-on-hero: #0D1117;
-  --color-accent-italic: #4F6EF7;
-  --color-success: #16A34A;
-  --color-danger: #DC2626;
-  --color-warning: #D97706;
-  --color-tag-update-bg: #FFF7ED;
-  --color-tag-update-text: #C2410C;
-  --color-tag-event-bg: #F0FDF4;
-  --color-tag-event-text: #15803D;
-  --color-tag-notice-bg: #EFF6FF;
-  --color-tag-notice-text: #1D4ED8;
-  --color-tag-featured-bg: #EEF1FE;
-  --color-tag-featured-text: #4F6EF7;
-  --color-pinned-bg: #4F6EF7;
-  --color-pinned-text: #FFFFFF;
-  --color-footer-bg: #2D3A6B;
-  --color-footer-text: #FFFFFF;
-  --color-footer-muted: rgba(255,255,255,0.65);
-  --color-blockquote-border: #4F6EF7;
+  --color-text-muted: #6b7280;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-hero: #0d1117;
+  --color-accent-italic: #4f6ef7;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+  --color-warning: #d97706;
+  --color-tag-update-bg: #fff7ed;
+  --color-tag-update-text: #c2410c;
+  --color-tag-event-bg: #f0fdf4;
+  --color-tag-event-text: #15803d;
+  --color-tag-notice-bg: #eff6ff;
+  --color-tag-notice-text: #1d4ed8;
+  --color-tag-featured-bg: #eef1fe;
+  --color-tag-featured-text: #4f6ef7;
+  --color-pinned-bg: #4f6ef7;
+  --color-pinned-text: #ffffff;
+  --color-footer-bg: #2d3a6b;
+  --color-footer-text: #ffffff;
+  --color-footer-muted: rgba(255, 255, 255, 0.65);
+  --color-blockquote-border: #4f6ef7;
   --color-blockquote-text: #374151;
-  --color-stat-value: #0D1117;
-  --color-stat-label: #6B7280;
-  --color-badge-session-bg: rgba(255,255,255,0.18);
-  --color-badge-session-border: rgba(255,255,255,0.35);
-  --color-badge-session-text: #0D1117;
-  --color-pillar-icon-bg: #EEF1FE;
-  --color-pillar-icon-text: #4F6EF7;
+  --color-stat-value: #0d1117;
+  --color-stat-label: #6b7280;
+  --color-badge-session-bg: rgba(255, 255, 255, 0.18);
+  --color-badge-session-border: rgba(255, 255, 255, 0.35);
+  --color-badge-session-text: #0d1117;
+  --color-pillar-icon-bg: #eef1fe;
+  --color-pillar-icon-text: #4f6ef7;
 
   /* Typography */
-  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-family-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-family-italic-accent: Georgia, 'Times New Roman', serif;
+  --font-family-base:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-heading:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-italic-accent: Georgia, "Times New Roman", serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -93,12 +95,12 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
-  --shadow-card: 0 2px 8px rgba(79,110,247,0.08);
-  --shadow-modal: 0 20px 60px rgba(0,0,0,0.15);
-  --shadow-hero-badge: 0 4px 16px rgba(0,0,0,0.12);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 2px 8px rgba(79, 110, 247, 0.08);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15);
+  --shadow-hero-badge: 0 4px 16px rgba(0, 0, 0, 0.12);
 
   /* Transitions */
   --transition-fast: 150ms ease;

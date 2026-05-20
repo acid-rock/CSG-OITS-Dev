@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import Modal from "../../components/modal/Modal";
-import type { Announcement, OutletContext } from "../../root-layout/Root-layout";
+import type {
+  Announcement,
+  OutletContext,
+} from "../../root-layout/Root-layout";
 import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 import "./bulletin.css";
@@ -9,7 +12,7 @@ import "./bulletin.css";
 function getTagClass(type?: string): string {
   if (!type) return "tag-notice";
   const t = type.toLowerCase();
-  if (t.includes("event"))  return "tag-event";
+  if (t.includes("event")) return "tag-event";
   if (t.includes("update")) return "tag-update";
   return "tag-notice";
 }
@@ -17,7 +20,7 @@ function getTagClass(type?: string): string {
 function getTagLabel(type?: string): string {
   if (!type) return "Notice";
   const t = type.toLowerCase();
-  if (t.includes("event"))  return "Event";
+  if (t.includes("event")) return "Event";
   if (t.includes("update")) return "Update";
   return "Notice";
 }
@@ -26,22 +29,35 @@ const Bulletin = () => {
   /* ── Locked data bindings ── */
   const { bulletin } = useOutletContext<OutletContext>();
   const [selected, setSelected] = useState<Announcement | null>(null);
-  const [open, setOpen]         = useState(false);
+  const [open, setOpen] = useState(false);
   useLockBodyScroll(open);
 
   const [query, setQuery] = useState("");
   const [activeTerm, setActiveTerm] = useState<string>("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
-  const CATEGORIES = ["All", "CSG Updates", "Class Advisories", "Examinations", "University Events", "Official CVSU"];
+  const CATEGORIES = [
+    "All",
+    "CSG Updates",
+    "Class Advisories",
+    "Examinations",
+    "University Events",
+    "Official CVSU",
+  ];
 
   // Derive distinct term_year values from bulletin data
-  const termOptions = [...new Set(bulletin.map((a) => (a as any).term_year).filter(Boolean))].sort().reverse() as string[];
+  const termOptions = [
+    ...new Set(bulletin.map((a) => (a as any).term_year).filter(Boolean)),
+  ]
+    .sort()
+    .reverse() as string[];
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short", day: "numeric", year: "numeric",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -54,11 +70,13 @@ const Bulletin = () => {
 
   /* Filter by search + category + term (AND logic) */
   const filtered = bulletin.filter((a) => {
-    const matchesSearch = !query || (
+    const matchesSearch =
+      !query ||
       a.title?.toLowerCase().includes(query.toLowerCase()) ||
-      a.content?.toLowerCase().includes(query.toLowerCase())
-    );
-    const matchesCategory = activeCategory === "All" || (a.category ?? "CSG Updates") === activeCategory;
+      a.content?.toLowerCase().includes(query.toLowerCase());
+    const matchesCategory =
+      activeCategory === "All" ||
+      (a.category ?? "CSG Updates") === activeCategory;
     const matchesTerm = !activeTerm || (a as any).term_year === activeTerm;
     return matchesSearch && matchesCategory && matchesTerm;
   });
@@ -83,7 +101,14 @@ const Bulletin = () => {
 
       {/* Search + term filter bar */}
       <div className="bl-toolbar-wrap">
-        <div style={{ maxWidth: 600, margin: "0 auto", width: "100%", padding: "0 var(--section-padding-x)" }}>
+        <div
+          style={{
+            maxWidth: 600,
+            margin: "0 auto",
+            width: "100%",
+            padding: "0 var(--section-padding-x)",
+          }}
+        >
           <SearchFilterBar
             searchValue={query}
             onSearchChange={setQuery}
@@ -113,7 +138,6 @@ const Bulletin = () => {
 
       {/* MAIN CONTENT */}
       <div className="bl-content">
-
         {/* Pinned hero card */}
         {pinned && (
           <div className="bl-pinned card" onClick={() => handleOpen(pinned)}>
@@ -125,7 +149,8 @@ const Bulletin = () => {
                   alt={pinned.title}
                   className="bl-pinned-cover"
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
                   }}
                 />
               )}
@@ -134,7 +159,9 @@ const Bulletin = () => {
 
             {/* Content panel — Fix 6A: author row removed */}
             <div className="bl-pinned-body">
-              <span className={`tag ${getTagClass((pinned as any).type)} bl-pinned-tag`}>
+              <span
+                className={`tag ${getTagClass((pinned as any).type)} bl-pinned-tag`}
+              >
                 {getTagLabel((pinned as any).type)}
               </span>
               <p className="bl-pinned-meta">
@@ -143,7 +170,10 @@ const Bulletin = () => {
               <h2 className="bl-pinned-title">{pinned.title}</h2>
               <p className="bl-pinned-desc">{pinned.content}</p>
               {/* Fix 6A: "Continue reading" directly here, no author row */}
-              <span className="bl-read-more" style={{ marginTop: "var(--space-4)", display: "block" }}>
+              <span
+                className="bl-read-more"
+                style={{ marginTop: "var(--space-4)", display: "block" }}
+              >
                 Continue reading →
               </span>
             </div>
@@ -158,7 +188,11 @@ const Bulletin = () => {
         {remaining.length > 0 && (
           <div className="bl-grid">
             {remaining.map((ann) => (
-              <div key={ann.id} className="bl-card card" onClick={() => handleOpen(ann)}>
+              <div
+                key={ann.id}
+                className="bl-card card"
+                onClick={() => handleOpen(ann)}
+              >
                 <div className="bl-card-img-wrap">
                   {ann.imgUrl && (
                     <img
@@ -166,16 +200,21 @@ const Bulletin = () => {
                       alt={ann.title}
                       className="bl-card-img"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          "none";
                       }}
                     />
                   )}
-                  <span className={`tag ${getTagClass((ann as any).type)} bl-card-tag`}>
+                  <span
+                    className={`tag ${getTagClass((ann as any).type)} bl-card-tag`}
+                  >
                     {getTagLabel((ann as any).type)}
                   </span>
                 </div>
                 <div className="bl-card-body">
-                  <p className="bl-card-meta">{formatDate(ann.date)}&nbsp;&nbsp;·&nbsp;&nbsp;2 min read</p>
+                  <p className="bl-card-meta">
+                    {formatDate(ann.date)}&nbsp;&nbsp;·&nbsp;&nbsp;2 min read
+                  </p>
                   <h3 className="bl-card-title">{ann.title}</h3>
                   <p className="bl-card-desc">{ann.content}</p>
                   <span className="bl-card-link">Read more →</span>

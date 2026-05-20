@@ -9,71 +9,78 @@ const contributors = [
   {
     name: "Ivan P. Duran",
     role: "Committee Chair — Web Development",
-    description: "Oversees the technical direction and development of the CSG-OITS platform.",
+    description:
+      "Oversees the technical direction and development of the CSG-OITS platform.",
     initials: "ID",
-    github:    "https://github.com/sleepdeprive-gray",
-    facebook:  "https://www.facebook.com/infectious.ivan",
-    email:     "ayban.duran@gmail.com",
+    github: "https://github.com/sleepdeprive-gray",
+    facebook: "https://www.facebook.com/infectious.ivan",
+    email: "ayban.duran@gmail.com",
     instagram: "https://www.instagram.com/not.aybann",
   },
   {
     name: "John Harold R. Magma",
     role: "GAD Representative / Project Coordinator",
-    description: "Coordinates overall project delivery and serves as the primary liaison between the CSG and the development team.",
+    description:
+      "Coordinates overall project delivery and serves as the primary liaison between the CSG and the development team.",
     initials: "JM",
-    github:    "https://github.com/Hexizen",
-    facebook:  "https://www.facebook.com/jhnhrldmgm",
-    email:     "johnharold8888@gmail.com",
+    github: "https://github.com/Hexizen",
+    facebook: "https://www.facebook.com/jhnhrldmgm",
+    email: "johnharold8888@gmail.com",
     instagram: "https://www.instagram.com/j.h.magma",
   },
   {
     name: "Lorenz E. Tuboro",
     role: "Back-End Developer",
-    description: "Designs and maintains the Express API, Supabase integration, and server-side authentication.",
+    description:
+      "Designs and maintains the Express API, Supabase integration, and server-side authentication.",
     initials: "LT",
-    github:    "https://github.com/acid-rock",
-    facebook:  "https://www.facebook.com/herelieszee3/",
-    email:     "lorenztuboro00@gmail.com",
+    github: "https://github.com/acid-rock",
+    facebook: "https://www.facebook.com/herelieszee3/",
+    email: "lorenztuboro00@gmail.com",
     instagram: "https://www.instagram.com/thisiszee3/",
   },
   {
     name: "Ralph Kenneth B. Perez",
     role: "UI/UX Designer",
-    description: "Leads the visual design, layout systems, and user experience of the public and admin interfaces.",
+    description:
+      "Leads the visual design, layout systems, and user experience of the public and admin interfaces.",
     initials: "RP",
-    github:    "https://github.com/rkenbperez",
-    facebook:  "https://www.facebook.com/Ralph.Ken.Perez",
-    email:     "rken.perez@gmail.com",
+    github: "https://github.com/rkenbperez",
+    facebook: "https://www.facebook.com/Ralph.Ken.Perez",
+    email: "rken.perez@gmail.com",
     instagram: "https://www.instagram.com/si_kenp",
   },
   {
     name: "Jerald D. Estrella",
     role: "Front-End Developer",
-    description: "Implements React components and integrates frontend views with backend API endpoints.",
+    description:
+      "Implements React components and integrates frontend views with backend API endpoints.",
     initials: "JE",
-    github:    "https://github.com/JeraldEstrella",
-    facebook:  "https://www.facebook.com/jerald.estrellaii",
-    email:     "jeraldestrella127@gmail.com",
+    github: "https://github.com/JeraldEstrella",
+    facebook: "https://www.facebook.com/jerald.estrellaii",
+    email: "jeraldestrella127@gmail.com",
     instagram: "https://www.instagram.com/jrldstellar",
   },
   {
     name: "Taisei Domingo",
     role: "Front-End Developer",
-    description: "Builds and maintains interactive UI components and responsive layouts across the system.",
+    description:
+      "Builds and maintains interactive UI components and responsive layouts across the system.",
     initials: "TD",
-    github:    "https://github.com/TaiseiD",
-    facebook:  "https://www.facebook.com/iiseiich",
-    email:     "domingo.taisei070606@gmail.com",
+    github: "https://github.com/TaiseiD",
+    facebook: "https://www.facebook.com/iiseiich",
+    email: "domingo.taisei070606@gmail.com",
     instagram: "https://www.instagram.com/iiseichi",
   },
   {
     name: "Gerald D. Alansalon",
     role: "Documentation Officer",
-    description: "Manages technical documentation, system changelogs, and development records for the project.",
+    description:
+      "Manages technical documentation, system changelogs, and development records for the project.",
     initials: "GA",
-    github:    "https://github.com/GeraldTheTeenGR",
-    facebook:  "https://www.facebook.com/GDomingoA",
-    email:     "geraldalansalon@gmail.com",
+    github: "https://github.com/GeraldTheTeenGR",
+    facebook: "https://www.facebook.com/GDomingoA",
+    email: "geraldalansalon@gmail.com",
     instagram: "https://www.instagram.com/iamgerald_12",
   },
 ];
@@ -122,48 +129,98 @@ const ContributorCard = ({
       }}
     >
       {avatarUrl ? (
-        <img src={avatarUrl} alt={c.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <img
+          src={avatarUrl}
+          alt={c.name}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       ) : (
-        <span style={{ fontWeight: 700, fontSize: "1.25rem", color: "#6b7280" }}>{c.initials}</span>
+        <span
+          style={{ fontWeight: 700, fontSize: "1.25rem", color: "#6b7280" }}
+        >
+          {c.initials}
+        </span>
       )}
     </div>
 
-    <p style={{ fontWeight: 600, margin: "0.75rem 0 0.25rem", fontSize: "0.9rem" }}>{c.name}</p>
-    <p style={{ fontSize: "0.8rem", color: "#6b7280", margin: "0 0 0.15rem" }}>{c.role}</p>
-    <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0 0 0.5rem" }}>{termYear ?? "N/A"}</p>
-    <p style={{ fontSize: "0.8rem", color: "#374151", lineHeight: 1.5, margin: "0 0 0.75rem", overflow: "hidden" }}>
+    <p
+      style={{
+        fontWeight: 600,
+        margin: "0.75rem 0 0.25rem",
+        fontSize: "0.9rem",
+      }}
+    >
+      {c.name}
+    </p>
+    <p style={{ fontSize: "0.8rem", color: "#6b7280", margin: "0 0 0.15rem" }}>
+      {c.role}
+    </p>
+    <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0 0 0.5rem" }}>
+      {termYear ?? "N/A"}
+    </p>
+    <p
+      style={{
+        fontSize: "0.8rem",
+        color: "#374151",
+        lineHeight: 1.5,
+        margin: "0 0 0.75rem",
+        overflow: "hidden",
+      }}
+    >
       {c.description}
     </p>
 
     {/* Social links */}
-    <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", marginTop: "auto" }}>
-      <a href={c.github} target="_blank" rel="noopener noreferrer"
+    <div
+      style={{
+        display: "flex",
+        gap: "0.6rem",
+        alignItems: "center",
+        marginTop: "auto",
+      }}
+    >
+      <a
+        href={c.github}
+        target="_blank"
+        rel="noopener noreferrer"
         aria-label={`${c.name} GitHub`}
         style={{ color: "#6b7280", display: "flex", transition: "color 0.15s" }}
-        onMouseEnter={e => (e.currentTarget.style.color = "#1a1a1a")}
-        onMouseLeave={e => (e.currentTarget.style.color = "#6b7280")}>
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#1a1a1a")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
+      >
         <FaGithub size={16} />
       </a>
-      <a href={c.facebook} target="_blank" rel="noopener noreferrer"
+      <a
+        href={c.facebook}
+        target="_blank"
+        rel="noopener noreferrer"
         aria-label={`${c.name} Facebook`}
         style={{ color: "#6b7280", display: "flex", transition: "color 0.15s" }}
-        onMouseEnter={e => (e.currentTarget.style.color = "#1877f2")}
-        onMouseLeave={e => (e.currentTarget.style.color = "#6b7280")}>
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#1877f2")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
+      >
         <FaFacebook size={16} />
       </a>
-      <a href={`https://mail.google.com/mail/?view=cm&to=${c.email}`}
-        target="_blank" rel="noopener noreferrer"
+      <a
+        href={`https://mail.google.com/mail/?view=cm&to=${c.email}`}
+        target="_blank"
+        rel="noopener noreferrer"
         aria-label={`Email ${c.name}`}
         style={{ color: "#6b7280", display: "flex", transition: "color 0.15s" }}
-        onMouseEnter={e => (e.currentTarget.style.color = "#4f6ef7")}
-        onMouseLeave={e => (e.currentTarget.style.color = "#6b7280")}>
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#4f6ef7")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
+      >
         <FaEnvelope size={16} />
       </a>
-      <a href={c.instagram} target="_blank" rel="noopener noreferrer"
+      <a
+        href={c.instagram}
+        target="_blank"
+        rel="noopener noreferrer"
         aria-label={`${c.name} Instagram`}
         style={{ color: "#6b7280", display: "flex", transition: "color 0.15s" }}
-        onMouseEnter={e => (e.currentTarget.style.color = "#e1306c")}
-        onMouseLeave={e => (e.currentTarget.style.color = "#6b7280")}>
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#e1306c")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
+      >
         <FaInstagram size={16} />
       </a>
     </div>
@@ -171,7 +228,9 @@ const ContributorCard = ({
 );
 
 const Contributor = () => {
-  const [officerMap, setOfficerMap] = useState<Record<string, OfficerMatch>>({});
+  const [officerMap, setOfficerMap] = useState<Record<string, OfficerMatch>>(
+    {},
+  );
 
   useEffect(() => {
     axios
@@ -179,7 +238,10 @@ const Contributor = () => {
       .then(({ data }) => {
         const map: Record<string, OfficerMatch> = {};
         for (const o of data) {
-          map[o.full_name] = { avatar: o.avatar ?? null, year_serving: o.year_serving ?? null };
+          map[o.full_name] = {
+            avatar: o.avatar ?? null,
+            year_serving: o.year_serving ?? null,
+          };
         }
         setOfficerMap(map);
       })

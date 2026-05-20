@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
 // Pure filter logic — mirrors what admin announcement/document panels do inline.
 // Tests are independent of component rendering.
@@ -12,9 +12,27 @@ interface AnnouncementItem {
 }
 
 const announcements: AnnouncementItem[] = [
-  { id: '1', title: 'CSG Meeting', content: 'Meeting notes', category: 'CSG Updates', term_year: 'AY 2025-2026' },
-  { id: '2', title: 'Class Suspension', content: 'No classes', category: 'Class Advisories', term_year: 'AY 2025-2026' },
-  { id: '3', title: 'Exam Schedule', content: 'Finals week', category: 'Examinations', term_year: 'AY 2024-2025' },
+  {
+    id: "1",
+    title: "CSG Meeting",
+    content: "Meeting notes",
+    category: "CSG Updates",
+    term_year: "AY 2025-2026",
+  },
+  {
+    id: "2",
+    title: "Class Suspension",
+    content: "No classes",
+    category: "Class Advisories",
+    term_year: "AY 2025-2026",
+  },
+  {
+    id: "3",
+    title: "Exam Schedule",
+    content: "Finals week",
+    category: "Examinations",
+    term_year: "AY 2024-2025",
+  },
 ];
 
 function filterAnnouncements(
@@ -34,48 +52,62 @@ function filterAnnouncements(
   });
 }
 
-describe('announcement client-side filter logic', () => {
-  it('returns all items when no filters are active', () => {
-    expect(filterAnnouncements(announcements, '', '', '')).toHaveLength(3);
+describe("announcement client-side filter logic", () => {
+  it("returns all items when no filters are active", () => {
+    expect(filterAnnouncements(announcements, "", "", "")).toHaveLength(3);
   });
 
-  it('filters by search query against title', () => {
-    const result = filterAnnouncements(announcements, 'Meeting', '', '');
+  it("filters by search query against title", () => {
+    const result = filterAnnouncements(announcements, "Meeting", "", "");
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('1');
+    expect(result[0].id).toBe("1");
   });
 
-  it('filters by search query against content', () => {
-    const result = filterAnnouncements(announcements, 'Finals', '', '');
+  it("filters by search query against content", () => {
+    const result = filterAnnouncements(announcements, "Finals", "", "");
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('3');
+    expect(result[0].id).toBe("3");
   });
 
-  it('search is case-insensitive', () => {
-    expect(filterAnnouncements(announcements, 'MEETING', '', '')).toHaveLength(1);
-    expect(filterAnnouncements(announcements, 'meeting', '', '')).toHaveLength(1);
+  it("search is case-insensitive", () => {
+    expect(filterAnnouncements(announcements, "MEETING", "", "")).toHaveLength(
+      1,
+    );
+    expect(filterAnnouncements(announcements, "meeting", "", "")).toHaveLength(
+      1,
+    );
   });
 
-  it('filters by category', () => {
-    const result = filterAnnouncements(announcements, '', 'Class Advisories', '');
+  it("filters by category", () => {
+    const result = filterAnnouncements(
+      announcements,
+      "",
+      "Class Advisories",
+      "",
+    );
     expect(result).toHaveLength(1);
-    expect(result[0].category).toBe('Class Advisories');
+    expect(result[0].category).toBe("Class Advisories");
   });
 
-  it('filters by term year', () => {
-    const result = filterAnnouncements(announcements, '', '', 'AY 2024-2025');
+  it("filters by term year", () => {
+    const result = filterAnnouncements(announcements, "", "", "AY 2024-2025");
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('3');
+    expect(result[0].id).toBe("3");
   });
 
-  it('applies search AND category AND term as AND logic', () => {
-    const result = filterAnnouncements(announcements, 'Meeting', 'CSG Updates', 'AY 2025-2026');
+  it("applies search AND category AND term as AND logic", () => {
+    const result = filterAnnouncements(
+      announcements,
+      "Meeting",
+      "CSG Updates",
+      "AY 2025-2026",
+    );
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('1');
+    expect(result[0].id).toBe("1");
   });
 
-  it('returns empty array when no items match', () => {
-    const result = filterAnnouncements(announcements, 'nonexistent', '', '');
+  it("returns empty array when no items match", () => {
+    const result = filterAnnouncements(announcements, "nonexistent", "", "");
     expect(result).toHaveLength(0);
   });
 });

@@ -57,7 +57,9 @@
   padding: var(--space-1);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .ppm-close:hover {
@@ -96,7 +98,9 @@
   font-weight: var(--font-weight-medium);
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .ppm-close-btn:hover {

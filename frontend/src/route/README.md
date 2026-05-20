@@ -8,18 +8,18 @@ Each subdirectory contains the top-level component for a single URL path. All pu
 
 ## Route Subdirectories
 
-| Subdirectory | URL path | Description |
-|---|---|---|
-| `homepage/` | `/` | Homepage: hero stats, announcement strip, events, officer preview, about, organizations |
-| `bulletin/` | `/bulletin` | Full announcements page with search, category filter, term filter, pinned hero card |
-| `documents/` | `/documents` | Documents page: PDF viewer, sidebar category filter |
-| `events/` | `/events` | Events gallery with image carousel modal |
-| `about/` | `/about` | About CSG with live stats (officers, documents, committees) |
-| `officers/` | `/officers` | Officer roster with type filter, committee modal, term filter |
-| `borrow/` | `/borrow` | Public equipment borrow form + inventory grid |
-| `contributors/` | `/contributors` | Dev team credits with officer avatar lookup |
-| `organizations/` | `/organizations` | Student organizations grid |
-| `bin/` | used at `/admin?panel=bin` | Bin panel (Deleted + Archived tabs) — used by the admin panel, not a standalone public route |
+| Subdirectory     | URL path                   | Description                                                                                  |
+| ---------------- | -------------------------- | -------------------------------------------------------------------------------------------- |
+| `homepage/`      | `/`                        | Homepage: hero stats, announcement strip, events, officer preview, about, organizations      |
+| `bulletin/`      | `/bulletin`                | Full announcements page with search, category filter, term filter, pinned hero card          |
+| `documents/`     | `/documents`               | Documents page: PDF viewer, sidebar category filter                                          |
+| `events/`        | `/events`                  | Events gallery with image carousel modal                                                     |
+| `about/`         | `/about`                   | About CSG with live stats (officers, documents, committees)                                  |
+| `officers/`      | `/officers`                | Officer roster with type filter, committee modal, term filter                                |
+| `borrow/`        | `/borrow`                  | Public equipment borrow form + inventory grid                                                |
+| `contributors/`  | `/contributors`            | Dev team credits with officer avatar lookup                                                  |
+| `organizations/` | `/organizations`           | Student organizations grid                                                                   |
+| `bin/`           | used at `/admin?panel=bin` | Bin panel (Deleted + Archived tabs) — used by the admin panel, not a standalone public route |
 
 ## Conventions
 

@@ -11,23 +11,23 @@ const NAV_GROUPS = [
     label: "News",
     items: [
       { label: "Announcements", href: "/bulletin" },
-      { label: "Events",        href: "/events"  },
+      { label: "Events", href: "/events" },
     ],
   },
   {
     label: "Resources",
     items: [
-      { label: "Documents",        href: "/documents" },
-      { label: "Borrow Equipment", href: "/borrow"    },
+      { label: "Documents", href: "/documents" },
+      { label: "Borrow Equipment", href: "/borrow" },
     ],
   },
   {
     label: "About",
     items: [
-      { label: "About",         href: "/about"              },
-      { label: "Officers",      href: "/officers"           },
-      { label: "Organizations", href: "/organizations"      },
-      { label: "Contributors",  href: "/contributors"       },
+      { label: "About", href: "/about" },
+      { label: "Officers", href: "/officers" },
+      { label: "Organizations", href: "/organizations" },
+      { label: "Contributors", href: "/contributors" },
     ],
   },
 ] as const;
@@ -35,9 +35,9 @@ const NAV_GROUPS = [
 export default function Navigation() {
   const navigate = useNavigate();
 
-  const [isMenuOpen,      setIsMenuOpen]      = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   /* openGroup is kept for aria-expanded and click-to-toggle on keyboard/click */
-  const [openGroup,       setOpenGroup]       = useState<string | null>(null);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [mobileOpenGroup, setMobileOpenGroup] = useState<string | null>(null);
 
   const navRef = useRef<HTMLElement>(null);
@@ -61,21 +61,27 @@ export default function Navigation() {
   return (
     <nav className="navigation-container" ref={navRef}>
       <div className="navigation-layout">
-
         {/* ── Left: logo + brand ── */}
-        <div className="nav-left" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
+        <div
+          className="nav-left"
+          onClick={() => navigate("/")}
+          style={{ cursor: "pointer" }}
+        >
           <img className="logo" src={logo} alt="CSG Logo" />
-          <Typography color="text-dark">Central Student Government - Imus</Typography>
+          <Typography color="text-dark">
+            Central Student Government - Imus
+          </Typography>
         </div>
 
         {/* ── Desktop: grouped nav ── */}
         <div className="nav-center nav-desktop">
-
           {/* Home — direct link */}
           <NavLink
             to="/"
             end
-            className={({ isActive }) => `nav-link${isActive ? " nav-link-active" : ""}`}
+            className={({ isActive }) =>
+              `nav-link${isActive ? " nav-link-active" : ""}`
+            }
           >
             Home
           </NavLink>
@@ -135,14 +141,8 @@ export default function Navigation() {
         className={`mobile-menu ${isMenuOpen ? "open" : ""}`}
       >
         <div className="mobile-menu-content">
-
           {/* Home */}
-          <NavLink
-            to="/"
-            end
-            className="mobile-nav-link"
-            onClick={closeMenu}
-          >
+          <NavLink to="/" end className="mobile-nav-link" onClick={closeMenu}>
             Home
           </NavLink>
 

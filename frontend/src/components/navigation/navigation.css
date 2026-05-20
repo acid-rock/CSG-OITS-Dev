@@ -8,7 +8,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  height: var(--nav-height);        /* 64px */
+  height: var(--nav-height); /* 64px */
   /* backdrop-filter removed — bar is fully opaque */
 }
 
@@ -17,17 +17,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: var(--max-width-content);   /* 1200px (was 1400px) */
+  max-width: var(--max-width-content); /* 1200px (was 1400px) */
   margin: 0 auto;
-  padding: 0 var(--space-6);             /* 0 24px (was 0 36px) */
-  height: var(--nav-height);            /* fills bar exactly */
+  padding: 0 var(--space-6); /* 0 24px (was 0 36px) */
+  height: var(--nav-height); /* fills bar exactly */
 }
 
 /* ── Left: logo + brand block ── */
 .nav-left {
   display: flex;
   align-items: center;
-  gap: var(--space-3);               /* 12px */
+  gap: var(--space-3); /* 12px */
   flex-shrink: 0;
 }
 
@@ -50,11 +50,11 @@
 .nav-left h1 {
   margin: 0;
   padding: 0;
-  font-size: var(--font-size-sm);         /* 0.875rem */
+  font-size: var(--font-size-sm); /* 0.875rem */
   font-weight: var(--font-weight-semibold); /* 600 */
   color: var(--color-text-primary);
   letter-spacing: var(--letter-spacing-tight);
-  line-height: var(--line-height-tight);  /* 1.2 */
+  line-height: var(--line-height-tight); /* 1.2 */
   white-space: nowrap;
 }
 
@@ -62,9 +62,9 @@
 .nav-left h1::after {
   content: "Cavite State University · Imus Campus";
   display: block;
-  font-size: var(--font-size-xs);        /* 0.75rem */
+  font-size: var(--font-size-xs); /* 0.75rem */
   font-weight: var(--font-weight-normal); /* 400 */
-  color: var(--color-text-muted);        /* #6B7280 */
+  color: var(--color-text-muted); /* #6B7280 */
   letter-spacing: var(--letter-spacing-wide); /* 0.06em */
   line-height: 1.3;
   text-transform: none;
@@ -74,7 +74,7 @@
 .nav-center {
   display: flex;
   align-items: center;
-  gap: var(--space-8);   /* 32px between links (was 6px) */
+  gap: var(--space-8); /* 32px between links (was 6px) */
   margin-left: auto;
   flex: none;
 }
@@ -94,9 +94,9 @@
   background: none;
   border: none;
   border-radius: 0;
-  color: var(--color-text-secondary);     /* #374151 */
+  color: var(--color-text-secondary); /* #374151 */
   font-family: var(--font-family-base);
-  font-size: var(--font-size-sm);         /* 0.875rem */
+  font-size: var(--font-size-sm); /* 0.875rem */
   font-weight: var(--font-weight-medium); /* 500 */
   letter-spacing: var(--letter-spacing-normal);
   line-height: 1;
@@ -104,7 +104,9 @@
   padding: 6px 14px;
   cursor: pointer;
   border-radius: var(--radius-md);
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -129,7 +131,9 @@
 
 /* Fix 4: remove underline pseudo-element */
 .nav-center .button.navigation::after,
-.nav-center button::after { display: none; }
+.nav-center button::after {
+  display: none;
+}
 
 /* ── Mobile hamburger ── */
 .hamburger-menu {
@@ -139,9 +143,9 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: var(--space-2);               /* 8px */
+  padding: var(--space-2); /* 8px */
   color: var(--color-primary);
-  border-radius: var(--radius-md);       /* 8px */
+  border-radius: var(--radius-md); /* 8px */
   transition: background var(--transition-fast);
 }
 .hamburger-menu:hover {
@@ -161,7 +165,9 @@
   font-weight: var(--font-weight-medium);
   padding: 6px 14px;
   text-decoration: none;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 .nav-link:hover,
 .nav-link-active {
@@ -182,12 +188,12 @@
    Position: absolute keeps it out of the flex layout calculation so the
    button text stays vertically centred with the other nav links. */
 .nav-group::after {
-  content: '';
+  content: "";
   position: absolute;
-  top: 100%;    /* starts flush at the button's bottom edge */
+  top: 100%; /* starts flush at the button's bottom edge */
   left: 0;
   right: 0;
-  height: 8px;  /* covers the gap + a small safety margin */
+  height: 8px; /* covers the gap + a small safety margin */
   background: transparent;
 }
 
@@ -204,7 +210,9 @@
   font-weight: var(--font-weight-medium);
   padding: 6px 14px;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 /* Button + chevron highlight driven by CSS :hover — no JS gap problem */
@@ -214,17 +222,24 @@
   color: var(--color-primary);
 }
 
-.nav-chevron { transition: transform var(--transition-fast); flex-shrink: 0; }
+.nav-chevron {
+  transition: transform var(--transition-fast);
+  flex-shrink: 0;
+}
 .nav-group:hover .nav-chevron,
-.nav-group-open .nav-chevron { transform: rotate(180deg); }
-.nav-chevron-open { transform: rotate(180deg); }
+.nav-group-open .nav-chevron {
+  transform: rotate(180deg);
+}
+.nav-chevron-open {
+  transform: rotate(180deg);
+}
 
 /* Dropdown panel — CSS :hover is the primary trigger.
    top: 100% = bottom of the padded .nav-group box → zero dead zone.
    padding-top provides the visual breathing room. */
 .nav-dropdown {
   position: absolute;
-  top: 100%;            /* sits flush against the padded nav-group bottom */
+  top: 100%; /* sits flush against the padded nav-group bottom */
   left: 50%;
   transform: translateX(-50%);
   background: var(--color-surface);
@@ -232,7 +247,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   min-width: 180px;
-  padding: var(--space-3) 0 var(--space-2);  /* top padding = visual gap replacement */
+  padding: var(--space-3) 0 var(--space-2); /* top padding = visual gap replacement */
   display: none;
   z-index: 200;
   white-space: nowrap;
@@ -240,7 +255,9 @@
 
 /* CSS hover drives visibility — browser tracks all descendants reliably */
 .nav-group:hover .nav-dropdown,
-.nav-group-open .nav-dropdown { display: block; }
+.nav-group-open .nav-dropdown {
+  display: block;
+}
 
 .nav-dropdown-item {
   display: block;
@@ -250,7 +267,9 @@
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
   text-decoration: none;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 .nav-dropdown-item:hover,
 .nav-dropdown-item-active {
@@ -261,7 +280,9 @@
 /* Task 2: .nav-admin-btn removed — button deleted from JSX */
 
 /* ── Mobile group accordion ── */
-.mobile-group { width: 100%; }
+.mobile-group {
+  width: 100%;
+}
 .mobile-group-btn {
   display: flex;
   align-items: center;
@@ -276,7 +297,9 @@
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
   text-align: left;
 }
 .mobile-group-btn:hover {
@@ -302,7 +325,9 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   text-decoration: none;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
   width: 100%;
   text-align: left;
 }
@@ -327,7 +352,9 @@
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: max-height var(--transition-base), opacity var(--transition-fast);
+  transition:
+    max-height var(--transition-base),
+    opacity var(--transition-fast);
   z-index: 999;
   /* removed backdrop-filter from previous theme */
 }
@@ -338,7 +365,7 @@
 .mobile-menu-content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);                   /* 4px */
+  gap: var(--space-1); /* 4px */
   padding: var(--space-4) var(--space-5); /* 16px 20px */
 }
 
@@ -348,13 +375,15 @@
   background: none;
   border: none;
   color: var(--color-text-secondary);
-  font-size: var(--font-size-base);      /* 1rem */
+  font-size: var(--font-size-base); /* 1rem */
   font-weight: var(--font-weight-medium);
   padding: var(--space-3) var(--space-4); /* 12px 16px */
-  border-radius: var(--radius-md);       /* 8px */
+  border-radius: var(--radius-md); /* 8px */
   text-align: left;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 .mobile-menu-content .button.navigation:hover,
 .mobile-menu-content button:hover {
@@ -370,17 +399,19 @@
 .nav-admin-btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);                   /* 8px */
+  gap: var(--space-2); /* 8px */
   padding: 4px 14px;
-  border-radius: var(--radius-full);     /* pill */
+  border-radius: var(--radius-full); /* pill */
   background: transparent;
   border: 1px solid var(--color-primary);
   color: var(--color-primary);
-  font-size: var(--font-size-xs);        /* 0.75rem */
+  font-size: var(--font-size-xs); /* 0.75rem */
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
   flex-shrink: 0;
 }
 .nav-admin-btn:hover {
@@ -394,24 +425,40 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #22C55E;
+  background: #22c55e;
   flex-shrink: 0;
 }
 
 /* ── Responsive breakpoints ── */
 @media (max-width: 768px) {
-  .nav-desktop      { display: none; }
-  .hamburger-menu   { display: flex; }
+  .nav-desktop {
+    display: none;
+  }
+  .hamburger-menu {
+    display: flex;
+  }
   .navigation-layout {
-    padding: 0 var(--space-4);           /* 0 16px */
+    padding: 0 var(--space-4); /* 0 16px */
     height: var(--nav-height);
   }
-  .nav-left .logo   { width: 30px; height: 30px; }
-  .nav-left h1      { font-size: var(--font-size-xs); }
-  .nav-left h1::after { display: none; } /* hide subtitle on small screens */
+  .nav-left .logo {
+    width: 30px;
+    height: 30px;
+  }
+  .nav-left h1 {
+    font-size: var(--font-size-xs);
+  }
+  .nav-left h1::after {
+    display: none;
+  } /* hide subtitle on small screens */
 }
 
 @media (max-width: 480px) {
-  .navigation-layout { padding: 0 var(--space-3); } /* 0 12px */
-  .nav-left .logo    { width: 26px; height: 26px; }
+  .navigation-layout {
+    padding: 0 var(--space-3);
+  } /* 0 12px */
+  .nav-left .logo {
+    width: 26px;
+    height: 26px;
+  }
 }

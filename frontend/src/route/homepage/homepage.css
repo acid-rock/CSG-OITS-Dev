@@ -30,5 +30,7 @@
 }
 
 @media (max-width: 640px) {
-  .hp-orgs-grid { grid-template-columns: repeat(2, 1fr); }
+  .hp-orgs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

@@ -8,17 +8,17 @@ The admin panel is a password-protected content management interface for CSG adm
 
 ## Entry points
 
-| File | Purpose |
-|---|---|
-| `AdminPage.tsx` | Panel shell: sidebar + `ContentPanel` + `SessionExpiredModal`. Sets up the axios 401 interceptor that triggers session expiry overlay. |
-| `ProtectedRoute.tsx` | UI gate: checks `localStorage.getItem('admin_authenticated') === '1'`. Shows `AccessRestrictedScreen` if not set. **This is a UI gate only — the real auth is the httpOnly cookie verified by `requireAuth` on every API call.** |
-| `admin-loginpage/` | Login (`/admin/login`), forgot password (`/admin/forgot-password`), reset password (`/admin/reset-password`) — not wrapped in `ProtectedRoute` |
-| `contentPanel/ContentPanel.tsx` | Reads `?panel=` search param; renders the matching panel component |
-| `panel/` | All 12 content panel components |
-| `components/` | Shared admin UI components (sidebar, forms, modals, action bar, charts, etc.) |
-| `lib/` | Admin-specific utilities |
-| `utils/` | Admin-specific helper functions |
-| `adminPanel.css` | Admin panel global styles (separate from public token system) |
+| File                            | Purpose                                                                                                                                                                                                                          |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AdminPage.tsx`                 | Panel shell: sidebar + `ContentPanel` + `SessionExpiredModal`. Sets up the axios 401 interceptor that triggers session expiry overlay.                                                                                           |
+| `ProtectedRoute.tsx`            | UI gate: checks `localStorage.getItem('admin_authenticated') === '1'`. Shows `AccessRestrictedScreen` if not set. **This is a UI gate only — the real auth is the httpOnly cookie verified by `requireAuth` on every API call.** |
+| `admin-loginpage/`              | Login (`/admin/login`), forgot password (`/admin/forgot-password`), reset password (`/admin/reset-password`) — not wrapped in `ProtectedRoute`                                                                                   |
+| `contentPanel/ContentPanel.tsx` | Reads `?panel=` search param; renders the matching panel component                                                                                                                                                               |
+| `panel/`                        | All 12 content panel components                                                                                                                                                                                                  |
+| `components/`                   | Shared admin UI components (sidebar, forms, modals, action bar, charts, etc.)                                                                                                                                                    |
+| `lib/`                          | Admin-specific utilities                                                                                                                                                                                                         |
+| `utils/`                        | Admin-specific helper functions                                                                                                                                                                                                  |
+| `adminPanel.css`                | Admin panel global styles (separate from public token system)                                                                                                                                                                    |
 
 ## Panel navigation
 

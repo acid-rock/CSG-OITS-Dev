@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { FaFacebook } from 'react-icons/fa';
-import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
-import type { Organization } from '../../config/organizationsConfig';
-import './OrganizationCard.css';
+import { useEffect } from "react";
+import { FaFacebook } from "react-icons/fa";
+import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
+import type { Organization } from "../../config/organizationsConfig";
+import "./OrganizationCard.css";
 
 interface OrganizationModalProps {
   organization: Organization;
@@ -11,19 +11,28 @@ interface OrganizationModalProps {
 }
 
 function getInitials(name: string): string {
-  return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
-export default function OrganizationModal({ organization, isOpen, onClose }: OrganizationModalProps) {
+export default function OrganizationModal({
+  organization,
+  isOpen,
+  onClose,
+}: OrganizationModalProps) {
   useLockBodyScroll(isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -66,7 +75,7 @@ export default function OrganizationModal({ organization, isOpen, onClose }: Org
             rel="noopener noreferrer"
             className="org-modal-fb-btn"
           >
-            <FaFacebook size={16} style={{ marginRight: '0.4rem' }} />
+            <FaFacebook size={16} style={{ marginRight: "0.4rem" }} />
             Visit Facebook Page
           </a>
         )}

@@ -10,7 +10,6 @@ import { fetchOrganizations } from "../config/organizationsConfig";
 import type { Organization } from "../config/organizationsConfig";
 export type { Organization };
 
-
 export type Announcement = {
   id: string;
   imgUrl: string;
@@ -56,7 +55,6 @@ export type Officer = {
   is_committee_official: boolean;
 };
 
-
 export interface OutletContext {
   bulletin: Announcement[];
   documents: Document[];
@@ -78,20 +76,31 @@ const Root = () => {
     setLoading(true);
     setError(null);
 
-    const [bulletinResult, documentsResult, eventsResult, officersResult, orgsResult] =
-      await Promise.allSettled([
-        fetchBulletinData(),
-        fetchDocuments(),
-        fetchEvents(),
-        fetchOfficers(),
-        fetchOrganizations(),
-      ]);
+    const [
+      bulletinResult,
+      documentsResult,
+      eventsResult,
+      officersResult,
+      orgsResult,
+    ] = await Promise.allSettled([
+      fetchBulletinData(),
+      fetchDocuments(),
+      fetchEvents(),
+      fetchOfficers(),
+      fetchOrganizations(),
+    ]);
 
-    const allFailed = [bulletinResult, documentsResult, eventsResult, officersResult]
-      .every((r) => r.status === "rejected"); // organizations failure is non-fatal
+    const allFailed = [
+      bulletinResult,
+      documentsResult,
+      eventsResult,
+      officersResult,
+    ].every((r) => r.status === "rejected"); // organizations failure is non-fatal
 
     if (allFailed) {
-      setError("Unable to load content. Please refresh the page or try again later.");
+      setError(
+        "Unable to load content. Please refresh the page or try again later.",
+      );
       setLoading(false);
       return;
     }
@@ -104,9 +113,11 @@ const Root = () => {
       });
       setBulletin(sortedBulletin);
     }
-    if (documentsResult.status === "fulfilled") setDocuments(documentsResult.value);
+    if (documentsResult.status === "fulfilled")
+      setDocuments(documentsResult.value);
     if (eventsResult.status === "fulfilled") setEvents(eventsResult.value);
-    if (officersResult.status === "fulfilled") setOfficers(officersResult.value as Officer[]);
+    if (officersResult.status === "fulfilled")
+      setOfficers(officersResult.value as Officer[]);
     if (orgsResult.status === "fulfilled") setOrganizations(orgsResult.value);
 
     setLoading(false);
@@ -148,7 +159,12 @@ const Root = () => {
         <p style={{ color: "#374151", fontSize: "1rem" }}>{error}</p>
         <button
           onClick={() => window.location.reload()}
-          style={{ padding: "0.5rem 1.5rem", borderRadius: 8, border: "1px solid #d1d5db", cursor: "pointer" }}
+          style={{
+            padding: "0.5rem 1.5rem",
+            borderRadius: 8,
+            border: "1px solid #d1d5db",
+            cursor: "pointer",
+          }}
         >
           Refresh
         </button>
@@ -159,7 +175,9 @@ const Root = () => {
   return (
     <div className="relative px-4 md:px-8 lg:px-16 lx:px-32 2xl:px-64 overflow-hidden flex flex-col">
       <Navigation />
-      <Outlet context={{ bulletin, documents, events, officers, organizations }} />
+      <Outlet
+        context={{ bulletin, documents, events, officers, organizations }}
+      />
       <Footer />
     </div>
   );

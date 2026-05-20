@@ -1,5 +1,5 @@
 // src/declarations.d.ts
-declare module '*.pdf' {
+declare module "*.pdf" {
   const src: string;
   export default src;
 }

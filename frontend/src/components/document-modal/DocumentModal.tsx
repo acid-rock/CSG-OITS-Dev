@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import './documentmodal.css';
+import { useState, useEffect } from "react";
+import "./documentmodal.css";
 
 type DocumentModalProps = {
   selected: {
@@ -24,36 +24,37 @@ export default function DocumentModal({
   if (!selected) return null;
 
   return (
-    <div className='overlay' onClick={onClose}>
-      <div className='modal' onClick={(e) => e.stopPropagation()}>
-        <button className='modal__close' onClick={onClose}>
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <button className="modal__close" onClick={onClose}>
           ✕
         </button>
         {iframeError ? (
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1rem',
-              padding: '3rem 2rem',
-              color: 'var(--color-text-muted)',
-              fontSize: '0.9rem',
-              textAlign: 'center',
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "1rem",
+              padding: "3rem 2rem",
+              color: "var(--color-text-muted)",
+              fontSize: "0.9rem",
+              textAlign: "center",
             }}
           >
             <p style={{ margin: 0 }}>
-              This document could not be loaded. It may have been moved or deleted.
+              This document could not be loaded. It may have been moved or
+              deleted.
             </p>
             <button
               onClick={onClose}
               style={{
-                padding: '0.5rem 1.25rem',
-                border: '1px solid var(--color-border)',
+                padding: "0.5rem 1.25rem",
+                border: "1px solid var(--color-border)",
                 borderRadius: 8,
-                background: 'var(--color-surface)',
-                cursor: 'pointer',
+                background: "var(--color-surface)",
+                cursor: "pointer",
               }}
             >
               Close
@@ -61,7 +62,7 @@ export default function DocumentModal({
           </div>
         ) : (
           <iframe
-            className='modal__iframe'
+            className="modal__iframe"
             src={`https://docs.google.com/viewer?url=${encodeURIComponent(selected.memoSrc)}&embedded=true`}
             title={selected.title}
             onError={() => setIframeError(true)}

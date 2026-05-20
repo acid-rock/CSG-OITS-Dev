@@ -32,7 +32,9 @@
   color: var(--color-text);
   background: var(--color-surface);
   outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
   box-sizing: border-box;
 }
 
@@ -42,7 +44,7 @@
 
 .sfb-search:focus {
   border-color: var(--color-border-focus, var(--color-primary));
-  box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.10);
+  box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
 }
 
 .sfb-term {
@@ -65,6 +67,11 @@
 }
 
 @media (max-width: 480px) {
-  .sfb-row { flex-direction: column; align-items: stretch; }
-  .sfb-term { width: 100%; }
+  .sfb-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sfb-term {
+    width: 100%;
+  }
 }

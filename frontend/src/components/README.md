@@ -8,21 +8,21 @@ These components are reusable building blocks for the public-facing site. They a
 
 ## Contents
 
-| Subdirectory | Component | Purpose |
-|---|---|---|
-| `navigation/` | `Navigation.tsx` | Top navigation bar with desktop dropdown menus and mobile hamburger accordion |
-| `footer/` | `Footer.tsx` | Site footer with Privacy Policy, Terms, Cookie Settings, Facebook link, and feedback form link |
-| `modal/` | `Modal.tsx` | Announcement and event detail modal with image carousel, prev/next navigation, and backdrop close |
-| `document-modal/` | `DocumentModal.tsx` | PDF document viewer in an `<iframe>` with `useLockBodyScroll` |
-| `search-filter-bar/` | `SearchFilterBar.tsx` | Reusable search input + optional term filter dropdown toolbar |
-| `announcement-card/` | — | Announcement card used in the bulletin and homepage |
-| `event-card/` | — | Event card with full-bleed image |
-| `document-card/` | — | Document card with thumbnail and download link |
-| `officer-card/` | — | Officer card with avatar, crown tag for President, Facebook link |
-| `organization-card/` | — | Organization card with logo/initials fallback and Facebook link |
-| `button/` | — | Button component |
-| `sidebar/` | — | Sidebar component (public-facing, not admin) |
-| `typography/` | — | Typography utility components |
+| Subdirectory         | Component             | Purpose                                                                                           |
+| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------- |
+| `navigation/`        | `Navigation.tsx`      | Top navigation bar with desktop dropdown menus and mobile hamburger accordion                     |
+| `footer/`            | `Footer.tsx`          | Site footer with Privacy Policy, Terms, Cookie Settings, Facebook link, and feedback form link    |
+| `modal/`             | `Modal.tsx`           | Announcement and event detail modal with image carousel, prev/next navigation, and backdrop close |
+| `document-modal/`    | `DocumentModal.tsx`   | PDF document viewer in an `<iframe>` with `useLockBodyScroll`                                     |
+| `search-filter-bar/` | `SearchFilterBar.tsx` | Reusable search input + optional term filter dropdown toolbar                                     |
+| `announcement-card/` | —                     | Announcement card used in the bulletin and homepage                                               |
+| `event-card/`        | —                     | Event card with full-bleed image                                                                  |
+| `document-card/`     | —                     | Document card with thumbnail and download link                                                    |
+| `officer-card/`      | —                     | Officer card with avatar, crown tag for President, Facebook link                                  |
+| `organization-card/` | —                     | Organization card with logo/initials fallback and Facebook link                                   |
+| `button/`            | —                     | Button component                                                                                  |
+| `sidebar/`           | —                     | Sidebar component (public-facing, not admin)                                                      |
+| `typography/`        | —                     | Typography utility components                                                                     |
 
 ## Key component props
 

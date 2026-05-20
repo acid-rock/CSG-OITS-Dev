@@ -8,10 +8,10 @@ The frontend is a Vite-built React SPA. It has two distinct audiences: public st
 
 ## Two audiences
 
-| Audience | URL | Auth required | What they do |
-|---|---|---|---|
-| Students (public) | `/`, `/bulletin`, `/documents`, `/events`, `/officers`, `/about`, `/borrow`, `/contributors`, `/organizations` | No | Read-only: browse announcements, download docs, view events, see officers, submit borrow requests |
-| CSG Admins | `/admin` | Yes (httpOnly cookie) | Full CRUD on all content, manage equipment, view audit log, configure settings |
+| Audience          | URL                                                                                                            | Auth required         | What they do                                                                                      |
+| ----------------- | -------------------------------------------------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------- |
+| Students (public) | `/`, `/bulletin`, `/documents`, `/events`, `/officers`, `/about`, `/borrow`, `/contributors`, `/organizations` | No                    | Read-only: browse announcements, download docs, view events, see officers, submit borrow requests |
+| CSG Admins        | `/admin`                                                                                                       | Yes (httpOnly cookie) | Full CRUD on all content, manage equipment, view audit log, configure settings                    |
 
 ## Commands
 
@@ -41,11 +41,11 @@ The backend sets `sb_access_token` with `secure: true`. Browsers refuse to store
 
 ## Environment variables (`frontend/.env`)
 
-| Variable | Required | Description |
-|---|---|---|
-| `VITE_API_URL` | Yes | Backend base URL, e.g. `https://localhost:3000/api/v1` |
-| `VITE_GITHUB_OWNER` | No | GitHub org for Settings changelog modal |
-| `VITE_GITHUB_REPO` | No | GitHub repo name for Settings changelog modal |
+| Variable            | Required | Description                                            |
+| ------------------- | -------- | ------------------------------------------------------ |
+| `VITE_API_URL`      | Yes      | Backend base URL, e.g. `https://localhost:3000/api/v1` |
+| `VITE_GITHUB_OWNER` | No       | GitHub org for Settings changelog modal                |
+| `VITE_GITHUB_REPO`  | No       | GitHub repo name for Settings changelog modal          |
 
 ## Outlet context pattern
 
@@ -53,7 +53,7 @@ The backend sets `sb_access_token` with `secure: true`. Browsers refuse to store
 
 ```tsx
 // In a child route component
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext } from "react-router-dom";
 const { bulletin, documents, events, officers, organizations } =
   useOutletContext<OutletContextType>();
 ```
@@ -66,15 +66,15 @@ The admin panel uses a single route (`/admin`) with `?panel=` query parameters f
 
 ## Key files
 
-| File | Purpose |
-|---|---|
-| `src/main.tsx` | All routes defined here using `createBrowserRouter` |
-| `src/root-layout/Root-layout.tsx` | All public data fetched here; outlet context provider |
-| `src/styles/tokens.css` | Design system tokens — always use these, never hardcode hex |
-| `src/index.css` | Global styles, Wave 11A tokens, utility classes |
-| `src/admin/AdminPage.tsx` | Admin panel shell with sidebar + content area |
-| `src/admin/ProtectedRoute.tsx` | localStorage-based UI gate (not the real auth boundary) |
-| `src/admin/contentPanel/ContentPanel.tsx` | Renders the active `?panel=` component |
+| File                                      | Purpose                                                     |
+| ----------------------------------------- | ----------------------------------------------------------- |
+| `src/main.tsx`                            | All routes defined here using `createBrowserRouter`         |
+| `src/root-layout/Root-layout.tsx`         | All public data fetched here; outlet context provider       |
+| `src/styles/tokens.css`                   | Design system tokens — always use these, never hardcode hex |
+| `src/index.css`                           | Global styles, Wave 11A tokens, utility classes             |
+| `src/admin/AdminPage.tsx`                 | Admin panel shell with sidebar + content area               |
+| `src/admin/ProtectedRoute.tsx`            | localStorage-based UI gate (not the real auth boundary)     |
+| `src/admin/contentPanel/ContentPanel.tsx` | Renders the active `?panel=` component                      |
 
 ## Related docs
 

@@ -4,7 +4,7 @@
    PAGE WRAPPER
    ════════════════════════════════════════════════════ */
 .bd-page {
-  background: var(--color-surface);   /* white */
+  background: var(--color-surface); /* white */
   min-height: 100vh;
 }
 
@@ -26,7 +26,7 @@
 }
 
 .bd-heading {
-  font-size: var(--font-size-4xl);            /* 2.25rem */
+  font-size: var(--font-size-4xl); /* 2.25rem */
   line-height: var(--line-height-tight);
   letter-spacing: var(--letter-spacing-tight);
   color: var(--color-text-primary);
@@ -36,7 +36,7 @@
 }
 /* The "& filings" span (plain text node) inherits extrabold from parent via: */
 .bd-heading-strong {
-  font-weight: var(--font-weight-extrabold);  /* 800 */
+  font-weight: var(--font-weight-extrabold); /* 800 */
 }
 
 .bd-subheading {
@@ -53,7 +53,7 @@
 .bd-layout {
   display: flex;
   flex-direction: row;
-  gap: var(--space-8);                        /* 32px between sidebar and grid */
+  gap: var(--space-8); /* 32px between sidebar and grid */
   max-width: var(--max-width-content);
   margin: 0 auto;
   padding: var(--space-10) var(--section-padding-x) var(--space-16);
@@ -67,7 +67,7 @@
   width: 240px;
   flex-shrink: 0;
   position: sticky;
-  top: calc(var(--nav-height) + var(--space-6));  /* pins below nav */
+  top: calc(var(--nav-height) + var(--space-6)); /* pins below nav */
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -85,12 +85,16 @@
   color: var(--color-text-primary);
   background: var(--color-surface);
   outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
-.bd-search::placeholder { color: var(--color-text-muted); }
+.bd-search::placeholder {
+  color: var(--color-text-muted);
+}
 .bd-search:focus {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.10);
+  box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
 }
 
 /* Section label for categories / terms */
@@ -126,7 +130,9 @@
   font-family: var(--font-family-base);
   cursor: pointer;
   text-align: left;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 .bd-cat-item:hover:not(.bd-cat-active) {
   background: var(--color-primary-light);
@@ -189,7 +195,7 @@
 /* Thumbnail area */
 .bd-doc-thumb {
   height: 160px;
-  background: var(--color-primary-light);     /* #EEF1FE */
+  background: var(--color-primary-light); /* #EEF1FE */
   position: relative;
   display: flex;
   align-items: center;
@@ -205,7 +211,7 @@
   border-radius: 50%;
   background: rgba(79, 110, 247, 0.12);
   color: var(--color-primary);
-  font-size: var(--font-size-4xl);            /* 2.25rem */
+  font-size: var(--font-size-4xl); /* 2.25rem */
   font-weight: var(--font-weight-bold);
   display: flex;
   align-items: center;
@@ -331,7 +337,9 @@
   line-height: 1;
   transition: color var(--transition-fast);
 }
-.bd-panel-close:hover { color: var(--color-text-primary); }
+.bd-panel-close:hover {
+  color: var(--color-text-primary);
+}
 
 .bd-panel-cat {
   font-size: var(--font-size-xs);
@@ -384,14 +392,24 @@
    RESPONSIVE
    ════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
-  .bd-layout { gap: var(--space-6); }
-  .bd-sidebar { width: 200px; }
-  .bd-grid { grid-template-columns: repeat(2, 1fr); }
+  .bd-layout {
+    gap: var(--space-6);
+  }
+  .bd-sidebar {
+    width: 200px;
+  }
+  .bd-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-  .bd-header { padding: var(--space-12) var(--space-6) var(--space-8); }
-  .bd-heading { font-size: var(--font-size-3xl); }
+  .bd-header {
+    padding: var(--space-12) var(--space-6) var(--space-8);
+  }
+  .bd-heading {
+    font-size: var(--font-size-3xl);
+  }
   .bd-layout {
     flex-direction: column;
     padding: var(--space-6) var(--space-6) var(--space-12);
@@ -400,10 +418,16 @@
     width: 100%;
     position: static;
   }
-  .bd-grid { grid-template-columns: repeat(2, 1fr); }
-  .bd-panel { width: 100%; }
+  .bd-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bd-panel {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
-  .bd-grid { grid-template-columns: 1fr; }
+  .bd-grid {
+    grid-template-columns: 1fr;
+  }
 }

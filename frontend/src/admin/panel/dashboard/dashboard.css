@@ -282,7 +282,7 @@
 }
 
 /* Checkbox styling */
-.dashboard-file-table input[type='checkbox'] {
+.dashboard-file-table input[type="checkbox"] {
   cursor: pointer;
   width: 18px;
   height: 18px;

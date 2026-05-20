@@ -8,17 +8,17 @@ This directory contains one fetch function per API resource plus the shared axio
 
 ## Contents
 
-| File | Exports | API call |
-|---|---|---|
-| `axiosInstance.ts` | `axiosInstance` (default) | Axios instance configured with `baseURL: import.meta.env.VITE_API_URL` and `withCredentials: true` |
-| `bulletinConfig.ts` | `fetchBulletinData()` | `GET /announcements/` — formats dates, returns `Announcement[]` |
-| `documentsConfig.ts` | `fetchDocuments(page?, limit?)` | `GET /documents/` — supports optional pagination |
-| `eventConfig.ts` | `fetchEvents()` | `GET /events/` — formats dates, returns `Event[]` |
-| `officerConfig.ts` | `fetchOfficers(page?, limit?, term?)` | `GET /officers/` — supports term filter |
-| `committeeConfig.ts` | `fetchCommittees()` | `GET /committees/` — returns `Committee[]` |
-| `organizationsConfig.ts` | `fetchOrganizations()` | `GET /organizations/` |
-| `navigationConfig.tsx` | — | Navigation dropdown structure definition |
-| `officers-board-members.ts` | — | Static helper config for officer type ordering |
+| File                        | Exports                               | API call                                                                                           |
+| --------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `axiosInstance.ts`          | `axiosInstance` (default)             | Axios instance configured with `baseURL: import.meta.env.VITE_API_URL` and `withCredentials: true` |
+| `bulletinConfig.ts`         | `fetchBulletinData()`                 | `GET /announcements/` — formats dates, returns `Announcement[]`                                    |
+| `documentsConfig.ts`        | `fetchDocuments(page?, limit?)`       | `GET /documents/` — supports optional pagination                                                   |
+| `eventConfig.ts`            | `fetchEvents()`                       | `GET /events/` — formats dates, returns `Event[]`                                                  |
+| `officerConfig.ts`          | `fetchOfficers(page?, limit?, term?)` | `GET /officers/` — supports term filter                                                            |
+| `committeeConfig.ts`        | `fetchCommittees()`                   | `GET /committees/` — returns `Committee[]`                                                         |
+| `organizationsConfig.ts`    | `fetchOrganizations()`                | `GET /organizations/`                                                                              |
+| `navigationConfig.tsx`      | —                                     | Navigation dropdown structure definition                                                           |
+| `officers-board-members.ts` | —                                     | Static helper config for officer type ordering                                                     |
 
 ## Usage
 
@@ -27,7 +27,7 @@ These functions are called in `Root-layout.tsx` inside `Promise.allSettled`:
 ```tsx
 const [, bulletinResult, docsResult, eventsResult, officersResult, orgsResult] =
   await Promise.allSettled([
-    axios.get('/settings/term'),
+    axios.get("/settings/term"),
     fetchBulletinData(),
     fetchDocuments(),
     fetchEvents(),

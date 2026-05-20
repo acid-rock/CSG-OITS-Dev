@@ -8,27 +8,27 @@ Design system token file for CSG-OITS.
 
 ## Contents
 
-| File | Purpose |
-|---|---|
+| File         | Purpose                                                                                                                       |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | `tokens.css` | Original design token set — CSS custom properties for color, typography, spacing, border radius, shadows, transitions, layout |
 
 ## Token categories
 
-| Category | Token prefix | Examples |
-|---|---|---|
-| Primary colors | `--color-primary*` | `--color-primary`, `--color-primary-dark`, `--color-primary-deep` |
-| Backgrounds | `--color-background*`, `--color-surface*` | `--color-background`, `--color-surface` |
-| Text | `--color-text-*` | `--color-text-primary`, `--color-text-muted`, `--color-text-hint` |
-| Borders | `--color-border*` | `--color-border`, `--color-border-focus` |
-| Semantic | `--color-success*`, `--color-danger*`, `--color-warning*` | Status colors + their bg/text variants |
-| Tag colors | `--color-tag-*` | Per-announcement-category colors |
-| Layout | `--color-footer-bg`, `--color-background-hero*` | Section-specific colors |
-| Typography | `--font-family-*`, `--font-size-*`, `--font-weight-*` | Font stacks, size scale, weights |
-| Spacing | `--space-1` through `--space-24` | 4px base unit scale |
-| Border radius | `--radius-sm` through `--radius-pill` | Size variants |
-| Shadows | `--shadow-sm` through `--shadow-pop` | Elevation levels |
-| Transitions | `--transition-fast`, `--transition-base`, `--transition-slow` | Duration + easing |
-| Layout | `--max-width-content`, `--nav-height`, `--section-padding-*` | Structural dimensions |
+| Category       | Token prefix                                                  | Examples                                                          |
+| -------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Primary colors | `--color-primary*`                                            | `--color-primary`, `--color-primary-dark`, `--color-primary-deep` |
+| Backgrounds    | `--color-background*`, `--color-surface*`                     | `--color-background`, `--color-surface`                           |
+| Text           | `--color-text-*`                                              | `--color-text-primary`, `--color-text-muted`, `--color-text-hint` |
+| Borders        | `--color-border*`                                             | `--color-border`, `--color-border-focus`                          |
+| Semantic       | `--color-success*`, `--color-danger*`, `--color-warning*`     | Status colors + their bg/text variants                            |
+| Tag colors     | `--color-tag-*`                                               | Per-announcement-category colors                                  |
+| Layout         | `--color-footer-bg`, `--color-background-hero*`               | Section-specific colors                                           |
+| Typography     | `--font-family-*`, `--font-size-*`, `--font-weight-*`         | Font stacks, size scale, weights                                  |
+| Spacing        | `--space-1` through `--space-24`                              | 4px base unit scale                                               |
+| Border radius  | `--radius-sm` through `--radius-pill`                         | Size variants                                                     |
+| Shadows        | `--shadow-sm` through `--shadow-pop`                          | Elevation levels                                                  |
+| Transitions    | `--transition-fast`, `--transition-base`, `--transition-slow` | Duration + easing                                                 |
+| Layout         | `--max-width-content`, `--nav-height`, `--section-padding-*`  | Structural dimensions                                             |
 
 ## Wave 11A tokens
 
@@ -37,6 +37,7 @@ Design system token file for CSG-OITS.
 ## Utility classes in `index.css`
 
 `src/index.css` also defines all utility CSS classes:
+
 - Buttons: `.btn`, `.btn-primary`, `.btn-secondary`, `.btn-ghost`, `.btn-danger`
 - Cards: `.card`, `.card-lg`
 - Tags: `.tag`, `.tag-update`, `.tag-event`, `.tag-notice`, `.tag-pinned`, `.tag-wellness`, etc.

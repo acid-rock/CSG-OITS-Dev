@@ -5,6 +5,7 @@ Central data-fetch layer for all public routes. Wraps every public page with Nav
 ## Overview
 
 `Root-layout.tsx` is the parent layout component for all public routes. It has two responsibilities:
+
 1. Render the Navigation bar, the child route (via `<Outlet>`), and the Footer.
 2. Fetch all public data in parallel on mount and pass it to child routes via React Router's outlet context.
 
@@ -12,8 +13,8 @@ This is the only component that should fetch public API data. Child routes consu
 
 ## Contents
 
-| File | Purpose |
-|---|---|
+| File              | Purpose                                            |
+| ----------------- | -------------------------------------------------- |
 | `Root-layout.tsx` | Navigation + parallel data fetch + Outlet + Footer |
 
 ## What it fetches
@@ -21,15 +22,21 @@ This is the only component that should fetch public API data. Child routes consu
 On mount, `Root-layout.tsx` fires six requests simultaneously via `Promise.allSettled`:
 
 ```tsx
-const [settingsResult, bulletinResult, docsResult, eventsResult, officersResult, orgsResult] =
-  await Promise.allSettled([
-    axios.get('/settings/term'),          // → activeTerm (for officer filtering)
-    fetchBulletinData(),                   // → bulletin[]
-    fetchDocuments(),                      // → documents[]
-    fetchEvents(),                         // → events[]
-    fetchOfficers(activeTerm),             // → officers[]
-    fetchOrganizations(),                  // → organizations[]
-  ]);
+const [
+  settingsResult,
+  bulletinResult,
+  docsResult,
+  eventsResult,
+  officersResult,
+  orgsResult,
+] = await Promise.allSettled([
+  axios.get("/settings/term"), // → activeTerm (for officer filtering)
+  fetchBulletinData(), // → bulletin[]
+  fetchDocuments(), // → documents[]
+  fetchEvents(), // → events[]
+  fetchOfficers(activeTerm), // → officers[]
+  fetchOrganizations(), // → organizations[]
+]);
 ```
 
 `Promise.allSettled` means partial failures are tolerated. If one call fails, the rest still render with whatever data succeeded.
@@ -43,6 +50,7 @@ The resolved data is passed as the outlet context to all child routes:
 ```
 
 Child routes consume it:
+
 ```tsx
 const { bulletin, officers } = useOutletContext<OutletContextType>();
 ```

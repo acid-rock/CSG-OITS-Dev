@@ -10,33 +10,36 @@ import "./events.css";
 const EVENTS_PER_PAGE = 2;
 
 export default function EventsPage() {
-
   /* ══════════════════════════════════════════════════════
      LOCKED DATA BINDINGS — do not modify
      ══════════════════════════════════════════════════════ */
   const { events } = useOutletContext<OutletContext>();
 
-  const [currentPage,    setCurrentPage]    = useState<number>(0);
-  const [open,           setOpen]           = useState(false);
-  const [selectedEvent,  setSelectedEvent]  = useState<any>(null);
-  const [searchQuery,    setSearchQuery]    = useState("");
-  const [termFilter,     setTermFilter]     = useState("");
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [open, setOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [termFilter, setTermFilter] = useState("");
 
-  const termOptions = [...new Set(events.map((e) => (e as any).term_year).filter(Boolean))].sort().reverse() as string[];
+  const termOptions = [
+    ...new Set(events.map((e) => (e as any).term_year).filter(Boolean)),
+  ]
+    .sort()
+    .reverse() as string[];
 
   useLockBodyScroll(open);
 
   /* Search + term filtered list */
   const filtered = events.filter((e) => {
-    const matchesSearch = !searchQuery.trim() || (
+    const matchesSearch =
+      !searchQuery.trim() ||
       e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (e.description ?? "").toLowerCase().includes(searchQuery.toLowerCase())
-    );
+      (e.description ?? "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTerm = !termFilter || (e as any).term_year === termFilter;
     return matchesSearch && matchesTerm;
   });
 
-  const totalPages       = Math.ceil(filtered.length / EVENTS_PER_PAGE);
+  const totalPages = Math.ceil(filtered.length / EVENTS_PER_PAGE);
   const currentPageEvents = filtered.slice(
     currentPage * EVENTS_PER_PAGE,
     currentPage * EVENTS_PER_PAGE + EVENTS_PER_PAGE,
@@ -45,8 +48,7 @@ export default function EventsPage() {
   /* Locked pagination handlers */
   const nextPage = () =>
     setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
-  const prevPage = () =>
-    setCurrentPage((prev) => Math.max(prev - 1, 0));
+  const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
 
   const handleSearchChange = (q: string) => {
     setSearchQuery(q);
@@ -66,10 +68,11 @@ export default function EventsPage() {
           ════════════════════════════════════════ */}
       <div className="ep-header">
         <div className="ep-header-inner">
-          <span className="section-label ep-kicker">What&rsquo;s happening</span>
+          <span className="section-label ep-kicker">
+            What&rsquo;s happening
+          </span>
           <h1 className="ep-heading">
-            Latest{" "}
-            <em className="italic-accent">events</em>
+            Latest <em className="italic-accent">events</em>
           </h1>
           <p className="ep-subheading">
             Activities, assemblies, and community drives this term.
@@ -81,12 +84,24 @@ export default function EventsPage() {
           SEARCH + TERM FILTER BAR
           ════════════════════════════════════════ */}
       <div className="bl-toolbar-wrap">
-        <div style={{ maxWidth: 600, margin: "0 auto", width: "100%", padding: "0 var(--section-padding-x)" }}>
+        <div
+          style={{
+            maxWidth: 600,
+            margin: "0 auto",
+            width: "100%",
+            padding: "0 var(--section-padding-x)",
+          }}
+        >
           <SearchFilterBar
             searchValue={searchQuery}
-            onSearchChange={(v) => { handleSearchChange(v); }}
+            onSearchChange={(v) => {
+              handleSearchChange(v);
+            }}
             termValue={termFilter}
-            onTermChange={(v) => { setTermFilter(v); setCurrentPage(0); }}
+            onTermChange={(v) => {
+              setTermFilter(v);
+              setCurrentPage(0);
+            }}
             termOptions={termOptions}
             searchPlaceholder="Search events..."
           />
@@ -97,9 +112,10 @@ export default function EventsPage() {
           MAIN CONTENT
           ════════════════════════════════════════ */}
       <div className="ep-content">
-
         {filtered.length === 0 ? (
-          <p className="ep-empty">{searchQuery ? "No events match your search." : "No events yet."}</p>
+          <p className="ep-empty">
+            {searchQuery ? "No events match your search." : "No events yet."}
+          </p>
         ) : (
           <>
             {/* ── 2-column card grid ── */}
@@ -117,10 +133,17 @@ export default function EventsPage() {
                         src={event.images[0]}
                         alt={event.name}
                         className="ep-grid-cover"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display =
+                            "none";
+                        }}
                       />
                     ) : (
-                      <img src="/CSG_logo.svg" alt="CSG" className="ep-grid-logo" />
+                      <img
+                        src="/CSG_logo.svg"
+                        alt="CSG"
+                        className="ep-grid-logo"
+                      />
                     )}
                   </div>
                   {/* Card body */}

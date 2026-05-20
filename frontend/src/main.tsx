@@ -1,6 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import "./index.css";
 
 // Guest pages
@@ -31,11 +35,11 @@ const router = createBrowserRouter([
       { index: true, element: <Homepage /> },
       { path: "bulletin", element: <Bulletin /> },
       { path: "documents", element: <DocumentsPage /> },
-      { path: "events",   element: <EventsPage /> },
-      { path: "about",    element: <AboutPage /> },
+      { path: "events", element: <EventsPage /> },
+      { path: "about", element: <AboutPage /> },
       { path: "officers", element: <Officers /> },
-      { path: "borrow",        element: <Borrow /> },
-      { path: "contributors",  element: <ContributorsPage /> },
+      { path: "borrow", element: <Borrow /> },
+      { path: "contributors", element: <ContributorsPage /> },
       { path: "organizations", element: <OrganizationsPage /> },
     ],
   },
@@ -57,9 +61,7 @@ const router = createBrowserRouter([
   {
     path: "/admin",
     element: <ProtectedRoute />,
-    children: [
-      { index: true, element: <AdminPage /> },
-    ],
+    children: [{ index: true, element: <AdminPage /> }],
   },
   // /bin redirects into the admin panel with the bin panel active
   {

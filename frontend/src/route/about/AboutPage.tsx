@@ -8,7 +8,6 @@ export default function AboutPage() {
 
   return (
     <div className="ap-page">
-
       {/* ══ SECTION 1: Header ══ */}
       <header className="ap-header">
         <span className="section-label ap-kicker">About the council</span>
@@ -16,25 +15,35 @@ export default function AboutPage() {
           A new era of <em className="italic-accent">student</em> leadership
         </h1>
         <p className="ap-subheading">
-          Learn more about the Central Student Government — who we are,
-          what drives us, and the promise we make to every kabsuhenyo.
+          Learn more about the Central Student Government — who we are, what
+          drives us, and the promise we make to every kabsuhenyo.
         </p>
       </header>
 
       {/* ══ SECTION 2: Two column ══ */}
       <section className="ap-section ap-two-col">
-
         {/* LEFT: image */}
         <div className="ap-img-col">
           <div className="ap-img-frame">
-            <img src="/about1.jpg" alt="Central Student Government" className="ap-img" />
+            <img
+              src="/about1.jpg"
+              alt="Central Student Government"
+              className="ap-img"
+            />
             <div className="ap-img-caption">Pusong Bayani · 2025</div>
           </div>
         </div>
 
         {/* RIGHT: text */}
         <div className="ap-text-col">
-          <span className="section-label" style={{ textAlign: "left", display: "block", marginBottom: "var(--space-3)" }}>
+          <span
+            className="section-label"
+            style={{
+              textAlign: "left",
+              display: "block",
+              marginBottom: "var(--space-3)",
+            }}
+          >
             Central Student Government
           </span>
           <h2 className="ap-text-heading">
@@ -43,9 +52,9 @@ export default function AboutPage() {
           </h2>
           <p className="ap-body">
             We&rsquo;re not just a new set of faces — we represent a new face of
-            leadership, one built on genuine commitment and dedication. In a time
-            when the passion to lead may have dimmed for some, we stand ready to
-            reignite that fire.
+            leadership, one built on genuine commitment and dedication. In a
+            time when the passion to lead may have dimmed for some, we stand
+            ready to reignite that fire.
           </p>
           <blockquote className="ap-blockquote">
             <span className="ap-quote-mark">&ldquo;</span>
@@ -56,10 +65,10 @@ export default function AboutPage() {
             </p>
           </blockquote>
           <p className="ap-body">
-            This new term is driven by a deep sense of purpose. Every initiative,
-            decision, and program is rooted in the true needs and aspirations of
-            every kabsuhenyo — empathy, dedication, and true care, at the
-            forefront of our work.
+            This new term is driven by a deep sense of purpose. Every
+            initiative, decision, and program is rooted in the true needs and
+            aspirations of every kabsuhenyo — empathy, dedication, and true
+            care, at the forefront of our work.
           </p>
         </div>
       </section>
@@ -69,14 +78,13 @@ export default function AboutPage() {
         <p className="ap-pillars-eyebrow">Three pillars</p>
         <h2 className="ap-pillars-heading">What we stand for</h2>
         <div className="ap-pillars-grid">
-
           <div className="ap-pillar card">
             <div className="ap-pillar-icon">M</div>
             <h3 className="ap-pillar-title">Our Mandate</h3>
             <p className="ap-pillar-body">
               Represent the interests of every CVSU-Imus student through
-              transparent governance, advocacy, and accountable stewardship
-              of student funds.
+              transparent governance, advocacy, and accountable stewardship of
+              student funds.
             </p>
             <ul className="ap-pillar-list">
               <li>Transparent decision-making</li>
@@ -138,7 +146,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
     </div>
   );
 }

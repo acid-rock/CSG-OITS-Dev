@@ -11,30 +11,49 @@ export default function Main() {
   const [officers, setOfficers] = useState<string>("—");
 
   const [pinnedTitle, setPinnedTitle] = useState<string>("Loading...");
-  const [equipmentLabel, setEquipmentLabel] = useState<string>("— of — available");
+  const [equipmentLabel, setEquipmentLabel] =
+    useState<string>("— of — available");
 
   useEffect(() => {
     const base = import.meta.env.VITE_API_URL as string;
 
     // Stat counters
     Promise.all([
-      axios.get(`${base}/documents/`).then((r) => setDocs(String(r.data.length))).catch(() => {}),
-      axios.get(`${base}/committees/`).then((r) => setCommittees(String(r.data.length))).catch(() => {}),
-      axios.get(`${base}/officers/`).then((r) => setOfficers(String(r.data.length))).catch(() => {}),
+      axios
+        .get(`${base}/documents/`)
+        .then((r) => setDocs(String(r.data.length)))
+        .catch(() => {}),
+      axios
+        .get(`${base}/committees/`)
+        .then((r) => setCommittees(String(r.data.length)))
+        .catch(() => {}),
+      axios
+        .get(`${base}/officers/`)
+        .then((r) => setOfficers(String(r.data.length)))
+        .catch(() => {}),
     ]);
 
     // Pinned Now badge — prefer admin-pinned item, fall back to most recent
     axios
       .get(`${base}/announcements/`)
       .then((r) => {
-        const announcements: { title: string; created_at: string; is_pinned?: boolean }[] = r.data;
+        const announcements: {
+          title: string;
+          created_at: string;
+          is_pinned?: boolean;
+        }[] = r.data;
         const pinned =
           announcements.find((a) => a.is_pinned) ??
           [...announcements].sort(
-            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime(),
           )[0];
         if (pinned?.title) {
-          const title = pinned.title.length > 30 ? pinned.title.slice(0, 30) + "..." : pinned.title;
+          const title =
+            pinned.title.length > 30
+              ? pinned.title.slice(0, 30) + "..."
+              : pinned.title;
           setPinnedTitle(title);
         } else {
           setPinnedTitle("No announcements");
@@ -46,8 +65,14 @@ export default function Main() {
     axios
       .get(`${base}/equipment/`)
       .then((r) => {
-        const rows: { quantity: number; max_quantity: number; is_available: boolean }[] = r.data;
-        const available = rows.filter((row) => row.is_available).reduce((sum, row) => sum + row.quantity, 0);
+        const rows: {
+          quantity: number;
+          max_quantity: number;
+          is_available: boolean;
+        }[] = r.data;
+        const available = rows
+          .filter((row) => row.is_available)
+          .reduce((sum, row) => sum + row.quantity, 0);
         const total = rows.reduce((sum, row) => sum + row.max_quantity, 0);
         setEquipmentLabel(`${available} of ${total} available`);
       })
@@ -126,7 +151,24 @@ export default function Main() {
             </div>
           </div>
           <div className="hero-badge bg2">
-            <div className="ico" style={{ background: "#22C55E", color: "#fff", borderRadius: "50%", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "700", flexShrink: 0 }}>✓</div>
+            <div
+              className="ico"
+              style={{
+                background: "#22C55E",
+                color: "#fff",
+                borderRadius: "50%",
+                width: "20px",
+                height: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "11px",
+                fontWeight: "700",
+                flexShrink: 0,
+              }}
+            >
+              ✓
+            </div>
             <div>
               <div className="lbl">Equipment online</div>
               <div className="val">{equipmentLabel}</div>

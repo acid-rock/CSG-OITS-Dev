@@ -13,9 +13,9 @@
   padding: var(--space-16) var(--section-padding-x) var(--space-10);
   background: linear-gradient(
     to bottom,
-    var(--color-background-hero)        0%,
-    rgba(184, 196, 232, 0.25)          60%,
-    var(--color-background)           100%
+    var(--color-background-hero) 0%,
+    rgba(184, 196, 232, 0.25) 60%,
+    var(--color-background) 100%
   );
 }
 
@@ -72,7 +72,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-top: var(--space-5);   /* room for the badge above */
+  margin-top: var(--space-5); /* room for the badge above */
 }
 
 /* "PRESIDENT" badge — absolute, centred above card top edge */
@@ -106,7 +106,7 @@
   box-shadow:
     0 0 0 3px var(--color-surface),
     0 0 0 5px var(--color-primary-light),
-    0 8px 20px -6px rgba(79,110,247,0.4);
+    0 8px 20px -6px rgba(79, 110, 247, 0.4);
   flex-shrink: 0;
   margin-bottom: var(--space-4);
 }
@@ -173,7 +173,10 @@
   gap: var(--space-4);
   width: 100%;
 }
-.op-board-grid .oc-card { width: 160px; flex-shrink: 0; }
+.op-board-grid .oc-card {
+  width: 160px;
+  flex-shrink: 0;
+}
 
 /* Adviser grid — flex wrap, centred, 200px cards */
 .op-adviser-grid {
@@ -183,7 +186,10 @@
   gap: var(--space-5);
   width: 100%;
 }
-.op-adviser-grid .oc-card { width: 200px; flex-shrink: 0; }
+.op-adviser-grid .oc-card {
+  width: 200px;
+  flex-shrink: 0;
+}
 
 /* ════════════════════════════════════════════════════
    SHARED OFFICER CARD  (.oc-card)
@@ -212,10 +218,12 @@
   box-shadow:
     0 0 0 3px var(--color-surface),
     0 0 0 4px var(--color-primary-light),
-    0 8px 20px -6px rgba(79,110,247,0.35);
+    0 8px 20px -6px rgba(79, 110, 247, 0.35);
   transition: transform var(--transition-base);
 }
-.oc-card:hover .oc-avatar { transform: translateY(-4px) scale(1.04); }
+.oc-card:hover .oc-avatar {
+  transform: translateY(-4px) scale(1.04);
+}
 
 /* Photo inside avatar */
 .oc-avatar-img {
@@ -276,7 +284,11 @@
   color: var(--color-primary);
   margin-top: var(--space-4);
   text-decoration: none;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
 }
 .oc-fb:hover {
   background: var(--color-primary);
@@ -289,20 +301,36 @@
    RESPONSIVE
    ════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
-  .op-exec-grid { grid-template-columns: repeat(4, 1fr); }
+  .op-exec-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 @media (max-width: 768px) {
-  .op-header { padding: var(--space-12) var(--space-6) var(--space-8); }
-  .op-heading { font-size: var(--font-size-3xl); }
-  .op-content { padding: var(--space-8) var(--space-6) var(--space-12); }
-  .op-exec-grid { grid-template-columns: repeat(3, 1fr); }
+  .op-header {
+    padding: var(--space-12) var(--space-6) var(--space-8);
+  }
+  .op-heading {
+    font-size: var(--font-size-3xl);
+  }
+  .op-content {
+    padding: var(--space-8) var(--space-6) var(--space-12);
+  }
+  .op-exec-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .op-board-grid .oc-card,
-  .op-adviser-grid .oc-card { width: calc(50% - var(--space-2)); }
+  .op-adviser-grid .oc-card {
+    width: calc(50% - var(--space-2));
+  }
 }
 @media (max-width: 480px) {
-  .op-exec-grid { grid-template-columns: repeat(2, 1fr); }
+  .op-exec-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .op-board-grid .oc-card,
-  .op-adviser-grid .oc-card { width: 100%; }
+  .op-adviser-grid .oc-card {
+    width: 100%;
+  }
 }
 
 /* ── Committee cards ── */
@@ -334,7 +362,9 @@
 /* Clickable committee card */
 .op-committee-card-clickable {
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .op-committee-card-clickable:hover {
@@ -369,7 +399,7 @@
   max-height: 80vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: var(--shadow-modal, 0 10px 40px rgba(0,0,0,0.2));
+  box-shadow: var(--shadow-modal, 0 10px 40px rgba(0, 0, 0, 0.2));
 }
 
 .op-committee-modal-close {
@@ -412,7 +442,9 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.op-cm-row:last-child { border-bottom: none; }
+.op-cm-row:last-child {
+  border-bottom: none;
+}
 
 .op-cm-avatar {
   width: 36px;

@@ -15,11 +15,12 @@ Prevents background page scroll while a modal is open.
 **Behavior:** Sets `document.body.style.overflow = 'hidden'` when called. Captures the original overflow value and restores it on cleanup (when the component unmounts or the dependency changes).
 
 **Usage:**
+
 ```tsx
-import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 
 const MyModal = ({ isOpen }: { isOpen: boolean }) => {
-  useLockBodyScroll();  // call unconditionally — always lock when modal mounts
+  useLockBodyScroll(); // call unconditionally — always lock when modal mounts
   // ...
 };
 ```
