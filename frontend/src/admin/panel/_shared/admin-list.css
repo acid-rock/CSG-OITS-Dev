@@ -1,7 +1,14 @@
 /* ============================================================
    CSG OITS — admin list pages
    Copied from admin_v2026/admin-list.css; width fixed for live app.
+
+   Sub-modules (auto-imported — every admin module gets them via
+   a single import of admin-list.css):
+     admin-modals.css   — modal cards, form fields, confirm dialogs
+     settings-panel.css — Settings page layout (ads-*)
    ============================================================ */
+@import url('./admin-modals.css');
+@import url('./settings-panel.css');
 .ad-root {
   --color-primary:#4f6fd1;
   --color-primary-dark:#3b5fbc;

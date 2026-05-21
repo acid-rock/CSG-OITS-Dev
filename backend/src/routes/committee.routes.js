@@ -3,7 +3,7 @@
 
 import { Router } from "express";
 import multer from "multer";
-import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.js";
+import { anonSupabase, supabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";

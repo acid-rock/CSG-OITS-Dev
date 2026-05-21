@@ -17,9 +17,11 @@ interface OfficerFormProps {
     socials?: string;
     year_serving?: string;
     student_number?: string;
-    committee?: number | null;
+    committee?: string | null;
     is_committee_official?: boolean;
   };
+  /** Active term from Settings — auto-fills year_serving for new officers */
+  activeTerm?: string;
   setOpen: (open: boolean) => void;
   onSuccess?: () => void;
 }
@@ -27,6 +29,7 @@ interface OfficerFormProps {
 const OfficerForm = ({
   id,
   initialData = {},
+  activeTerm = '',
   setOpen,
   onSuccess,
 }: OfficerFormProps) => {
@@ -37,9 +40,9 @@ const OfficerForm = ({
   const [position, setPosition] = useState(initialData.position ?? "");
   const [type, setType] = useState(initialData.type ?? "executive");
   const [socials, setSocials] = useState(initialData.socials ?? "");
-  const [yearServing, setYearServing] = useState(
-    initialData.year_serving ?? "",
-  );
+  // year_serving: officer's existing term (edit) OR active term from Settings (new)
+  // Not a free-text input — change the global term in Settings → General
+  const yearServing = initialData.year_serving ?? activeTerm;
   const [studentNumber, setStudentNumber] = useState(
     initialData.student_number ?? "",
   );
@@ -60,17 +63,6 @@ const OfficerForm = ({
       .catch(() => {});
   }, []);
 
-  // Auto-fill yearServing from active term if not editing
-  useEffect(() => {
-    if (!initialData.year_serving) {
-      axios
-        .get(`${API_URL}/settings/term`, { withCredentials: true })
-        .then(({ data }) => {
-          if (data?.value) setYearServing(data.value);
-        })
-        .catch(() => {});
-    }
-  }, []);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -189,28 +181,23 @@ const OfficerForm = ({
           </div>
 
           <div className="form-group">
-            <label htmlFor="year_serving">
-              Term (S.Y.){type === "former" ? " *" : ""}
-            </label>
-            <input
-              type="text"
-              id="year_serving"
-              value={yearServing}
-              onChange={(e) => setYearServing(e.target.value)}
-              placeholder="e.g. 2025-2026"
-              required={type === "former"}
-            />
-            {type === "former" && (
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  color: "#6b7280",
-                  marginTop: "0.2rem",
-                }}
-              >
-                Required for former officers — used to group in archived view.
-              </span>
-            )}
+            <label>Term (S.Y.)</label>
+            {/* Read-only — change the active term in Settings → General System Settings */}
+            <div style={{
+              padding: '8px 12px',
+              background: 'var(--color-surface, #f4f6fd)',
+              border: '1.5px solid var(--color-border, #e2e8f0)',
+              borderRadius: 8,
+              fontSize: 13.5,
+              fontFamily: "'JetBrains Mono', monospace",
+              color: yearServing ? 'var(--color-text-primary)' : 'var(--color-text-hint)',
+              userSelect: 'none',
+            }}>
+              {yearServing || 'Not set — configure in Settings → General System Settings'}
+            </div>
+            <span style={{ fontSize: '0.73rem', color: '#9ca3af', marginTop: '0.2rem' }}>
+              Set the active term in <em>Settings → General System Settings</em>.
+            </span>
           </div>
 
           <div className="form-group">

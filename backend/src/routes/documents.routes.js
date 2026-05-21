@@ -159,7 +159,7 @@ router.post(
     const userSupabase = createUserClient(token);
 
     // Parse boxes — frontend sends JSON.stringify([...]); may be absent or empty
-    let parsedBoxes = [];
+    let parsedBoxes;
     try { parsedBoxes = boxes ? JSON.parse(boxes) : []; } catch { parsedBoxes = []; }
 
     let redacted;
@@ -167,7 +167,7 @@ router.post(
 
     if (parsedBoxes.length > 0) {
       // Boxes selected — send to redaction microservice
-      let formData = new FormData();
+      const formData = new FormData();
       formData.append("file", req.file.buffer, {
         filename: req.file.originalname,
         contentType: req.file.mimetype,
@@ -192,18 +192,18 @@ router.post(
       .upload(filepath, redacted, { contentType, upsert: true });
     if (error) throw new Error(error.message);
 
-    formData = new FormData();
+    const thumbFormData = new FormData();
     const imgName = `${data.id}.png`;
-    formData.append("name", imgName);
-    formData.append("file", redacted, {
+    thumbFormData.append("name", imgName);
+    thumbFormData.append("file", redacted, {
       filename: imgName,
       contentType: req.file.mimetype,
     });
 
     const thumbnailResponse = await axios.post(
       `${REDACT_URL}/api/v1/thumbnail/create`,
-      formData,
-      { headers: formData.getHeaders(), responseType: "arraybuffer", maxBodyLength: Infinity },
+      thumbFormData,
+      { headers: thumbFormData.getHeaders(), responseType: "arraybuffer", maxBodyLength: Infinity },
     );
 
     const thumbnail = Buffer.from(thumbnailResponse.data);

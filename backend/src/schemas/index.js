@@ -48,11 +48,11 @@ export const addDocumentSchema = z.object({
   name: z.string()
     .min(1, 'Document name is required')
     .max(200)
-    .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Name contains invalid characters'),
+    .regex(/^[a-zA-Z0-9\s_-]+$/, 'Name contains invalid characters'),
   type: z.string()
     .min(1, 'Document type is required')
     .max(100)
-    .regex(/^[a-zA-Z0-9\-]+$/, 'Type must be alphanumeric with hyphens only'),
+    .regex(/^[a-zA-Z0-9-]+$/, 'Type must be alphanumeric with hyphens only'),
   description: z.string().max(1000).optional(),
   term_year: termYearField,
 });
