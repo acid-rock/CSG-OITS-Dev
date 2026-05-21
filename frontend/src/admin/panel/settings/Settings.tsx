@@ -25,6 +25,7 @@ const Settings = () => {
   const [pauseModal, setPauseModal] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [pause, setPause] = useState(false);
+  const [pauseSaving, setPauseSaving] = useState(false);
 
   // Active term — dropdown + badge
   const [activeTerm, setActiveTerm] = useState('');
@@ -42,6 +43,23 @@ const Settings = () => {
       })
       .catch(() => {});
   }, []);
+
+  // Fetch current pause state
+  useEffect(() => {
+    axios.get(`${API_URL}/settings/access_paused`, { withCredentials: true })
+      .then(({ data }) => { setPause(data.value === 'true'); })
+      .catch(() => {}); // setting may not exist yet — default false is fine
+  }, []);
+
+  const handlePauseConfirm = async () => {
+    const next = !pause;
+    setPauseSaving(true);
+    try {
+      await axios.post(`${API_URL}/settings/access_paused`, { value: String(next) }, { withCredentials: true });
+      setPause(next);
+    } catch { /* silently ignore — UI already updated optimistically */ }
+    finally { setPauseSaving(false); }
+  };
 
   // Fetch available term options from officers table
   useEffect(() => {
@@ -171,7 +189,10 @@ const Settings = () => {
 
           {/* Pause access toggle */}
           <div className='maintenance-inline'>
-            <span className='maintenance-label'>Pause access for students</span>
+            <span className='maintenance-label'>
+              Pause access for students
+              {pauseSaving && <span style={{ fontSize: '0.75rem', color: '#9ca3af', marginLeft: 8 }}>Saving…</span>}
+            </span>
             <label className='switch'>
               <input
                 type='checkbox'
@@ -265,8 +286,8 @@ const Settings = () => {
           <PauseAccessModal
             isPause={pause}
             isOpen={pauseModal}
-            onClose={() => setPauseModal(!pauseModal)}
-            onConfirm={() => setPause(!pause)}
+            onClose={() => setPauseModal(false)}
+            onConfirm={handlePauseConfirm}
           />
         </div>
       )}

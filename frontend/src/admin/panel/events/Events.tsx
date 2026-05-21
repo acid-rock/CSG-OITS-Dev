@@ -109,7 +109,7 @@ const Events = () => {
   const handleRestoreFromBin = async (eid: string) => { try { await axios.post(`${API_URL}/events/restore-from-bin`, { ids: [eid] }, { withCredentials: true }); setData(p => p.filter(e => e.id !== eid)); } catch { fetchData(); } };
   const handlePermanentDelete = async (eid: string) => {
     if (!window.confirm('Permanently delete?')) return;
-    await axios.delete(`${API_URL}/events/delete`, { data: { id: eid }, withCredentials: true });
+    await axios.delete(`${API_URL}/events/delete`, { data: { ids: [eid] }, withCredentials: true });
     setData(p => p.filter(e => e.id !== eid));
   };
 

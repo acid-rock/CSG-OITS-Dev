@@ -99,9 +99,22 @@ const Announcement = () => {
   };
 
   const handlePin = async (entryId: string) => {
+    const entry = data.find(e => e.id === entryId);
+    const alreadyPinned = entry?.is_pinned ?? false;
     try {
-      await axios.post(`${API_URL}/announcements/pin`, { id: entryId }, { withCredentials: true });
-      setData(prev => prev.map(e => ({ ...e, is_pinned: e.id === entryId })));
+      if (alreadyPinned) {
+        // Toggle off — unpin this item
+        await axios.post(`${API_URL}/announcements/unpin`, { id: entryId }, { withCredentials: true });
+        setData(prev => prev.map(e => e.id === entryId ? { ...e, is_pinned: false } : e));
+      } else {
+        // Pin this item (backend unpins all others first)
+        await axios.post(`${API_URL}/announcements/pin`, { id: entryId }, { withCredentials: true });
+        // Update state: mark new pin, clear old pin, then sort pinned to top
+        setData(prev => {
+          const updated = prev.map(e => ({ ...e, is_pinned: e.id === entryId }));
+          return [...updated.filter(e => e.is_pinned), ...updated.filter(e => !e.is_pinned)];
+        });
+      }
     } catch { fetchData(); }
   };
 
@@ -140,7 +153,7 @@ const Announcement = () => {
   const handlePermanentDelete = async (entryId: string) => {
     if (!window.confirm('Permanently delete this item? This cannot be undone.')) return;
     try {
-      await axios.delete(`${API_URL}/announcements/delete`, { data: [{ id: entryId }], withCredentials: true });
+      await axios.delete(`${API_URL}/announcements/delete`, { data: { ids: [entryId] }, withCredentials: true });
       setData(prev => prev.filter(item => item.id !== entryId));
     } catch (err: unknown) {
       setFetchError('Delete failed: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Unknown'));

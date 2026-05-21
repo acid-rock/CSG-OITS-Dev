@@ -96,9 +96,18 @@ export const editEventSchema = z.object({
 export const addOfficerSchema = z.object({
   full_name: z.string().min(1, 'Full name is required').max(200),
   position: z.string().min(1, 'Position is required').max(200),
-  type: z.enum(['executive', 'board', 'adviser', 'former']),
-  committee: z.number().int().positive().optional().nullable(),
-  is_committee_official: z.boolean().default(false),
+  // 'member' added — committee members are assigned this type
+  type: z.enum(['executive', 'board', 'adviser', 'former', 'member']),
+  // committee comes from a FormData <select>; empty string means "no committee"
+  committee: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
+    z.number().int().positive().nullable().optional(),
+  ),
+  // is_committee_official comes from a checkbox FormData value ("true"/"false")
+  is_committee_official: z.preprocess(
+    (v) => v === 'true' || v === true || v === '1',
+    z.boolean().default(false),
+  ),
   socials: z.string().url('Must be a valid URL').optional().nullable()
     .or(z.literal('')),
   year_serving: z.string().max(20).optional(),

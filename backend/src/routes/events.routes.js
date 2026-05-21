@@ -270,11 +270,38 @@ router.get(
       .order("deleted_at", { ascending: false });
     if (error) throw new ApiError(500, error.message);
 
+    // Resolve images from storage (same pattern as the active endpoint)
+    const bucket = anonSupabase.storage.from("events");
+    const { data: bucketData } = await bucket.list();
+    const imageMap = bucketData
+      ? Object.fromEntries(
+          await Promise.all(
+            bucketData.map(async (folder) => {
+              const { data: files } = await bucket.list(folder.name);
+              const links = (files ?? [])
+                .filter((f) => !f.name.startsWith("."))
+                .sort((a, b) =>
+                  a.name.localeCompare(b.name, undefined, { numeric: true }),
+                )
+                .map(
+                  (f) =>
+                    anonSupabase.storage
+                      .from("events")
+                      .getPublicUrl(`${folder.name}/${f.name}`).data.publicUrl,
+                );
+              return [folder.name, links];
+            }),
+          ),
+        )
+      : {};
+
     const payload = data.map((d) => ({
       id: d.id,
       name: d.name,
       description: d.description,
       date: d.date_happened,
+      created_at: d.created_at,
+      images: imageMap[d.id] ?? [],
       deleted_at: d.deleted_at,
     }));
 

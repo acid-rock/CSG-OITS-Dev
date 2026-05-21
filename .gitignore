@@ -96,3 +96,8 @@ skills-lock.json
 # ── Generated documents ───────────────────────────────────────────────────────
 # Word documents are generated output — regenerate from source if needed
 *.docx
+# Design reference directories (archived)
+frontend/admin_v2026/
+frontend/design_migration/
+frontend/organization/
+frontend/vscode-handoff/
