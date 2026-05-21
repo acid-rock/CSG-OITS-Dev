@@ -1,7 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import "./auditlog.css";
-import FilterSelect from "../../components/filter/Filter";
-import axios from "axios";
+import { useState, useEffect, useCallback } from 'react';
+import '../_shared/admin-list.css';
+import axios from 'axios';
+import Sidebar from '../_shared/Sidebar';
+import { PageHead, Toolbar, TableFoot } from '../_shared/chrome';
+import { Tag, MiniAvatar } from '../_shared/atoms';
+import { I } from '../_shared/icons';
+import { fmtDateTime, timeAgo, shortId, downloadCSV } from '../_shared/utils';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -16,297 +20,260 @@ interface AuditEntry {
   created_at: string;
 }
 
-const sortOptions = [
-  "Name (A-Z)",
-  "Name (Z-A)",
-  "Date (Newest)",
-  "Date (Oldest)",
-];
+type Tone = 'primary'|'warning'|'danger'|'neutral'|'success';
+const ACTION_TONE: Record<string, Tone> = { INSERT: 'success', UPDATE: 'primary', DELETE: 'danger' };
 
-function formatAction(action: string): string {
-  if (!action) return "—";
-  return action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-const formatDateTime = (iso: string): string => {
-  const d = new Date(iso);
-  return d.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
-
-const shortId = (uuid: string | null): string =>
-  uuid ? uuid.substring(0, 8) + "…" : "—";
+const PAGE_SIZE = 50;
 
 const Audit = () => {
   const [data, setData] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [spinning, setSpinning] = useState(false);
-  const [active, setActive] = useState<string[]>([]);
-  const [sort, setSort] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [selectedAction, setSelectedAction] = useState("All");
+  const [sort, setSort] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [selectedAction, setSelectedAction] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
-    setFetchError(null);
+    setLoading(true); setFetchError(null);
     try {
-      const { data: responseData } = await axios.get<AuditEntry[]>(
-        `${API_URL}/auditlog/`,
-        { withCredentials: true },
-      );
-      setData(responseData);
-    } catch (err: unknown) {
-      setFetchError(
-        err instanceof Error ? err.message : "Failed to load audit log.",
-      );
-    } finally {
-      setLoading(false);
-    }
+      const { data: r } = await axios.get<AuditEntry[]>(`${API_URL}/auditlog/`, { withCredentials: true });
+      setData(r);
+    } catch (err: unknown) { setFetchError(err instanceof Error ? err.message : 'Failed to load audit log.'); }
+    finally { setLoading(false); }
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+  // Reset to page 1 whenever any filter/sort changes
+  useEffect(() => { setPage(1); }, [selectedAction, dateFrom, dateTo, searchQuery, sort]);
 
-  const handleActive = (entryId: string) => {
-    setActive((prev) =>
-      prev.includes(entryId)
-        ? prev.filter((id) => id !== entryId)
-        : [...prev, entryId],
+  const handleRefresh = () => { setSpinning(true); fetchData().finally(() => setTimeout(() => setSpinning(false), 600)); };
+  const clearFilters = () => { setDateFrom(''); setDateTo(''); setSelectedAction('All'); setPage(1); };
+
+  const handleExportCSV = () => {
+    downloadCSV(
+      filtered.map(e => ({
+        'Date & Time': fmtDateTime(e.created_at),
+        Admin:         e.admin_name || e.created_by,
+        Action:        e.action ?? '—',
+        Table:         e.entity ?? '—',
+        'Record ID':   e.entity_id ?? '—',
+        'IP Address':  e.ip_address ?? '—',
+      })),
+      'audit-log'
     );
   };
 
-  const handleRefresh = () => {
-    setSpinning(true);
-    fetchData().finally(() => setTimeout(() => setSpinning(false), 600));
-  };
-
-  const clearDateFilter = () => {
-    setDateFrom("");
-    setDateTo("");
-  };
-
-  const actionTypes = [
-    "All",
-    ...Array.from(new Set(data.map((e) => e.action).filter(Boolean))).sort(),
-  ];
-
-  const hasFilter = !!(
-    dateFrom ||
-    dateTo ||
-    (selectedAction && selectedAction !== "All")
-  );
+  // Always show all CRUD action types — don't derive from data (data may only have some)
+  const FIXED_ACTION_TYPES = ['All', 'INSERT', 'UPDATE', 'DELETE'];
+  // Merge with any additional action types found in data
+  const extraTypes = Array.from(new Set(data.map(e => e.action).filter(Boolean)))
+    .filter(a => !FIXED_ACTION_TYPES.includes(a)).sort();
+  const actionTypes = [...FIXED_ACTION_TYPES, ...extraTypes];
 
   const filtered = data
-    .filter((entry) => {
-      const entryDate = new Date(entry.created_at);
-      const from = dateFrom ? new Date(dateFrom) : null;
-      const to = dateTo ? new Date(dateTo + "T23:59:59") : null;
-      if (from && entryDate < from) return false;
-      if (to && entryDate > to) return false;
-      if (selectedAction !== "All" && entry.action !== selectedAction)
-        return false;
-      return true;
-    })
+    .filter(e => selectedAction === 'All' || e.action === selectedAction)
+    .filter(e => !dateFrom || new Date(e.created_at) >= new Date(dateFrom))
+    .filter(e => !dateTo   || new Date(e.created_at) <= new Date(dateTo + 'T23:59:59'))
+    .filter(e => !searchQuery || (e.admin_name ?? '').toLowerCase().includes(searchQuery.toLowerCase()) || e.entity.toLowerCase().includes(searchQuery.toLowerCase()) || e.entity_id.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
-      if (sort === "Name (A-Z)") return a.entity.localeCompare(b.entity);
-      if (sort === "Name (Z-A)") return b.entity.localeCompare(a.entity);
-      if (sort === "Date (Newest)")
-        return (
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-      if (sort === "Date (Oldest)")
-        return (
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        );
-      return 0;
+      if (sort === 'Date (Oldest)') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
-  if (loading) {
-    return (
-      <div className="audit-container">
-        <div className="audit-header">
-          <span>Audit Log</span>
-        </div>
-        <p style={{ padding: "1rem" }}>Loading...</p>
-      </div>
-    );
-  }
+  const totalPages   = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage     = Math.min(page, totalPages);
+  const pageStart    = (safePage - 1) * PAGE_SIZE;                // 0-indexed
+  const pageEnd      = Math.min(pageStart + PAGE_SIZE, filtered.length);
+  const pageRows     = filtered.slice(pageStart, pageEnd);
+  const shownLabel   = filtered.length === 0 ? '0' : `${pageStart + 1}–${pageEnd}`;
+
+  /* Summary band stats */
+  const now = new Date();
+  const todayCount = data.filter(e => {
+    const d = new Date(e.created_at);
+    return d.getDate()===now.getDate() && d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  }).length;
+  const adminCount = new Set(data.map(e => e.created_by)).size;
+  const deletions7d = data.filter(e => {
+    const d = new Date(e.created_at);
+    return e.action === 'DELETE' && (Date.now() - d.getTime()) < 7 * 86400000;
+  }).length;
 
   return (
-    <div className="audit-container">
-      <div className="audit-header">
-        <span>Audit Log</span>
-      </div>
+    <div className="ad-shell">
+      <Sidebar active="auditlog" />
+      <main className="ad-main">
+        <PageHead
+          title="Audit Log"
+          subtitle="Every change made through the CMS — who, what, where, and when. Read-only."
+          actions={<>
+            <button className="ad-btn-ghost" onClick={() => window.print()}><I.print width="14" height="14" />Print</button>
+            <button className="ad-btn-ghost" onClick={handleExportCSV}><I.download width="14" height="14" />Export CSV</button>
+          </>}
+        />
 
-      {fetchError && (
-        <p style={{ padding: "0.5rem 1rem", color: "var(--color-danger)" }}>
-          {fetchError}
-        </p>
-      )}
+        {/* Summary band */}
+        <div className="ad-audit-summary">
+          <div className="ad-audit-stat">
+            <span className="ad-audit-stat-num">{data.length}</span>
+            <span className="ad-audit-stat-lbl">Total entries</span>
+          </div>
+          <div className="ad-audit-stat">
+            <span className="ad-audit-stat-num">{todayCount}</span>
+            <span className="ad-audit-stat-lbl">Today</span>
+          </div>
+          <div className="ad-audit-stat">
+            <span className="ad-audit-stat-num">{adminCount}</span>
+            <span className="ad-audit-stat-lbl">Active admins</span>
+          </div>
+          <div className="ad-audit-stat">
+            <span className={`ad-audit-stat-num${deletions7d > 0 ? ' is-danger' : ''}`}>{deletions7d}</span>
+            <span className="ad-audit-stat-lbl">Deletions (7d)</span>
+          </div>
+        </div>
 
-      <div className="audit-toolbar">
-        <span className="audit-file-count">{data.length} Entries</span>
-        <div className="audit-toolbar-actions">
-          {/* Action type filter */}
+        <Toolbar
+          placeholder="Search by admin, table, or record ID…"
+          search={searchQuery} onSearch={setSearchQuery}
+          onRefresh={handleRefresh}
+          showSort={false}
+        >
+          <span className="ad-filter-label">Action</span>
           <select
-            className="audit-action-select"
+            className="ad-filter-select"
             value={selectedAction}
-            onChange={(e) => setSelectedAction(e.target.value)}
-            aria-label="Filter by action type"
+            onChange={e => setSelectedAction(e.target.value)}
           >
-            {actionTypes.map((type) => (
-              <option key={type} value={type}>
-                {formatAction(type)}
+            {actionTypes.map(a => (
+              <option key={a} value={a}>
+                {a === 'All' ? 'Action: All' : a}
               </option>
             ))}
           </select>
-
-          {/* Date range */}
-          <div className="audit-date-range">
-            <div className="audit-date-field">
-              <label className="audit-date-label">From</label>
-              <input
-                type="date"
-                className="audit-date-input"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                max={dateTo || undefined}
-              />
-            </div>
-            <div className="audit-date-field">
-              <label className="audit-date-label">To</label>
-              <input
-                type="date"
-                className="audit-date-input"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                min={dateFrom || undefined}
-              />
-            </div>
-            {(dateFrom || dateTo) && (
-              <button
-                type="button"
-                className="audit-date-clear"
-                onClick={clearDateFilter}
-                title="Clear date filter"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          <FilterSelect
-            options={sortOptions}
-            value={sort}
-            onChange={setSort}
-            label="Sort"
+          {/* Date range — inline beside other filters */}
+          <span className="ad-filter-label">From</span>
+          <input
+            type="date"
+            className="ad-filter-select"
+            value={dateFrom}
+            max={dateTo || undefined}
+            onChange={e => setDateFrom(e.target.value)}
+            style={{ width: 150 }}
           />
-
-          <button
-            type="button"
-            className="audit-action-btn"
-            title="Refresh"
-            onClick={handleRefresh}
+          <span className="ad-filter-label" style={{ padding: '0 2px' }}>→</span>
+          <input
+            type="date"
+            className="ad-filter-select"
+            value={dateTo}
+            min={dateFrom || undefined}
+            onChange={e => setDateTo(e.target.value)}
+            style={{ width: 150 }}
+          />
+          {(dateFrom || dateTo) && (
+            <button className="ad-icon-btn" title="Clear dates" onClick={clearFilters} style={{ flexShrink: 0 }}>
+              <I.x width="11" height="11" />
+            </button>
+          )}
+          <span className="ad-filter-label">Sort</span>
+          <select
+            className="ad-filter-select"
+            value={sort}
+            onChange={e => setSort(e.target.value)}
           >
-            <img
-              src="/refresh.png"
-              alt="refresh"
-              className={`refresh-img${spinning ? " audit-spin" : ""}`}
-            />
-          </button>
-        </div>
-      </div>
+            <option value="">Newest first</option>
+            <option value="Date (Oldest)">Oldest first</option>
+          </select>
+        </Toolbar>
+        <span style={{ fontSize:12, color:'var(--color-text-muted)' }}>
+          Showing <strong>{filtered.length}</strong> of <strong>{data.length}</strong> entries
+        </span>
 
-      {hasFilter && (
-        <p className="audit-filter-count">
-          Showing {filtered.length} of {data.length} entries
-        </p>
-      )}
+        {fetchError && <p style={{fontSize:13,color:'var(--color-danger-text)'}}>{fetchError}</p>}
 
-      <div className="audit-file-table">
-        <table>
-          <colgroup>
-            <col className="audit-col-user" />
-            <col className="audit-col-image" />
-            <col className="audit-col-filename" />
-            <col className="audit-col-description" />
-            <col className="audit-col-date" />
-          </colgroup>
-          <thead>
-            <tr className="audit-table-header-light">
-              <th>Admin</th>
-              <th>Action</th>
-              <th>Table</th>
-              <th>Record ID</th>
-              <th>Date &amp; Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((entry, idx) => (
-              <tr
-                key={idx}
-                className={`audit-table-row ${active.includes(entry.id) ? "audit-active" : ""}`}
-                onClick={() => handleActive(entry.id)}
-              >
-                <td>
-                  <div className="audit-user-cell">
-                    <span className="audit-user-name" title={entry.created_by}>
-                      {entry.admin_name ?? shortId(entry.created_by)}
-                    </span>
-                    <span className="audit-role-badge audit-role-admin">
-                      Admin
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <span
-                    style={{
-                      fontWeight: 600,
-                      color:
-                        entry.action === "DELETE"
-                          ? "var(--color-danger)"
-                          : entry.action === "INSERT"
-                            ? "var(--color-success)"
-                            : "var(--color-primary)",
-                    }}
-                  >
-                    {formatAction(entry.action)}
-                  </span>
-                </td>
-                <td>{entry.entity ?? "—"}</td>
-                <td title={entry.entity_id}>{shortId(entry.entity_id)}</td>
-                <td className="audit-datetime">
-                  {entry.created_at ? formatDateTime(entry.created_at) : "—"}
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td
-                  colSpan={5}
-                  style={{
-                    textAlign: "center",
-                    padding: "2rem",
-                    color: "var(--color-text-muted)",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  No entries match the current filters.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+        {loading ? (
+          <section className="ad-card"><div className="ad-empty"><p>Loading audit log… this may take a moment for large datasets.</p></div></section>
+        ) : (
+          <section className="ad-card">
+            <table className="ad-table">
+              <colgroup><col style={{minWidth:260}}/><col style={{width:130}}/><col style={{width:160}}/><col style={{width:160}}/><col style={{width:200}}/></colgroup>
+              <thead><tr>
+                <th>Admin</th><th>Action</th><th>Table</th><th>Record ID</th><th>Date &amp; time</th>
+              </tr></thead>
+              <tbody>
+                {pageRows.length === 0 && <tr><td colSpan={5}><div className="ad-empty"><p>No entries match your filters.</p></div></td></tr>}
+                {pageRows.map((entry, i) => (
+                  <tr key={entry.id ?? i}>
+                    <td>
+                      <div className="ad-author">
+                        <MiniAvatar name={entry.admin_name || entry.created_by} />
+                        <span className="ad-mono">{entry.admin_name || shortId(entry.created_by)}</span>
+                      </div>
+                    </td>
+                    <td><Tag label={entry.action ?? '—'} tone={ACTION_TONE[entry.action] ?? 'neutral'} /></td>
+                    <td><span className="ad-mono ad-cell-text">{entry.entity ?? '—'}</span></td>
+                    <td>
+                      <span className="ad-mono ad-cell-muted" title={entry.entity_id}>
+                        {shortId(entry.entity_id)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="ad-date">
+                        <span className="ad-date-abs">{fmtDateTime(entry.created_at)}</span>
+                        <span className="ad-date-rel">{entry.created_at ? timeAgo(entry.created_at) : '—'}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="ad-table-foot">
+              <span className="ad-foot-count">
+                Showing <strong>{shownLabel}</strong> of <strong>{filtered.length}</strong> entries
+                {filtered.length < data.length && <> (filtered from <strong>{data.length}</strong> total)</>}
+              </span>
+              {totalPages > 1 && (
+                <div className="ad-foot-pager">
+                  <button
+                    className="ad-icon-btn"
+                    disabled={safePage === 1}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    title="Previous page"
+                  >‹</button>
+                  {/* Show up to 7 page buttons with ellipsis */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(n => n === 1 || n === totalPages || Math.abs(n - safePage) <= 2)
+                    .reduce<(number | '…')[]>((acc, n, idx, arr) => {
+                      if (idx > 0 && n - (arr[idx - 1] as number) > 1) acc.push('…');
+                      acc.push(n);
+                      return acc;
+                    }, [])
+                    .map((n, idx) =>
+                      n === '…'
+                        ? <span key={`ell-${idx}`} style={{ padding: '0 4px', color: 'var(--color-text-muted)', fontSize: 13 }}>…</span>
+                        : <button
+                            key={n}
+                            className={`ad-icon-btn${n === safePage ? ' is-on' : ''}`}
+                            onClick={() => setPage(n as number)}
+                            style={{ minWidth: 32, fontWeight: n === safePage ? 700 : 400 }}
+                          >{n}</button>
+                    )
+                  }
+                  <button
+                    className="ad-icon-btn"
+                    disabled={safePage === totalPages}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    title="Next page"
+                  >›</button>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+      </main>
     </div>
   );
 };

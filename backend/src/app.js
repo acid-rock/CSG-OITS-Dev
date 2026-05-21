@@ -13,6 +13,7 @@ import equipmentRoutes from "./routes/equipment.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import changelogRoutes from "./routes/changelog.routes.js";
 import organizationRoutes from "./routes/organizations.routes.js";
+import viewsRoutes from "./routes/views.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -78,20 +79,29 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes — public (stricter) vs admin (generous)
+// NOTE: officers, committees, equipment, organizations serve BOTH the public
+// homepage AND the admin panel.  Because all three lists are cached for 60 s
+// on the backend, real DB hits are rare.  The bottleneck is the admin panel
+// making many requests from a single IP in a short window, which quickly
+// exhausts the public 100 req/15 min bucket.  Moving them to adminLimiter
+// (500 req/15 min) removes that wall without meaningful risk — public traffic
+// on a small CSG site will never come close to 500 req/15 min per IP.
 app.use("/api/v1/announcements", publicLimiter, announcementRoutes);
-app.use("/api/v1/documents", publicLimiter, documentRoutes);
-app.use("/api/v1/events", publicLimiter, eventRoutes);
-app.use("/api/v1/officers", publicLimiter, officerRoutes);
-app.use("/api/v1/committees", publicLimiter, committeeRoutes);
-app.use("/api/v1/equipment", publicLimiter, equipmentRoutes);
-app.use("/api/v1/user", adminLimiter, userRoutes);
-app.use("/api/v1/dashboard", adminLimiter, dashboardRoutes);
-app.use("/api/v1/settings", adminLimiter, settingsRoutes);
-app.use("/api/v1/analytics", adminLimiter, analyticsRoutes);
-app.use("/api/v1/auditlog", adminLimiter, auditlogRoutes);
-app.use("/api/v1/borrowing", adminLimiter, borrowingRoutes);
-app.use("/api/v1/changelog", publicLimiter, changelogRoutes);
-app.use("/api/v1/organizations", publicLimiter, organizationRoutes);
+app.use("/api/v1/documents",     publicLimiter, documentRoutes);
+app.use("/api/v1/events",        publicLimiter, eventRoutes);
+app.use("/api/v1/changelog",     publicLimiter, changelogRoutes);
+// POST /track is public (anon visits); GET /stats is admin-gated inside the router
+app.use("/api/v1/views",         publicLimiter, viewsRoutes);
+app.use("/api/v1/officers",      adminLimiter,  officerRoutes);      // was publicLimiter
+app.use("/api/v1/committees",    adminLimiter,  committeeRoutes);    // was publicLimiter
+app.use("/api/v1/equipment",     adminLimiter,  equipmentRoutes);    // was publicLimiter
+app.use("/api/v1/organizations", adminLimiter,  organizationRoutes); // was publicLimiter
+app.use("/api/v1/user",          adminLimiter,  userRoutes);
+app.use("/api/v1/dashboard",     adminLimiter,  dashboardRoutes);
+app.use("/api/v1/settings",      adminLimiter,  settingsRoutes);
+app.use("/api/v1/analytics",     adminLimiter,  analyticsRoutes);
+app.use("/api/v1/auditlog",      adminLimiter,  auditlogRoutes);
+app.use("/api/v1/borrowing",     adminLimiter,  borrowingRoutes);
 
 // Health route
 app.get("/health", (req, res) => {

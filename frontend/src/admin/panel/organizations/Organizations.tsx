@@ -1,6 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import { useLockBodyScroll } from "../../../hooks/useLockBodyScroll";
+import { useState, useEffect, useCallback } from 'react';
+import '../_shared/admin-list.css';
+import axios from 'axios';
+import { useLockBodyScroll } from '../../../hooks/useLockBodyScroll';
+import Sidebar from '../_shared/Sidebar';
+import { PageHead, Tabs, Toolbar, BulkBar, TableFoot } from '../_shared/chrome';
+import { I } from '../_shared/icons';
+import { gradientFor } from '../_shared/utils';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -11,617 +16,329 @@ interface OrgEntry {
   logo_path: string | null;
   logo_url: string | null;
   facebook_link: string | null;
+  created_at?: string;
+  deleted_at?: string;
+  org_type?: 'academic' | 'non-academic' | 'spu' | null;
 }
 
-type OrgTab = "active" | "archived" | "bin";
+type OrgTab = 'active' | 'archived' | 'bin';
 
 const OrganizationsPanel = () => {
-  const [orgTab, setOrgTab] = useState<OrgTab>("active");
+  const [orgTab, setOrgTab] = useState<OrgTab>('active');
   const [data, setData] = useState<OrgEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('');
 
-  // Form state
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [facebookLink, setFacebookLink] = useState("");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [facebookLink, setFacebookLink] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // Delete confirmation
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleteName, setDeleteName] = useState("");
+  const [deleteName, setDeleteName] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
 
   useLockBodyScroll(formOpen || confirmOpen);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
-    setFetchError(null);
+    setLoading(true); setFetchError(null);
     try {
-      const endpoint =
-        orgTab === "archived"
-          ? `${API_URL}/organizations/archived`
-          : orgTab === "bin"
-            ? `${API_URL}/organizations/bin`
-            : `${API_URL}/organizations`;
-      const { data: res } = await axios.get<OrgEntry[]>(endpoint, {
-        withCredentials: true,
-      });
+      const ep = orgTab === 'archived' ? `${API_URL}/organizations/archived`
+        : orgTab === 'bin' ? `${API_URL}/organizations/bin`
+        : `${API_URL}/organizations`;
+      const { data: res } = await axios.get<OrgEntry[]>(ep, { withCredentials: true });
       setData(res);
-    } catch (err: unknown) {
-      setFetchError(
-        err instanceof Error ? err.message : "Failed to load organizations.",
-      );
-    } finally {
-      setLoading(false);
-    }
+    } catch (err: unknown) { setFetchError(err instanceof Error ? err.message : 'Failed to load organizations.'); }
+    finally { setLoading(false); }
   }, [orgTab]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); setSelected([]); }, [fetchData]);
 
-  const openAdd = () => {
-    setEditingId(null);
-    setName("");
-    setDescription("");
-    setFacebookLink("");
-    setLogoFile(null);
-    setLogoPreview(null);
-    setSubmitError(null);
-    setFormOpen(true);
-  };
-
-  const openEdit = (org: OrgEntry) => {
-    setEditingId(org.id);
-    setName(org.name);
-    setDescription(org.description ?? "");
-    setFacebookLink(org.facebook_link ?? "");
-    setLogoFile(null);
-    setLogoPreview(org.logo_url ?? null);
-    setSubmitError(null);
-    setFormOpen(true);
-  };
+  const openAdd = () => { setEditingId(null); setName(''); setDescription(''); setFacebookLink(''); setLogoFile(null); setLogoPreview(null); setSubmitError(null); setFormOpen(true); };
+  const openEdit = (org: OrgEntry) => { setEditingId(org.id); setName(org.name); setDescription(org.description ?? ''); setFacebookLink(org.facebook_link ?? ''); setLogoFile(null); setLogoPreview(org.logo_url ?? null); setSubmitError(null); setFormOpen(true); };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setLogoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setLogoPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
+    if (file) { setLogoFile(file); const r = new FileReader(); r.onloadend = () => setLogoPreview(r.result as string); r.readAsDataURL(file); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setSubmitError("Name is required.");
-      return;
-    }
-    setSubmitting(true);
-    setSubmitError(null);
+    if (!name.trim()) { setSubmitError('Name is required.'); return; }
+    setSubmitting(true); setSubmitError(null);
     try {
       const fd = new FormData();
-      fd.append("name", name.trim());
-      fd.append("description", description);
-      fd.append("facebook_link", facebookLink);
-      if (editingId) fd.append("id", editingId);
-      if (logoFile) fd.append("logo", logoFile);
-
-      const endpoint = editingId
-        ? `${API_URL}/organizations/edit`
-        : `${API_URL}/organizations/add`;
-      const { data: result } = await axios.post<OrgEntry>(endpoint, fd, {
-        withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (editingId) {
-        setData((prev) =>
-          prev.map((o) =>
-            o.id === editingId
-              ? {
-                  ...o,
-                  name: name.trim(),
-                  description,
-                  facebook_link: facebookLink,
-                  logo_url: logoPreview,
-                }
-              : o,
-          ),
-        );
-      } else {
-        setData((prev) => [...prev, result]);
-      }
+      fd.append('name', name.trim()); fd.append('description', description); fd.append('facebook_link', facebookLink);
+      if (editingId) fd.append('id', editingId);
+      if (logoFile) fd.append('logo', logoFile);
+      const ep = editingId ? `${API_URL}/organizations/edit` : `${API_URL}/organizations/add`;
+      const { data: result } = await axios.post<OrgEntry>(ep, fd, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' } });
+      if (editingId) setData(p => p.map(o => o.id === editingId ? { ...o, name: name.trim(), description, facebook_link: facebookLink, logo_url: logoPreview } : o));
+      else setData(p => [...p, result]);
       setFormOpen(false);
     } catch (err: unknown) {
-      const errData = (
-        err as { response?: { data?: { error?: string; message?: string } } }
-      )?.response?.data;
-      setSubmitError(
-        errData?.error ?? errData?.message ?? "Failed to save organization.",
-      );
-    } finally {
-      setSubmitting(false);
-    }
+      const ed = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      setSubmitError(ed?.error ?? ed?.message ?? 'Failed to save.');
+    } finally { setSubmitting(false); }
   };
 
+  // Filter local state immediately — do NOT call fetchData() after archive/bin
+  // because fetching would re-include the item before the cache invalidates.
+  const handleArchive  = async (id: string) => {
+    try { await axios.post(`${API_URL}/organizations/archive`, { id }, { withCredentials: true }); setData(p => p.filter(o => o.id !== id)); }
+    catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Archive failed.'); }
+  };
+  const handleRestore  = async (id: string) => {
+    try { await axios.post(`${API_URL}/organizations/restore`, { id }, { withCredentials: true }); setData(p => p.filter(o => o.id !== id)); }
+    catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Restore failed.'); }
+  };
+  const handleBin      = async (id: string) => {
+    try { await axios.post(`${API_URL}/organizations/bin`, { id }, { withCredentials: true }); setData(p => p.filter(o => o.id !== id)); }
+    catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Move to bin failed.'); }
+  };
+  const handleRFB      = async (id: string) => {
+    try { await axios.post(`${API_URL}/organizations/restore-from-bin`, { id }, { withCredentials: true }); setData(p => p.filter(o => o.id !== id)); }
+    catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Restore from bin failed.'); }
+  };
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
+    try { await axios.delete(`${API_URL}/organizations/delete`, { data: { id: deleteId }, withCredentials: true }); setData(p => p.filter(o => o.id !== deleteId)); }
+    catch { /* ignore */ } finally { setConfirmOpen(false); setDeleteId(null); }
+  };
+
+  /* ── Bulk helpers ── */
+  const toggleSelect = (id: string) =>
+    setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+
+  const bulkArchive = async () => {
+    if (!selected.length) return;
     try {
-      await axios.delete(`${API_URL}/organizations/delete`, {
-        data: { id: deleteId },
-        withCredentials: true,
-      });
-      setData((prev) => prev.filter((o) => o.id !== deleteId));
-    } catch {
-      // silently ignore
-    } finally {
-      setConfirmOpen(false);
-      setDeleteId(null);
+      await Promise.all(selected.map(id => axios.post(`${API_URL}/organizations/archive`, { id }, { withCredentials: true })));
+      setData(p => p.filter(o => !selected.includes(o.id)));
+      setSelected([]);
+    } catch (err: unknown) {
+      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      setFetchError(d?.error ?? d?.message ?? 'Bulk archive failed.');
     }
   };
 
-  const getInitials = (n: string) =>
-    n
-      .split(" ")
-      .map((w) => w[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
+  const bulkBin = async () => {
+    if (!selected.length) return;
+    try {
+      await Promise.all(selected.map(id => axios.post(`${API_URL}/organizations/bin`, { id }, { withCredentials: true })));
+      setData(p => p.filter(o => !selected.includes(o.id)));
+      setSelected([]);
+    } catch (err: unknown) {
+      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      setFetchError(d?.error ?? d?.message ?? 'Bulk bin failed.');
+    }
+  };
 
-  const tabStyle = (t: OrgTab) => ({
-    padding: "0.35rem 1rem",
-    border: "none",
-    borderBottom: orgTab === t ? "2px solid #3b82f6" : "2px solid transparent",
-    background: "none",
-    cursor: "pointer",
-    fontWeight: orgTab === t ? 600 : 400,
-    color: orgTab === t ? "#3b82f6" : "#6b7280",
-    fontSize: "0.9rem",
-  });
+  const bulkRestore = async () => {
+    if (!selected.length) return;
+    try {
+      await Promise.all(selected.map(id => axios.post(`${API_URL}/organizations/restore`, { id }, { withCredentials: true })));
+      setData(p => p.filter(o => !selected.includes(o.id)));
+      setSelected([]);
+    } catch (err: unknown) {
+      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      setFetchError(d?.error ?? d?.message ?? 'Bulk restore failed.');
+    }
+  };
+
+  const getInitials = (n: string) => n.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+  const filtered = data.filter(o =>
+    (!searchQuery || o.name.toLowerCase().includes(searchQuery.toLowerCase())) &&
+    (!typeFilter || o.org_type === typeFilter)
+  );
+
 
   return (
-    <div className="announce-container">
-      <div className="announce-header">
-        <span>Organizations</span>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: 0,
-          borderBottom: "1px solid #e5e7eb",
-          marginBottom: "0.5rem",
-        }}
-      >
-        <button style={tabStyle("active")} onClick={() => setOrgTab("active")}>
-          Active
-        </button>
-        <button
-          style={tabStyle("archived")}
-          onClick={() => setOrgTab("archived")}
-        >
-          Archived
-        </button>
-        <button style={tabStyle("bin")} onClick={() => setOrgTab("bin")}>
-          Bin
-        </button>
-      </div>
-
-      {fetchError && (
-        <p style={{ padding: "0.5rem 1rem", color: "red" }}>{fetchError}</p>
-      )}
-
-      <div className="announce-toolbar">
-        <span className="announce-file-count">{data.length} Organizations</span>
-        <div className="announce-toolbar-actions">
-          {orgTab === "active" && (
-            <button className="announce-add-btn" onClick={openAdd}>
-              Add Organization
-            </button>
-          )}
-        </div>
-      </div>
-
-      {loading ? (
-        <p style={{ padding: "1rem" }}>Loading...</p>
-      ) : (
-        <div className="announce-file-table">
-          <table>
-            <thead>
-              <tr className="announce-table-header-light">
-                <th style={{ width: 60 }}>Logo</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((org) => (
-                <tr
-                  key={org.id}
-                  className="announce-table-row"
-                  onMouseEnter={() => setHoveredRowId(org.id)}
-                  onMouseLeave={() => setHoveredRowId(null)}
-                >
-                  <td>
-                    <div
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: "50%",
-                        overflow: "hidden",
-                        background: "#e5e7eb",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        color: "#6b7280",
-                      }}
-                    >
-                      {org.logo_url ? (
-                        <img
-                          src={org.logo_url}
-                          alt={org.name}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        getInitials(org.name)
-                      )}
-                    </div>
-                  </td>
-                  <td>{org.name}</td>
-                  <td
-                    style={{
-                      maxWidth: 300,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {org.description ?? "—"}
-                  </td>
-                  <td className="announce-file-btn">
-                    {hoveredRowId === org.id && (
-                      <div className="announce-file-btn-inner">
-                        <button
-                          title="Edit"
-                          onClick={() => openEdit(org)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            color: "#3b82f6",
-                            fontSize: "0.8rem",
-                            padding: "0.25rem 0.5rem",
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          title="Delete"
-                          onClick={() => {
-                            setDeleteId(org.id);
-                            setDeleteName(org.name);
-                            setConfirmOpen(true);
-                          }}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            color: "#dc2626",
-                            fontSize: "0.8rem",
-                            padding: "0.25rem 0.5rem",
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {data.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={4}
-                    style={{
-                      padding: "1rem",
-                      color: "#9ca3af",
-                      textAlign: "center",
-                    }}
-                  >
-                    No organizations yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Add/Edit Form Modal */}
-      {formOpen && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: "1.5rem",
-              maxWidth: 480,
-              width: "92%",
-              boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
-            }}
+    <>
+      <div className="ad-shell">
+        <Sidebar active="organizations" />
+        <main className="ad-main">
+          <PageHead
+            title="Organizations"
+            subtitle="Register and manage recognized student organizations."
+            actions={<>
+              <button className="ad-btn-ghost" onClick={() => window.print()}><I.print width="14" height="14" />Print</button>
+              {orgTab === 'active' && <button className="ad-btn-primary" onClick={openAdd}><I.plus width="14" height="14" />New organization</button>}
+            </>}
+          />
+          <Tabs items={[
+            { label:'Active',   active: orgTab==='active',   count: orgTab==='active'   ? data.length : undefined },
+            { label:'Archived', active: orgTab==='archived', count: orgTab==='archived' ? data.length : undefined },
+            { label:'Bin',      active: orgTab==='bin',      count: orgTab==='bin'      ? data.length : undefined },
+          ]} onTabChange={(l) => setOrgTab(l.toLowerCase() as OrgTab)} />
+          <Toolbar
+            placeholder="Search organizations by name or description…"
+            search={searchQuery} onSearch={setSearchQuery}
+            showSort={false}
+            onRefresh={fetchData}
           >
-            <h2
-              style={{
-                margin: "0 0 1rem",
-                fontSize: "1.1rem",
-                fontWeight: 700,
-              }}
+            <span className="ad-filter-label">Type</span>
+            <select
+              className="ad-filter-select"
+              value={typeFilter}
+              onChange={e => setTypeFilter(e.target.value)}
             >
-              {editingId ? "Edit Organization" : "Add Organization"}
-            </h2>
-            <form
-              onSubmit={handleSubmit}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.75rem",
-              }}
-            >
-              <div>
-                <label
-                  style={{
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    display: "block",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  Name *
-                </label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Organization name"
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem 0.75rem",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    fontSize: "0.875rem",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-              <div>
-                <label
-                  style={{
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    display: "block",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  placeholder="Short description"
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem 0.75rem",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    fontSize: "0.875rem",
-                    resize: "vertical",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-              <div>
-                <label
-                  style={{
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    display: "block",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  Facebook Link
-                </label>
-                <input
-                  value={facebookLink}
-                  onChange={(e) => setFacebookLink(e.target.value)}
-                  placeholder="https://facebook.com/..."
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem 0.75rem",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    fontSize: "0.875rem",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-              <div>
-                <label
-                  style={{
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    display: "block",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  Logo
-                </label>
-                {logoPreview && (
-                  <img
-                    src={logoPreview}
-                    alt="preview"
-                    style={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      marginBottom: "0.5rem",
-                    }}
-                  />
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoChange}
-                  style={{ fontSize: "0.85rem" }}
-                />
-              </div>
-              {submitError && (
-                <p style={{ color: "#dc2626", fontSize: "0.85rem", margin: 0 }}>
-                  {submitError}
-                </p>
-              )}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "0.75rem",
-                  justifyContent: "flex-end",
-                  marginTop: "0.5rem",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setFormOpen(false)}
-                  style={{
-                    padding: "0.5rem 1.25rem",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    background: "#fff",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  style={{
-                    padding: "0.5rem 1.25rem",
-                    background: "#4f6ef7",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  {submitting ? "Saving…" : "Save"}
-                </button>
+              <option value="">Type: All</option>
+              <option value="academic">Academic</option>
+              <option value="non-academic">Non-Academic</option>
+              <option value="spu">Student Publication Unit</option>
+            </select>
+          </Toolbar>
+
+          {fetchError && <p style={{fontSize:13,color:'var(--color-danger-text)'}}>{fetchError}</p>}
+
+          {/* Bulk action bar — visible only when items are selected */}
+          {orgTab === 'active' && (
+            <BulkBar
+              count={selected.length}
+              actions={['Archive', 'Delete']}
+              handlers={{ Archive: bulkArchive, Delete: bulkBin }}
+              onClear={() => setSelected([])}
+            />
+          )}
+          {orgTab === 'archived' && (
+            <BulkBar
+              count={selected.length}
+              actions={['Restore', 'Delete']}
+              handlers={{ Restore: bulkRestore, Delete: bulkBin }}
+              onClear={() => setSelected([])}
+            />
+          )}
+
+          {loading ? (
+            <section className="ad-card"><div className="ad-empty"><p>Loading…</p></div></section>
+          ) : (
+            <section className="ad-card">
+              <table className="ad-table">
+                <colgroup><col style={{width:44}}/><col style={{width:60}}/><col/><col style={{width:160}}/></colgroup>
+                <thead><tr>
+                  {/* Select-all checkbox */}
+                  <th>
+                    <input
+                      type="checkbox"
+                      checked={filtered.length > 0 && filtered.every(o => selected.includes(o.id))}
+                      onChange={() => {
+                        const allSelected = filtered.every(o => selected.includes(o.id));
+                        setSelected(allSelected ? [] : filtered.map(o => o.id));
+                      }}
+                    />
+                  </th>
+                  <th>Logo</th><th>Name &amp; description</th><th className="ad-th-right">Actions</th>
+                </tr></thead>
+                <tbody>
+                  {filtered.length === 0 && <tr><td colSpan={4}><div className="ad-empty"><p>{orgTab==='bin'?'Bin is empty.':'No organizations found.'}</p></div></td></tr>}
+                  {filtered.map(org => {
+                    const [a, b] = gradientFor(org.name);
+                    return (
+                      <tr key={org.id} className={selected.includes(org.id) ? 'is-selected' : ''}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(org.id)}
+                            onChange={() => toggleSelect(org.id)}
+                          />
+                        </td>
+                        <td>
+                          <span className="ad-org-logo" style={org.logo_url ? undefined : { background: `linear-gradient(135deg, ${a}, ${b})` }}>
+                            {org.logo_url ? <img src={org.logo_url} alt={org.name} /> : getInitials(org.name)}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="ad-title-stack">
+                            <a className="ad-title-link" href={org.facebook_link ?? '#'} target={org.facebook_link ? '_blank' : undefined} rel="noopener noreferrer">{org.name}</a>
+                            {org.description && <p className="ad-desc">{org.description}</p>}
+                            {org.facebook_link && <div className="ad-meta"><span><I.link width="11" height="11" /> Facebook</span></div>}
+                          </div>
+                        </td>
+                        <td className="ad-actions">
+                          {orgTab === 'active' && <>
+                            <button className="ad-icon-btn" title="Edit" onClick={() => openEdit(org)}><I.edit width="14" height="14" /></button>
+                            <button className="ad-icon-btn" title="Archive" onClick={() => handleArchive(org.id)}><I.archive width="14" height="14" /></button>
+                            <button className="ad-icon-btn ad-icon-btn--danger" title="Move to bin" onClick={() => handleBin(org.id)}><I.trash width="14" height="14" /></button>
+                          </>}
+                          {orgTab === 'archived' && <>
+                            <button className="ad-icon-btn is-on" title="Restore to Active" onClick={() => handleRestore(org.id)}><I.restore width="14" height="14" /></button>
+                            <button className="ad-icon-btn ad-icon-btn--danger" title="Move to Bin" onClick={() => handleBin(org.id)}><I.trash width="14" height="14" /></button>
+                          </>}
+                          {orgTab === 'bin' && <>
+                            <button className="ad-icon-btn is-on" title="Restore" onClick={() => handleRFB(org.id)}><I.restore width="14" height="14" /></button>
+                            <button className="ad-icon-btn ad-icon-btn--danger" title="Delete permanently" onClick={() => { setDeleteId(org.id); setDeleteName(org.name); setConfirmOpen(true); }}><I.trash width="14" height="14" /></button>
+                          </>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <TableFoot shown={`1–${filtered.length}`} total={filtered.length} label="organizations" />
+            </section>
+          )}
+        </main>
+      </div>
+
+      {/* Form modal */}
+      {formOpen && (
+        <div style={{position:'fixed',inset:0,background:'rgba(15,23,41,0.55)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}} onClick={() => setFormOpen(false)}>
+          <div style={{background:'#fff',borderRadius:18,width:500,maxWidth:'92vw',overflow:'hidden',boxShadow:'0 30px 80px -20px rgba(15,23,41,0.40)'}} onClick={e=>e.stopPropagation()}>
+            <div style={{background:'var(--gradient-deep)',padding:'20px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <span style={{color:'#fff',fontWeight:700,fontSize:16}}>{editingId ? 'Edit Organization' : 'New Organization'}</span>
+              <button style={{background:'rgba(255,255,255,0.15)',border:'none',borderRadius:'50%',width:30,height:30,color:'#fff',cursor:'pointer'}} onClick={() => setFormOpen(false)}><I.x width="14" height="14" /></button>
+            </div>
+            <form onSubmit={handleSubmit} style={{padding:'24px',display:'flex',flexDirection:'column',gap:16}}>
+              <label style={{display:'flex',flexDirection:'column',gap:6,fontSize:13,fontWeight:600,color:'var(--color-text-muted)'}}>
+                Name *
+                <input value={name} onChange={e=>setName(e.target.value)} required style={{padding:'9px 12px',border:'1.5px solid var(--color-border)',borderRadius:10,fontFamily:'inherit',fontSize:14}} />
+              </label>
+              <label style={{display:'flex',flexDirection:'column',gap:6,fontSize:13,fontWeight:600,color:'var(--color-text-muted)'}}>
+                Description
+                <textarea value={description} onChange={e=>setDescription(e.target.value)} rows={3} style={{padding:'9px 12px',border:'1.5px solid var(--color-border)',borderRadius:10,fontFamily:'inherit',fontSize:14,resize:'vertical'}} />
+              </label>
+              <label style={{display:'flex',flexDirection:'column',gap:6,fontSize:13,fontWeight:600,color:'var(--color-text-muted)'}}>
+                Facebook link
+                <input value={facebookLink} onChange={e=>setFacebookLink(e.target.value)} type="url" style={{padding:'9px 12px',border:'1.5px solid var(--color-border)',borderRadius:10,fontFamily:'inherit',fontSize:14}} />
+              </label>
+              <label style={{display:'flex',flexDirection:'column',gap:6,fontSize:13,fontWeight:600,color:'var(--color-text-muted)'}}>
+                Logo
+                <input type="file" accept="image/*" onChange={handleLogoChange} style={{fontSize:13}} />
+                {logoPreview && <img src={logoPreview} alt="preview" style={{width:56,height:56,borderRadius:'50%',objectFit:'cover'}} />}
+              </label>
+              {submitError && <p style={{color:'var(--color-danger-text)',fontSize:13,margin:0}}>{submitError}</p>}
+              <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
+                <button type="button" className="ad-btn-ghost" onClick={() => setFormOpen(false)}>Cancel</button>
+                <button type="submit" className="ad-btn-primary" disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete confirm */}
       {confirmOpen && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: "1.5rem",
-              maxWidth: 400,
-              width: "92%",
-            }}
-          >
-            <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.1rem" }}>
-              Delete Organization
-            </h2>
-            <p
-              style={{
-                color: "#6b7280",
-                fontSize: "0.9rem",
-                marginBottom: "1.5rem",
-              }}
-            >
-              Delete <strong>{deleteName}</strong>? This cannot be undone.
-            </p>
-            <div
-              style={{
-                display: "flex",
-                gap: "0.75rem",
-                justifyContent: "center",
-              }}
-            >
-              <button
-                onClick={() => setConfirmOpen(false)}
-                style={{
-                  padding: "0.6rem 1.5rem",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 8,
-                  background: "#fff",
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                style={{
-                  padding: "0.6rem 1.5rem",
-                  background: "#dc2626",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-              >
-                Delete
-              </button>
+        <div style={{position:'fixed',inset:0,background:'rgba(15,23,41,0.55)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1001}} onClick={() => setConfirmOpen(false)}>
+          <div style={{background:'#fff',borderRadius:14,padding:'24px',maxWidth:400,width:'92vw',textAlign:'center'}} onClick={e=>e.stopPropagation()}>
+            <h3 style={{margin:'0 0 10px',fontWeight:800}}>Delete "{deleteName}"?</h3>
+            <p style={{color:'var(--color-text-muted)',fontSize:13,marginBottom:20}}>This action cannot be undone.</p>
+            <div style={{display:'flex',gap:10,justifyContent:'center'}}>
+              <button className="ad-btn-ghost" onClick={() => setConfirmOpen(false)}>Cancel</button>
+              <button className="ad-btn-primary" style={{background:'var(--color-danger-text)',borderColor:'var(--color-danger-text)'}} onClick={handleDeleteConfirm}>Delete</button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

@@ -1,33 +1,33 @@
 /**
  * lint-staged configuration — .lintstagedrc.cjs
  *
- * Windows notes:
- * 1. Use `npx` — bare `eslint`/`prettier` are not on the PATH.
- * 2. ESLint v9 requires the config file to be in the same directory tree it
- *    runs from.  Frontend files must be linted from inside frontend/ so that
- *    frontend/eslint.config.js is discovered.  We use the function form to
- *    build a `cd frontend && npx eslint …` command with relative paths.
- * 3. The JSON/Markdown entry uses the function form (returns a fixed string
- *    instead of appending filenames) to stay under the 8191-char Windows
- *    command-line limit.
+ * Why .cjs instead of .json?
+ * On Windows, lint-staged appends ALL matched file paths as CLI arguments.
+ * With 90+ JSON/Markdown files staged at once the command line exceeds
+ * Windows's 8191-character limit and Prettier fails with
+ * "The command line is too long."
+ *
+ * The function form for "**\/*.{json,md}" returns a fixed command string
+ * WITHOUT appending individual filenames, so Prettier runs once on "."
+ * and the length limit is never hit.
  */
 
 module.exports = {
-  // TypeScript / TSX — run ESLint from frontend/ so eslint.config.js is found
-  'frontend/src/**/*.{ts,tsx}': (files) => {
-    const rel = files.map((f) => f.replace(/\\/g, '/').replace(/^.*?frontend\//, ''));
-    return [
-      `cd frontend && npx eslint --fix --max-warnings=0 ${rel.join(' ')}`,
-      `npx prettier --write ${files.map((f) => `"${f}"`).join(' ')}`,
-    ];
-  },
+  // TypeScript / TSX — ESLint fix then Prettier
+  // Use npx so the locally-installed binaries are found on Windows
+  // (bare 'eslint' / 'prettier' fail when node_modules/.bin is not in PATH)
+  'frontend/src/**/*.{ts,tsx}': [
+    'npx eslint --fix --max-warnings=0',
+    'npx prettier --write',
+  ],
 
-  // Backend JS — run from backend/ so any future eslint.config.js is found
-  'backend/src/**/*.js': (files) => {
-    const rel = files.map((f) => f.replace(/\\/g, '/').replace(/^.*?backend\//, ''));
-    return `cd backend && npx eslint --fix --max-warnings=0 ${rel.join(' ')}`;
-  },
+  // Backend JS — ESLint only
+  'backend/src/**/*.js': [
+    'npx eslint --fix --max-warnings=0',
+  ],
 
-  // JSON + Markdown — fixed command, no per-file expansion (avoids 8191-char limit)
+  // JSON + Markdown — use function to avoid "command line too long" on Windows.
+  // Returning a plain string means lint-staged runs it once, not once-per-file,
+  // and does NOT append staged filenames to the command.
   '**/*.{json,md}': () => 'npx prettier --write .',
 };

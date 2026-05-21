@@ -32,15 +32,29 @@ Valid `?panel=` values: `dashboard`, `announcement`, `documents`, `events`, `off
 
 The `AdminPage.tsx` axios interceptor catches 401 responses and shows `SessionExpiredModal` — a full-screen overlay requiring the user to go back to login.
 
+## Layout
+
+All admin panels use the unified Layout B shell (consolidated AY 2025–2026):
+
+- **Sidebar:** `panel/_shared/Sidebar.tsx` — the ONLY admin sidebar. Do not create a second one.
+- **Shell:** wrap panel content in `<div className="ad-shell"><Sidebar active="<panel-id>" /><main className="ad-main">…</main></div>`
+- **Styles:** `panel/_shared/admin-list.css` — import this at the top of every new panel
+- **Atoms & Chrome:** `panel/_shared/atoms.tsx`, `panel/_shared/chrome.tsx` (Thumb, Tag, StatusPill, Tabs, Toolbar, BulkBar, TableFoot)
+- **Icons:** `panel/_shared/icons.tsx`
+- **Utils:** `panel/_shared/utils.ts` (timeAgo, fmtDate, downloadCSV, etc.)
+
+When adding a new panel, copy the pattern from `panel/announcement/Announcement.tsx`.
+
 ## Design system note
 
-The admin panel uses its own CSS design system — a blue sidebar with dark-tone UI — that is separate from the public `tokens.css`. Do not apply public token variables to admin panel components. Follow existing admin CSS patterns in `adminPanel.css` and per-component CSS files.
+The admin panel uses its own CSS design system (`panel/_shared/admin-list.css` + per-panel CSS) separate from the public `tokens.css`. Do not apply public token variables to admin panel components.
 
 ## Rules
 
-- All admin write calls must include `withCredentials: true` (already configured in `axiosInstance`).
+- All admin write calls must include `withCredentials: true`.
 - Never use `window.location.reload()` after writes — update local React state directly.
 - Never use the `any` TypeScript type.
+- `parseInt()` is required on ALL committee ID comparisons (committees.id is an INTEGER).
 
 ## Related
 
