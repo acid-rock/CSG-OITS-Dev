@@ -26,6 +26,7 @@ const todayStr = () => new Date().toISOString().split("T")[0];
 
 export default function Borrow() {
   const [view, setView] = useState<View>("list");
+  const [emailSent, setEmailSent] = useState(false);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(true);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
@@ -231,25 +232,29 @@ export default function Borrow() {
 
     setSubmitting(true);
     try {
-      await axios.post(`${API_URL}/borrowing/request`, {
-        borrower_name: requesterName,
-        borrower_id: studentNumber,
-        borrower_email: studentEmail.trim(),
-        student_email: studentEmail.trim(),
-        contact_number: contactNumber || undefined,
-        organization: organization || undefined,
-        position_in_org: positionInOrg || undefined,
-        purpose_type: purposeType || undefined,
-        purpose_others_detail: purposeOthersDetail || undefined,
-        activity_name: activityName || undefined,
-        venue: venue || undefined,
-        borrow_date: dateOfUse,
-        time_of_use: timeOfUse || undefined,
-        equipment_items: equipmentRows.map((r) => ({
-          equipment_id: r.equipment_id,
-          quantity_requested: r.quantity_requested,
-        })),
-      });
+      const { data: result } = await axios.post<{ message: string; email_sent: boolean }>(
+        `${API_URL}/borrowing/request`,
+        {
+          borrower_name: requesterName,
+          borrower_id: studentNumber,
+          borrower_email: studentEmail.trim(),
+          student_email: studentEmail.trim(),
+          contact_number: contactNumber || undefined,
+          organization: organization || undefined,
+          position_in_org: positionInOrg || undefined,
+          purpose_type: purposeType || undefined,
+          purpose_others_detail: purposeOthersDetail || undefined,
+          activity_name: activityName || undefined,
+          venue: venue || undefined,
+          borrow_date: dateOfUse,
+          time_of_use: timeOfUse || undefined,
+          equipment_items: equipmentRows.map((r) => ({
+            equipment_id: r.equipment_id,
+            quantity_requested: r.quantity_requested,
+          })),
+        },
+      );
+      setEmailSent(result?.email_sent ?? false);
       setView("success");
     } catch (err: unknown) {
       const msg =
@@ -293,6 +298,16 @@ export default function Borrow() {
             The CSG Property Manager will review your request. You will be
             contacted via your provided contact number or email.
           </p>
+          {emailSent ? (
+            <p style={{ fontSize: '0.875rem', color: 'var(--color-success, #16a34a)', marginTop: '0.5rem' }}>
+              ✓ A confirmation email was sent to your email address.
+            </p>
+          ) : (
+            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted, #6b7280)', marginTop: '0.5rem' }}>
+              Note: We were unable to send a confirmation email. Your request
+              was saved — please take note of your submission for reference.
+            </p>
+          )}
           <button className="borrow-btn-primary" onClick={resetForm}>
             Browse Equipment
           </button>
