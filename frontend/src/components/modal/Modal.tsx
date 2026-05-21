@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./modal.css";
+import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 
 interface ModalProps {
   isOpen: boolean;
@@ -29,12 +30,9 @@ const Modal: React.FC<ModalProps> = ({
   const [transitioning, setTransitioning] = useState(false);
   const [direction, setDirection] = useState<"left" | "right">("right");
 
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "auto";
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [isOpen]);
+  // Use the shared hook so the scrollbar is properly restored (including
+  // padding compensation) when the modal closes — same as every other modal.
+  useLockBodyScroll(isOpen);
 
   // Preload adjacent images
   useEffect(() => {

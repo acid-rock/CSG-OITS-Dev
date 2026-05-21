@@ -38,6 +38,7 @@
 //    CREATE POLICY "allow_auth_all" ON borrowing_requests FOR ALL TO authenticated USING (true);
 
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { anonSupabase, createUserClient, supabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
@@ -49,6 +50,20 @@ import {
   approvalEmail,
   rejectionEmail,
 } from "../lib/emailTemplates.js";
+
+// Dedicated limiter for the public borrow-request submission endpoint.
+// Students are unlikely to need more than a handful of submissions per day,
+// so 5 per hour per IP is generous without opening the door to spam.
+const borrowSubmitLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error:
+      "Too many borrow requests submitted from this device. Please wait an hour before trying again.",
+  },
+});
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -269,6 +284,7 @@ router.get(
 
 router.post(
   "/request",
+  borrowSubmitLimiter,
   asyncHandler(async (req, res) => {
     const {
       borrower_name,
@@ -348,41 +364,56 @@ router.post(
     });
     if (error) throw new ApiError(500, error.message);
 
-    // Send submission confirmation email (fire-and-forget — non-fatal)
+    // Send submission confirmation email to the student
+    let emailSent = false;
     if (borrower_email) {
-      // Enrich equipment_items with names for the email
-      const enrichedItems = await Promise.all(
-        equipment_items.map(async (item) => {
-          const { data: inv } = await anonSupabase
-            .from("inventory")
-            .select("name")
-            .eq("id", item.equipment_id)
-            .single();
-          return { ...item, name: inv?.name ?? item.equipment_id };
-        }),
-      );
+      try {
+        // Enrich equipment_items with names for the email
+        const enrichedItems = await Promise.all(
+          equipment_items.map(async (item) => {
+            const { data: inv } = await anonSupabase
+              .from("inventory")
+              .select("name")
+              .eq("id", item.equipment_id)
+              .single();
+            return { ...item, name: inv?.name ?? item.equipment_id };
+          }),
+        );
 
-      const { subject, html } = submissionConfirmationEmail({
-        borrowerName: borrower_name,
-        borrowerEmail: borrower_email,
-        equipmentItems: enrichedItems,
-        equipmentName: enrichedItems[0]?.name,
-        quantityRequested: parseInt(firstItem.quantity_requested),
-        borrowDate: borrow_date,
-        organization: organization || null,
-        activityName: activity_name || null,
-        requestId: (await anonSupabase
+        // Fetch the newly-created request ID for the reference number
+        const { data: newRequest } = await anonSupabase
           .from("borrowing_requests")
           .select("id")
           .eq("borrower_id", borrower_id)
           .order("created_at", { ascending: false })
           .limit(1)
-          .single()).data?.id ?? "",
-      });
-      sendEmail({ to: borrower_email, subject, html });
+          .single();
+
+        const { subject, html } = submissionConfirmationEmail({
+          borrowerName: borrower_name,
+          borrowerEmail: borrower_email,
+          equipmentItems: enrichedItems,
+          equipmentName: enrichedItems[0]?.name,
+          quantityRequested: parseInt(firstItem.quantity_requested),
+          borrowDate: borrow_date,
+          organization: organization || null,
+          activityName: activity_name || null,
+          requestId: newRequest?.id ?? "",
+        });
+
+        // Await so that SMTP errors surface instead of being silently dropped
+        await sendEmail({ to: borrower_email, subject, html });
+        emailSent = true;
+      } catch (emailErr) {
+        // Non-fatal — request is already saved; just log the failure
+        console.error("[BORROWING] Confirmation email failed:", emailErr?.message ?? emailErr);
+      }
     }
 
-    return res.status(201).json({ message: "Request submitted successfully." });
+    return res.status(201).json({
+      message: "Request submitted successfully.",
+      email_sent: emailSent,
+    });
   }),
 );
 

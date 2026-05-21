@@ -136,6 +136,35 @@ const Root = () => {
     fetchAll();
   }, [fetchAll]);
 
+  // ── Content protection: block right-click on images and file download links ──
+  // Applied only to the public layout — the admin panel has its own root.
+  useEffect(() => {
+    const blockContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Block on images
+      if (target.tagName === 'IMG') { e.preventDefault(); return; }
+      // Block on links that point to files (pdf, jpg, png, etc.)
+      const anchor = target.closest('a');
+      if (anchor) {
+        const href = anchor.getAttribute('href') ?? '';
+        if (/\.(pdf|jpg|jpeg|png|gif|webp|svg|mp4|mp3|zip|docx?)(\?|$)/i.test(href)) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    const blockDragStart = (e: DragEvent) => {
+      if ((e.target as HTMLElement).tagName === 'IMG') e.preventDefault();
+    };
+
+    document.addEventListener('contextmenu', blockContextMenu);
+    document.addEventListener('dragstart', blockDragStart);
+    return () => {
+      document.removeEventListener('contextmenu', blockContextMenu);
+      document.removeEventListener('dragstart', blockDragStart);
+    };
+  }, []);
+
   // Fire a section-level page-view event whenever the user navigates to a
   // tracked public route.  This is fire-and-forget — errors are silently
   // swallowed so tracking never breaks a page load.

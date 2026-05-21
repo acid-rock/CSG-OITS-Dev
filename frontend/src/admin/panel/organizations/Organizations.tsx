@@ -30,7 +30,6 @@ const OrganizationsPanel = () => {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('');
-
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -89,24 +88,21 @@ const OrganizationsPanel = () => {
     } finally { setSubmitting(false); }
   };
 
-  // Filter local state immediately — do NOT call fetchData() after archive/bin
-  // because fetching would re-include the item before the cache invalidates.
-  const handleArchive  = async (id: string) => {
+  const handleArchive = async (id: string) => {
     try { await axios.post(`${API_URL}/organizations/archive`, { id }, { withCredentials: true }); setData(p => p.filter(o => o.id !== id)); }
-    catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Archive failed.'); }
+    catch (err: unknown) { const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data; setFetchError(d?.error ?? d?.message ?? 'Archive failed.'); }
   };
-  const handleRestore  = async (id: string) => {
+  const handleRestore = async (id: string) => {
     try { await axios.post(`${API_URL}/organizations/restore`, { id }, { withCredentials: true }); setData(p => p.filter(o => o.id !== id)); }
-    catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Restore failed.'); }
+    catch (err: unknown) { const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data; setFetchError(d?.error ?? d?.message ?? 'Restore failed.'); }
   };
-  const handleBin      = async (id: string) => {
-    if (!window.confirm('Move this organization to the bin?')) return;
+  const handleBin = async (id: string) => {
     try { await axios.post(`${API_URL}/organizations/bin`, { id }, { withCredentials: true }); setData(p => p.filter(o => o.id !== id)); }
-    catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Move to bin failed.'); }
+    catch (err: unknown) { const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data; setFetchError(d?.error ?? d?.message ?? 'Move to bin failed.'); }
   };
-  const handleRFB      = async (id: string) => {
+  const handleRFB = async (id: string) => {
     try { await axios.post(`${API_URL}/organizations/restore-from-bin`, { id }, { withCredentials: true }); setData(p => p.filter(o => o.id !== id)); }
-    catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Restore from bin failed.'); }
+    catch (err: unknown) { const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data; setFetchError(d?.error ?? d?.message ?? 'Restore from bin failed.'); }
   };
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
@@ -114,53 +110,28 @@ const OrganizationsPanel = () => {
     catch { /* ignore */ } finally { setConfirmOpen(false); setDeleteId(null); }
   };
 
-  /* ── Bulk helpers ── */
-  const toggleSelect = (id: string) =>
-    setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
-
+  const toggleSelect = (id: string) => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const bulkArchive = async () => {
     if (!selected.length) return;
-    try {
-      await Promise.all(selected.map(id => axios.post(`${API_URL}/organizations/archive`, { id }, { withCredentials: true })));
-      setData(p => p.filter(o => !selected.includes(o.id)));
-      setSelected([]);
-    } catch (err: unknown) {
-      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
-      setFetchError(d?.error ?? d?.message ?? 'Bulk archive failed.');
-    }
+    try { await Promise.all(selected.map(id => axios.post(`${API_URL}/organizations/archive`, { id }, { withCredentials: true }))); setData(p => p.filter(o => !selected.includes(o.id))); setSelected([]); }
+    catch (err: unknown) { const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data; setFetchError(d?.error ?? d?.message ?? 'Bulk archive failed.'); }
   };
-
   const bulkBin = async () => {
     if (!selected.length) return;
-    try {
-      await Promise.all(selected.map(id => axios.post(`${API_URL}/organizations/bin`, { id }, { withCredentials: true })));
-      setData(p => p.filter(o => !selected.includes(o.id)));
-      setSelected([]);
-    } catch (err: unknown) {
-      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
-      setFetchError(d?.error ?? d?.message ?? 'Bulk bin failed.');
-    }
+    try { await Promise.all(selected.map(id => axios.post(`${API_URL}/organizations/bin`, { id }, { withCredentials: true }))); setData(p => p.filter(o => !selected.includes(o.id))); setSelected([]); }
+    catch (err: unknown) { const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data; setFetchError(d?.error ?? d?.message ?? 'Bulk bin failed.'); }
   };
-
   const bulkRestore = async () => {
     if (!selected.length) return;
-    try {
-      await Promise.all(selected.map(id => axios.post(`${API_URL}/organizations/restore`, { id }, { withCredentials: true })));
-      setData(p => p.filter(o => !selected.includes(o.id)));
-      setSelected([]);
-    } catch (err: unknown) {
-      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
-      setFetchError(d?.error ?? d?.message ?? 'Bulk restore failed.');
-    }
+    try { await Promise.all(selected.map(id => axios.post(`${API_URL}/organizations/restore`, { id }, { withCredentials: true }))); setData(p => p.filter(o => !selected.includes(o.id))); setSelected([]); }
+    catch (err: unknown) { const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data; setFetchError(d?.error ?? d?.message ?? 'Bulk restore failed.'); }
   };
 
   const getInitials = (n: string) => n.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-
   const filtered = data.filter(o =>
     (!searchQuery || o.name.toLowerCase().includes(searchQuery.toLowerCase())) &&
     (!typeFilter || o.org_type === typeFilter)
   );
-
 
   return (
     <>
@@ -176,82 +147,39 @@ const OrganizationsPanel = () => {
             </>}
           />
           <Tabs items={[
-            { label:'Active',   active: orgTab==='active',   count: orgTab==='active'   ? data.length : undefined },
-            { label:'Archived', active: orgTab==='archived', count: orgTab==='archived' ? data.length : undefined },
-            { label:'Bin',      active: orgTab==='bin',      count: orgTab==='bin'      ? data.length : undefined },
+            { label: 'Active',   active: orgTab === 'active',   count: orgTab === 'active'   ? data.length : undefined },
+            { label: 'Archived', active: orgTab === 'archived', count: orgTab === 'archived' ? data.length : undefined },
+            { label: 'Bin',      active: orgTab === 'bin',      count: orgTab === 'bin'      ? data.length : undefined },
           ]} onTabChange={(l) => setOrgTab(l.toLowerCase() as OrgTab)} />
-          <Toolbar
-            placeholder="Search organizations by name or description…"
-            search={searchQuery} onSearch={setSearchQuery}
-            showSort={false}
-            onRefresh={fetchData}
-          >
+          <Toolbar placeholder="Search organizations…" search={searchQuery} onSearch={setSearchQuery} showSort={false} onRefresh={fetchData}>
             <span className="ad-filter-label">Type</span>
-            <select
-              className="ad-filter-select"
-              value={typeFilter}
-              onChange={e => setTypeFilter(e.target.value)}
-            >
-              <option value="">Type: All</option>
+            <select className="ad-filter-select" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+              <option value="">All</option>
               <option value="academic">Academic</option>
               <option value="non-academic">Non-Academic</option>
               <option value="spu">Student Publication Unit</option>
             </select>
           </Toolbar>
-
-          {fetchError && <p style={{fontSize:13,color:'var(--color-danger-text)'}}>{fetchError}</p>}
-
-          {/* Bulk action bar — visible only when items are selected */}
-          {orgTab === 'active' && (
-            <BulkBar
-              count={selected.length}
-              actions={['Archive', 'Delete']}
-              handlers={{ Archive: bulkArchive, Delete: bulkBin }}
-              onClear={() => setSelected([])}
-            />
-          )}
-          {orgTab === 'archived' && (
-            <BulkBar
-              count={selected.length}
-              actions={['Restore', 'Delete']}
-              handlers={{ Restore: bulkRestore, Delete: bulkBin }}
-              onClear={() => setSelected([])}
-            />
-          )}
-
+          {fetchError && <p style={{ fontSize: 13, color: 'var(--color-danger-text)' }}>{fetchError}</p>}
+          {orgTab === 'active' && <BulkBar count={selected.length} actions={['Archive', 'Delete']} handlers={{ Archive: bulkArchive, Delete: bulkBin }} onClear={() => setSelected([])} />}
+          {orgTab === 'archived' && <BulkBar count={selected.length} actions={['Restore', 'Delete']} handlers={{ Restore: bulkRestore, Delete: bulkBin }} onClear={() => setSelected([])} />}
           {loading ? (
             <section className="ad-card"><div className="ad-empty"><p>Loading…</p></div></section>
           ) : (
             <section className="ad-card">
               <table className="ad-table">
-                <colgroup><col style={{width:44}}/><col style={{width:60}}/><col/><col style={{width:160}}/></colgroup>
+                <colgroup><col style={{ width: 44 }} /><col style={{ width: 60 }} /><col /><col style={{ width: 160 }} /></colgroup>
                 <thead><tr>
-                  {/* Select-all checkbox */}
-                  <th>
-                    <input
-                      type="checkbox"
-                      checked={filtered.length > 0 && filtered.every(o => selected.includes(o.id))}
-                      onChange={() => {
-                        const allSelected = filtered.every(o => selected.includes(o.id));
-                        setSelected(allSelected ? [] : filtered.map(o => o.id));
-                      }}
-                    />
-                  </th>
+                  <th><input type="checkbox" checked={filtered.length > 0 && filtered.every(o => selected.includes(o.id))} onChange={() => setSelected(filtered.every(o => selected.includes(o.id)) ? [] : filtered.map(o => o.id))} /></th>
                   <th>Logo</th><th>Name &amp; description</th><th className="ad-th-right">Actions</th>
                 </tr></thead>
                 <tbody>
-                  {filtered.length === 0 && <tr><td colSpan={4}><div className="ad-empty"><p>{orgTab==='bin'?'Bin is empty.':'No organizations found.'}</p></div></td></tr>}
+                  {filtered.length === 0 && <tr><td colSpan={4}><div className="ad-empty"><p>{orgTab === 'bin' ? 'Bin is empty.' : 'No organizations found.'}</p></div></td></tr>}
                   {filtered.map(org => {
                     const [a, b] = gradientFor(org.name);
                     return (
                       <tr key={org.id} className={selected.includes(org.id) ? 'is-selected' : ''}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            checked={selected.includes(org.id)}
-                            onChange={() => toggleSelect(org.id)}
-                          />
-                        </td>
+                        <td><input type="checkbox" checked={selected.includes(org.id)} onChange={() => toggleSelect(org.id)} /></td>
                         <td>
                           <span className="ad-org-logo" style={org.logo_url ? undefined : { background: `linear-gradient(135deg, ${a}, ${b})` }}>
                             {org.logo_url ? <img src={org.logo_url} alt={org.name} /> : getInitials(org.name)}
@@ -271,7 +199,7 @@ const OrganizationsPanel = () => {
                             <button className="ad-icon-btn ad-icon-btn--danger" title="Move to bin" onClick={() => handleBin(org.id)}><I.trash width="14" height="14" /></button>
                           </>}
                           {orgTab === 'archived' && <>
-                            <button className="ad-icon-btn is-on" title="Restore to Active" onClick={() => handleRestore(org.id)}><I.restore width="14" height="14" /></button>
+                            <button className="ad-icon-btn is-on" title="Restore" onClick={() => handleRestore(org.id)}><I.restore width="14" height="14" /></button>
                             <button className="ad-icon-btn ad-icon-btn--danger" title="Move to Bin" onClick={() => handleBin(org.id)}><I.trash width="14" height="14" /></button>
                           </>}
                           {orgTab === 'bin' && <>
@@ -290,34 +218,24 @@ const OrganizationsPanel = () => {
         </main>
       </div>
 
-      {/* Form modal */}
       {formOpen && (
-        <div style={{position:'fixed',inset:0,background:'rgba(15,23,41,0.55)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}} onClick={() => setFormOpen(false)}>
-          <div style={{background:'#fff',borderRadius:18,width:500,maxWidth:'92vw',overflow:'hidden',boxShadow:'0 30px 80px -20px rgba(15,23,41,0.40)'}} onClick={e=>e.stopPropagation()}>
-            <div style={{background:'var(--gradient-deep)',padding:'20px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <span style={{color:'#fff',fontWeight:700,fontSize:16}}>{editingId ? 'Edit Organization' : 'New Organization'}</span>
-              <button style={{background:'rgba(255,255,255,0.15)',border:'none',borderRadius:'50%',width:30,height:30,color:'#fff',cursor:'pointer'}} onClick={() => setFormOpen(false)}><I.x width="14" height="14" /></button>
+        <div className="ad-modal-overlay" onClick={() => setFormOpen(false)}>
+          <div className="ad-form-card ad-form-card--md" onClick={e => e.stopPropagation()}>
+            <div className="ad-form-header">
+              <span className="ad-form-header-title">{editingId ? 'Edit Organization' : 'New Organization'}</span>
+              <button className="ad-form-close" onClick={() => setFormOpen(false)}><I.x width="14" height="14" /></button>
             </div>
-            <form onSubmit={handleSubmit} style={{padding:'24px',display:'flex',flexDirection:'column',gap:16}}>
-              <label style={{display:'flex',flexDirection:'column',gap:6,fontSize:13,fontWeight:600,color:'var(--color-text-muted)'}}>
-                Name *
-                <input value={name} onChange={e=>setName(e.target.value)} required style={{padding:'9px 12px',border:'1.5px solid var(--color-border)',borderRadius:10,fontFamily:'inherit',fontSize:14}} />
-              </label>
-              <label style={{display:'flex',flexDirection:'column',gap:6,fontSize:13,fontWeight:600,color:'var(--color-text-muted)'}}>
-                Description
-                <textarea value={description} onChange={e=>setDescription(e.target.value)} rows={3} style={{padding:'9px 12px',border:'1.5px solid var(--color-border)',borderRadius:10,fontFamily:'inherit',fontSize:14,resize:'vertical'}} />
-              </label>
-              <label style={{display:'flex',flexDirection:'column',gap:6,fontSize:13,fontWeight:600,color:'var(--color-text-muted)'}}>
-                Facebook link
-                <input value={facebookLink} onChange={e=>setFacebookLink(e.target.value)} type="url" style={{padding:'9px 12px',border:'1.5px solid var(--color-border)',borderRadius:10,fontFamily:'inherit',fontSize:14}} />
-              </label>
-              <label style={{display:'flex',flexDirection:'column',gap:6,fontSize:13,fontWeight:600,color:'var(--color-text-muted)'}}>
+            <form onSubmit={handleSubmit} className="ad-form-body">
+              <label className="ad-field">Name *<input value={name} onChange={e => setName(e.target.value)} required /></label>
+              <label className="ad-field">Description<textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} /></label>
+              <label className="ad-field">Facebook link<input value={facebookLink} onChange={e => setFacebookLink(e.target.value)} type="url" /></label>
+              <label className="ad-field">
                 Logo
-                <input type="file" accept="image/*" onChange={handleLogoChange} style={{fontSize:13}} />
-                {logoPreview && <img src={logoPreview} alt="preview" style={{width:56,height:56,borderRadius:'50%',objectFit:'cover'}} />}
+                <input type="file" accept="image/*" onChange={handleLogoChange} style={{ fontSize: 13 }} />
+                {logoPreview && <img src={logoPreview} alt="preview" style={{ width:56, height:56, borderRadius:'50%', objectFit:'cover' }} />}
               </label>
-              {submitError && <p style={{color:'var(--color-danger-text)',fontSize:13,margin:0}}>{submitError}</p>}
-              <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
+              {submitError && <p className="ad-field-error">{submitError}</p>}
+              <div className="ad-form-actions">
                 <button type="button" className="ad-btn-ghost" onClick={() => setFormOpen(false)}>Cancel</button>
                 <button type="submit" className="ad-btn-primary" disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</button>
               </div>
@@ -326,15 +244,14 @@ const OrganizationsPanel = () => {
         </div>
       )}
 
-      {/* Delete confirm */}
       {confirmOpen && (
-        <div style={{position:'fixed',inset:0,background:'rgba(15,23,41,0.55)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1001}} onClick={() => setConfirmOpen(false)}>
-          <div style={{background:'#fff',borderRadius:14,padding:'24px',maxWidth:400,width:'92vw',textAlign:'center'}} onClick={e=>e.stopPropagation()}>
-            <h3 style={{margin:'0 0 10px',fontWeight:800}}>Delete "{deleteName}"?</h3>
-            <p style={{color:'var(--color-text-muted)',fontSize:13,marginBottom:20}}>This action cannot be undone.</p>
-            <div style={{display:'flex',gap:10,justifyContent:'center'}}>
+        <div className="ad-modal-overlay" style={{ zIndex:1001 }} onClick={() => setConfirmOpen(false)}>
+          <div className="ad-confirm-card" onClick={e => e.stopPropagation()}>
+            <h3 className="ad-confirm-title">Delete "{deleteName}"?</h3>
+            <p className="ad-confirm-msg">This action cannot be undone.</p>
+            <div className="ad-confirm-actions">
               <button className="ad-btn-ghost" onClick={() => setConfirmOpen(false)}>Cancel</button>
-              <button className="ad-btn-primary" style={{background:'var(--color-danger-text)',borderColor:'var(--color-danger-text)'}} onClick={handleDeleteConfirm}>Delete</button>
+              <button className="ad-btn-primary" style={{ background:'var(--color-danger-text)', borderColor:'var(--color-danger-text)' }} onClick={handleDeleteConfirm}>Delete</button>
             </div>
           </div>
         </div>

@@ -1,3 +1,12 @@
+// ── Signed-URL prerequisite (run once in Supabase dashboard) ─────────────────
+// 1. Go to Storage → documents bucket → Settings → toggle OFF "Public bucket"
+// 2. Go to Storage → thumbnails bucket → Settings → toggle OFF "Public bucket"
+// After both buckets are private, getPublicUrl() will return 403 for anonymous
+// requests; createSignedUrl() / createSignedUrls() (used below) will be the
+// only way to retrieve file content.  Signed URLs expire after SIGNED_URL_TTL
+// seconds — after that the URL returns 403 and the user must refresh the page.
+// ─────────────────────────────────────────────────────────────────────────────
+
 // MANUAL STEP REQUIRED: In Supabase dashboard, add to the documents table:
 //   is_deleted  boolean      NOT NULL DEFAULT false
 //   deleted_at  timestamptz  NULL
@@ -29,6 +38,11 @@ import asyncHandler from "express-async-handler";
 
 const REDACT_URL = process.env.PDF_REDACT_URL || "";
 
+// Signed URL expiry — 1 hour.  Cached API responses have a 60 s TTL so a
+// returned URL is always valid for at least ~59 minutes after it leaves the
+// server.  Users who copy a URL from DevTools can use it for up to 1 hour.
+const SIGNED_URL_TTL = 3600;
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -40,23 +54,47 @@ const router = Router();
 //   increment_views(row_id uuid, table_name text) — UPDATE SET views = views + 1
 // Then call supabase.rpc('increment_views', { row_id, table_name: 'documents' }) per item.
 
-const transformDocument = (file) => {
-  const { data } = supabase.storage
-    .from("documents")
-    .getPublicUrl(file.file_path);
-  const thumbnail = supabase.storage
-    .from("thumbnails")
-    .getPublicUrl(`${file.id}.png`).data.publicUrl;
-  return {
-    id: file.id,
-    createdAt: file.created_at,
-    name: file.file_path,
+/**
+ * Sign document and thumbnail URLs for a batch of DB rows in two API calls.
+ * Requires the 'documents' and 'thumbnails' buckets to be set to PRIVATE in
+ * the Supabase dashboard — otherwise files are still publicly accessible via
+ * getPublicUrl() and signed URLs provide no protection.
+ */
+const signDocumentBatch = async (files) => {
+  if (!files.length) return [];
+
+  const docPaths  = files.map((f) => f.file_path).filter(Boolean);
+  const thumbPaths = files.map((f) => `${f.id}.png`);
+
+  // Two parallel calls — one per bucket (batch is more efficient than N individual calls)
+  const [signedDocs, signedThumbs] = await Promise.all([
+    supabase.storage.from("documents").createSignedUrls(docPaths, SIGNED_URL_TTL),
+    supabase.storage.from("thumbnails").createSignedUrls(thumbPaths, SIGNED_URL_TTL),
+  ]);
+
+  // Build path → signedUrl lookup maps
+  const docMap   = Object.fromEntries(
+    (signedDocs.data   ?? []).map((item) => [item.path,   item.signedUrl]),
+  );
+  const thumbMap = Object.fromEntries(
+    (signedThumbs.data ?? []).map((item) => [item.path, item.signedUrl]),
+  );
+
+  return files.map((file) => ({
+    id:          file.id,
+    createdAt:   file.created_at,
+    name:        file.file_path,
     description: file.description,
-    category: file.file_path.split("/")[0],
-    url: data.publicUrl,
-    thumbnail: thumbnail,
-    term: file.term ?? null,
-  };
+    category:    file.file_path.split("/")[0],
+    url:         docMap[file.file_path]       ?? null,
+    thumbnail:   thumbMap[`${file.id}.png`]   ?? null,
+    term:        file.term                    ?? null,
+    owner_id:    file.owner_id,
+    // Pass through soft-delete fields so admin routes can use the same helper
+    is_archived: file.is_archived,
+    archived_at: file.archived_at,
+    deleted_at:  file.deleted_at,
+  }));
 };
 
 // ── Public GET — active (non-deleted) documents only ─────────────────────────
@@ -83,7 +121,7 @@ router.get(
       if (error) throw new Error(error.message);
 
       return res.status(200).json({
-        data: files.map(transformDocument),
+        data: await signDocumentBatch(files),
         total: count,
         page,
         limit,
@@ -98,7 +136,7 @@ router.get(
       .is("deleted_at", null);
     if (error) throw new Error(error.message);
 
-    return res.status(200).json(files.map(transformDocument));
+    return res.status(200).json(await signDocumentBatch(files));
   }),
 );
 
@@ -121,7 +159,7 @@ router.post(
     const userSupabase = createUserClient(token);
 
     // Parse boxes — frontend sends JSON.stringify([...]); may be absent or empty
-    let parsedBoxes = [];
+    let parsedBoxes;
     try { parsedBoxes = boxes ? JSON.parse(boxes) : []; } catch { parsedBoxes = []; }
 
     let redacted;
@@ -129,7 +167,7 @@ router.post(
 
     if (parsedBoxes.length > 0) {
       // Boxes selected — send to redaction microservice
-      let formData = new FormData();
+      const formData = new FormData();
       formData.append("file", req.file.buffer, {
         filename: req.file.originalname,
         contentType: req.file.mimetype,
@@ -154,18 +192,18 @@ router.post(
       .upload(filepath, redacted, { contentType, upsert: true });
     if (error) throw new Error(error.message);
 
-    formData = new FormData();
+    const thumbFormData = new FormData();
     const imgName = `${data.id}.png`;
-    formData.append("name", imgName);
-    formData.append("file", redacted, {
+    thumbFormData.append("name", imgName);
+    thumbFormData.append("file", redacted, {
       filename: imgName,
       contentType: req.file.mimetype,
     });
 
     const thumbnailResponse = await axios.post(
       `${REDACT_URL}/api/v1/thumbnail/create`,
-      formData,
-      { headers: formData.getHeaders(), responseType: "arraybuffer", maxBodyLength: Infinity },
+      thumbFormData,
+      { headers: thumbFormData.getHeaders(), responseType: "arraybuffer", maxBodyLength: Infinity },
     );
 
     const thumbnail = Buffer.from(thumbnailResponse.data);
@@ -283,12 +321,7 @@ router.get(
       .order("deleted_at", { ascending: false });
     if (error) throw new Error(error.message);
 
-    const payload = files.map((file) => ({
-      ...transformDocument(file),
-      deleted_at: file.deleted_at,
-    }));
-
-    return res.status(200).json(payload);
+    return res.status(200).json(await signDocumentBatch(files));
   }),
 );
 
@@ -364,7 +397,7 @@ router.get(
       .is("deleted_at", null)
       .order("archived_at", { ascending: false });
     if (error) throw new ApiError(500, error.message);
-    return res.status(200).json(files.map((f) => ({ ...transformDocument(f), archived_at: f.archived_at })));
+    return res.status(200).json(await signDocumentBatch(files));
   }),
 );
 
