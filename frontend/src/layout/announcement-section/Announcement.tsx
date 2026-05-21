@@ -58,7 +58,7 @@ export default function AnnouncementSection() {
         <div className="section-head">
           <div className="kicker">From the council</div>
           <h2>
-            Latest <em>announcements</em>
+            Latest <em className="italic-accent">announcements</em>
           </h2>
           <p>Notices, advisories, and updates from your CSG officers.</p>
         </div>
