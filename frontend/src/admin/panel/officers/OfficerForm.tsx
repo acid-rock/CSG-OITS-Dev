@@ -4,7 +4,7 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL as string;
 
 interface Committee {
-  id: number;
+  id: string; // UUID — committees.id is UUID, not integer
   name: string;
 }
 
@@ -106,17 +106,9 @@ const OfficerForm = ({
       onSuccess?.();
       setOpen(false);
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response
-        ?.status;
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ??
-        (err instanceof Error ? err.message : "Failed to save officer.");
-      if (status === 409) {
-        setError(msg);
-      } else {
-        setError("Failed to add officer. Please try again.");
-      }
+      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      const msg = d?.error ?? d?.message ?? (err instanceof Error ? err.message : 'Failed to save officer.');
+      setError(msg);
     }
   };
 

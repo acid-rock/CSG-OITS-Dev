@@ -259,7 +259,13 @@ router.post(
       throw new ApiError(401, "Current password is incorrect.");
     }
 
-    const { error } = await userClient.auth.updateUser({ password: new_password });
+    // Use service-key admin API to update password — avoids "Auth session missing"
+    // that occurs when calling userClient.auth.updateUser() with a cookie-based token
+    // that lacks a full session object.
+    const { error } = await supabase.auth.admin.updateUserById(
+      userData.user.id,
+      { password: new_password },
+    );
     if (error) throw new ApiError(500, error.message);
 
     return res.sendStatus(200);

@@ -100,6 +100,7 @@ const OrganizationsPanel = () => {
     catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Restore failed.'); }
   };
   const handleBin      = async (id: string) => {
+    if (!window.confirm('Move this organization to the bin?')) return;
     try { await axios.post(`${API_URL}/organizations/bin`, { id }, { withCredentials: true }); setData(p => p.filter(o => o.id !== id)); }
     catch (err: unknown) { setFetchError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Move to bin failed.'); }
   };
