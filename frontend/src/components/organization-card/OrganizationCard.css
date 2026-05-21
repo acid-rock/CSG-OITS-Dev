@@ -1,77 +1,149 @@
-:root {
-  --color-facebook: #1877f2;
-  --color-facebook-dark: #1565d6;
-}
+/* ── OrganizationCard — matches /organizations page po-card design ── */
 
 .org-card {
-  cursor: pointer;
-  padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-2);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-soft, #eef0f5);
+  border-radius: var(--radius-xl, 14px);
+  padding: 22px;
+  cursor: pointer;
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+  position: relative;
 }
-
 .org-card:hover {
+  border-color: var(--color-primary-mid, #8aaae0);
+  box-shadow: var(--shadow-card-hover, 0 8px 28px -8px rgba(79,111,209,0.25), 0 2px 6px -2px rgba(15,23,41,0.06));
   transform: translateY(-3px);
-  box-shadow: var(--shadow-card-hover, 0 8px 24px rgba(0, 0, 0, 0.1));
+}
+.org-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(79,111,209,0.12);
 }
 
-.org-avatar {
-  width: 72px;
-  height: 72px;
+/* Top row: logo + type tag */
+.org-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 10px;
+}
+
+/* Circular logo with gradient background */
+.org-card-logo {
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  overflow: hidden;
-  background: var(--color-surface, #f3f4f6);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-}
-
-.org-avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.org-initials {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--color-text-muted, #6b7280);
-}
-
-.org-name {
-  font-size: var(--font-size-base);
+  color: #fff;
+  font-family: var(--font-family-serif, 'Instrument Serif', Georgia, serif);
+  font-style: italic;
   font-weight: 600;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.org-desc {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--color-border-soft, #eef0f5), 0 6px 16px -6px rgba(15,23,41,0.25);
+  flex-shrink: 0;
   overflow: hidden;
 }
 
-.org-fb {
-  color: var(--color-facebook);
-  margin-top: var(--space-1);
+/* Type badge */
+.org-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.org-tag.tone-primary { color: var(--color-primary-deep, #2c4ba0); background: rgba(79,111,209,0.10); }
+.org-tag.tone-warning  { color: var(--color-warning-text, #92400e); background: var(--color-warning-bg, #fef3c7); }
+.org-tag.tone-success  { color: var(--color-success-text, #15803d); background: var(--color-success-bg, #dcfce7); }
+
+/* Name */
+.org-card-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f1729);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin: 0 0 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 40px;
 }
 
-/* Modal */
+/* Description */
+.org-card-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary, #374151);
+  font-weight: 450;
+  line-height: 1.55;
+  margin: 0 0 18px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Footer */
+.org-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-soft, #eef0f5);
+  margin-top: auto;
+}
+
+.org-card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--color-text-muted, #6b7280);
+  font-weight: 500;
+}
+.org-card-meta svg { color: var(--color-text-muted, #6b7280); }
+
+.org-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary, #4f6fd1);
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+.org-card-cta:hover { color: var(--color-primary-deep, #2c4ba0); }
+.org-card-cta svg:last-child { transition: transform 200ms ease; }
+.org-card:hover .org-card-cta svg:last-child { transform: translateX(3px); }
+
+/* Initials fallback text (used by modal) */
+.org-initials {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #fff;
+  font-style: italic;
+  font-family: var(--font-family-serif, 'Instrument Serif', Georgia, serif);
+}
+
+/* ── Modal (kept for homepage quick-view) ── */
 .org-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15,23,41,0.55);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -79,14 +151,14 @@
 }
 
 .org-modal {
-  background: var(--color-white, #fff);
-  border-radius: 12px;
+  background: var(--color-surface, #fff);
+  border-radius: var(--radius-2xl, 18px);
   padding: 2rem;
   max-width: 440px;
   width: 92%;
   position: relative;
   text-align: center;
-  box-shadow: var(--shadow-modal, 0 10px 40px rgba(0, 0, 0, 0.2));
+  box-shadow: 0 30px 80px -20px rgba(15,23,41,0.35);
 }
 
 .org-modal-close {
@@ -106,11 +178,15 @@
   height: 96px;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--color-surface, #f3f4f6);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto var(--space-4);
+  margin: 0 auto 1rem;
+  font-family: var(--font-family-serif, 'Instrument Serif', Georgia, serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.8rem;
+  color: #fff;
 }
 
 .org-modal-img {
@@ -119,37 +195,31 @@
   object-fit: cover;
 }
 
-.org-modal-initials {
-  font-size: 1.5rem;
-}
-
 .org-modal-name {
   font-size: 1.2rem;
   font-weight: 700;
-  margin: 0 0 var(--space-3);
-  color: var(--color-text);
+  margin: 0 0 0.75rem;
+  color: var(--color-text-primary);
 }
 
 .org-modal-desc {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-sm, 0.875rem);
   color: var(--color-text-muted);
   line-height: 1.6;
-  margin: 0 0 var(--space-4);
+  margin: 0 0 1.25rem;
 }
 
 .org-modal-fb-btn {
   display: inline-flex;
   align-items: center;
-  padding: 0.5rem 1.25rem;
-  background: var(--color-facebook);
-  color: var(--color-surface);
-  border-radius: 6px;
-  font-size: var(--font-size-sm);
+  gap: 8px;
+  padding: 0.55rem 1.25rem;
+  background: var(--color-primary, #4f6fd1);
+  color: #fff;
+  border-radius: var(--radius-lg, 10px);
+  font-size: var(--font-size-sm, 0.875rem);
   font-weight: 600;
   text-decoration: none;
   transition: background 0.15s;
 }
-
-.org-modal-fb-btn:hover {
-  background: var(--color-facebook-dark);
-}
+.org-modal-fb-btn:hover { background: var(--color-primary-dark, #3b5fbc); }

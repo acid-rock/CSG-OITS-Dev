@@ -1,7 +1,9 @@
 import "./contributor.css";
+import "../_shared/admin-list.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaGithub, FaEnvelope, FaFacebook, FaInstagram } from "react-icons/fa";
+import Sidebar from "../_shared/Sidebar";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -234,7 +236,7 @@ const Contributor = () => {
 
   useEffect(() => {
     axios
-      .get(`${API_URL}/officers`)
+      .get(`${API_URL}/officers`, { withCredentials: true })
       .then(({ data }) => {
         const map: Record<string, OfficerMatch> = {};
         for (const o of data) {
@@ -249,7 +251,10 @@ const Contributor = () => {
   }, []);
 
   return (
-    <div className="admin-contributor-container">
+    <div className="ad-shell">
+      <Sidebar active="contributors" />
+      <main className="ad-main">
+      <div className="admin-contributor-container">
       <div className="admin-contributor-header">
         <span>Contributors</span>
       </div>
@@ -276,6 +281,8 @@ const Contributor = () => {
           })}
         </div>
       </div>
+    </div>
+      </main>
     </div>
   );
 };

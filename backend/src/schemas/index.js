@@ -122,16 +122,17 @@ export const addCommitteeSchema = z.object({
 });
 
 export const editCommitteeSchema = z.object({
-  id: z.number().int().positive(),
+  // committees.id is UUID (gen_random_uuid()) — never parse as integer
+  id: uuidField,
   name: z.string().min(1).max(200),
 });
 
 export const committeeIdSchema = z.object({
-  id: z.number().int().positive(),
+  id: uuidField,
 });
 
 export const committeeIdsSchema = z.object({
-  ids: z.array(z.number().int().positive()).min(1),
+  ids: z.array(uuidField).min(1),
 });
 
 // ─── Organizations ───────────────────────────────────────────────────────────

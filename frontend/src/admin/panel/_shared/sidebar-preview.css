@@ -1,0 +1,126 @@
+/* ── Sidebar hover preview panel ── */
+.sidebar-preview {
+  position: fixed;
+  left: 260px;          /* sidebar width + small gap */
+  width: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-border-soft, #eef0f5);
+  border-radius: var(--radius-xl, 14px);
+  box-shadow: 0 8px 32px rgba(15,23,41,0.12), 0 2px 6px rgba(15,23,41,0.06);
+  z-index: 2000;
+  padding: 14px 16px;
+  /* Transparent left bridge so cursor can travel to the panel */
+  margin-left: -8px;
+  padding-left: 24px;
+}
+
+/* Extend hover area leftward to cover the gap between sidebar and preview */
+.sidebar-preview::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -16px;
+  width: 16px;
+  height: 100%;
+  background: transparent;
+}
+
+/* Left-pointing arrow */
+.sidebar-preview__arrow {
+  position: absolute;
+  left: 6px;
+  top: 18px;
+  width: 10px;
+  height: 10px;
+  background: var(--color-white, #fff);
+  border-left: 1px solid var(--color-border-soft, #eef0f5);
+  border-bottom: 1px solid var(--color-border-soft, #eef0f5);
+  transform: rotate(45deg);
+}
+
+.sidebar-preview__label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-primary, #4f6fd1);
+  text-transform: uppercase;
+  margin: 0 0 2px;
+}
+
+.sidebar-preview__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f1729);
+  margin: 0 0 10px;
+}
+
+.sidebar-preview__divider {
+  height: 1px;
+  background: var(--color-border-soft, #eef0f5);
+  margin-bottom: 8px;
+}
+
+.sidebar-preview__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border-soft, #eef0f5);
+}
+.sidebar-preview__item:last-of-type {
+  border-bottom: none;
+}
+
+.sidebar-preview__thumb {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-surface-deep, #eef1fb);
+}
+.sidebar-preview__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-preview__item-body {
+  flex: 1;
+  min-width: 0;
+}
+.sidebar-preview__item-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary, #0f1729);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  line-height: 1.4;
+}
+.sidebar-preview__item-date {
+  font-size: 11px;
+  color: var(--color-text-muted, #6b7280);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.sidebar-preview__empty {
+  font-size: 12px;
+  color: var(--color-text-muted, #6b7280);
+  text-align: center;
+  padding: 12px 0;
+  margin: 0;
+}
+
+.sidebar-preview__more {
+  font-size: 11px;
+  color: var(--color-text-muted, #6b7280);
+  text-align: center;
+  margin: 6px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border-soft, #eef0f5);
+}

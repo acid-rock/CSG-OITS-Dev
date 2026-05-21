@@ -1,223 +1,285 @@
-/* Container */
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  position: relative;
-  font-family:
-    'Roboto', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+/* ============================================================
+   CSG-OITS Admin Login — LoginGlass variant
+   Tokens cascade from :root via tokens.css / index.css
+   ============================================================ */
+
+/* ── Shared typography ───────────────────────────────────── */
+.lv-display {
+  font-size: 46px; font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.025em; color: var(--color-text-primary);
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+.lv-display em {
+  font-family: var(--font-family-serif); font-style: italic; font-weight: 400;
+  color: var(--color-primary-deep);
+  letter-spacing: -0.02em;
+}
+.lv-display--on-dark { color: #fff; }
+.lv-display--on-dark em { color: #dbe5ff; }
+.lv-display-sub {
+  font-size: 15.5px; line-height: 1.65; font-weight: 450;
+  color: var(--color-text-secondary);
+  max-width: 480px; margin: 0 0 32px;
 }
 
-.login-container *,
-.login-container *::before,
-.login-container *::after {
+/* ── Eyebrow pill ───────────────────────────────────────── */
+.lv-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase;
+  padding: 6px 12px; border-radius: var(--radius-full);
+  background: rgba(79,111,209,0.08); color: var(--color-primary-deep);
+  border: 1px solid rgba(79,111,209,0.18);
+  margin-bottom: 18px;
+}
+.lv-eyebrow--on-light {
+  background: rgba(79,111,209,0.08); color: var(--color-primary-deep);
+}
+.lv-eyebrow--on-dark {
+  background: rgba(255,255,255,0.14); color: #fff;
+  border: 1px solid rgba(255,255,255,0.28);
+  backdrop-filter: blur(8px);
+}
+
+.lv-status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-status-online);
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.18);
+}
+
+/* ── Brand mark — C with gradient circle ───────────────── */
+.lv-brand-mark {
+  border-radius: 50%;
+  background: var(--gradient-deep);
+  color: #fff; font-family: var(--font-family-serif); font-style: italic; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  position: relative; flex-shrink: 0;
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px var(--color-primary), 0 4px 12px -2px rgba(79,111,209,0.4);
+}
+.lv-brand-mark::before {
+  content: ""; position: absolute; inset: 3px; border-radius: 50%;
+  border: 1px dashed rgba(255,255,255,0.4);
+}
+.lv-brand-row { display: flex; align-items: center; gap: 12px; }
+.lv-brand-text { display: flex; flex-direction: column; line-height: 1.18; }
+.lv-brand-name { color: var(--color-text-primary); font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em; }
+.lv-brand-sub { color: var(--color-text-muted); font-size: 10.5px; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; }
+
+/* ── CSG seal ───────────────────────────────────────────── */
+.lv-seal {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px var(--color-primary-light), 0 10px 24px -8px rgba(15,23,41,0.45);
+}
+.lv-seal svg { display: block; }
+
+/* ── Back link ──────────────────────────────────────────── */
+.lv-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 600; color: var(--color-text-muted);
+  text-decoration: none; cursor: pointer;
+  transition: var(--transition-base);
+}
+.lv-back:hover { color: var(--color-primary); }
+.lv-back--glass {
+  background: rgba(255,255,255,0.12); padding: 7px 14px; border-radius: var(--radius-full);
+  border: 1px solid rgba(255,255,255,0.22); color: #fff;
+  backdrop-filter: blur(10px);
+}
+.lv-back--glass:hover { background: rgba(255,255,255,0.22); color: #fff; }
+
+/* ── Link ───────────────────────────────────────────────── */
+.lv-link {
+  color: var(--color-primary); font-weight: 600; text-decoration: none;
+  transition: color 150ms ease;
+}
+.lv-link:hover { color: var(--color-primary-deep); }
+.lv-link--mini { font-size: 11.5px; }
+
+/* ── Field ──────────────────────────────────────────────── */
+.lv-field { display: flex; flex-direction: column; gap: 7px; }
+.lv-field-label {
+  font-size: 11px; font-weight: 700; color: var(--color-text-muted);
+  text-transform: uppercase; letter-spacing: 0.6px;
+}
+.lv-field-wrap {
+  position: relative; display: flex; align-items: center;
+  background: #fff; border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: var(--transition-base);
+  padding: 0 14px;
+}
+.lv-field-wrap:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(79,111,209,0.12);
+}
+.lv-field-wrap.has-error {
+  border-color: var(--color-danger-text);
+  box-shadow: 0 0 0 4px rgba(185,28,28,0.10);
+}
+.lv-field-ico { color: var(--color-text-muted); display: flex; align-items: center; }
+.lv-field-wrap:focus-within .lv-field-ico { color: var(--color-primary); }
+.lv-field input {
+  flex: 1; border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 14.5px; font-weight: 500;
+  color: var(--color-text-primary);
+  padding: 14px 12px;
+  letter-spacing: -0.005em;
+}
+.lv-field input::placeholder { color: var(--color-text-hint); font-weight: 450; }
+.lv-field-trail {
+  background: none; border: none; padding: 6px; cursor: pointer;
+  color: var(--color-text-muted); display: flex; align-items: center;
+  border-radius: 6px; transition: var(--transition-base);
+  text-decoration: none;
+}
+.lv-field-trail:hover { color: var(--color-primary); background: rgba(79,111,209,0.06); }
+
+/* ── Error banner ───────────────────────────────────────── */
+.lv-error {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5px; font-weight: 600;
+  color: var(--color-danger-text);
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(185,28,28,0.18);
+  padding: 10px 12px; border-radius: var(--radius-lg);
+  margin-bottom: 18px;
+}
+
+/* ── Form layout ────────────────────────────────────────── */
+.lv-form { display: flex; flex-direction: column; gap: 16px; }
+.lv-form--snug { gap: 14px; }
+
+/* ── Primary button ─────────────────────────────────────── */
+.lv-btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--color-primary); color: #fff;
+  font-weight: 700; font-size: 14.5px; letter-spacing: -0.01em;
+  border: none; border-radius: var(--radius-lg);
+  padding: 14px 26px; cursor: pointer;
+  transition: var(--transition-base);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 8px 18px -6px rgba(79,111,209,0.55);
+  margin-top: 8px;
   font-family: inherit;
 }
+.lv-btn-primary:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 12px 26px -8px rgba(79,111,209,0.6);
+}
+.lv-btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+.lv-btn-primary--block { width: 100%; }
+.lv-btn-primary svg { transition: transform 200ms ease; }
+.lv-btn-primary:hover:not(:disabled) svg { transform: translateX(3px); }
+.lv-btn-primary:focus-visible { box-shadow: 0 0 0 4px rgba(79,111,209,0.22); }
 
-/* Campus photo background */
-.login-container::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url('../../../../public/login-background.jpg') center center /
-    cover no-repeat;
-  filter: blur(2px);
-  transform: scale(1.05);
+/* ── SVG dot pattern ────────────────────────────────────── */
+.lv-grad-pattern {
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><defs><pattern id='g' width='32' height='32' patternUnits='userSpaceOnUse'><circle cx='1' cy='1' r='1' fill='%230f1729' opacity='0.07'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
+  opacity: 0.7; pointer-events: none;
+}
+
+/* ── Variant 3: Glass ───────────────────────────────────── */
+.lv-glass {
+  width: 100%; min-height: 100vh;
+  position: relative;
+  display: flex; flex-direction: column;
+  padding: 32px 64px;
+  overflow: hidden;
+  color: #fff;
+  font-family: var(--font-family-base);
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+.lv-glass *, .lv-glass *::before, .lv-glass *::after { box-sizing: border-box; }
+
+.lv-glass-photo {
+  position: absolute; inset: 0;
+  background: url('/login-background.jpg') center/cover no-repeat;
   z-index: 0;
 }
+.lv-glass-veil {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(120deg, rgba(15,23,41,0.78) 0%, rgba(44,75,160,0.62) 45%, rgba(79,111,209,0.45) 100%);
+}
+.lv-glass .lv-grad-pattern { z-index: 2; opacity: 0.5; }
 
-/* Blue gradient overlay — low opacity for visual engagement */
-.login-container::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    145deg,
-    rgba(10, 36, 99, 0.55) 0%,
-    rgba(24, 90, 188, 0.4) 50%,
-    rgba(74, 144, 226, 0.3) 100%
-  );
-  z-index: 1;
+.lv-glass-top {
+  position: relative; z-index: 3;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.lv-brand-row--on-dark .lv-brand-mark {
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,0.2), 0 0 0 2.5px rgba(255,255,255,0.4), 0 4px 12px -2px rgba(0,0,0,0.4);
 }
 
-/* Card */
-.login-card {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 400px;
-  background-color: #fff;
-  padding: 3rem 2rem 2rem;
-  border-radius: 20px;
-  box-shadow:
-    0 10px 40px rgba(10, 36, 99, 0.25),
-    0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center; /* ── centers ALL content in the card ── */
-  box-sizing: border-box;
+.lv-glass-stage {
+  position: relative; z-index: 3;
+  flex: 1; display: grid;
+  grid-template-columns: 1.05fr 0.95fr; gap: 60px;
+  align-items: center;
+  padding: 40px 0;
+}
+.lv-glass-info { max-width: 520px; }
+.lv-bullets {
+  list-style: none; padding: 0; margin: 8px 0 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.lv-bullets li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 14.5px; color: rgba(255,255,255,0.9); font-weight: 500;
+  line-height: 1.45;
+}
+.lv-bullets-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #fff;
+  margin-top: 8px; flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.18);
 }
 
-/* Logo */
-.logo-wrapper {
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 4px 14px rgba(10, 36, 99, 0.2);
+.lv-glass-card {
+  justify-self: end;
+  width: 420px;
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-2xl);
+  padding: 30px 32px 28px;
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: var(--shadow-hero);
+  color: var(--color-text-secondary);
 }
-
-.logo-wrapper .logo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.lv-glass-seal-row {
+  display: flex; align-items: center; gap: 14px;
+  padding-bottom: 18px; margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-border-soft);
 }
-
-/* Header */
-.login-header {
-  margin-top: 52px;
-  margin-bottom: 1.75rem;
+.lv-glass-card-eyebrow {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+  color: var(--color-primary);
+}
+.lv-glass-card-title-sm {
+  font-size: 18px; font-weight: 800; letter-spacing: -0.01em;
+  color: var(--color-text-primary); margin-top: 2px;
+}
+.lv-glass-help {
+  font-size: 11.5px; color: var(--color-text-muted); text-align: center;
+  margin: 16px 0 0;
+}
+.lv-glass-foot {
+  position: relative; z-index: 3;
+  font-size: 11.5px; color: rgba(255,255,255,0.7); font-weight: 500;
   text-align: center;
+  padding-top: 16px;
 }
 
-.login-title {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 0.75rem;
-  line-height: 1.4;
-  text-align: center; /* ── explicit center ── */
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .lv-glass { padding: 24px 32px; }
+  .lv-glass-stage { grid-template-columns: 1fr; gap: 32px; padding: 24px 0; }
+  .lv-glass-info { max-width: 100%; }
+  .lv-glass-card { justify-self: center; width: 100%; max-width: 420px; }
+  .lv-display { font-size: 34px; }
 }
-
-.login-subtitle {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin: 0;
-  text-align: center; /* ── explicit center ── */
-}
-
-/* Form */
-.login-form {
-  display: flex;
-  flex-direction: column;
-  text-align: left; /* inputs stay left-aligned inside */
-}
-
-.input-group {
-  position: relative;
-  margin-bottom: 1rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.input-icon {
-  position: absolute;
-  top: 50%;
-  left: 12px;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-.input-field {
-  width: 100%;
-  height: 48px;
-  padding-left: 40px;
-  padding-right: 12px;
-  border-radius: 10px;
-  border: 1.5px solid #e5eaf2;
-  background-color: #f0f4f9;
-  font-size: 0.92rem;
-  color: #0f172a;
-  outline: none;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s,
-    background 0.2s;
-  box-sizing: border-box;
-  font-family: inherit;
-}
-
-.input-field::placeholder {
-  color: #aab4c4;
-}
-
-.input-field:focus {
-  background-color: #fff;
-  border-color: #5396d5;
-  box-shadow: 0 0 0 3px rgba(83, 150, 213, 0.12);
-}
-
-/* Footer */
-.form-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1.25rem;
-  margin-top: -0.25rem;
-}
-
-.forgot-link {
-  color: #5396d5;
-  font-size: 0.82rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.forgot-link:hover {
-  color: #357abd;
-  text-decoration: underline;
-}
-
-/* Button */
-.sign-in-button {
-  width: 100%;
-  height: 48px;
-  background-color: #5396d5;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    box-shadow 0.2s,
-    transform 0.15s;
-  box-sizing: border-box;
-  font-family: inherit;
-  letter-spacing: 0.3px;
-}
-
-.sign-in-button:hover {
-  background-color: #357abd;
-  box-shadow: 0 4px 14px rgba(83, 150, 213, 0.4);
-  transform: translateY(-1px);
-}
-
-/* Responsive */
-@media (max-width: 450px) {
-  .login-card {
-    padding: 2.5rem 1.5rem 1.5rem;
-    margin: 0 1rem;
-  }
-
-  .login-title {
-    font-size: 1.1rem;
-  }
-
-  .input-field,
-  .sign-in-button {
-    height: 45px;
-  }
+@media (max-width: 480px) {
+  .lv-glass { padding: 20px 20px; }
+  .lv-glass-card { padding: 24px 20px 20px; }
 }

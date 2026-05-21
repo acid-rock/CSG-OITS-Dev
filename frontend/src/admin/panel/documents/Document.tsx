@@ -1,12 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
-import "./document.css";
-import FilterSelect from "../../components/filter/Filter";
-import Form from "../../components/form/Form";
-import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
-import Actionbar from "../../components/action-bar/Actionbar";
-import axios from "axios";
-import { Archive, ArchiveRestore, Eye } from "lucide-react";
-import PublicPreviewModal from "../../components/modals/PublicPreviewModal/PublicPreviewModal";
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import '../_shared/admin-list.css';
+import Form from '../../components/form/Form';
+import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
+import PublicPreviewModal from '../../components/modals/PublicPreviewModal/PublicPreviewModal';
+import axios from 'axios';
+import Sidebar from '../_shared/Sidebar';
+import { PageHead, Tabs, Toolbar, BulkBar, TableFoot } from '../_shared/chrome';
+import { Thumb, Tag } from '../_shared/atoms';
+import { I } from '../_shared/icons';
+import { timeAgo, fmtDate, formatTypeLabel } from '../_shared/utils';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -20,36 +23,25 @@ interface DocumentEntry {
   thumbnail: string;
   term?: string;
   deleted_at?: string;
+  archived_at?: string;
+  owner_id?: string;
 }
 
-// filterOptions is now computed dynamically inside the component from data
-const sortOptions = [
-  "Name (A-Z)",
-  "Name (Z-A)",
-  "Date (Newest)",
-  "Date (Oldest)",
-];
+type Tab = 'active' | 'archived' | 'bin';
 
-const formatDate = (iso: string): string => {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+type Tone = 'primary'|'warning'|'danger'|'neutral'|'success';
+const DOC_TONE: Record<string, Tone> = {
+  'Activity Proposal': 'primary', 'Memo': 'primary',
+  'Minutes': 'neutral', 'Resolution': 'danger', 'Excuse Letter': 'warning',
 };
 
-type Tab = "active" | "archived" | "bin";
-
-const groupByTerm = (
-  items: DocumentEntry[],
-): Record<string, DocumentEntry[]> => {
+const groupByTerm = (items: DocumentEntry[]): Record<string, DocumentEntry[]> => {
   const groups: Record<string, DocumentEntry[]> = {};
-  items.forEach((item) => {
+  items.forEach(item => {
     const year = item.deleted_at
       ? new Date(item.deleted_at).getFullYear()
-      : new Date().getFullYear();
-    const term = `${year}-${year + 1}`;
+      : item.archived_at ? new Date(item.archived_at).getFullYear() : new Date().getFullYear();
+    const term = `${year}–${year + 1}`;
     if (!groups[term]) groups[term] = [];
     groups[term].push(item);
   });
@@ -57,694 +49,275 @@ const groupByTerm = (
 };
 
 const Documents = () => {
-  const [tab, setTab] = useState<Tab>("active");
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>('active');
   const [data, setData] = useState<DocumentEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [spinning, setSpinning] = useState(false);
   const [active, setActive] = useState<string[]>([]);
-  const [filter, setFilter] = useState<string>("");
-  const [sort, setSort] = useState<string>("");
-  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState('');
+  const [sort, setSort] = useState('');
+  const [open, setOpen] = useState(() => searchParams.get('action') === 'upload');
   const [id, setId] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editType, setEditType] = useState("");
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editType, setEditType] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
-  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [previewItem, setPreviewItem] = useState<DocumentEntry | null>(null);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
-    setFetchError(null);
-    setActive([]);
+    setLoading(true); setFetchError(null); setActive([]);
     try {
-      const endpoint =
-        tab === "archived"
-          ? `${API_URL}/documents/archived?t=${Date.now()}`
-          : tab === "bin"
-            ? `${API_URL}/documents/bin?t=${Date.now()}`
-            : `${API_URL}/documents`;
-      const { data: responseData } = await axios.get<DocumentEntry[]>(
-        endpoint,
-        { withCredentials: true },
-      );
-      setData(
-        Array.isArray(responseData)
-          ? responseData
-          : ((responseData as any).data ?? []),
-      );
+      const ep = tab === 'archived' ? `${API_URL}/documents/archived?t=${Date.now()}`
+        : tab === 'bin' ? `${API_URL}/documents/bin?t=${Date.now()}`
+        : `${API_URL}/documents`;
+      const { data: r } = await axios.get<DocumentEntry[]>(ep, { withCredentials: true });
+      setData(Array.isArray(r) ? r : (r as { data?: DocumentEntry[] }).data ?? []);
     } catch (err: unknown) {
-      setFetchError(
-        err instanceof Error ? err.message : "Failed to load documents.",
-      );
-    } finally {
-      setLoading(false);
-    }
+      setFetchError(err instanceof Error ? err.message : 'Failed to load documents.');
+    } finally { setLoading(false); }
   }, [tab]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-  useEffect(() => {
-    setOpenTerms({});
-  }, [tab]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { setOpenTerms({}); }, [tab]);
 
-  const handleActive = (entryId: string) =>
-    setActive((prev) =>
-      prev.includes(entryId)
-        ? prev.filter((id) => id !== entryId)
-        : [...prev, entryId],
-    );
+  const handleActive = (id: string) =>
+    setActive(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  const handleRefresh = () => { setSpinning(true); fetchData().finally(() => setTimeout(() => setSpinning(false), 600)); };
 
-  const handleRefresh = () => {
-    setSpinning(true);
-    fetchData().finally(() => setTimeout(() => setSpinning(false), 600));
+  const handleArchive = async (id: string) => {
+    try { await axios.post(`${API_URL}/documents/archive`, { ids: [id] }, { withCredentials: true }); setData(p => p.filter(d => d.id !== id)); }
+    catch (err: unknown) { setFetchError('Archive failed: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Unknown')); }
   };
-
-  const handleArchive = async (entryId: string) => {
-    await axios.post(
-      `${API_URL}/documents/archive`,
-      { ids: [entryId] },
-      { withCredentials: true },
-    );
-    fetchData();
+  const handleMoveToBin = async (id: string) => {
+    try { await axios.post(`${API_URL}/documents/bin`, { ids: [id] }, { withCredentials: true }); setData(p => p.filter(d => d.id !== id)); }
+    catch (err: unknown) { setFetchError('Move to bin failed: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Unknown')); }
   };
-
-  const handleSoftDelete = async (id: string) => {
-    try {
-      await axios.post(
-        `${API_URL}/documents/bin`,
-        { ids: [id] },
-        { withCredentials: true },
-      );
-      setData((prev) => prev.filter((item) => item.id !== id));
-    } catch (err: unknown) {
-      setFetchError(
-        "Failed to move to bin: " +
-          ((err as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ??
-            (err instanceof Error ? err.message : "Unknown")),
-      );
-    }
+  const handleRestore = async (id: string) => {
+    try { await axios.post(`${API_URL}/documents/restore`, { ids: [id] }, { withCredentials: true }); setData(p => p.filter(d => d.id !== id)); }
+    catch (err: unknown) { setFetchError('Restore failed: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Unknown')); }
   };
-
-  const handleRestore = async (entryId: string) => {
-    await axios.post(
-      `${API_URL}/documents/restore`,
-      { ids: [entryId] },
-      { withCredentials: true },
-    );
-    setData((prev) => prev.filter((d) => d.id !== entryId));
-    fetchData();
+  const handleRestoreFromBin = async (id: string) => {
+    try { await axios.post(`${API_URL}/documents/restore-from-bin`, { ids: [id] }, { withCredentials: true }); setData(p => p.filter(d => d.id !== id)); }
+    catch { fetchData(); }
   };
-
   const handlePermanentDelete = async (id: string) => {
-    if (!window.confirm("Permanently delete this item? This cannot be undone."))
-      return;
-    try {
-      await axios.delete(`${API_URL}/documents/delete`, {
-        data: [{ id }],
-        withCredentials: true,
-      });
-      setData((prev) => prev.filter((item) => item.id !== id));
-    } catch (err: unknown) {
-      setFetchError(
-        "Delete failed: " +
-          ((err as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ??
-            (err instanceof Error ? err.message : "Unknown")),
-      );
-    }
+    if (!window.confirm('Permanently delete?')) return;
+    try { await axios.delete(`${API_URL}/documents/delete`, { data: [{ id }], withCredentials: true }); setData(p => p.filter(d => d.id !== id)); }
+    catch (err: unknown) { setFetchError('Delete failed: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Unknown')); }
   };
 
-  const tabStyle = (t: Tab) => ({
-    padding: "0.35rem 1rem",
-    border: "none",
-    borderBottom: tab === t ? "2px solid #3b82f6" : "2px solid transparent",
-    background: "none",
-    cursor: "pointer",
-    fontWeight: tab === t ? 600 : 400,
-    color: tab === t ? "#3b82f6" : "#6b7280",
-    fontSize: "0.9rem",
-  });
+  const bulkArchive = async () => { if (!active.length) return; await axios.post(`${API_URL}/documents/archive`, { ids: active }, { withCredentials: true }); fetchData(); setActive([]); };
+  const bulkBin    = async () => { if (!active.length) return; await axios.post(`${API_URL}/documents/bin`,     { ids: active }, { withCredentials: true }); fetchData(); setActive([]); };
+  const bulkRestore = async () => { if (!active.length) return; await axios.post(`${API_URL}/documents/restore`, { ids: active }, { withCredentials: true }); fetchData(); setActive([]); };
+  const bulkRestoreFromBin = async () => { if (!active.length) return; await axios.post(`${API_URL}/documents/restore-from-bin`, { ids: active }, { withCredentials: true }); fetchData(); setActive([]); };
+  const bulkDelete  = async () => {
+    if (!active.length || !window.confirm(`Delete ${active.length} items?`)) return;
+    await axios.delete(`${API_URL}/documents/bin/purge`, { data: active, withCredentials: true }); fetchData(); setActive([]);
+  };
 
-  const toggleTerm = (term: string) =>
-    setOpenTerms((prev) => ({ ...prev, [term]: !prev[term] }));
+  const toggleTerm = (t: string) => setOpenTerms(p => ({ ...p, [t]: !p[t] }));
+  const rawFmt = (s: string) => s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-  // Dynamic filter options derived from fetched document categories
-  const formatTypeLabel = (raw: string) =>
-    raw.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const archivedGroups = tab === 'archived' ? groupByTerm(data) : {};
+  const sortedTerms = Object.keys(archivedGroups).sort((a, b) => b.localeCompare(a));
+  const isTermOpen = (t: string) => openTerms[t] !== undefined ? openTerms[t] : t === sortedTerms[0];
 
-  const docTypes = [
-    ...new Set(data.map((d) => d.category).filter(Boolean)),
-  ].sort();
-  const filterOptions = ["All", ...docTypes.map(formatTypeLabel)];
+  const filteredData = data
+    .filter(d => !filter || rawFmt(d.category) === filter)
+    .filter(d => !searchQuery || d.name.toLowerCase().includes(searchQuery.toLowerCase()) || (d.description ?? '').toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      if (sort === 'Name (A-Z)') return a.name.localeCompare(b.name);
+      if (sort === 'Name (Z-A)') return b.name.localeCompare(a.name);
+      if (sort === 'Date (Newest)') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sort === 'Date (Oldest)') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return 0;
+    });
 
-  const archivedGroups = tab === "archived" ? groupByTerm(data) : {};
-  const sortedTerms = Object.keys(archivedGroups).sort((a, b) =>
-    b.localeCompare(a),
-  );
-  const isOpen = (term: string) =>
-    openTerms[term] !== undefined ? openTerms[term] : term === sortedTerms[0];
+  const docTypes = [...new Set(data.map(d => d.category).filter(Boolean))].sort().map(rawFmt);
 
-  if (loading) {
+
+  const DocRow = ({ d }: { d: DocumentEntry }) => {
+    const label = rawFmt(d.category);
+    const tone: Tone = DOC_TONE[label] ?? 'neutral';
     return (
-      <div className="docs-container">
-        <div className="docs-header">
-          <span>Documents</span>
-        </div>
-        <p style={{ padding: "1rem" }}>Loading...</p>
-      </div>
+      <tr key={d.id} className={active.includes(d.id) ? 'is-selected' : ''}>
+        <td><input type="checkbox" checked={active.includes(d.id)} onChange={() => handleActive(d.id)} /></td>
+        <td><Thumb src={d.thumbnail || null} title={d.category} kind="doc" /></td>
+        <td>
+          <div className="ad-title-stack">
+            <div className="ad-title-row">
+              <Tag label={label} tone={tone} />
+              <a className="ad-title-link ad-mono" href={d.url} target="_blank" rel="noopener noreferrer" title={d.name}>{d.name}</a>
+            </div>
+            {d.description && <p className="ad-desc">{d.description}</p>}
+            <div className="ad-meta">
+              <span><I.doc width="11" height="11" /> PDF</span>
+              {d.term && <span className="ad-mono">{d.term}</span>}
+            </div>
+          </div>
+        </td>
+        <td>
+          <div className="ad-date">
+            <span className="ad-date-abs">{fmtDate(d.createdAt)}</span>
+            <span className="ad-date-rel">{d.createdAt ? timeAgo(d.createdAt) : '—'}</span>
+          </div>
+        </td>
+        <td className="ad-actions">
+          {tab === 'active' && <>
+            <button className="ad-icon-btn" title="Preview (public view)" onClick={() => setPreviewItem(d)}><I.eye width="14" height="14" /></button>
+            <a className="ad-icon-btn" href={d.url} target="_blank" rel="noopener noreferrer" download title="Download PDF"><I.download width="14" height="14" /></a>
+            <button className="ad-icon-btn" title="Edit" onClick={() => { setId(d.id); setSelectedName(d.name); setEditTitle(d.name); setEditDescription(d.description); setEditType(d.category); setOpen(true); }}><I.edit width="14" height="14" /></button>
+            <button className="ad-icon-btn" title="Archive" onClick={() => handleArchive(d.id)}><I.archive width="14" height="14" /></button>
+            <button className="ad-icon-btn ad-icon-btn--danger" title="Move to bin" onClick={() => handleMoveToBin(d.id)}><I.trash width="14" height="14" /></button>
+          </>}
+          {tab === 'archived' && <>
+            <button className="ad-icon-btn is-on" title="Restore to Active" onClick={() => handleRestore(d.id)}><I.restore width="14" height="14" /></button>
+            <button className="ad-icon-btn ad-icon-btn--danger" title="Move to Bin" onClick={() => handleMoveToBin(d.id)}><I.trash width="14" height="14" /></button>
+          </>}
+          {tab === 'bin' && <>
+            <button className="ad-icon-btn is-on" title="Restore" onClick={() => handleRestoreFromBin(d.id)}><I.restore width="14" height="14" /></button>
+            <button className="ad-icon-btn ad-icon-btn--danger" title="Delete permanently" onClick={() => handlePermanentDelete(d.id)}><I.trash width="14" height="14" /></button>
+          </>}
+        </td>
+      </tr>
     );
-  }
+  };
 
   return (
-    <div className="docs-container">
-      <div className="docs-header">
-        <span>Documents</span>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: 0,
-          borderBottom: "1px solid #e5e7eb",
-          marginBottom: "0.5rem",
-        }}
-      >
-        <button style={tabStyle("active")} onClick={() => setTab("active")}>
-          Active
-        </button>
-        <button style={tabStyle("archived")} onClick={() => setTab("archived")}>
-          Archived
-        </button>
-        <button style={tabStyle("bin")} onClick={() => setTab("bin")}>
-          Bin
-        </button>
-      </div>
-
-      {fetchError && (
-        <p style={{ padding: "0.5rem 1rem", color: "red" }}>{fetchError}</p>
-      )}
-
-      <div className="docs-toolbar">
-        <span className="docs-file-count">{data.length} Files</span>
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            flex: 1,
-            padding: "0.35rem 0.75rem",
-            border: "1px solid #e5e7eb",
-            borderRadius: 6,
-            fontSize: "0.875rem",
-            minWidth: 0,
-          }}
-        />
-        <div className="docs-toolbar-actions">
-          <FilterSelect
-            options={filterOptions}
-            value={filter}
-            onChange={setFilter}
-            label="Filter"
-          />
-          <FilterSelect
-            options={sortOptions}
-            value={sort}
-            onChange={setSort}
-            label="Sort"
-          />
-          <button
-            className="docs-action-btn docs-refresh-btn"
-            title="Refresh"
-            onClick={handleRefresh}
-          >
-            <img
-              src="/refresh.png"
-              alt="refresh"
-              className={spinning ? "docs-spin refresh-img" : "refresh-img"}
-            />
-          </button>
-          {tab === "active" && (
-            <button
-              className="docs-add-btn"
-              onClick={() => {
-                setId(null);
-                setSelectedName(null);
-                setEditTitle("");
-                setEditDescription("");
-                setEditType("");
-                setOpen(true);
-              }}
-            >
-              Add Document
-            </button>
-          )}
-        </div>
-      </div>
-
-      {tab === "active" && active.length >= 1 && (
-        <Actionbar
-          items={active.length}
-          selectedIds={active}
-          source="document"
-          onSuccess={fetchData}
-        />
-      )}
-
-      <div className="docs-file-table">
-        {tab === "active" ? (
-          <table>
-            <colgroup>
-              <col className="col-checkbox" />
-              <col className="col-image" />
-              <col className="col-filename" />
-              <col className="col-description" />
-              <col style={{ width: "90px" }} />
-              <col className="col-date" />
-              <col className="col-actions" />
-            </colgroup>
-            <thead>
-              <tr className="docs-table-header-light">
-                <th>
-                  <input
-                    type="checkbox"
-                    title="Select All"
-                    checked={data.length > 0 && active.length === data.length}
-                    onChange={() =>
-                      setActive(
-                        active.length === data.length
-                          ? []
-                          : data.map((e) => e.id),
-                      )
-                    }
-                  />
-                </th>
-                <th>Thumbnail</th>
-                <th>File Name</th>
-                <th>Description</th>
-                <th>Term</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data
-                .filter(
-                  (entry) =>
-                    filter === "All" ||
-                    !filter ||
-                    formatTypeLabel(entry.category ?? "") === filter,
-                )
-                .filter(
-                  (entry) =>
-                    !searchQuery ||
-                    entry.name
-                      .toLowerCase()
-                      .includes(searchQuery.toLowerCase()) ||
-                    (entry.description ?? "")
-                      .toLowerCase()
-                      .includes(searchQuery.toLowerCase()),
-                )
-                .sort((a, b) => {
-                  if (sort === "Name (A-Z)")
-                    return a.name.localeCompare(b.name);
-                  if (sort === "Name (Z-A)")
-                    return b.name.localeCompare(a.name);
-                  if (sort === "Date (Newest)")
-                    return (
-                      new Date(b.createdAt).getTime() -
-                      new Date(a.createdAt).getTime()
-                    );
-                  if (sort === "Date (Oldest)")
-                    return (
-                      new Date(a.createdAt).getTime() -
-                      new Date(b.createdAt).getTime()
-                    );
-                  return 0;
-                })
-                .map((entry, idx) => (
-                  <tr
-                    key={idx}
-                    className={`docs-table-row ${active.includes(entry.id) ? "docs-active" : ""}`}
-                    onMouseEnter={() => setHoveredRowId(entry.id)}
-                    onMouseLeave={() => setHoveredRowId(null)}
-                  >
-                    <td>
-                      <input
-                        className="checkbox"
-                        type="checkbox"
-                        title={`Select ${entry.name}`}
-                        checked={active.includes(entry.id)}
-                        onChange={() => handleActive(entry.id)}
-                      />
-                    </td>
-                    <td>
-                      {entry.thumbnail ? (
-                        <img
-                          src={entry.thumbnail}
-                          alt={entry.name}
-                          style={{ width: 40, height: 40, objectFit: "cover" }}
-                        />
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td>{entry.name}</td>
-                    <td>{entry.description}</td>
-                    <td style={{ fontSize: "0.8rem", color: "#6b7280" }}>
-                      {entry.term ?? "—"}
-                    </td>
-                    <td>{formatDate(entry.createdAt)}</td>
-                    <td className="docs-file-btn">
-                      {hoveredRowId === entry.id && (
-                        <div className="docs-file-btn-inner">
-                          <button
-                            title="Preview public view"
-                            onClick={() => setPreviewItem(entry)}
-                            className="action-btn action-btn--preview"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button
-                            title="Archive"
-                            onClick={() => handleArchive(entry.id)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: "0.2rem",
-                              color: "#9ca3af",
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Archive size={16} />
-                          </button>
-                          <img
-                            src="/bin.png"
-                            alt="Move to bin"
-                            title="Move to bin"
-                            onClick={() => handleSoftDelete(entry.id)}
-                            style={{ cursor: "pointer" }}
-                          />
-                          <img
-                            src="/edit.png"
-                            alt="Edit"
-                            onClick={() => {
-                              setId(entry.id);
-                              setSelectedName(entry.name);
-                              setEditTitle(entry.name);
-                              setEditDescription(entry.description);
-                              setEditType(entry.category);
-                              setOpen(true);
-                            }}
-                          />
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        ) : tab === "archived" ? (
-          <>
-            {sortedTerms.length === 0 && (
-              <p
-                style={{
-                  padding: "1rem",
-                  color: "#9ca3af",
-                  fontSize: "0.875rem",
-                }}
-              >
-                No archived documents.
-              </p>
-            )}
-            {sortedTerms.map((term) => (
-              <div
-                key={term}
-                style={{
-                  marginBottom: "1rem",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                }}
-              >
-                <button
-                  onClick={() => toggleTerm(term)}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "0.75rem 1rem",
-                    background: "#f9fafb",
-                    border: "none",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: "0.9rem",
-                    color: "#374151",
-                  }}
-                >
-                  <span>Term {term}</span>
-                  <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                    {archivedGroups[term].length} item
-                    {archivedGroups[term].length !== 1 ? "s" : ""}&nbsp;
-                    {isOpen(term) ? "▲" : "▼"}
-                  </span>
+    <>
+      <div className="ad-shell">
+        <Sidebar active="documents" />
+        <main className="ad-main">
+          <PageHead
+            title="Documents"
+            subtitle="Upload resolutions, memos, minutes, proposals, and excuse letters."
+            actions={<>
+              <button className="ad-btn-ghost" onClick={() => window.print()}><I.print width="14" height="14" />Print</button>
+              {tab === 'active' && (
+                <button className="ad-btn-primary" onClick={() => { setId(null); setSelectedName(null); setEditTitle(''); setEditDescription(''); setEditType(''); setOpen(true); }}>
+                  <I.upload width="14" height="14" />Upload document
                 </button>
-                {isOpen(term) && (
-                  <table style={{ width: "100%" }}>
-                    <colgroup>
-                      <col className="col-checkbox" />
-                      <col className="col-image" />
-                      <col className="col-filename" />
-                      <col className="col-description" />
-                      <col style={{ width: "90px" }} />
-                      <col className="col-date" />
-                      <col className="col-actions" />
-                    </colgroup>
-                    <thead>
-                      <tr className="docs-table-header-light">
-                        <th></th>
-                        <th>Thumbnail</th>
-                        <th>File Name</th>
-                        <th>Description</th>
-                        <th>Term</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {archivedGroups[term].map((entry, idx) => (
-                        <tr
-                          key={idx}
-                          className={`docs-table-row ${active.includes(entry.id) ? "docs-active" : ""}`}
-                        >
-                          <td>
-                            <input
-                              className="checkbox"
-                              type="checkbox"
-                              title={`Select ${entry.name}`}
-                              checked={active.includes(entry.id)}
-                              onChange={() => handleActive(entry.id)}
-                            />
-                          </td>
-                          <td>
-                            {entry.thumbnail ? (
-                              <img
-                                src={entry.thumbnail}
-                                alt={entry.name}
-                                style={{
-                                  width: 40,
-                                  height: 40,
-                                  objectFit: "cover",
-                                }}
-                              />
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-                          <td>{entry.name}</td>
-                          <td>{entry.description}</td>
-                          <td style={{ fontSize: "0.8rem", color: "#6b7280" }}>
-                            {entry.term ?? "—"}
-                          </td>
-                          <td>{formatDate(entry.createdAt)}</td>
-                          <td
-                            style={{
-                              verticalAlign: "middle",
-                              padding: "0.5rem 1rem",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "0.5rem",
-                                alignItems: "center",
-                              }}
-                            >
-                              <button
-                                onClick={() => handleRestore(entry.id)}
-                                style={{
-                                  color: "#16a34a",
-                                  background: "none",
-                                  border: "1px solid #16a34a",
-                                  borderRadius: "4px",
-                                  padding: "0.25rem 0.625rem",
-                                  fontSize: "0.75rem",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Restore
-                              </button>
-                              <button
-                                onClick={() => handlePermanentDelete(entry.id)}
-                                style={{
-                                  color: "#dc2626",
-                                  background: "none",
-                                  border: "1px solid #dc2626",
-                                  borderRadius: "4px",
-                                  padding: "0.25rem 0.625rem",
-                                  fontSize: "0.75rem",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            ))}
-          </>
-        ) : tab === "bin" ? (
-          <>
-            {data.length === 0 && (
-              <p
-                style={{
-                  padding: "1rem",
-                  color: "#9ca3af",
-                  fontSize: "0.875rem",
-                }}
-              >
-                No items in bin.
-              </p>
-            )}
-            {data.length > 0 && (
-              <table>
-                <thead>
-                  <tr className="docs-table-header-light">
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+              )}
+            </>}
+          />
+          <Tabs
+            items={[
+              { label: 'Active',   active: tab === 'active',   count: tab === 'active' ? data.length : undefined },
+              { label: 'Archived', active: tab === 'archived', count: tab === 'archived' ? data.length : undefined },
+              { label: 'Bin',      active: tab === 'bin',      count: tab === 'bin' ? data.length : undefined },
+            ]}
+            onTabChange={(l) => setTab(l.toLowerCase() as Tab)}
+          />
+          <Toolbar
+            placeholder="Search documents by file name, description, or term…"
+            search={searchQuery}
+            onSearch={setSearchQuery}
+            onRefresh={handleRefresh}
+            showSort={false}
+          >
+            <span className="ad-filter-label">Filter</span>
+            <select
+              className="ad-filter-select"
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+            >
+              <option value="">Type: All</option>
+              {docTypes.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <span className="ad-filter-label">Sort</span>
+            <select
+              className="ad-filter-select"
+              value={sort}
+              onChange={e => setSort(e.target.value)}
+            >
+              <option value="">Newest first</option>
+              <option value="Date (Oldest)">Oldest first</option>
+              <option value="Name (A-Z)">A → Z</option>
+              <option value="Name (Z-A)">Z → A</option>
+            </select>
+          </Toolbar>
+
+          {fetchError && <p style={{ fontSize: 13, color: 'var(--color-danger-text)' }}>{fetchError}</p>}
+
+          {tab === 'active' && <BulkBar count={active.length} actions={['Archive', 'Delete']} handlers={{ Archive: bulkArchive, Delete: bulkBin }} onClear={() => setActive([])} />}
+          {tab === 'archived' && <BulkBar count={active.length} actions={['Restore', 'Delete']} handlers={{ Restore: bulkRestore, Delete: bulkDelete }} onClear={() => setActive([])} />}
+          {tab === 'bin' && <BulkBar count={active.length} actions={['Restore', 'Delete']} handlers={{ Restore: bulkRestoreFromBin, Delete: bulkDelete }} onClear={() => setActive([])} />}
+
+          {loading ? (
+            <section className="ad-card"><div className="ad-empty"><p>Loading…</p></div></section>
+          ) : tab === 'archived' ? (
+            <>
+              {sortedTerms.length === 0 && <section className="ad-card"><div className="ad-empty"><p>No archived documents.</p></div></section>}
+              {sortedTerms.map(term => (
+                <div key={term}>
+                  <button style={{ display:'flex',alignItems:'center',gap:8,background:'none',border:'none',cursor:'pointer',fontWeight:700,fontSize:13,color:'var(--color-text-primary)',padding:'8px 0' }} onClick={() => toggleTerm(term)}>
+                    <I.chev width="14" height="14" style={{ transform: isTermOpen(term) ? 'rotate(180deg)' : undefined, transition: 'transform 150ms' }} />
+                    {term} <span style={{ fontWeight:500,color:'var(--color-text-muted)',fontSize:12 }}>({archivedGroups[term].length})</span>
+                  </button>
+                  {isTermOpen(term) && (
+                    <section className="ad-card" style={{ marginBottom: 8 }}>
+                      <table className="ad-table">
+                        <thead><tr>
+                          <th><input type="checkbox" checked={archivedGroups[term].every(d => active.includes(d.id))} onChange={() => { const ids = archivedGroups[term].map(d => d.id); setActive(p => ids.every(id => p.includes(id)) ? p.filter(id => !ids.includes(id)) : [...new Set([...p,...ids])]); }} /></th>
+                          <th>Thumb</th><th>File &amp; description</th><th>Archived</th><th className="ad-th-right">Actions</th>
+                        </tr></thead>
+                        <tbody>{archivedGroups[term].map(d => <DocRow key={d.id} d={d} />)}</tbody>
+                      </table>
+                    </section>
+                  )}
+                </div>
+              ))}
+            </>
+          ) : (
+            <section className="ad-card">
+              <table className="ad-table">
+                <colgroup><col style={{width:44}}/><col style={{width:72}}/><col/><col style={{width:140}}/><col style={{width:160}}/></colgroup>
+                <thead><tr>
+                  <th><input type="checkbox" checked={filteredData.length > 0 && filteredData.every(d => active.includes(d.id))} onChange={() => setActive(filteredData.every(d => active.includes(d.id)) ? [] : filteredData.map(d => d.id))} /></th>
+                  <th>Thumb</th><th>File &amp; description</th><th>Uploaded</th><th className="ad-th-right">Actions</th>
+                </tr></thead>
                 <tbody>
-                  {data.map((entry) => (
-                    <tr key={entry.id} className="announce-table-row">
-                      <td>{entry.name}</td>
-                      <td
-                        style={{
-                          maxWidth: 240,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {entry.description}
-                      </td>
-                      <td style={{ padding: "0.5rem 1rem" }}>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                          <button
-                            onClick={() => handleRestore(entry.id)}
-                            style={{
-                              color: "#16a34a",
-                              background: "none",
-                              border: "1px solid #16a34a",
-                              borderRadius: "4px",
-                              padding: "0.25rem 0.625rem",
-                              fontSize: "0.75rem",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Restore
-                          </button>
-                          <button
-                            onClick={() => handlePermanentDelete(entry.id)}
-                            style={{
-                              color: "#dc2626",
-                              background: "none",
-                              border: "1px solid #dc2626",
-                              borderRadius: "4px",
-                              padding: "0.25rem 0.625rem",
-                              fontSize: "0.75rem",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredData.length === 0 && <tr><td colSpan={5}><div className="ad-empty"><p>{tab === 'bin' ? 'Bin is empty.' : 'No documents found.'}</p></div></td></tr>}
+                  {filteredData.map(d => <DocRow key={d.id} d={d} />)}
                 </tbody>
               </table>
-            )}
-          </>
-        ) : null}
+              <TableFoot shown={`1–${filteredData.length}`} total={filteredData.length} label="documents" />
+            </section>
+          )}
+        </main>
       </div>
 
       {open && (
-        <div className="docs-form-position">
-          <Form
-            forType="document"
-            id={id}
-            initialTitle={editTitle}
-            initialDescription={editDescription}
-            initialType={editType}
-            setOpen={setOpen}
-            onSuccess={fetchData}
-          />
+        <div className="ad-modal-overlay" onClick={() => setOpen(false)}>
+          <div onClick={e => e.stopPropagation()}>
+            <Form
+              forType="document"
+              id={id}
+              initialTitle={editTitle}
+              initialDescription={editDescription}
+              initialType={editType}
+              setOpen={setOpen}
+              onSuccess={() => { setOpen(false); fetchData(); }}
+            />
+          </div>
         </div>
       )}
-
-      {isModalOpen && (
-        <div className="docs-modal-position">
-          <DeleteModal
-            isOpen={isModalOpen}
-            source="document"
-            id={id}
-            name={selectedName}
-            onClose={() => setIsModalOpen(false)}
-            onConfirm={() => {
-              setActive((prev) => prev.filter((a) => a !== id));
-              fetchData();
-            }}
-          />
-        </div>
-      )}
-
+      {isModalOpen && <DeleteModal onClose={() => setIsModalOpen(false)} onSuccess={() => { setIsModalOpen(false); fetchData(); }} />}
       {previewItem && (
         <PublicPreviewModal
           isOpen={true}
-          onClose={() => setPreviewItem(null)}
           type="document"
-          item={previewItem as unknown as Record<string, unknown>}
+          item={previewItem}
+          onClose={() => setPreviewItem(null)}
         />
       )}
-    </div>
+    </>
   );
 };
 

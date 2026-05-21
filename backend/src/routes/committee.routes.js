@@ -1,7 +1,8 @@
-// MANUAL STEP: ALTER TABLE committees ADD COLUMN IF NOT EXISTS is_archived boolean NOT NULL DEFAULT false;
-// MANUAL STEP: ALTER TABLE committees ADD COLUMN IF NOT EXISTS archived_at timestamptz;
+// NOTE: committees.id is UUID (gen_random_uuid()), NOT integer.
+// All parseInt() calls that were here have been removed — use raw UUID strings.
 
 import { Router } from "express";
+import multer from "multer";
 import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
@@ -15,6 +16,52 @@ import {
 } from "../schemas/index.js";
 
 const router = Router();
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+});
+
+/** Resolve a storage path to a public URL from the committees bucket. */
+const getCoverUrl = (path) => {
+  if (!path) return null;
+  return anonSupabase.storage.from("committees").getPublicUrl(path).data.publicUrl;
+};
+
+/**
+ * Build a map of { committeeId → storagePath } by listing the committees bucket.
+ * Matches files whose name starts with a valid UUID (e.g. "abc123-….jpg").
+ * Result is cached for 60 s under the same key as the committee list so a
+ * single cache invalidation clears both.
+ */
+const COVER_MAP_KEY = "committees:cover_map";
+const fetchCoverMap = async () => {
+  const cached = getCached(COVER_MAP_KEY);
+  if (cached) return cached;
+
+  const { data: files } = await anonSupabase.storage.from("committees").list("", { limit: 500 });
+  const map = {};
+  for (const f of files ?? []) {
+    // Match UUID prefix: 8-4-4-4-12 hex chars followed by optional extension
+    const match = f.name.match(/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+    if (match) map[match[1]] = f.name;
+  }
+  setCache(COVER_MAP_KEY, map, 60_000);
+  return map;
+};
+
+/**
+ * Attach cover_image_url to each row.
+ * Priority: explicit cover_image_path stored in DB → auto-discovered file in
+ * the committees bucket whose name starts with the committee UUID.
+ */
+const withCoverUrl = async (rows) => {
+  const coverMap = await fetchCoverMap();
+  return rows.map((c) => {
+    const path = c.cover_image_path || coverMap[c.id] || null;
+    return { ...c, cover_image_url: getCoverUrl(path) };
+  });
+};
 
 // ── Read ──────────────────────────────────────────────────────────────────────
 
@@ -30,11 +77,13 @@ router.get(
       .from("committees")
       .select("*")
       .eq("status", status)
+      .is("deleted_at", null)  // exclude bin items
       .order("id", { ascending: true });
     if (error) throw new Error(error.message);
 
-    setCache(cacheKey, data, 60_000);
-    return res.status(200).json(data);
+    const result = await withCoverUrl(data);
+    setCache(cacheKey, result, 60_000);
+    return res.status(200).json(result);
   }),
 );
 
@@ -68,13 +117,11 @@ router.post(
     const { id, name } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
-    const intId = parseInt(id, 10);
-    if (isNaN(intId)) throw new ApiError(400, "Invalid committee ID");
 
     const { error } = await supabase
       .from("committees")
       .update({ name: name.trim() })
-      .eq("id", intId);
+      .eq("id", id);
     if (error) throw new ApiError(500, "Update failed: " + error.message);
 
     invalidateCachePrefix("committees:");
@@ -90,9 +137,7 @@ router.delete(
     const ids = Array.isArray(req.body) ? req.body : req.body?.ids;
     if (!Array.isArray(ids) || ids.length === 0)
       throw new ApiError(400, "ids must be a non-empty array");
-    const intIds = ids.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
-    if (intIds.length === 0) throw new ApiError(400, "Invalid committee IDs");
-    const { error } = await supabase.from("committees").delete().in("id", intIds);
+    const { error } = await supabase.from("committees").delete().in("id", ids);
     if (error) throw new ApiError(500, "Delete failed: " + error.message);
     invalidateCachePrefix("committees:");
     return res.sendStatus(200);
@@ -105,15 +150,15 @@ router.get(
   "/archived",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const token = req.token;
-    const userSupabase = createUserClient(token);
-    const { data, error } = await userSupabase
+    // Uses status='archived' column (not is_archived — that column does not exist)
+    const { data, error } = await supabase
       .from("committees")
       .select("*")
-      .eq("is_archived", true)
-      .order("archived_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return res.status(200).json(data);
+      .eq("status", "archived")
+      .is("deleted_at", null)
+      .order("id", { ascending: true });
+    if (error) throw new ApiError(500, error.message);
+    return res.status(200).json(await withCoverUrl(data ?? []));
   }),
 );
 
@@ -126,13 +171,11 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
-    const intIds = ids.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
-    if (intIds.length === 0) throw new ApiError(400, "Invalid committee IDs");
 
     const { error } = await supabase
       .from("committees")
       .update({ status: "archived" })
-      .in("id", intIds);
+      .in("id", ids);
     if (error) throw new ApiError(500, "Archive failed: " + error.message);
     invalidateCachePrefix("committees:");
     return res.sendStatus(200);
@@ -148,15 +191,98 @@ router.post(
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ApiError(400, "ids array is required.");
     }
-    const intIds = ids.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
-    if (intIds.length === 0) throw new ApiError(400, "Invalid committee IDs");
     const { error } = await supabase
       .from("committees")
       .update({ status: "active" })
-      .in("id", intIds);
+      .in("id", ids);
     if (error) throw new ApiError(500, "Restore failed: " + error.message);
     invalidateCachePrefix("committees:");
     return res.sendStatus(200);
+  }),
+);
+
+// ── Bin (soft-delete: sets deleted_at) ───────────────────────────────────────
+
+router.get(
+  "/bin",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { data, error } = await supabase
+      .from("committees")
+      .select("*")
+      .not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
+    if (error) throw new ApiError(500, error.message);
+    return res.json(await withCoverUrl(data ?? []));
+  }),
+);
+
+router.post(
+  "/bin",
+  requireAuth,
+  validate(committeeIdsSchema),
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0)
+      throw new ApiError(400, "ids array is required.");
+    const { error } = await supabase
+      .from("committees")
+      .update({ deleted_at: new Date().toISOString() })
+      .in("id", ids);
+    if (error) throw new ApiError(500, "Move to bin failed: " + error.message);
+    invalidateCachePrefix("committees:");
+    return res.json({ success: true });
+  }),
+);
+
+router.post(
+  "/restore-from-bin",
+  requireAuth,
+  validate(committeeIdsSchema),
+  asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0)
+      throw new ApiError(400, "ids array is required.");
+    const { error } = await supabase
+      .from("committees")
+      .update({ deleted_at: null })
+      .in("id", ids);
+    if (error) throw new ApiError(500, "Restore from bin failed: " + error.message);
+    invalidateCachePrefix("committees:");
+    return res.json({ success: true });
+  }),
+);
+
+// ── Cover image upload ────────────────────────────────────────────────────────
+
+router.post(
+  "/upload-cover",
+  requireAuth,
+  upload.single("cover"),
+  asyncHandler(async (req, res) => {
+    const { id } = req.body;
+    if (!id) throw new ApiError(400, "id is required.");
+    if (!req.file) throw new ApiError(400, "cover image file is required.");
+
+    const ext = req.file.mimetype.split("/")[1]?.replace("jpeg", "jpg") || "jpg";
+    const coverPath = `${id}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("committees")
+      .upload(coverPath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: true,
+      });
+    if (uploadError) throw new ApiError(500, "Storage upload failed: " + uploadError.message);
+
+    const { error: updateError } = await supabase
+      .from("committees")
+      .update({ cover_image_path: coverPath })
+      .eq("id", id);
+    if (updateError) throw new ApiError(500, "DB update failed: " + updateError.message);
+
+    invalidateCachePrefix("committees:");  // clears committee list + cover map
+    return res.status(200).json({ cover_image_url: getCoverUrl(coverPath) });
   }),
 );
 

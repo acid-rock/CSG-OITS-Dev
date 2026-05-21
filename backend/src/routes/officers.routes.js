@@ -391,4 +391,54 @@ router.post(
   }),
 );
 
+// ── Bin (soft-delete: sets deleted_at) ───────────────────────────────────────
+
+router.post(
+  "/bin",
+  requireAuth,
+  validate(singleIdSchema),
+  asyncHandler(async (req, res) => {
+    const { id } = req.body;
+    if (!id) throw new ApiError(400, "id is required.");
+    const { error } = await supabase
+      .from("officers")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) throw new ApiError(500, "Failed to move officer to bin: " + error.message);
+    invalidateCachePrefix("officers:");
+    return res.json({ success: true });
+  }),
+);
+
+router.post(
+  "/restore-from-bin",
+  requireAuth,
+  validate(singleIdSchema),
+  asyncHandler(async (req, res) => {
+    const { id } = req.body;
+    if (!id) throw new ApiError(400, "id is required.");
+    const { error } = await supabase
+      .from("officers")
+      .update({ deleted_at: null })
+      .eq("id", id);
+    if (error) throw new ApiError(500, "Failed to restore officer from bin: " + error.message);
+    invalidateCachePrefix("officers:");
+    return res.json({ success: true });
+  }),
+);
+
+router.get(
+  "/bin",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { data, error } = await supabase
+      .from("officers")
+      .select()
+      .not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
+    if (error) throw new ApiError(500, error.message);
+    return res.json(data);
+  }),
+);
+
 export default router;
