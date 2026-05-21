@@ -38,6 +38,7 @@
 //    CREATE POLICY "allow_auth_all" ON borrowing_requests FOR ALL TO authenticated USING (true);
 
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { anonSupabase, createUserClient, supabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
@@ -49,6 +50,20 @@ import {
   approvalEmail,
   rejectionEmail,
 } from "../lib/emailTemplates.js";
+
+// Dedicated limiter for the public borrow-request submission endpoint.
+// Students are unlikely to need more than a handful of submissions per day,
+// so 5 per hour per IP is generous without opening the door to spam.
+const borrowSubmitLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error:
+      "Too many borrow requests submitted from this device. Please wait an hour before trying again.",
+  },
+});
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -269,6 +284,7 @@ router.get(
 
 router.post(
   "/request",
+  borrowSubmitLimiter,
   asyncHandler(async (req, res) => {
     const {
       borrower_name,

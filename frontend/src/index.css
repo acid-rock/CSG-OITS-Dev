@@ -17,6 +17,16 @@ body {
   box-sizing: border-box;
 }
 
+/* ── Content protection — public pages ──────────────────────────────────── */
+/* Prevent dragging images out of the page */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
 /* Utility classes — public pages only */
 .tag {
   display: inline-flex;
