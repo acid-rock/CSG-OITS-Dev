@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./documentmodal.css";
+import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 
 type DocumentModalProps = {
   selected: {
@@ -15,6 +16,8 @@ export default function DocumentModal({
   onClose,
 }: DocumentModalProps) {
   const [iframeError, setIframeError] = useState(false);
+
+  useLockBodyScroll(!!selected);
 
   // Reset error state whenever a new document is opened
   useEffect(() => {

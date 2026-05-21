@@ -5,7 +5,6 @@ import type {
   Announcement,
   OutletContext,
 } from "../../root-layout/Root-layout";
-import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 import "./bulletin.css";
 
@@ -30,7 +29,7 @@ const Bulletin = () => {
   const { bulletin } = useOutletContext<OutletContext>();
   const [selected, setSelected] = useState<Announcement | null>(null);
   const [open, setOpen] = useState(false);
-  useLockBodyScroll(open);
+  // scroll lock is owned by <Modal> — no duplicate call here
 
   const [query, setQuery] = useState("");
   const [activeTerm, setActiveTerm] = useState<string>("");

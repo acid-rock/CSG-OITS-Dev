@@ -3,7 +3,6 @@ import { useOutletContext } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Modal from "../../components/modal/Modal";
 import type { OutletContext } from "../../root-layout/Root-layout";
-import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 import "./events.css";
 
@@ -27,7 +26,7 @@ export default function EventsPage() {
     .sort()
     .reverse() as string[];
 
-  useLockBodyScroll(open);
+  // scroll lock owned by <Modal>
 
   /* Search + term filtered list */
   const filtered = events.filter((e) => {

@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Modal from "../../components/modal/Modal";
 import { useOutletContext } from "react-router-dom";
 import type { OutletContext } from "../../root-layout/Root-layout";
-import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
+
 
 const EVENTS_PER_PAGE = 2;
 
@@ -14,7 +14,7 @@ export default function Events() {
   const [open, setOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
-  useLockBodyScroll(open);
+  // scroll lock owned by <Modal>
 
   const totalPages = Math.ceil(events.length / EVENTS_PER_PAGE);
   const currentPageEvents = events.slice(
