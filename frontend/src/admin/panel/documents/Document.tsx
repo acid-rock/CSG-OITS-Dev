@@ -108,7 +108,7 @@ const Documents = () => {
   };
   const handlePermanentDelete = async (id: string) => {
     if (!window.confirm('Permanently delete?')) return;
-    try { await axios.delete(`${API_URL}/documents/delete`, { data: [{ id }], withCredentials: true }); setData(p => p.filter(d => d.id !== id)); }
+    try { await axios.delete(`${API_URL}/documents/delete`, { data: { ids: [id] }, withCredentials: true }); setData(p => p.filter(d => d.id !== id)); }
     catch (err: unknown) { setFetchError('Delete failed: ' + ((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Unknown')); }
   };
 

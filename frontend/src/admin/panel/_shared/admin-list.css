@@ -645,4 +645,6 @@
 .ad-modal-overlay > *{
   max-height:90vh;
   overflow-y:auto;
+  /* clip scrollbar track to the form's rounded corners */
+  border-radius:16px;
 }

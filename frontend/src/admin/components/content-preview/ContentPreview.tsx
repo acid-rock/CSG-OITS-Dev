@@ -150,7 +150,8 @@ export default function ContentPreview({
 
       <div className="cp-divider" style={{ marginTop: "var(--space-4)" }} />
       <p className="cp-disclaimer">
-        ℹ Actual appearance may vary slightly based on context.
+        <span aria-hidden="true">ℹ</span>
+        <span>Actual appearance may vary slightly based on context.</span>
       </p>
     </div>
   );

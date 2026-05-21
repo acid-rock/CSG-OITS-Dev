@@ -119,21 +119,35 @@ router.post(
     const filepath = `${type}/${name}.pdf`;
 
     const userSupabase = createUserClient(token);
-    let formData = new FormData();
-    formData.append("file", req.file.buffer, {
-      filename: req.file.originalname,
-      contentType: req.file.mimetype,
-    });
-    formData.append("boxes", boxes);
 
-    const response = await axios.post(`${REDACT_URL}/api/v1/redact`, formData, {
-      headers: formData.getHeaders(),
-      responseType: "arraybuffer",
-      maxBodyLength: Infinity,
-    });
+    // Parse boxes — frontend sends JSON.stringify([...]); may be absent or empty
+    let parsedBoxes = [];
+    try { parsedBoxes = boxes ? JSON.parse(boxes) : []; } catch { parsedBoxes = []; }
 
-    const redacted = Buffer.from(response.data);
-    const contentType = response.headers["content-type"];
+    let redacted;
+    let contentType;
+
+    if (parsedBoxes.length > 0) {
+      // Boxes selected — send to redaction microservice
+      let formData = new FormData();
+      formData.append("file", req.file.buffer, {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype,
+      });
+      formData.append("boxes", JSON.stringify(parsedBoxes));
+
+      const response = await axios.post(`${REDACT_URL}/api/v1/redact`, formData, {
+        headers: formData.getHeaders(),
+        responseType: "arraybuffer",
+        maxBodyLength: Infinity,
+      });
+      redacted = Buffer.from(response.data);
+      contentType = response.headers["content-type"];
+    } else {
+      // No boxes — upload the original PDF without redaction
+      redacted = req.file.buffer;
+      contentType = req.file.mimetype;
+    }
 
     const { data, error } = await userSupabase.storage
       .from("documents")

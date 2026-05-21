@@ -169,6 +169,25 @@ router.post(
   }),
 );
 
+// Unpin a specific announcement (without pinning another one)
+router.post(
+  "/unpin",
+  requireAuth,
+  validate(singleIdSchema),
+  asyncHandler(async (req, res) => {
+    const { id } = req.body;
+    if (!id) throw new ApiError(400, "id is required.");
+    const token = req.token;
+    const userSupabase = createUserClient(token);
+    const { error } = await userSupabase
+      .from("bulletin")
+      .update({ is_pinned: false })
+      .eq("id", id);
+    if (error) throw new ApiError(500, "Unpin failed: " + error.message);
+    return res.sendStatus(200);
+  }),
+);
+
 router.delete(
   "/delete",
   requireAuth,

@@ -30,6 +30,9 @@
   color: var(--color-text-muted);
   font-style: italic;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 /* ── Announcement preview ── */
