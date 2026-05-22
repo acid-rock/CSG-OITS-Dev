@@ -346,9 +346,9 @@ function EditDetailsModal({ committee, allOfficers, onClose, onSaved, onRefresh 
         </div>
 
         <form onSubmit={handleSave} className="ad-form-body">
-          {/* Cover photo */}
-          <label className="ad-field">
-            Cover Photo
+          {/* Cover photo — div not label to prevent double file dialog */}
+          <div className="ad-field">
+            <span className="ad-field-label">Cover Photo</span>
             <div className="ad-upload-zone" onClick={() => fileRef.current?.click()}>
               {coverPreview && <img src={coverPreview} alt="cover" className="ad-upload-preview" />}
               {!coverPreview && (
@@ -360,7 +360,16 @@ function EditDetailsModal({ committee, allOfficers, onClose, onSaved, onRefresh 
               <span className="ad-upload-badge">{coverPreview ? 'Click to replace' : 'PNG, JPG'}</span>
             </div>
             <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleCoverChange} />
-          </label>
+            {coverPreview && (
+              <button
+                type="button"
+                onClick={() => { setCoverFile(null); setCoverPreview(null); }}
+                style={{ alignSelf: 'flex-start', marginTop: 6, fontSize: '0.75rem', color: 'var(--color-danger-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                × Remove photo
+              </button>
+            )}
+          </div>
 
           {/* Committee name */}
           <label className="ad-field">
@@ -478,8 +487,9 @@ function AddCommitteeModal({ onClose, onAdded, allOfficers, onRefresh }: AddComm
           <button className="ad-form-close" onClick={onClose}><I.x width="14" height="14" /></button>
         </div>
         <form onSubmit={handleAdd} className="ad-form-body">
-          <label className="ad-field">
-            Cover Photo
+          {/* Cover photo — div not label to prevent double file dialog */}
+          <div className="ad-field">
+            <span className="ad-field-label">Cover Photo</span>
             <div className="ad-upload-zone" onClick={() => fileRef.current?.click()}>
               {coverPreview && <img src={coverPreview} alt="cover" className="ad-upload-preview" />}
               {!coverPreview && (
@@ -491,7 +501,16 @@ function AddCommitteeModal({ onClose, onAdded, allOfficers, onRefresh }: AddComm
               <span className="ad-upload-badge">{coverPreview ? 'Click to replace' : 'PNG, JPG'}</span>
             </div>
             <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleCoverChange} />
-          </label>
+            {coverPreview && (
+              <button
+                type="button"
+                onClick={() => { setCoverFile(null); setCoverPreview(null); }}
+                style={{ alignSelf: 'flex-start', marginTop: 6, fontSize: '0.75rem', color: 'var(--color-danger-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                × Remove photo
+              </button>
+            )}
+          </div>
 
           <label className="ad-field">
             Committee Name *
