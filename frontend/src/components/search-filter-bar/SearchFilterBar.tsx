@@ -20,9 +20,6 @@ export default function SearchFilterBar({
   searchPlaceholder = "Search...",
   showTermFilter = true,
 }: SearchFilterBarProps) {
-  const hasTerm =
-    showTermFilter && (termOptions.length > 0 || termValue !== "");
-
   return (
     <div className="sfb-row">
       {/* Search input */}

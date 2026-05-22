@@ -9,8 +9,8 @@ const VITE_API_URL = import.meta.env.VITE_API_URL as string;
 // Map public route paths to entity_type values tracked in page_views
 const TRACK_MAP: Record<string, string> = {
   "/announcements": "announcement",
-  "/documents":     "document",
-  "/events":        "event",
+  "/documents": "document",
+  "/events": "event",
 };
 import fetchBulletinData from "../config/bulletinConfig";
 import fetchDocuments from "../config/documentsConfig";
@@ -22,7 +22,6 @@ import fetchCommittees from "../config/committeeConfig";
 import type { Committee } from "../config/committeeConfig";
 export type { Organization };
 export type { Committee };
-
 
 export type Announcement = {
   id: string;
@@ -43,7 +42,7 @@ export type Document = {
   url: string;
   thumbnail?: string;
   date: string;
-  created_at?: string;
+  created_at: string;
   term?: string | null;
 };
 
@@ -65,10 +64,9 @@ export type Officer = {
   socials?: string;
   year_serving: string;
   student_number?: string;
-  committee?: string | null;  // UUID FK → committees.id
+  committee?: string | null; // UUID FK → committees.id
   is_committee_official: boolean;
 };
-
 
 export interface OutletContext {
   bulletin: Announcement[];
@@ -96,21 +94,33 @@ const Root = () => {
     setLoading(true);
     setError(null);
 
-    const [bulletinResult, documentsResult, eventsResult, officersResult, orgsResult, committeesResult] =
-      await Promise.allSettled([
-        fetchBulletinData(),
-        fetchDocuments(),
-        fetchEvents(),
-        fetchOfficers(),
-        fetchOrganizations(),
-        fetchCommittees(),
-      ]);
+    const [
+      bulletinResult,
+      documentsResult,
+      eventsResult,
+      officersResult,
+      orgsResult,
+      committeesResult,
+    ] = await Promise.allSettled([
+      fetchBulletinData(),
+      fetchDocuments(),
+      fetchEvents(),
+      fetchOfficers(),
+      fetchOrganizations(),
+      fetchCommittees(),
+    ]);
 
-    const allFailed = [bulletinResult, documentsResult, eventsResult, officersResult]
-      .every((r) => r.status === "rejected");
+    const allFailed = [
+      bulletinResult,
+      documentsResult,
+      eventsResult,
+      officersResult,
+    ].every((r) => r.status === "rejected");
 
     if (allFailed) {
-      setError("Unable to load content. Please refresh the page or try again later.");
+      setError(
+        "Unable to load content. Please refresh the page or try again later.",
+      );
       setLoading(false);
       return;
     }
@@ -123,11 +133,18 @@ const Root = () => {
       });
       setBulletin(sortedBulletin);
     }
-    if (documentsResult.status === "fulfilled") setDocuments(documentsResult.value);
+    if (documentsResult.status === "fulfilled")
+      if (Array.isArray(documentsResult.value)) {
+        setDocuments(documentsResult.value);
+      } else {
+        setDocuments(documentsResult.value.data);
+      }
     if (eventsResult.status === "fulfilled") setEvents(eventsResult.value);
-    if (officersResult.status === "fulfilled") setOfficers(officersResult.value as Officer[]);
+    if (officersResult.status === "fulfilled")
+      setOfficers(officersResult.value as Officer[]);
     if (orgsResult.status === "fulfilled") setOrganizations(orgsResult.value);
-    if (committeesResult.status === "fulfilled") setCommittees(committeesResult.value);
+    if (committeesResult.status === "fulfilled")
+      setCommittees(committeesResult.value);
 
     setLoading(false);
   }, []);
@@ -142,41 +159,51 @@ const Root = () => {
     const blockContextMenu = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       // Block on images
-      if (target.tagName === 'IMG') { e.preventDefault(); return; }
+      if (target.tagName === "IMG") {
+        e.preventDefault();
+        return;
+      }
       // Block on links that point to files (pdf, jpg, png, etc.)
-      const anchor = target.closest('a');
+      const anchor = target.closest("a");
       if (anchor) {
-        const href = anchor.getAttribute('href') ?? '';
-        if (/\.(pdf|jpg|jpeg|png|gif|webp|svg|mp4|mp3|zip|docx?)(\?|$)/i.test(href)) {
+        const href = anchor.getAttribute("href") ?? "";
+        if (
+          /\.(pdf|jpg|jpeg|png|gif|webp|svg|mp4|mp3|zip|docx?)(\?|$)/i.test(
+            href,
+          )
+        ) {
           e.preventDefault();
         }
       }
     };
 
     const blockDragStart = (e: DragEvent) => {
-      if ((e.target as HTMLElement).tagName === 'IMG') e.preventDefault();
+      if ((e.target as HTMLElement).tagName === "IMG") e.preventDefault();
     };
 
     // Block left-click on direct file links and download-attributed links
     const blockLeftClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const anchor = target.closest('a');
+      const anchor = target.closest("a");
       if (!anchor) return;
-      const href = anchor.getAttribute('href') ?? '';
-      const hasDownload = anchor.hasAttribute('download');
+      const href = anchor.getAttribute("href") ?? "";
+      const hasDownload = anchor.hasAttribute("download");
       // Prevent clicking links that point directly to a file or have download attr
-      if (hasDownload || /\.(pdf|jpg|jpeg|png|gif|webp|svg|mp4|mp3|zip|docx?)(\?|$)/i.test(href)) {
+      if (
+        hasDownload ||
+        /\.(pdf|jpg|jpeg|png|gif|webp|svg|mp4|mp3|zip|docx?)(\?|$)/i.test(href)
+      ) {
         e.preventDefault();
       }
     };
 
-    document.addEventListener('contextmenu', blockContextMenu);
-    document.addEventListener('dragstart', blockDragStart);
-    document.addEventListener('click', blockLeftClick);
+    document.addEventListener("contextmenu", blockContextMenu);
+    document.addEventListener("dragstart", blockDragStart);
+    document.addEventListener("click", blockLeftClick);
     return () => {
-      document.removeEventListener('contextmenu', blockContextMenu);
-      document.removeEventListener('dragstart', blockDragStart);
-      document.removeEventListener('click', blockLeftClick);
+      document.removeEventListener("contextmenu", blockContextMenu);
+      document.removeEventListener("dragstart", blockDragStart);
+      document.removeEventListener("click", blockLeftClick);
     };
   }, []);
 
@@ -190,7 +217,9 @@ const Root = () => {
 
     axios
       .post(`${VITE_API_URL}/views/track`, { entity_type: entityType })
-      .catch(() => { /* non-fatal — backend may not have migration yet */ });
+      .catch(() => {
+        /* non-fatal — backend may not have migration yet */
+      });
   }, [location.pathname]);
 
   if (loading) {
@@ -225,7 +254,12 @@ const Root = () => {
         <p style={{ color: "#374151", fontSize: "1rem" }}>{error}</p>
         <button
           onClick={() => window.location.reload()}
-          style={{ padding: "0.5rem 1.5rem", borderRadius: 8, border: "1px solid #d1d5db", cursor: "pointer" }}
+          style={{
+            padding: "0.5rem 1.5rem",
+            borderRadius: 8,
+            border: "1px solid #d1d5db",
+            cursor: "pointer",
+          }}
         >
           Refresh
         </button>
@@ -236,7 +270,16 @@ const Root = () => {
   return (
     <div className="relative px-4 md:px-8 lg:px-16 lx:px-32 2xl:px-64 overflow-hidden flex flex-col">
       <Navigation />
-      <Outlet context={{ bulletin, documents, events, officers, organizations, committees }} />
+      <Outlet
+        context={{
+          bulletin,
+          documents,
+          events,
+          officers,
+          organizations,
+          committees,
+        }}
+      />
       <Footer />
     </div>
   );

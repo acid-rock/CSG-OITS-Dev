@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { I } from './icons';
+import type { JSX, ReactNode } from "react";
+import { I } from "./icons";
 
 /* ── PageHead ───────────────────────────────────────────────── */
 interface PageHeadProps {
@@ -20,7 +20,11 @@ export function PageHead({ title, subtitle, actions }: PageHeadProps) {
 }
 
 /* ── Tabs ───────────────────────────────────────────────────── */
-interface TabItem { label: string; count?: number; active?: boolean; }
+interface TabItem {
+  label: string;
+  count?: number;
+  active?: boolean;
+}
 interface TabsProps {
   items: TabItem[];
   hint?: string;
@@ -32,7 +36,7 @@ export function Tabs({ items, hint, onTabChange }: TabsProps) {
       {items.map((t) => (
         <button
           key={t.label}
-          className={`ad-tab${t.active ? ' is-active' : ''}`}
+          className={`ad-tab${t.active ? " is-active" : ""}`}
           onClick={() => onTabChange?.(t.label)}
         >
           {t.label}
@@ -65,10 +69,10 @@ interface ToolbarProps {
 }
 export function Toolbar({
   placeholder,
-  search = '',
+  search = "",
   onSearch,
   filters = [],
-  sortLabel = 'Newest first',
+  sortLabel = "Newest first",
   showSort = true,
   onRefresh,
   children,
@@ -89,12 +93,16 @@ export function Toolbar({
           {filters.map((f, i) => (
             <button
               key={i}
-              className={`ad-filter-chip${f.active ? ' is-active' : ''}`}
+              className={`ad-filter-chip${f.active ? " is-active" : ""}`}
               onClick={f.onClick}
             >
               {f.icon}
               {f.label}
-              {f.active ? <I.x width="11" height="11" /> : <I.chev width="11" height="11" />}
+              {f.active ? (
+                <I.x width="11" height="11" />
+              ) : (
+                <I.chev width="11" height="11" />
+              )}
             </button>
           ))}
         </div>
@@ -104,7 +112,9 @@ export function Toolbar({
         {showSort && (
           <>
             <span className="ad-sort-label">Sort by</span>
-            <button className="ad-sort">{sortLabel} <I.chev width="11" height="11" /></button>
+            <button className="ad-sort">
+              {sortLabel} <I.chev width="11" height="11" />
+            </button>
           </>
         )}
         <button className="ad-icon-btn" title="Refresh" onClick={onRefresh}>
@@ -116,22 +126,30 @@ export function Toolbar({
 }
 
 /* ── BulkBar ────────────────────────────────────────────────── */
-type BulkAction = 'Pin' | 'Archive' | 'Delete' | 'Restore' | 'Export';
+type BulkAction = "Pin" | "Archive" | "Delete" | "Restore" | "Export";
 interface BulkBarProps {
   count: number;
   actions?: BulkAction[];
   handlers?: Partial<Record<BulkAction, () => void>>;
   onClear?: () => void;
 }
-const BULK_ICONS: Record<BulkAction, (p: Record<string, unknown>) => JSX.Element> = {
-  Pin:     I.pin,
+const BULK_ICONS: Record<
+  BulkAction,
+  (p: Record<string, unknown>) => JSX.Element
+> = {
+  Pin: I.pin,
   Archive: I.archive,
-  Delete:  I.trash,
+  Delete: I.trash,
   Restore: I.restore,
-  Export:  I.download,
+  Export: I.download,
 };
 
-export function BulkBar({ count, actions = ['Archive', 'Delete'], handlers = {}, onClear }: BulkBarProps) {
+export function BulkBar({
+  count,
+  actions = ["Archive", "Delete"],
+  handlers = {},
+  onClear,
+}: BulkBarProps) {
   if (count === 0) return null;
   return (
     <div className="ad-bulk-bar">
@@ -139,20 +157,22 @@ export function BulkBar({ count, actions = ['Archive', 'Delete'], handlers = {},
       <span className="ad-bulk-divider" />
       {actions.map((a) => {
         const Icon = BULK_ICONS[a] ?? I.edit;
-        const danger = a === 'Delete';
+        const danger = a === "Delete";
         return (
           <button
             key={a}
-            className={`ad-bulk-btn${danger ? ' ad-bulk-btn--danger' : ''}`}
+            className={`ad-bulk-btn${danger ? " ad-bulk-btn--danger" : ""}`}
             onClick={handlers[a]}
           >
-            <Icon width="12" height="12" />{a}
+            <Icon width="12" height="12" />
+            {a}
           </button>
         );
       })}
       <span className="ad-bulk-spacer" />
       <button className="ad-bulk-clear" onClick={onClear}>
-        <I.x width="11" height="11" />Clear
+        <I.x width="11" height="11" />
+        Clear
       </button>
     </div>
   );
@@ -164,14 +184,20 @@ interface TableFootProps {
   total: number;
   label?: string;
 }
-export function TableFoot({ shown = '1–8', total, label = 'records' }: TableFootProps) {
+export function TableFoot({
+  shown = "1–8",
+  total,
+  label = "records",
+}: TableFootProps) {
   return (
     <footer className="ad-table-foot">
       <span className="ad-foot-count">
         Showing <strong>{shown}</strong> of <strong>{total}</strong> {label}
       </span>
       <div className="ad-foot-pager">
-        <button className="ad-page-btn" disabled>‹ Previous</button>
+        <button className="ad-page-btn" disabled>
+          ‹ Previous
+        </button>
         <button className="ad-page-btn is-active">1</button>
         <button className="ad-page-btn">Next ›</button>
       </div>

@@ -42,8 +42,6 @@ export default function OfficerCard({
     .join("")
     .toUpperCase();
 
-  const showInitials = !image || imgError;
-
   return (
     <div
       id={id}

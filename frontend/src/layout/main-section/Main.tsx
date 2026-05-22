@@ -51,7 +51,10 @@ export default function Main() {
           )[0];
         if (pinned?.title) {
           // Replace pipe chars that render as replacement glyphs in the badge font
-          const title = pinned.title.replace(/\|/g, '–').replace(/\s{2,}/g, ' ').trim();
+          const title = pinned.title
+            .replace(/\|/g, "–")
+            .replace(/\s{2,}/g, " ")
+            .trim();
           setPinnedTitle(title);
         } else {
           setPinnedTitle("No announcements");
@@ -76,11 +79,6 @@ export default function Main() {
       })
       .catch(() => setEquipmentLabel("— of — available"));
   }, []);
-
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) element.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   const slides = ["/home1.JPG", "/home2.JPG"];
 

@@ -30,8 +30,7 @@ export default function Borrow() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(true);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
-  const [selectedFromList, setSelectedFromList] =
-    useState<InventoryItem | null>(null);
+  const [, setSelectedFromList] = useState<InventoryItem | null>(null);
 
   // ── Section 1: Request Information ──
   const [requesterName, setRequesterName] = useState("");
@@ -232,34 +231,37 @@ export default function Borrow() {
 
     setSubmitting(true);
     try {
-      const { data: result } = await axios.post<{ message: string; email_sent: boolean }>(
-        `${API_URL}/borrowing/request`,
-        {
-          borrower_name: requesterName,
-          borrower_id: studentNumber,
-          borrower_email: studentEmail.trim(),
-          student_email: studentEmail.trim(),
-          contact_number: contactNumber || undefined,
-          organization: organization || undefined,
-          position_in_org: positionInOrg || undefined,
-          purpose_type: purposeType || undefined,
-          purpose_others_detail: purposeOthersDetail || undefined,
-          activity_name: activityName || undefined,
-          venue: venue || undefined,
-          borrow_date: dateOfUse,
-          time_of_use: timeOfUse || undefined,
-          equipment_items: equipmentRows.map((r) => ({
-            equipment_id: r.equipment_id,
-            quantity_requested: r.quantity_requested,
-          })),
-        },
-      );
+      const { data: result } = await axios.post<{
+        message: string;
+        email_sent: boolean;
+      }>(`${API_URL}/borrowing/request`, {
+        borrower_name: requesterName,
+        borrower_id: studentNumber,
+        borrower_email: studentEmail.trim(),
+        student_email: studentEmail.trim(),
+        contact_number: contactNumber || undefined,
+        organization: organization || undefined,
+        position_in_org: positionInOrg || undefined,
+        purpose_type: purposeType || undefined,
+        purpose_others_detail: purposeOthersDetail || undefined,
+        activity_name: activityName || undefined,
+        venue: venue || undefined,
+        borrow_date: dateOfUse,
+        time_of_use: timeOfUse || undefined,
+        equipment_items: equipmentRows.map((r) => ({
+          equipment_id: r.equipment_id,
+          quantity_requested: r.quantity_requested,
+        })),
+      });
       setEmailSent(result?.email_sent ?? false);
       setView("success");
     } catch (err: unknown) {
       // Backend sends { error: "..." } — try both keys before falling back
-      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
-      const msg = d?.error ?? d?.message ?? "Submission failed. Please try again.";
+      const d = (
+        err as { response?: { data?: { error?: string; message?: string } } }
+      )?.response?.data;
+      const msg =
+        d?.error ?? d?.message ?? "Submission failed. Please try again.";
       setSubmitError(msg);
     } finally {
       setSubmitting(false);
@@ -299,11 +301,23 @@ export default function Borrow() {
             contacted via your provided contact number or email.
           </p>
           {emailSent ? (
-            <p style={{ fontSize: '0.875rem', color: 'var(--color-success, #16a34a)', marginTop: '0.5rem' }}>
+            <p
+              style={{
+                fontSize: "0.875rem",
+                color: "var(--color-success, #16a34a)",
+                marginTop: "0.5rem",
+              }}
+            >
               ✓ A confirmation email was sent to your email address.
             </p>
           ) : (
-            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted, #6b7280)', marginTop: '0.5rem' }}>
+            <p
+              style={{
+                fontSize: "0.875rem",
+                color: "var(--color-text-muted, #6b7280)",
+                marginTop: "0.5rem",
+              }}
+            >
               Note: We were unable to send a confirmation email. Your request
               was saved — please take note of your submission for reference.
             </p>

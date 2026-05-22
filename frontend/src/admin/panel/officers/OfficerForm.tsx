@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
+import type { OfficerEntry } from "./Officers";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -10,16 +11,7 @@ interface Committee {
 
 interface OfficerFormProps {
   id?: string | null;
-  initialData?: {
-    full_name?: string;
-    position?: string;
-    type?: string;
-    socials?: string;
-    year_serving?: string;
-    student_number?: string;
-    committee?: string | null;
-    is_committee_official?: boolean;
-  };
+  initialData?: OfficerEntry;
   /** Active term from Settings — auto-fills year_serving for new officers */
   activeTerm?: string;
   setOpen: (open: boolean) => void;
@@ -28,8 +20,21 @@ interface OfficerFormProps {
 
 const OfficerForm = ({
   id,
-  initialData = {},
-  activeTerm = '',
+  initialData = {
+    id: "",
+    full_name: "",
+    position: "",
+    type: "",
+    avatar: "",
+    socials: "",
+    year_serving: "",
+    student_number: "",
+    committee: "",
+    is_committee_official: false,
+    created_at: "",
+    archived_at: "",
+  },
+  activeTerm = "",
   setOpen,
   onSuccess,
 }: OfficerFormProps) => {
@@ -63,7 +68,6 @@ const OfficerForm = ({
       .catch(() => {});
   }, []);
 
-
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -80,7 +84,10 @@ const OfficerForm = ({
 
     const formData = new FormData();
     formData.append("full_name", fullName);
-    formData.append("position", position);
+    formData.append(
+      "position",
+      Array.isArray(position) ? position.join(",") : position,
+    );
     formData.append("type", type);
     formData.append("socials", socials);
     formData.append("year_serving", yearServing);
@@ -98,8 +105,13 @@ const OfficerForm = ({
       onSuccess?.();
       setOpen(false);
     } catch (err: unknown) {
-      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
-      const msg = d?.error ?? d?.message ?? (err instanceof Error ? err.message : 'Failed to save officer.');
+      const d = (
+        err as { response?: { data?: { error?: string; message?: string } } }
+      )?.response?.data;
+      const msg =
+        d?.error ??
+        d?.message ??
+        (err instanceof Error ? err.message : "Failed to save officer.");
       setError(msg);
     }
   };
@@ -183,20 +195,32 @@ const OfficerForm = ({
           <div className="form-group">
             <label>Term (S.Y.)</label>
             {/* Read-only — change the active term in Settings → General System Settings */}
-            <div style={{
-              padding: '8px 12px',
-              background: 'var(--color-surface, #f4f6fd)',
-              border: '1.5px solid var(--color-border, #e2e8f0)',
-              borderRadius: 8,
-              fontSize: 13.5,
-              fontFamily: "'JetBrains Mono', monospace",
-              color: yearServing ? 'var(--color-text-primary)' : 'var(--color-text-hint)',
-              userSelect: 'none',
-            }}>
-              {yearServing || 'Not set — configure in Settings → General System Settings'}
+            <div
+              style={{
+                padding: "8px 12px",
+                background: "var(--color-surface, #f4f6fd)",
+                border: "1.5px solid var(--color-border, #e2e8f0)",
+                borderRadius: 8,
+                fontSize: 13.5,
+                fontFamily: "'JetBrains Mono', monospace",
+                color: yearServing
+                  ? "var(--color-text-primary)"
+                  : "var(--color-text-hint)",
+                userSelect: "none",
+              }}
+            >
+              {yearServing ||
+                "Not set — configure in Settings → General System Settings"}
             </div>
-            <span style={{ fontSize: '0.73rem', color: '#9ca3af', marginTop: '0.2rem' }}>
-              Set the active term in <em>Settings → General System Settings</em>.
+            <span
+              style={{
+                fontSize: "0.73rem",
+                color: "#9ca3af",
+                marginTop: "0.2rem",
+              }}
+            >
+              Set the active term in <em>Settings → General System Settings</em>
+              .
             </span>
           </div>
 
