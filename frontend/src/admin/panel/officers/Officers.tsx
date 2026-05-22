@@ -3,7 +3,7 @@ import "../_shared/admin-list.css";
 import axios from "axios";
 import OfficerForm from "./OfficerForm";
 import Sidebar from "../_shared/Sidebar";
-import { PageHead, Tabs, Toolbar, BulkBar, TableFoot } from "../_shared/chrome";
+import { PageHead, Tabs, Toolbar, BulkBar } from "../_shared/chrome";
 import { Tag, MiniAvatar } from "../_shared/atoms";
 import { I } from "../_shared/icons";
 import { downloadCSV, academicYear } from "../_shared/utils";
@@ -34,6 +34,7 @@ function displayPosition(pos: string | string[]): string {
   return Array.isArray(pos) ? pos[0] : pos;
 }
 
+
 const groupByTerm = (items: OfficerEntry[]): Record<string, OfficerEntry[]> => {
   const groups: Record<string, OfficerEntry[]> = {};
   items.forEach(item => {
@@ -45,14 +46,18 @@ const groupByTerm = (items: OfficerEntry[]): Record<string, OfficerEntry[]> => {
 };
 
 const OfficersPanel = () => {
+  const PAGE_SIZE = 25;
+
   const [tab, setTab] = useState<Tab>("active");
 
-  // Pre-fetched data for all three tabs — counts show immediately
   const [activeData,   setActiveData]   = useState<OfficerEntry[]>([]);
   const [archivedData, setArchivedData] = useState<OfficerEntry[]>([]);
   const [binData,      setBinData]      = useState<OfficerEntry[]>([]);
   const [committees,   setCommittees]   = useState<Committee[]>([]);
   const [activeTerm,   setActiveTerm]   = useState<string>('');
+
+  // Track which tabs have been fetched to avoid re-fetching
+  const [fetched, setFetched] = useState<Set<Tab>>(new Set());
 
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -63,10 +68,40 @@ const OfficersPanel = () => {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState<OfficerEntry | undefined>(undefined);
-  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
+  const [page, setPage] = useState(1);
 
-  // Fetch ALL tabs + committees + active term in parallel
+  // Initial load: fetch ONLY active tab + supporting data
+  const fetchInitial = useCallback(async () => {
+    setLoading(true); setFetchError(null); setActive([]);
+    const [actRes, comRes, termRes] = await Promise.allSettled([
+      axios.get<OfficerEntry[]>(`${API_URL}/officers`,  { withCredentials: true }),
+      axios.get<Committee[]>(`${API_URL}/committees`,   { withCredentials: true }),
+      axios.get(`${API_URL}/settings/term`,             { withCredentials: true }),
+    ]);
+    if (actRes.status  === 'fulfilled') setActiveData(actRes.value.data);
+    if (comRes.status  === 'fulfilled') setCommittees(comRes.value.data);
+    if (termRes.status === 'fulfilled') setActiveTerm(termRes.value.data?.value ?? '');
+    setFetched(new Set(['active']));
+    setLoading(false);
+  }, []);
+
+  // Lazy-load a specific tab (archived or bin) on first visit
+  const fetchTab = useCallback(async (t: Tab) => {
+    if (fetched.has(t)) return;
+    setLoading(true);
+    const ep = t === 'archived' ? `${API_URL}/officers/archived` : `${API_URL}/officers/bin`;
+    try {
+      const { data: rows } = await axios.get<OfficerEntry[]>(ep, { withCredentials: true });
+      if (t === 'archived') setArchivedData(rows);
+      if (t === 'bin')      setBinData(rows);
+      setFetched(p => new Set([...p, t]));
+    } catch { /* silently ignore */ }
+    finally { setLoading(false); }
+  }, [fetched]);
+
+  // Re-fetch everything (used after mutations)
   const fetchAll = useCallback(async () => {
     setLoading(true); setFetchError(null); setActive([]);
     const [actRes, arcRes, binRes, comRes, termRes] = await Promise.allSettled([
@@ -81,11 +116,21 @@ const OfficersPanel = () => {
     if (binRes.status  === 'fulfilled') setBinData(binRes.value.data);
     if (comRes.status  === 'fulfilled') setCommittees(comRes.value.data);
     if (termRes.status === 'fulfilled') setActiveTerm(termRes.value.data?.value ?? '');
+    setFetched(new Set(['active', 'archived', 'bin']));
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
-  useEffect(() => { setOpenTerms({}); }, [tab]);
+  useEffect(() => { fetchInitial(); }, [fetchInitial]);
+
+  // When switching tabs, lazily fetch if not yet loaded
+  useEffect(() => {
+    if (tab !== 'active') fetchTab(tab);
+    setOpenTerms({});
+    setPage(1);       // reset to page 1 on every tab switch
+  }, [tab, fetchTab]);
+
+  // Reset to page 1 when filters/sort/search change
+  useEffect(() => { setPage(1); }, [filter, sort, searchQuery]);
 
   const data   = tab === 'archived' ? archivedData : tab === 'bin' ? binData : activeData;
   const counts = { active: activeData.length, archived: archivedData.length, bin: binData.length };
@@ -94,7 +139,7 @@ const OfficersPanel = () => {
     id ? (committees.find(c => c.id === id)?.name ?? '—') : '—';
 
   const handleActive  = (eid: string) => setActive(p => p.includes(eid) ? p.filter(a => a !== eid) : [...p, eid]);
-  const handleRefresh = () => { setSpinning(true); fetchAll().finally(() => setTimeout(() => setSpinning(false), 600)); };
+  const handleRefresh = () => { setSpinning(true); fetchAll().finally(() => { setTimeout(() => setSpinning(false), 600); setPage(1); }); };
 
   const handleArchive = async (officerId: string) => {
     try {
@@ -235,22 +280,56 @@ const OfficersPanel = () => {
     );
   };
 
-  const OfficerTable = ({ rows, empty }: { rows: OfficerEntry[]; empty: string }) => (
-    <section className="ad-card">
-      <table className="ad-table">
-        <colgroup><col style={{width:44}}/><col style={{width:44}}/><col style={{minWidth:180}}/><col/><col/><col style={{width:110}}/><col style={{width:130}}/></colgroup>
-        <thead><tr>
-          <th><input type="checkbox" checked={rows.length>0&&rows.every(o=>active.includes(o.id))} onChange={()=>setActive(rows.every(o=>active.includes(o.id))?[]:rows.map(o=>o.id))} /></th>
-          <th /><th>Name</th><th>Position</th><th>Committee</th><th>Term</th><th className="ad-th-right">Actions</th>
-        </tr></thead>
-        <tbody>
-          {rows.length===0 && <tr><td colSpan={7}><div className="ad-empty"><p>{empty}</p></div></td></tr>}
-          {rows.map(o => <ORow key={o.id} o={o} />)}
-        </tbody>
-      </table>
-      <TableFoot shown={`1–${rows.length}`} total={rows.length} label="officers" />
-    </section>
-  );
+  // Paginated table — renders only PAGE_SIZE rows at a time
+  const OfficerTable = ({ rows, empty }: { rows: OfficerEntry[]; empty: string }) => {
+    const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    const safePage   = Math.min(page, totalPages);
+    const pageRows   = rows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+    const from       = rows.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
+    const to         = Math.min(safePage * PAGE_SIZE, rows.length);
+
+    return (
+      <section className="ad-card">
+        <table className="ad-table">
+          <colgroup><col style={{width:44}}/><col style={{width:44}}/><col style={{minWidth:180}}/><col/><col/><col style={{width:110}}/><col style={{width:130}}/></colgroup>
+          <thead><tr>
+            <th><input type="checkbox" checked={pageRows.length>0&&pageRows.every(o=>active.includes(o.id))} onChange={()=>setActive(pageRows.every(o=>active.includes(o.id))?active.filter(id=>!pageRows.find(o=>o.id===id)):[...new Set([...active,...pageRows.map(o=>o.id)])])} /></th>
+            <th /><th>Name</th><th>Position</th><th>Committee</th><th>Term</th><th className="ad-th-right">Actions</th>
+          </tr></thead>
+          <tbody>
+            {rows.length===0 && <tr><td colSpan={7}><div className="ad-empty"><p>{empty}</p></div></td></tr>}
+            {pageRows.map(o => <ORow key={o.id} o={o} />)}
+          </tbody>
+        </table>
+
+        {/* Pagination footer */}
+        <div className="ad-table-foot">
+          <span className="ad-foot-count">
+            Showing <strong>{from}–{to}</strong> of <strong>{rows.length}</strong> officers
+          </span>
+          {totalPages > 1 && (
+            <div className="ad-foot-pager">
+              <button className="ad-page-btn" disabled={safePage <= 1}
+                onClick={() => setPage(p => Math.max(1, p - 1))}>‹ Previous</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(n => n === 1 || n === totalPages || Math.abs(n - safePage) <= 1)
+                .reduce<(number | '…')[]>((acc, n, idx, arr) => {
+                  if (idx > 0 && (n as number) - (arr[idx - 1] as number) > 1) acc.push('…');
+                  acc.push(n); return acc;
+                }, [])
+                .map((n, i) => n === '…'
+                  ? <span key={`e${i}`} style={{ padding:'0 4px', color:'var(--color-text-muted)' }}>…</span>
+                  : <button key={n} className={`ad-page-btn${n === safePage ? ' is-active' : ''}`}
+                      onClick={() => setPage(n as number)}>{n}</button>
+                )}
+              <button className="ad-page-btn" disabled={safePage >= totalPages}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next ›</button>
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  };
 
   return (
     <>
@@ -302,13 +381,16 @@ const OfficersPanel = () => {
             <>
               {sortedTerms.length === 0 && <section className="ad-card"><div className="ad-empty"><p>No archived officers.</p></div></section>}
               {sortedTerms.map(term => (
-                <div key={term}>
-                  <button style={{ display:'flex', alignItems:'center', gap:8, background:'none', border:'none', cursor:'pointer', fontWeight:700, fontSize:13, color:'var(--color-text-primary)', padding:'8px 0' }} onClick={() => toggleTerm(term)}>
-                    <I.chev width="14" height="14" style={{ transform: isTermOpen(term)?'rotate(180deg)':undefined, transition:'transform 150ms' }} />
-                    {term} <span style={{ fontWeight:500, color:'var(--color-text-muted)', fontSize:12 }}>({archivedGroups[term].length})</span>
+                <section key={term} className="ad-card" style={{ marginBottom: '0.75rem' }}>
+                  <button className="ad-term-toggle" onClick={() => toggleTerm(term)}>
+                    <span>Term {term}</span>
+                    <span className="ad-term-meta">
+                      {archivedGroups[term].length} officer{archivedGroups[term].length !== 1 ? 's' : ''}
+                      <I.chev width="13" height="13" style={{ transform: isTermOpen(term) ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
+                    </span>
                   </button>
-                  {isTermOpen(term) && <div style={{ marginBottom:8 }}><OfficerTable rows={archivedGroups[term]} empty="No officers in this term." /></div>}
-                </div>
+                  {isTermOpen(term) && <OfficerTable rows={archivedGroups[term]} empty="No officers in this term." />}
+                </section>
               ))}
             </>
           ) : tab === 'bin' ? (

@@ -38,6 +38,36 @@ export const purgesIn = (deletedAt: string): string => {
   return days === 0 ? 'today' : `in ${days} day${days !== 1 ? 's' : ''}`;
 };
 
+/**
+ * Philippine academic year for a date (Aug Y → Jul Y+1).
+ * Jan–Jul falls in the SECOND semester of the year that started the prior August.
+ * @example academicYear(new Date('2026-05-21')) // "2025–2026"
+ */
+export function academicYear(date?: Date | string | null): string {
+  const d = date ? new Date(date) : new Date();
+  const yr = d.getFullYear();
+  const mo = d.getMonth(); // 0 = Jan
+  const startYear = mo < 7 ? yr - 1 : yr;
+  return `${startYear}–${startYear + 1}`;
+}
+
+/**
+ * Derive a human-readable display name from an owner_id + admin account map.
+ * Priority: full_name → email username (before @) → shortId fallback.
+ */
+export function adminDisplayName(
+  ownerId: string | null | undefined,
+  map: Record<string, { full_name: string | null; email: string }>,
+): string {
+  if (!ownerId) return 'Admin';
+  const acct = map[ownerId];
+  if (!acct) return shortId(ownerId);
+  if (acct.full_name) return acct.full_name;
+  // Use email username: "lorenztuboro00@gmail.com" → "Lorenztuboro00"
+  const username = acct.email.split('@')[0];
+  return username.charAt(0).toUpperCase() + username.slice(1);
+}
+
 /* Deterministic gradient pair from a string */
 const GRAD_PALETTE: [string, string][] = [
   ['#1e3a8a', '#3b5fbc'], ['#7c2d12', '#dc2626'], ['#1e293b', '#475569'],

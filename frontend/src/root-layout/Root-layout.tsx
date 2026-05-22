@@ -157,11 +157,26 @@ const Root = () => {
       if ((e.target as HTMLElement).tagName === 'IMG') e.preventDefault();
     };
 
+    // Block left-click on direct file links and download-attributed links
+    const blockLeftClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a');
+      if (!anchor) return;
+      const href = anchor.getAttribute('href') ?? '';
+      const hasDownload = anchor.hasAttribute('download');
+      // Prevent clicking links that point directly to a file or have download attr
+      if (hasDownload || /\.(pdf|jpg|jpeg|png|gif|webp|svg|mp4|mp3|zip|docx?)(\?|$)/i.test(href)) {
+        e.preventDefault();
+      }
+    };
+
     document.addEventListener('contextmenu', blockContextMenu);
     document.addEventListener('dragstart', blockDragStart);
+    document.addEventListener('click', blockLeftClick);
     return () => {
       document.removeEventListener('contextmenu', blockContextMenu);
       document.removeEventListener('dragstart', blockDragStart);
+      document.removeEventListener('click', blockLeftClick);
     };
   }, []);
 

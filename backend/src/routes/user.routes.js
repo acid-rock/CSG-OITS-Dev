@@ -305,6 +305,8 @@ router.get("/list", requireAuth, async (req, res) => {
         owner_id: profile.owner_id,
         role: profile.role,
         email: authUser?.email ?? "Unknown",
+        // full_name stored in user_metadata at registration time
+        full_name: authUser?.user_metadata?.full_name ?? null,
       };
     });
 

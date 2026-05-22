@@ -5,6 +5,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-05-22
+### Added
+- Client-side pagination (25 rows/page) for Announcements, Documents, Events, and Borrowing admin tables — consistent with Officers table
+- Paginated footer: "Showing X–Y of Z" with previous/next and numbered page buttons, ellipsis for large page counts
+- Select-all checkbox on paginated tables now selects/deselects the current page only
+- Committee edit modal — chairperson and vice chairperson fields with filter-as-you-type autocomplete
+- Committee edit modal — member management: add/remove officers with live chip display
+- Committee cover photo upload in add and edit modals
+- `POST /committees/update-members` backend endpoint — assigns or removes officers from a committee in one round-trip
+- `POST /committees/upload-cover` backend endpoint — uploads and stores committee cover image
+- About page live stats: committees count now reflects real backend data (was hardcoded 12)
+- `academicYear()` utility — converts a date to the correct Philippine academic year string (Aug–Jul calendar)
+
+### Changed
+- Changelog modal renders markdown properly (headings, bullet lists, bold, inline code, links) instead of displaying raw `.md` text
+- Committee `editCommitteeSchema` now accepts optional `chair_name` and `vice_chair_name` fields
+- `/committees/edit` route writes `chair_name` and `vice_chair_name` to the database
+- `resolveChair()` in Committees panel does a name-match fallback to the officers list so the chair's real avatar is preserved after saving a text chair name
+- Officers table select-all checkbox scoped to current page (not all filtered rows)
+- Removed `TableFoot` import from modules now using inline paginated footer (Announcements, Documents, Events, Borrowing, Officers)
+- `ChangelogModal` replaced raw `<pre>` block with inline markdown renderer — no new dependency added
+
+### Fixed
+- Chair/vice chair names were sent to the backend but silently discarded — Zod schema stripped unknown fields and the route only updated `name`
+- Chair avatar disappeared after saving a chair name — `resolveChair` returned early with no `avatar` field when `chair_name` was set as text
+- `update-members` endpoint now correctly invalidates both `officers:*` and `committees:*` cache keys
+
+### Removed
+- Husky pre-commit and pre-push hooks (`.husky/` directory deleted)
+- lint-staged configuration (`.lintstagedrc.cjs` deleted, package uninstalled)
+- `"prepare": "husky"` script removed from root `package.json`
+- ESLint retained as a dev-only tool (editor integration and `npm run lint` still work)
+
 ## [1.2.0] - 2026-05-13
 ### Added
 - Organizations panel — full CRUD with logo upload, Facebook link, archive/bin lifecycle

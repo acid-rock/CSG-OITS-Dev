@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import "../_shared/admin-list.css";
 import Sidebar from "../_shared/Sidebar";
-import { PageHead, Tabs, Toolbar, TableFoot } from "../_shared/chrome";
+import { PageHead, Tabs, Toolbar } from "../_shared/chrome";
 import { StatusPill, Thumb } from "../_shared/atoms";
 import { I } from "../_shared/icons";
 import { fmtDate } from "../_shared/utils";
@@ -276,6 +276,9 @@ const BorrowingPanel = () => {
   const [editingInventory, setEditingInventory] = useState<InventoryItem | undefined>(undefined);
   const [deleteInvId, setDeleteInvId] = useState<string | null>(null);
   const [inventorySearch, setInventorySearch] = useState("");
+  const PAGE_SIZE = 25;
+  const [reqPage, setReqPage] = useState(1);
+  const [invPage, setInvPage] = useState(1);
 
   const fetchRequests = useCallback(async () => {
     setRequestsLoading(true);
@@ -309,12 +312,10 @@ const BorrowingPanel = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
-  useEffect(() => {
-    fetchInventory();
-  }, [fetchInventory]);
+  useEffect(() => { fetchRequests(); }, [fetchRequests]);
+  useEffect(() => { fetchInventory(); }, [fetchInventory]);
+  useEffect(() => { setReqPage(1); }, [statusFilter, requestSearch]);
+  useEffect(() => { setInvPage(1); }, [inventorySearch]);
 
   const openConfirm = (type: "approve" | "reject", requestId: string) => {
     setConfirmType(type);
@@ -426,6 +427,19 @@ const BorrowingPanel = () => {
       item.name.toLowerCase().includes(inventorySearch.toLowerCase()),
   );
 
+  // Requests pagination
+  const rqTotalPages = Math.max(1, Math.ceil(filteredRequests.length / PAGE_SIZE));
+  const rqSafePage   = Math.min(reqPage, rqTotalPages);
+  const rqPageRows   = filteredRequests.slice((rqSafePage - 1) * PAGE_SIZE, rqSafePage * PAGE_SIZE);
+  const rqFrom       = filteredRequests.length === 0 ? 0 : (rqSafePage - 1) * PAGE_SIZE + 1;
+  const rqTo         = Math.min(rqSafePage * PAGE_SIZE, filteredRequests.length);
+  // Inventory pagination
+  const ivTotalPages = Math.max(1, Math.ceil(filteredInventory.length / PAGE_SIZE));
+  const ivSafePage   = Math.min(invPage, ivTotalPages);
+  const ivPageRows   = filteredInventory.slice((ivSafePage - 1) * PAGE_SIZE, ivSafePage * PAGE_SIZE);
+  const ivFrom       = filteredInventory.length === 0 ? 0 : (ivSafePage - 1) * PAGE_SIZE + 1;
+  const ivTo         = Math.min(ivSafePage * PAGE_SIZE, filteredInventory.length);
+
   return (
     <div className="ad-shell">
       <Sidebar active="borrowing" />
@@ -508,7 +522,7 @@ const BorrowingPanel = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRequests.map((r) => {
+                    {rqPageRows.map((r) => {
                       const isExpanded = expandedRequestId === r.id;
                       return (
                         <>
@@ -656,12 +670,30 @@ const BorrowingPanel = () => {
                     })}
                     {filteredRequests.length === 0 && (
                       <tr>
-                        <td colSpan={9} className="ad-empty">No borrow requests yet.</td>
+                        <td colSpan={9}><div className="ad-empty"><p>No borrow requests yet.</p></div></td>
                       </tr>
                     )}
                   </tbody>
                 </table>
-                <TableFoot shown={`1–${filteredRequests.length}`} total={filteredRequests.length} label="requests" />
+                <div className="ad-table-foot">
+                  <span className="ad-foot-count">Showing <strong>{rqFrom}–{rqTo}</strong> of <strong>{filteredRequests.length}</strong> requests</span>
+                  {rqTotalPages > 1 && (
+                    <div className="ad-foot-pager">
+                      <button className="ad-page-btn" disabled={rqSafePage <= 1} onClick={() => setReqPage(p => Math.max(1, p - 1))}>‹ Previous</button>
+                      {Array.from({ length: rqTotalPages }, (_, i) => i + 1)
+                        .filter(n => n === 1 || n === rqTotalPages || Math.abs(n - rqSafePage) <= 1)
+                        .reduce<(number | '…')[]>((acc, n, idx, arr) => {
+                          if (idx > 0 && (n as number) - (arr[idx - 1] as number) > 1) acc.push('…');
+                          acc.push(n); return acc;
+                        }, [])
+                        .map((n, i) => n === '…'
+                          ? <span key={`e${i}`} style={{ padding: '0 4px', color: 'var(--color-text-muted)' }}>…</span>
+                          : <button key={n} className={`ad-page-btn${n === rqSafePage ? ' is-active' : ''}`} onClick={() => setReqPage(n as number)}>{n}</button>
+                        )}
+                      <button className="ad-page-btn" disabled={rqSafePage >= rqTotalPages} onClick={() => setReqPage(p => Math.min(rqTotalPages, p + 1))}>Next ›</button>
+                    </div>
+                  )}
+                </div>
               </section>
             )}
           </>
@@ -735,7 +767,7 @@ const BorrowingPanel = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredInventory.map((item) => (
+                    {ivPageRows.map((item) => (
                       <tr key={item.id} className={!item.is_available ? "is-pinned" : ""}>
                         <td>
                           <Thumb
@@ -808,12 +840,30 @@ const BorrowingPanel = () => {
                     ))}
                     {filteredInventory.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="ad-empty">No equipment found.</td>
+                        <td colSpan={6}><div className="ad-empty"><p>No equipment found.</p></div></td>
                       </tr>
                     )}
                   </tbody>
                 </table>
-                <TableFoot shown={`1–${filteredInventory.length}`} total={filteredInventory.length} label="items" />
+                <div className="ad-table-foot">
+                  <span className="ad-foot-count">Showing <strong>{ivFrom}–{ivTo}</strong> of <strong>{filteredInventory.length}</strong> items</span>
+                  {ivTotalPages > 1 && (
+                    <div className="ad-foot-pager">
+                      <button className="ad-page-btn" disabled={ivSafePage <= 1} onClick={() => setInvPage(p => Math.max(1, p - 1))}>‹ Previous</button>
+                      {Array.from({ length: ivTotalPages }, (_, i) => i + 1)
+                        .filter(n => n === 1 || n === ivTotalPages || Math.abs(n - ivSafePage) <= 1)
+                        .reduce<(number | '…')[]>((acc, n, idx, arr) => {
+                          if (idx > 0 && (n as number) - (arr[idx - 1] as number) > 1) acc.push('…');
+                          acc.push(n); return acc;
+                        }, [])
+                        .map((n, i) => n === '…'
+                          ? <span key={`e${i}`} style={{ padding: '0 4px', color: 'var(--color-text-muted)' }}>…</span>
+                          : <button key={n} className={`ad-page-btn${n === ivSafePage ? ' is-active' : ''}`} onClick={() => setInvPage(n as number)}>{n}</button>
+                        )}
+                      <button className="ad-page-btn" disabled={ivSafePage >= ivTotalPages} onClick={() => setInvPage(p => Math.min(ivTotalPages, p + 1))}>Next ›</button>
+                    </div>
+                  )}
+                </div>
               </section>
             )}
           </>

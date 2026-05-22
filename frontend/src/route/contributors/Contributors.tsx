@@ -9,64 +9,71 @@ const CONTRIBUTORS = [
   {
     name: "Ivan P. Duran",
     role: "Committee Chair — Web Development",
+    description: "Oversees the technical direction and development of the CSG-OITS platform.",
     initials: "ID",
-    github: "https://github.com/sleepdeprive-gray",
-    facebook: "https://www.facebook.com/infectious.ivan",
-    email: "ayban.duran@gmail.com",
+    github:    "https://github.com/sleepdeprive-gray",
+    facebook:  "https://www.facebook.com/infectious.ivan",
+    email:     "ayban.duran@gmail.com",
     instagram: "https://www.instagram.com/not.aybann",
   },
   {
     name: "John Harold R. Magma",
     role: "GAD Representative / Project Coordinator",
+    description: "Coordinates overall project delivery and serves as the primary liaison between the CSG and the development team.",
     initials: "JM",
-    github: "https://github.com/Hexizen",
-    facebook: "https://www.facebook.com/jhnhrldmgm",
-    email: "johnharold8888@gmail.com",
+    github:    "https://github.com/Hexizen",
+    facebook:  "https://www.facebook.com/jhnhrldmgm",
+    email:     "johnharold8888@gmail.com",
     instagram: "https://www.instagram.com/j.h.magma",
   },
   {
     name: "Lorenz E. Tuboro",
     role: "Back-End Developer",
+    description: "Designs and maintains the Express API, Supabase integration, and server-side authentication.",
     initials: "LT",
-    github: "https://github.com/acid-rock",
-    facebook: "https://www.facebook.com/herelieszee3/",
-    email: "lorenztuboro00@gmail.com",
+    github:    "https://github.com/acid-rock",
+    facebook:  "https://www.facebook.com/herelieszee3/",
+    email:     "lorenztuboro00@gmail.com",
     instagram: "https://www.instagram.com/thisiszee3/",
   },
   {
     name: "Ralph Kenneth B. Perez",
     role: "UI/UX Designer",
+    description: "Leads the visual design, layout systems, and user experience of the public and admin interfaces.",
     initials: "RP",
-    github: "https://github.com/rkenbperez",
-    facebook: "https://www.facebook.com/Ralph.Ken.Perez",
-    email: "rken.perez@gmail.com",
+    github:    "https://github.com/rkenbperez",
+    facebook:  "https://www.facebook.com/Ralph.Ken.Perez",
+    email:     "rken.perez@gmail.com",
     instagram: "https://www.instagram.com/si_kenp",
   },
   {
     name: "Jerald D. Estrella",
     role: "Front-End Developer",
+    description: "Implements React components and integrates frontend views with backend API endpoints.",
     initials: "JE",
-    github: "https://github.com/JeraldEstrella",
-    facebook: "https://www.facebook.com/jerald.estrellaii",
-    email: "jeraldestrella127@gmail.com",
+    github:    "https://github.com/JeraldEstrella",
+    facebook:  "https://www.facebook.com/jerald.estrellaii",
+    email:     "jeraldestrella127@gmail.com",
     instagram: "https://www.instagram.com/jrldstellar",
   },
   {
     name: "Taisei Domingo",
     role: "Front-End Developer",
+    description: "Builds and maintains interactive UI components and responsive layouts across the system.",
     initials: "TD",
-    github: "https://github.com/TaiseiD",
-    facebook: "https://www.facebook.com/iiseiich",
-    email: "domingo.taisei070606@gmail.com",
+    github:    "https://github.com/TaiseiD",
+    facebook:  "https://www.facebook.com/iiseiich",
+    email:     "domingo.taisei070606@gmail.com",
     instagram: "https://www.instagram.com/iiseichi",
   },
   {
     name: "Gerald D. Alansalon",
     role: "Documentation Officer",
+    description: "Manages technical documentation, system changelogs, and development records for the project.",
     initials: "GA",
-    github: "https://github.com/GeraldTheTeenGR",
-    facebook: "https://www.facebook.com/GDomingoA",
-    email: "geraldalansalon@gmail.com",
+    github:    "https://github.com/GeraldTheTeenGR",
+    facebook:  "https://www.facebook.com/GDomingoA",
+    email:     "geraldalansalon@gmail.com",
     instagram: "https://www.instagram.com/iamgerald_12",
   },
 ];
@@ -120,7 +127,7 @@ export default function ContributorsPage() {
 
             return (
               <div key={c.name} className="cp-card card">
-                {/* Avatar */}
+                {/* Avatar with blue ring */}
                 <div className="cp-avatar">
                   {avatarUrl ? (
                     <img
@@ -128,8 +135,7 @@ export default function ContributorsPage() {
                       alt={c.name}
                       className="cp-avatar-img"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display =
-                          "none";
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
                       }}
                     />
                   ) : (
@@ -137,50 +143,35 @@ export default function ContributorsPage() {
                   )}
                 </div>
 
-                {/* Text */}
+                {/* Name */}
                 <h3 className="cp-name">{c.name}</h3>
+
+                {/* Role — blue accent */}
                 <p className="cp-role">{c.role}</p>
-                {match?.year_serving && (
-                  <p className="cp-term">{match.year_serving}</p>
-                )}
+
+                {/* Description */}
+                <p className="cp-desc">{c.description}</p>
+
+                {/* Divider */}
+                <div className="cp-divider" />
 
                 {/* Icon links */}
                 <div className="cp-links">
-                  <a
-                    href={c.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${c.name} on GitHub`}
-                    className="cp-link cp-link--github"
-                  >
-                    <FaGithub size={18} />
+                  <a href={c.github} target="_blank" rel="noopener noreferrer"
+                    aria-label={`${c.name} on GitHub`} className="cp-link cp-link--github">
+                    <FaGithub size={16} />
                   </a>
-                  <a
-                    href={c.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${c.name} on Facebook`}
-                    className="cp-link cp-link--facebook"
-                  >
-                    <FaFacebook size={18} />
+                  <a href={c.facebook} target="_blank" rel="noopener noreferrer"
+                    aria-label={`${c.name} on Facebook`} className="cp-link cp-link--facebook">
+                    <FaFacebook size={16} />
                   </a>
-                  <a
-                    href={`https://mail.google.com/mail/?view=cm&to=${c.email}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Email ${c.name}`}
-                    className="cp-link cp-link--email"
-                  >
-                    <FaEnvelope size={18} />
+                  <a href={`https://mail.google.com/mail/?view=cm&to=${c.email}`} target="_blank" rel="noopener noreferrer"
+                    aria-label={`Email ${c.name}`} className="cp-link cp-link--email">
+                    <FaEnvelope size={16} />
                   </a>
-                  <a
-                    href={c.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${c.name} on Instagram`}
-                    className="cp-link cp-link--instagram"
-                  >
-                    <FaInstagram size={18} />
+                  <a href={c.instagram} target="_blank" rel="noopener noreferrer"
+                    aria-label={`${c.name} on Instagram`} className="cp-link cp-link--instagram">
+                    <FaInstagram size={16} />
                   </a>
                 </div>
               </div>

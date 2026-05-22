@@ -134,6 +134,8 @@ export const editCommitteeSchema = z.object({
   // committees.id is UUID (gen_random_uuid()) — never parse as integer
   id: uuidField,
   name: z.string().min(1).max(200),
+  chair_name:      z.string().max(200).nullable().optional(),
+  vice_chair_name: z.string().max(200).nullable().optional(),
 });
 
 export const committeeIdSchema = z.object({

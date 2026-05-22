@@ -120,7 +120,13 @@ const Settings = () => {
             <div className="ads-row">
               <select className="ads-term-select" value={termSelect} onChange={e => setTermSelect(e.target.value)}>
                 <option value="">Select a term year…</option>
-                {termOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                {/* Always include the current active term even if no officers are assigned to it yet */}
+                {activeTerm && !termOptions.includes(activeTerm) && (
+                  <option value={activeTerm}>{activeTerm} — current</option>
+                )}
+                {termOptions.map(t => (
+                  <option key={t} value={t}>{t}{t === activeTerm ? ' — current' : ''}</option>
+                ))}
               </select>
               <button
                 className="ad-btn-primary"
@@ -211,8 +217,8 @@ const Settings = () => {
           <SectionHead icon={<I.doc width="17" height="17" />} title="About" />
           <div className="ads-about">
             <div className="ads-about-meta">
-              <span className="ads-about-version">Current Version: <strong>v1.2.0</strong> (Stable)</span>
-              <span className="ads-about-date">Last Updated: Jan 25, 2026</span>
+              <span className="ads-about-version">Current Version: <strong>v1.3.0</strong> (Stable)</span>
+              <span className="ads-about-date">Last Updated: May 22, 2026</span>
             </div>
             <button className="ad-btn-ghost" onClick={() => setIsChangelogOpen(true)}>
               View System Changelog

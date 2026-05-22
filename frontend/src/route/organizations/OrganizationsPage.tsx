@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { OutletContext } from '../../root-layout/Root-layout';
 import type { Organization } from '../../config/organizationsConfig';
+import OrganizationModal from '../../components/organization-card/OrganizationModal';
 import './organizations.css';
 
 /* ============================================================
@@ -181,13 +182,14 @@ interface OrgCardProps {
   org: Organization;
   tone: Tone;
   tagLabel: string;
+  onClick: () => void;
 }
 
-function OrgCard({ org, tone, tagLabel }: OrgCardProps) {
+function OrgCard({ org, tone, tagLabel, onClick }: OrgCardProps) {
   const [a, b] = getPalette(org.name);
   const initials = getInitials(org.name);
   return (
-    <article className="po-card">
+    <article className="po-card" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div className="po-card-top">
         <div
           className="po-card-logo"
@@ -230,11 +232,11 @@ function OrgCard({ org, tone, tagLabel }: OrgCardProps) {
    FEATURED CARD  (publication — single wide card)
    ============================================================ */
 
-function FeaturedFlare({ org }: { org: Organization }) {
+function FeaturedFlare({ org, onClick }: { org: Organization; onClick: () => void }) {
   const [a, b] = getPalette(org.name);
   const initials = getInitials(org.name);
   return (
-    <article className="po-featured">
+    <article className="po-featured" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div
         className="po-featured-art"
         style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
@@ -287,9 +289,10 @@ interface OrgSectionProps {
   tone: Tone;
   tagLabel: string;
   alt?: boolean;
+  onSelect: (org: Organization) => void;
 }
 
-function OrgSection({ kicker, title, sub, items, tone, tagLabel, alt }: OrgSectionProps) {
+function OrgSection({ kicker, title, sub, items, tone, tagLabel, alt, onSelect }: OrgSectionProps) {
   if (items.length === 0) return null;
   return (
     <section className={alt ? 'po-section po-section--alt' : 'po-section'}>
@@ -300,7 +303,7 @@ function OrgSection({ kicker, title, sub, items, tone, tagLabel, alt }: OrgSecti
       </div>
       <div className="po-grid">
         {items.map(o => (
-          <OrgCard key={o.id} org={o} tone={tone} tagLabel={tagLabel} />
+          <OrgCard key={o.id} org={o} tone={tone} tagLabel={tagLabel} onClick={() => onSelect(o)} />
         ))}
       </div>
     </section>
@@ -313,8 +316,9 @@ function OrgSection({ kicker, title, sub, items, tone, tagLabel, alt }: OrgSecti
 
 export default function OrganizationsPage() {
   const { organizations } = useOutletContext<OutletContext>();
-  const [query, setQuery]   = useState('');
-  const [filter, setFilter] = useState<FilterValue>('all');
+  const [query, setQuery]         = useState('');
+  const [filter, setFilter]       = useState<FilterValue>('all');
+  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
   /* Stable counts based on full dataset (not filtered view) */
   const counts = {
@@ -361,6 +365,7 @@ export default function OrganizationsPage() {
               items={academic}
               tone="primary"
               tagLabel="Academic"
+              onSelect={setSelectedOrg}
             />
             <OrgSection
               kicker="Non-Academic"
@@ -370,6 +375,7 @@ export default function OrganizationsPage() {
               tone="warning"
               tagLabel="Non-academic"
               alt
+              onSelect={setSelectedOrg}
             />
             {spu.length > 0 && (
               <section className="po-section po-section--publication">
@@ -377,12 +383,20 @@ export default function OrganizationsPage() {
                   <span className="po-eyebrow po-eyebrow--small">Student Publication Unit</span>
                   <h2>The voice of the studentry.</h2>
                 </div>
-                {spu.map(o => <FeaturedFlare key={o.id} org={o} />)}
+                {spu.map(o => <FeaturedFlare key={o.id} org={o} onClick={() => setSelectedOrg(o)} />)}
               </section>
             )}
           </>
         )}
       </main>
+
+      {selectedOrg && (
+        <OrganizationModal
+          organization={selectedOrg}
+          isOpen={true}
+          onClose={() => setSelectedOrg(null)}
+        />
+      )}
     </div>
   );
 }

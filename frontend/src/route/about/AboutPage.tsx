@@ -4,7 +4,7 @@ import type { OutletContext } from "../../root-layout/Root-layout";
 
 export default function AboutPage() {
   /* Live counts from outlet context — no new API calls */
-  const { officers, documents } = useOutletContext<OutletContext>();
+  const { officers, documents, committees } = useOutletContext<OutletContext>();
 
   return (
     <div className="ap-page">
@@ -131,8 +131,7 @@ export default function AboutPage() {
             <div className="ap-stat-label">Officers serving</div>
           </div>
           <div className="ap-stat">
-            {/* Committees not in outlet context — static */}
-            <div className="ap-stat-value">12</div>
+            <div className="ap-stat-value">{committees.length}</div>
             <div className="ap-stat-label">Active committees</div>
           </div>
           <div className="ap-stat">

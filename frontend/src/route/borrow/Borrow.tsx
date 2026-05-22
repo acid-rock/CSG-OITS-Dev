@@ -257,9 +257,9 @@ export default function Borrow() {
       setEmailSent(result?.email_sent ?? false);
       setView("success");
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Submission failed. Please try again.";
+      // Backend sends { error: "..." } — try both keys before falling back
+      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      const msg = d?.error ?? d?.message ?? "Submission failed. Please try again.";
       setSubmitError(msg);
     } finally {
       setSubmitting(false);

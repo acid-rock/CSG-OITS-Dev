@@ -30,17 +30,22 @@ function getTransporter() {
 }
 
 /**
- * Send an email. Fire-and-forget — never throws; logs errors instead.
- * If SMTP is not configured the call is silently skipped.
+ * Send an email. Never throws.
+ * Returns true if the email was accepted by the SMTP server, false otherwise.
+ * Logs all failures so they are visible in server output.
  *
  * @param {{ to: string, subject: string, html: string }} options
+ * @returns {Promise<boolean>}
  */
 export async function sendEmail({ to, subject, html }) {
   const transporter = getTransporter();
 
   if (!transporter) {
-    console.warn("[MAILER] SMTP not configured — skipping email to:", to);
-    return;
+    console.warn(
+      "[MAILER] SMTP not configured (SMTP_HOST / SMTP_USER / SMTP_PASS missing) — skipping email to:",
+      to,
+    );
+    return false;
   }
 
   try {
@@ -49,9 +54,17 @@ export async function sendEmail({ to, subject, html }) {
       `"Central Student Government – OITS" <${process.env.SMTP_USER}>`;
 
     const info = await transporter.sendMail({ from, to, subject, html });
-    console.log(`[MAILER] Sent "${subject}" to ${to} — id: ${info.messageId}`);
+    console.log(`[MAILER] ✓ Sent "${subject}" → ${to}  (id: ${info.messageId})`);
+    return true;
   } catch (err) {
-    // Email failure is non-fatal — log and continue
-    console.error(`[MAILER] Failed to send "${subject}" to ${to}:`, err.message);
+    // Common causes:
+    //   • Gmail: SMTP_PASS must be a 16-char App Password (not account password)
+    //     Generate one at: myaccount.google.com/apppasswords
+    //   • Google Workspace: admin must allow "Less secure app access" or App Passwords
+    console.error(
+      `[MAILER] ✗ Failed to send "${subject}" → ${to}:`,
+      err.message,
+    );
+    return false;
   }
 }
