@@ -51,6 +51,23 @@ export function academicYear(date?: Date | string | null): string {
   return `${startYear}–${startYear + 1}`;
 }
 
+/**
+ * Derive a human-readable display name from an owner_id + admin account map.
+ * Priority: full_name → email username (before @) → shortId fallback.
+ */
+export function adminDisplayName(
+  ownerId: string | null | undefined,
+  map: Record<string, { full_name: string | null; email: string }>,
+): string {
+  if (!ownerId) return 'Admin';
+  const acct = map[ownerId];
+  if (!acct) return shortId(ownerId);
+  if (acct.full_name) return acct.full_name;
+  // Use email username: "lorenztuboro00@gmail.com" → "Lorenztuboro00"
+  const username = acct.email.split('@')[0];
+  return username.charAt(0).toUpperCase() + username.slice(1);
+}
+
 /* Deterministic gradient pair from a string */
 const GRAD_PALETTE: [string, string][] = [
   ['#1e3a8a', '#3b5fbc'], ['#7c2d12', '#dc2626'], ['#1e293b', '#475569'],

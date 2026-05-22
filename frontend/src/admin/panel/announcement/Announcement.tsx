@@ -4,7 +4,7 @@ import Sidebar from "../_shared/Sidebar";
 import { PageHead, Tabs, Toolbar, BulkBar } from "../_shared/chrome";
 import { Thumb, Tag, MiniAvatar } from "../_shared/atoms";
 import { I } from "../_shared/icons";
-import { timeAgo, fmtDate, fmtDateTime, stripHtml, shortId, academicYear } from "../_shared/utils";
+import { timeAgo, fmtDate, fmtDateTime, stripHtml, academicYear, adminDisplayName } from "../_shared/utils";
 import Form from "../../components/form/Form";
 import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
 import PublicPreviewModal from "../../components/modals/PublicPreviewModal/PublicPreviewModal";
@@ -71,6 +71,7 @@ const Announcement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [previewItem, setPreviewItem] = useState<BulletinEntry | null>(null);
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
+  const [adminMap, setAdminMap] = useState<Record<string, { full_name: string | null; email: string }>>({});
   const PAGE_SIZE = 25;
   const [page, setPage] = useState(1);
 
@@ -99,6 +100,18 @@ const Announcement = () => {
   }, [tab]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Build owner_id → display name map from admin accounts (fetched once)
+  useEffect(() => {
+    axios.get(`${API_URL}/user/list`, { withCredentials: true })
+      .then(({ data }) => {
+        const map: Record<string, { full_name: string | null; email: string }> = {};
+        for (const u of data) map[u.owner_id] = { full_name: u.full_name ?? null, email: u.email };
+        setAdminMap(map);
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => { setOpenTerms({}); setPage(1); }, [tab]);
   useEffect(() => { setPage(1); }, [filter, searchQuery]);
   useEffect(() => { setCounts(p => ({ ...p, [tab]: data.length })); }, [data, tab]);
@@ -436,8 +449,8 @@ const Announcement = () => {
                         </td>
                         <td>
                           <div className="ad-author">
-                            <MiniAvatar name={entry.owner_id ? shortId(entry.owner_id) : "Admin"} />
-                            <span>{entry.owner_id ? shortId(entry.owner_id) : "Admin"}</span>
+                            <MiniAvatar name={adminDisplayName(entry.owner_id, adminMap)} />
+                            <span>{adminDisplayName(entry.owner_id, adminMap)}</span>
                           </div>
                         </td>
                         <td>
@@ -567,8 +580,8 @@ const Announcement = () => {
                               </td>
                               <td>
                                 <div className="ad-author">
-                                  <MiniAvatar name={entry.owner_id ? shortId(entry.owner_id) : "Admin"} />
-                                  <span>{entry.owner_id ? shortId(entry.owner_id) : "Admin"}</span>
+                                  <MiniAvatar name={adminDisplayName(entry.owner_id, adminMap)} />
+                                  <span>{adminDisplayName(entry.owner_id, adminMap)}</span>
                                 </div>
                               </td>
                               <td><div className="ad-date"><span className="ad-date-abs">{fmtDate(entry.date)}</span></div></td>
