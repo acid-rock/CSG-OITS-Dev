@@ -217,8 +217,8 @@ const Settings = () => {
           <SectionHead icon={<I.doc width="17" height="17" />} title="About" />
           <div className="ads-about">
             <div className="ads-about-meta">
-              <span className="ads-about-version">Current Version: <strong>v1.2.0</strong> (Stable)</span>
-              <span className="ads-about-date">Last Updated: Jan 25, 2026</span>
+              <span className="ads-about-version">Current Version: <strong>v1.3.0</strong> (Stable)</span>
+              <span className="ads-about-date">Last Updated: May 22, 2026</span>
             </div>
             <button className="ad-btn-ghost" onClick={() => setIsChangelogOpen(true)}>
               View System Changelog
