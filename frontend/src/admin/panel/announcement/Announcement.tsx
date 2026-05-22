@@ -27,6 +27,16 @@ interface BulletinEntry {
 
 type Tab = "active" | "archived" | "bin";
 
+const groupByTerm = (items: BulletinEntry[]): Record<string, BulletinEntry[]> => {
+  const groups: Record<string, BulletinEntry[]> = {};
+  items.forEach((item) => {
+    const term = academicYear(item.archived_at ?? undefined);
+    if (!groups[term]) groups[term] = [];
+    groups[term].push(item);
+  });
+  return groups;
+};
+
 function categoryTone(cat?: string): "primary" | "warning" | "danger" | "neutral" | "success" {
   switch (cat) {
     case "CSG Updates":
@@ -42,15 +52,6 @@ function categoryTone(cat?: string): "primary" | "warning" | "danger" | "neutral
   }
 }
 
-const groupByTerm = (items: BulletinEntry[]): Record<string, BulletinEntry[]> => {
-  const groups: Record<string, BulletinEntry[]> = {};
-  items.forEach((item) => {
-    const term = academicYear(item.archived_at ?? undefined);
-    if (!groups[term]) groups[term] = [];
-    groups[term].push(item);
-  });
-  return groups;
-};
 
 const Announcement = () => {
   const [tab, setTab] = useState<Tab>("active");
@@ -68,8 +69,8 @@ const Announcement = () => {
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [previewItem, setPreviewItem] = useState<BulletinEntry | null>(null);
+  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const PAGE_SIZE = 25;
   const [page, setPage] = useState(1);
 
@@ -98,8 +99,8 @@ const Announcement = () => {
   }, [tab]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-  useEffect(() => { setOpenTerms({}); }, [tab]);
-  useEffect(() => { setPage(1); }, [tab, filter, searchQuery]);
+  useEffect(() => { setOpenTerms({}); setPage(1); }, [tab]);
+  useEffect(() => { setPage(1); }, [filter, searchQuery]);
   useEffect(() => { setCounts(p => ({ ...p, [tab]: data.length })); }, [data, tab]);
   // Pre-fetch counts for other tabs at mount so badges show immediately
   useEffect(() => {
@@ -240,16 +241,6 @@ const Announcement = () => {
     fetchData();
   };
 
-  const toggleTerm = (term: string) =>
-    setOpenTerms((prev) => ({ ...prev, [term]: !prev[term] }));
-
-  const archivedGroups = tab === "archived" ? groupByTerm(data) : {};
-  const sortedTerms = Object.keys(archivedGroups).sort((a, b) =>
-    b.localeCompare(a),
-  );
-  const isTermOpen = (term: string) =>
-    openTerms[term] !== undefined ? openTerms[term] : term === sortedTerms[0];
-
   const filteredActive = data
     .filter(
       (entry) =>
@@ -270,6 +261,13 @@ const Announcement = () => {
   const aPageRows   = filteredActive.slice((aSafePage - 1) * PAGE_SIZE, aSafePage * PAGE_SIZE);
   const aFrom       = filteredActive.length === 0 ? 0 : (aSafePage - 1) * PAGE_SIZE + 1;
   const aTo         = Math.min(aSafePage * PAGE_SIZE, filteredActive.length);
+  // Archived tab — grouped by term (accordion)
+  const archivedGroups = tab === "archived" ? groupByTerm(data) : {};
+  const sortedTerms = Object.keys(archivedGroups).sort((a, b) => b.localeCompare(a));
+  const isTermOpen = (term: string) =>
+    openTerms[term] !== undefined ? openTerms[term] : term === sortedTerms[0];
+  const toggleTerm = (term: string) =>
+    setOpenTerms((prev) => ({ ...prev, [term]: !prev[term] }));
   // Bin tab pagination
   const bTotalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
   const bSafePage   = Math.min(page, bTotalPages);
@@ -521,99 +519,62 @@ const Announcement = () => {
               </section>
             )}
 
-            {/* ── Archived tab ── */}
+            {/* ── Archived tab — grouped by term ── */}
             {tab === "archived" && (
               <>
                 {sortedTerms.length === 0 && (
-                  <p className="ad-empty-state">No archived announcements.</p>
+                  <section className="ad-card"><div className="ad-empty"><p>No archived announcements.</p></div></section>
                 )}
                 {sortedTerms.map((term) => (
-                  <section key={term} className="ad-card" style={{ marginBottom: "1rem" }}>
-                    <button
-                      className="ad-term-toggle"
-                      onClick={() => toggleTerm(term)}
-                    >
+                  <section key={term} className="ad-card" style={{ marginBottom: "0.75rem" }}>
+                    <button className="ad-term-toggle" onClick={() => toggleTerm(term)}>
                       <span>Term {term}</span>
                       <span className="ad-term-meta">
-                        {archivedGroups[term].length} item
-                        {archivedGroups[term].length !== 1 ? "s" : ""}
-                        <I.chev
-                          width="14"
-                          height="14"
-                          style={{
-                            transform: isTermOpen(term) ? "rotate(180deg)" : "none",
-                            transition: "transform 200ms",
-                          }}
-                        />
+                        {archivedGroups[term].length} item{archivedGroups[term].length !== 1 ? "s" : ""}
+                        <I.chev width="13" height="13" style={{ transform: isTermOpen(term) ? "rotate(180deg)" : "none", transition: "transform 200ms" }} />
                       </span>
                     </button>
                     {isTermOpen(term) && (
                       <table className="ad-table">
                         <colgroup>
-                          <col style={{ width: 44 }} />
-                          <col style={{ width: 72 }} />
-                          <col />
-                          <col style={{ width: 160 }} />
-                          <col style={{ width: 160 }} />
+                          <col style={{ width: 44 }} /><col style={{ width: 72 }} /><col /><col style={{ width: 140 }} /><col style={{ width: 160 }} /><col style={{ width: 160 }} />
                         </colgroup>
                         <thead>
                           <tr>
-                            <th></th>
-                            <th>Image</th>
-                            <th>Title &amp; description</th>
-                            <th>Posted</th>
+                            <th><input type="checkbox" title="Select all in term"
+                              checked={archivedGroups[term].length > 0 && archivedGroups[term].every(e => active.includes(e.id))}
+                              onChange={() => setActive(archivedGroups[term].every(e => active.includes(e.id))
+                                ? active.filter(id => !archivedGroups[term].find(e => e.id === id))
+                                : [...new Set([...active, ...archivedGroups[term].map(e => e.id)])])}
+                            /></th>
+                            <th>Image</th><th>Title &amp; description</th><th>Author</th><th>Posted</th>
                             <th className="ad-th-right">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {archivedGroups[term].map((entry) => (
-                            <tr
-                              key={entry.id}
-                              className={active.includes(entry.id) ? "is-selected" : ""}
-                            >
-                              <td>
-                                <input
-                                  type="checkbox"
-                                  title={`Select ${entry.title}`}
-                                  checked={active.includes(entry.id)}
-                                  onChange={() => handleActive(entry.id)}
-                                />
-                              </td>
-                              <td>
-                                <Thumb src={entry.imgUrl || null} title={entry.title} kind="image" />
-                              </td>
+                            <tr key={entry.id} className={active.includes(entry.id) ? "is-selected" : ""}>
+                              <td><input type="checkbox" title={`Select ${entry.title}`} checked={active.includes(entry.id)} onChange={() => handleActive(entry.id)} /></td>
+                              <td><Thumb src={entry.imgUrl || null} title={entry.title} kind="image" /></td>
                               <td>
                                 <div className="ad-title-stack">
                                   <div className="ad-title-row">
-                                    <Tag
-                                      label={entry.category ?? "CSG Updates"}
-                                      tone={categoryTone(entry.category)}
-                                    />
+                                    <Tag label={entry.category ?? "CSG Updates"} tone={categoryTone(entry.category)} />
                                     <span className="ad-title-link">{entry.title}</span>
                                   </div>
                                   <p className="ad-desc">{stripHtml(entry.content)}</p>
                                 </div>
                               </td>
                               <td>
-                                <div className="ad-date">
-                                  <span className="ad-date-abs">{fmtDate(entry.date)}</span>
+                                <div className="ad-author">
+                                  <MiniAvatar name={entry.owner_id ? shortId(entry.owner_id) : "Admin"} />
+                                  <span>{entry.owner_id ? shortId(entry.owner_id) : "Admin"}</span>
                                 </div>
                               </td>
+                              <td><div className="ad-date"><span className="ad-date-abs">{fmtDate(entry.date)}</span></div></td>
                               <td className="ad-actions">
-                                <button
-                                  className="ad-icon-btn is-on"
-                                  title="Restore"
-                                  onClick={() => handleRestore(entry.id)}
-                                >
-                                  <I.restore width="14" height="14" />
-                                </button>
-                                <button
-                                  className="ad-icon-btn ad-icon-btn--danger"
-                                  title="Move to bin"
-                                  onClick={() => handleSoftDelete(entry.id)}
-                                >
-                                  <I.trash width="14" height="14" />
-                                </button>
+                                <button className="ad-icon-btn is-on" title="Restore" onClick={() => handleRestore(entry.id)}><I.restore width="14" height="14" /></button>
+                                <button className="ad-icon-btn ad-icon-btn--danger" title="Move to bin" onClick={() => handleSoftDelete(entry.id)}><I.trash width="14" height="14" /></button>
                               </td>
                             </tr>
                           ))}

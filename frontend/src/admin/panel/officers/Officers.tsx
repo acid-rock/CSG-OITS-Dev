@@ -34,6 +34,7 @@ function displayPosition(pos: string | string[]): string {
   return Array.isArray(pos) ? pos[0] : pos;
 }
 
+
 const groupByTerm = (items: OfficerEntry[]): Record<string, OfficerEntry[]> => {
   const groups: Record<string, OfficerEntry[]> = {};
   items.forEach(item => {
@@ -67,8 +68,8 @@ const OfficersPanel = () => {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState<OfficerEntry | undefined>(undefined);
-  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
 
   // Initial load: fetch ONLY active tab + supporting data
@@ -380,13 +381,16 @@ const OfficersPanel = () => {
             <>
               {sortedTerms.length === 0 && <section className="ad-card"><div className="ad-empty"><p>No archived officers.</p></div></section>}
               {sortedTerms.map(term => (
-                <div key={term}>
-                  <button style={{ display:'flex', alignItems:'center', gap:8, background:'none', border:'none', cursor:'pointer', fontWeight:700, fontSize:13, color:'var(--color-text-primary)', padding:'8px 0' }} onClick={() => toggleTerm(term)}>
-                    <I.chev width="14" height="14" style={{ transform: isTermOpen(term)?'rotate(180deg)':undefined, transition:'transform 150ms' }} />
-                    {term} <span style={{ fontWeight:500, color:'var(--color-text-muted)', fontSize:12 }}>({archivedGroups[term].length})</span>
+                <section key={term} className="ad-card" style={{ marginBottom: '0.75rem' }}>
+                  <button className="ad-term-toggle" onClick={() => toggleTerm(term)}>
+                    <span>Term {term}</span>
+                    <span className="ad-term-meta">
+                      {archivedGroups[term].length} officer{archivedGroups[term].length !== 1 ? 's' : ''}
+                      <I.chev width="13" height="13" style={{ transform: isTermOpen(term) ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
+                    </span>
                   </button>
-                  {isTermOpen(term) && <div style={{ marginBottom:8 }}><OfficerTable rows={archivedGroups[term]} empty="No officers in this term." /></div>}
-                </div>
+                  {isTermOpen(term) && <OfficerTable rows={archivedGroups[term]} empty="No officers in this term." />}
+                </section>
               ))}
             </>
           ) : tab === 'bin' ? (

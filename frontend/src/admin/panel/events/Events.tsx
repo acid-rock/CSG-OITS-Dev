@@ -57,6 +57,7 @@ const filterByDate = (date: string, filter: string): boolean => {
   return true;
 };
 
+
 const groupByTerm = (items: EventEntry[]): Record<string, EventEntry[]> => {
   const groups: Record<string, EventEntry[]> = {};
   items.forEach((item) => {
@@ -84,9 +85,9 @@ const Events = () => {
   const [counts, setCounts] = useState({ active: 0, archived: 0, bin: 0 });
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>("");
-  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [previewItem, setPreviewItem] = useState<EventEntry | null>(null);
+  const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const PAGE_SIZE = 25;
   const [page, setPage] = useState(1);
 
@@ -115,8 +116,8 @@ const Events = () => {
   }, [tab]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-  useEffect(() => { setOpenTerms({}); }, [tab]);
-  useEffect(() => { setPage(1); }, [tab, filter, searchQuery]);
+  useEffect(() => { setOpenTerms({}); setPage(1); }, [tab]);
+  useEffect(() => { setPage(1); }, [filter, searchQuery]);
   useEffect(() => { setCounts(p => ({ ...p, [tab]: data.length })); }, [data, tab]);
   useEffect(() => {
     (['active', 'archived', 'bin'] as const).filter(t => t !== tab).forEach(t => {
@@ -233,16 +234,6 @@ const Events = () => {
     fetchData();
   };
 
-  const toggleTerm = (term: string) =>
-    setOpenTerms((prev) => ({ ...prev, [term]: !prev[term] }));
-
-  const archivedGroups = tab === "archived" ? groupByTerm(data) : {};
-  const sortedTerms = Object.keys(archivedGroups).sort((a, b) =>
-    b.localeCompare(a),
-  );
-  const isTermOpen = (term: string) =>
-    openTerms[term] !== undefined ? openTerms[term] : term === sortedTerms[0];
-
   const filteredActive = data
     .filter((entry) => filterByDate(entry.date, filter))
     .filter(
@@ -252,6 +243,13 @@ const Events = () => {
         (entry.description ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
+  // Archived tab — grouped by term (accordion)
+  const archivedGroups = tab === "archived" ? groupByTerm(data) : {};
+  const sortedTerms = Object.keys(archivedGroups).sort((a, b) => b.localeCompare(a));
+  const isTermOpen = (term: string) =>
+    openTerms[term] !== undefined ? openTerms[term] : term === sortedTerms[0];
+  const toggleTerm = (term: string) =>
+    setOpenTerms((prev) => ({ ...prev, [term]: !prev[term] }));
   // Active tab pagination
   const aTotalPages = Math.max(1, Math.ceil(filteredActive.length / PAGE_SIZE));
   const aSafePage   = Math.min(page, aTotalPages);
@@ -505,49 +503,35 @@ const Events = () => {
               </section>
             )}
 
-            {/* ── Archived tab ── */}
+            {/* ── Archived tab — grouped by term ── */}
             {tab === "archived" && (
               <>
                 {sortedTerms.length === 0 && (
-                  <p className="ad-empty-state">No archived events.</p>
+                  <section className="ad-card"><div className="ad-empty"><p>No archived events.</p></div></section>
                 )}
                 {sortedTerms.map((term) => (
-                  <section key={term} className="ad-card" style={{ marginBottom: "1rem" }}>
-                    <button
-                      className="ad-term-toggle"
-                      onClick={() => toggleTerm(term)}
-                    >
+                  <section key={term} className="ad-card" style={{ marginBottom: "0.75rem" }}>
+                    <button className="ad-term-toggle" onClick={() => toggleTerm(term)}>
                       <span>Term {term}</span>
                       <span className="ad-term-meta">
-                        {archivedGroups[term].length} item
-                        {archivedGroups[term].length !== 1 ? "s" : ""}
-                        <I.chev
-                          width="14"
-                          height="14"
-                          style={{
-                            transform: isTermOpen(term) ? "rotate(180deg)" : "none",
-                            transition: "transform 200ms",
-                          }}
-                        />
+                        {archivedGroups[term].length} item{archivedGroups[term].length !== 1 ? "s" : ""}
+                        <I.chev width="13" height="13" style={{ transform: isTermOpen(term) ? "rotate(180deg)" : "none", transition: "transform 200ms" }} />
                       </span>
                     </button>
                     {isTermOpen(term) && (
                       <table className="ad-table">
                         <colgroup>
-                          <col style={{ width: 44 }} />
-                          <col style={{ width: 72 }} />
-                          <col />
-                          <col style={{ width: 140 }} />
-                          <col style={{ width: 130 }} />
-                          <col style={{ width: 160 }} />
+                          <col style={{ width: 44 }} /><col style={{ width: 72 }} /><col /><col style={{ width: 140 }} /><col style={{ width: 130 }} /><col style={{ width: 160 }} />
                         </colgroup>
                         <thead>
                           <tr>
-                            <th></th>
-                            <th>Photo</th>
-                            <th>Title</th>
-                            <th>Date</th>
-                            <th>Status</th>
+                            <th><input type="checkbox" title="Select all in term"
+                              checked={archivedGroups[term].length > 0 && archivedGroups[term].every(e => active.includes(e.id))}
+                              onChange={() => setActive(archivedGroups[term].every(e => active.includes(e.id))
+                                ? active.filter(id => !archivedGroups[term].find(e => e.id === id))
+                                : [...new Set([...active, ...archivedGroups[term].map(e => e.id)])])}
+                            /></th>
+                            <th>Photo</th><th>Title &amp; description</th><th>Date</th><th>Status</th>
                             <th className="ad-th-right">Actions</th>
                           </tr>
                         </thead>
@@ -555,54 +539,23 @@ const Events = () => {
                           {archivedGroups[term].map((entry) => {
                             const status = eventStatus(entry.date);
                             return (
-                              <tr
-                                key={entry.id}
-                                className={active.includes(entry.id) ? "is-selected" : ""}
-                              >
-                                <td>
-                                  <input
-                                    type="checkbox"
-                                    title={`Select ${entry.name}`}
-                                    checked={active.includes(entry.id)}
-                                    onChange={() => handleActive(entry.id)}
-                                  />
-                                </td>
-                                <td>
-                                  <Thumb
-                                    src={entry.images?.[0] || null}
-                                    title={entry.name}
-                                    kind="image"
-                                  />
-                                </td>
+                              <tr key={entry.id} className={active.includes(entry.id) ? "is-selected" : ""}>
+                                <td><input type="checkbox" title={`Select ${entry.name}`} checked={active.includes(entry.id)} onChange={() => handleActive(entry.id)} /></td>
+                                <td><Thumb src={entry.images?.[0] || null} title={entry.name} kind="image" /></td>
                                 <td>
                                   <div className="ad-title-stack">
-                                    <span className="ad-title-link">{entry.name}</span>
+                                    <div className="ad-title-row">
+                                      <Tag label="Event" tone="warning" />
+                                      <span className="ad-title-link">{entry.name}</span>
+                                    </div>
                                     <p className="ad-desc">{entry.description}</p>
                                   </div>
                                 </td>
-                                <td>
-                                  <div className="ad-date">
-                                    <span className="ad-date-abs">{fmtDate(entry.date)}</span>
-                                  </div>
-                                </td>
-                                <td>
-                                  <StatusPill label={status.label} tone={status.tone} />
-                                </td>
+                                <td><div className="ad-date"><span className="ad-date-abs">{fmtDate(entry.date)}</span></div></td>
+                                <td><StatusPill label={status.label} tone={status.tone} /></td>
                                 <td className="ad-actions">
-                                  <button
-                                    className="ad-icon-btn is-on"
-                                    title="Restore"
-                                    onClick={() => handleRestore(entry.id)}
-                                  >
-                                    <I.restore width="14" height="14" />
-                                  </button>
-                                  <button
-                                    className="ad-icon-btn ad-icon-btn--danger"
-                                    title="Move to bin"
-                                    onClick={() => handleSoftDelete(entry.id)}
-                                  >
-                                    <I.trash width="14" height="14" />
-                                  </button>
+                                  <button className="ad-icon-btn is-on" title="Restore" onClick={() => handleRestore(entry.id)}><I.restore width="14" height="14" /></button>
+                                  <button className="ad-icon-btn ad-icon-btn--danger" title="Move to bin" onClick={() => handleSoftDelete(entry.id)}><I.trash width="14" height="14" /></button>
                                 </td>
                               </tr>
                             );

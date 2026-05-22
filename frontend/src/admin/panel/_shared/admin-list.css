@@ -508,6 +508,35 @@
 .ad-page-btn.is-active{ background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
 .ad-page-ellipsis{ color:var(--color-text-muted); padding:0 4px; font-size:13px; }
 
+/* Term accordion toggle — used in Archived tabs */
+.ad-term-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 18px;
+  background: var(--color-surface, #f4f6fd);
+  border: none;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: left;
+  transition: background 150ms;
+}
+.ad-term-toggle:hover { background: var(--color-surface-deep, #eef1fb); }
+.ad-term-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
 /* Section title */
 .ad-section-title{
   margin:6px 0 -4px;
