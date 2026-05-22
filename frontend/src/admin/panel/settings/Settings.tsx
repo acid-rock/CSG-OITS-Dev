@@ -120,7 +120,13 @@ const Settings = () => {
             <div className="ads-row">
               <select className="ads-term-select" value={termSelect} onChange={e => setTermSelect(e.target.value)}>
                 <option value="">Select a term year…</option>
-                {termOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                {/* Always include the current active term even if no officers are assigned to it yet */}
+                {activeTerm && !termOptions.includes(activeTerm) && (
+                  <option value={activeTerm}>{activeTerm} — current</option>
+                )}
+                {termOptions.map(t => (
+                  <option key={t} value={t}>{t}{t === activeTerm ? ' — current' : ''}</option>
+                ))}
               </select>
               <button
                 className="ad-btn-primary"

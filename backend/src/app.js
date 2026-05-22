@@ -86,9 +86,14 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // exhausts the public 100 req/15 min bucket.  Moving them to adminLimiter
 // (500 req/15 min) removes that wall without meaningful risk — public traffic
 // on a small CSG site will never come close to 500 req/15 min per IP.
-app.use("/api/v1/announcements", publicLimiter, announcementRoutes);
-app.use("/api/v1/documents",     publicLimiter, documentRoutes);
-app.use("/api/v1/events",        publicLimiter, eventRoutes);
+// Moving announcements/documents/events to adminLimiter (500/15min).
+// Rationale: the admin panel pre-fetches counts for all three tabs on every
+// module load, which easily exhausts the 100/15min public bucket and causes
+// 429 errors during normal admin use. A small CSG site's public traffic will
+// never approach 500 req/15min per IP, so this is safe for public users too.
+app.use("/api/v1/announcements", adminLimiter,  announcementRoutes);
+app.use("/api/v1/documents",     adminLimiter,  documentRoutes);
+app.use("/api/v1/events",        adminLimiter,  eventRoutes);
 app.use("/api/v1/changelog",     publicLimiter, changelogRoutes);
 // POST /track is public (anon visits); GET /stats is admin-gated inside the router
 app.use("/api/v1/views",         publicLimiter, viewsRoutes);

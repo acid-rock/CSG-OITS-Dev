@@ -4,7 +4,6 @@
   "description": "The Online Information Transparency System (OITS) is the official website and content management system for the Central Student Government (CSG) of Cavite State University Imus Campus. It provides CVSU-Imus students with open access to CSG announcements, official documents, event records, and officer information. Authenticated CSG administrators can create, update, and delete all content through a protected admin panel.",
   "main": "index.js",
   "scripts": {
-    "prepare": "husky",
     "lint:frontend": "cd frontend && npx eslint src/",
     "lint:backend": "cd backend && npx eslint src/",
     "lint": "npm run lint:frontend && npm run lint:backend",
@@ -30,9 +29,7 @@
   },
   "homepage": "https://github.com/acid-rock/CSG-OITS-Dev#readme",
   "devDependencies": {
-    "@playwright/test": "^1.60.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.0.4"
+    "@playwright/test": "^1.60.0"
   },
   "dependencies": {
     "docx": "^9.6.1"

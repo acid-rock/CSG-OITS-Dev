@@ -114,13 +114,18 @@ router.post(
   requireAuth,
   validate(editCommitteeSchema),
   asyncHandler(async (req, res) => {
-    const { id, name } = req.body;
+    const { id, name, chair_name, vice_chair_name } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
 
+    const updatePayload = { name: name.trim() };
+    // Only include chair/vice fields if they were explicitly sent
+    if (chair_name !== undefined)      updatePayload.chair_name      = chair_name?.trim()      || null;
+    if (vice_chair_name !== undefined) updatePayload.vice_chair_name = vice_chair_name?.trim() || null;
+
     const { error } = await supabase
       .from("committees")
-      .update({ name: name.trim() })
+      .update(updatePayload)
       .eq("id", id);
     if (error) throw new ApiError(500, "Update failed: " + error.message);
 
@@ -250,6 +255,42 @@ router.post(
     if (error) throw new ApiError(500, "Restore from bin failed: " + error.message);
     invalidateCachePrefix("committees:");
     return res.json({ success: true });
+  }),
+);
+
+// ── Member management ────────────────────────────────────────────────────────
+// Assign or remove officers from a committee in one round-trip.
+// Body: { committee_id: uuid, add: [uuid, ...], remove: [uuid, ...] }
+// add    → sets officer.committee = committee_id
+// remove → sets officer.committee = null
+
+router.post(
+  "/update-members",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { committee_id, add = [], remove = [] } = req.body;
+    if (!committee_id) throw new ApiError(400, "committee_id is required.");
+
+    const ops = [];
+    if (add.length) {
+      ops.push(
+        supabase.from("officers").update({ committee: committee_id }).in("id", add),
+      );
+    }
+    if (remove.length) {
+      ops.push(
+        supabase.from("officers").update({ committee: null }).in("id", remove),
+      );
+    }
+
+    const results = await Promise.all(ops);
+    for (const { error } of results) {
+      if (error) throw new ApiError(500, "Member update failed: " + error.message);
+    }
+
+    invalidateCachePrefix("officers:");
+    invalidateCachePrefix("committees:");
+    return res.sendStatus(200);
   }),
 );
 

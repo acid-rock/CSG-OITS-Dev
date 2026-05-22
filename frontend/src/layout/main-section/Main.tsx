@@ -50,10 +50,8 @@ export default function Main() {
               new Date(a.created_at).getTime(),
           )[0];
         if (pinned?.title) {
-          const title =
-            pinned.title.length > 30
-              ? pinned.title.slice(0, 30) + "..."
-              : pinned.title;
+          // Replace pipe chars that render as replacement glyphs in the badge font
+          const title = pinned.title.replace(/\|/g, '–').replace(/\s{2,}/g, ' ').trim();
           setPinnedTitle(title);
         } else {
           setPinnedTitle("No announcements");

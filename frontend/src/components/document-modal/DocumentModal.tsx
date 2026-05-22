@@ -16,12 +16,14 @@ export default function DocumentModal({
   onClose,
 }: DocumentModalProps) {
   const [iframeError, setIframeError] = useState(false);
+  const [iframeLoading, setIframeLoading] = useState(true);
 
   useLockBodyScroll(!!selected);
 
-  // Reset error state whenever a new document is opened
+  // Reset loading/error state whenever a new document is opened
   useEffect(() => {
     setIframeError(false);
+    setIframeLoading(true);
   }, [selected?.memoSrc]);
 
   if (!selected) return null;
@@ -64,12 +66,28 @@ export default function DocumentModal({
             </button>
           </div>
         ) : (
-          <iframe
-            className="modal__iframe"
-            src={`https://docs.google.com/viewer?url=${encodeURIComponent(selected.memoSrc)}&embedded=true`}
-            title={selected.title}
-            onError={() => setIframeError(true)}
-          />
+          <>
+            {iframeLoading && (
+              <div style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                gap: '0.75rem', color: 'var(--color-text-muted)', fontSize: '0.875rem',
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
+                </svg>
+                <p style={{ margin: 0 }}>Loading document…</p>
+              </div>
+            )}
+            <iframe
+              className="modal__iframe"
+              src={`https://docs.google.com/viewer?url=${encodeURIComponent(selected.memoSrc)}&embedded=true`}
+              title={selected.title}
+              style={iframeLoading ? { opacity: 0 } : undefined}
+              onLoad={() => setIframeLoading(false)}
+              onError={() => { setIframeError(true); setIframeLoading(false); }}
+            />
+          </>
         )}
       </div>
     </div>

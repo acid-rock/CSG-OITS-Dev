@@ -22,6 +22,7 @@ interface FormProps {
   initialDescription?: string;
   initialDate?: string;
   initialType?: string;
+  initialTerm?: string;
   initialImages?: string[];
   initialCategory?: string;
   setOpen: (open: boolean) => void;
@@ -35,6 +36,7 @@ const Form = ({
   initialDescription = "",
   initialDate = "",
   initialType = "",
+  initialTerm = "",
   initialImages = [],
   initialCategory = "CSG Updates",
   setOpen,
@@ -56,7 +58,7 @@ const Form = ({
   >([null, null, null]);
   const [announcementImage, setAnnouncementImage] = useState<File | null>(null);
   const [type, setType] = useState(initialType);
-  const [term, setTerm] = useState("");
+  const [term, setTerm] = useState(initialTerm);
   const [category, setCategory] = useState(initialCategory);
 
   // Live preview image URL (URL.createObjectURL for uploaded images)

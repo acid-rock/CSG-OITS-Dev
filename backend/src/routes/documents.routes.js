@@ -55,46 +55,50 @@ const router = Router();
 // Then call supabase.rpc('increment_views', { row_id, table_name: 'documents' }) per item.
 
 /**
- * Sign document and thumbnail URLs for a batch of DB rows in two API calls.
- * Requires the 'documents' and 'thumbnails' buckets to be set to PRIVATE in
- * the Supabase dashboard — otherwise files are still publicly accessible via
- * getPublicUrl() and signed URLs provide no protection.
+ * Build document URLs for a batch of DB rows.
+ *
+ * PDF files (sensitive):    createSignedUrls() — time-limited.
+ *                           Requires 'documents' bucket set to PRIVATE.
+ * Thumbnails (preview images): getPublicUrl() — permanent public URL.
+ *                           Thumbnails are not sensitive; signing them
+ *                           causes silent failures on public pages
+ *                           (onError fires → CSG logo fallback).
  */
 const signDocumentBatch = async (files) => {
   if (!files.length) return [];
 
-  const docPaths  = files.map((f) => f.file_path).filter(Boolean);
-  const thumbPaths = files.map((f) => `${f.id}.png`);
+  const docPaths = files.map((f) => f.file_path).filter(Boolean);
 
-  // Two parallel calls — one per bucket (batch is more efficient than N individual calls)
-  const [signedDocs, signedThumbs] = await Promise.all([
-    supabase.storage.from("documents").createSignedUrls(docPaths, SIGNED_URL_TTL),
-    supabase.storage.from("thumbnails").createSignedUrls(thumbPaths, SIGNED_URL_TTL),
-  ]);
+  // Sign only the PDF files
+  const signedDocs = await supabase.storage
+    .from("documents")
+    .createSignedUrls(docPaths, SIGNED_URL_TTL);
 
-  // Build path → signedUrl lookup maps
-  const docMap   = Object.fromEntries(
-    (signedDocs.data   ?? []).map((item) => [item.path,   item.signedUrl]),
-  );
-  const thumbMap = Object.fromEntries(
-    (signedThumbs.data ?? []).map((item) => [item.path, item.signedUrl]),
+  const docMap = Object.fromEntries(
+    (signedDocs.data ?? []).map((item) => [item.path, item.signedUrl]),
   );
 
-  return files.map((file) => ({
-    id:          file.id,
-    createdAt:   file.created_at,
-    name:        file.file_path,
-    description: file.description,
-    category:    file.file_path.split("/")[0],
-    url:         docMap[file.file_path]       ?? null,
-    thumbnail:   thumbMap[`${file.id}.png`]   ?? null,
-    term:        file.term                    ?? null,
-    owner_id:    file.owner_id,
-    // Pass through soft-delete fields so admin routes can use the same helper
-    is_archived: file.is_archived,
-    archived_at: file.archived_at,
-    deleted_at:  file.deleted_at,
-  }));
+  return files.map((file) => {
+    // Thumbnail: permanent public URL (no signing needed — not sensitive)
+    const thumbnailUrl = supabase.storage
+      .from("thumbnails")
+      .getPublicUrl(`${file.id}.png`).data.publicUrl;
+
+    return {
+      id:          file.id,
+      createdAt:   file.created_at,
+      name:        file.file_path,
+      description: file.description,
+      category:    file.file_path.split("/")[0],
+      url:         docMap[file.file_path] ?? null,
+      thumbnail:   thumbnailUrl,
+      term:        file.term              ?? null,
+      owner_id:    file.owner_id,
+      is_archived: file.is_archived,
+      archived_at: file.archived_at,
+      deleted_at:  file.deleted_at,
+    };
+  });
 };
 
 // ── Public GET — active (non-deleted) documents only ─────────────────────────

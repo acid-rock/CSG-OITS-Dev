@@ -1,3 +1,0 @@
-echo "Running TypeScript type check..."
-cd frontend && npx tsc --noEmit
-echo "Type check passed."

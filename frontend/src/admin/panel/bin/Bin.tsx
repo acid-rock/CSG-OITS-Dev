@@ -168,7 +168,9 @@ const Bin = () => {
       : type==='officer'        ? `${API_URL}/officers/restore-from-bin`
       : `${API_URL}/events/restore-from-bin`;
     try {
-      await axios.post(ep, { ids: [id] }, { withCredentials: true });
+      // Officers use singleIdSchema {id}; others use {ids:[id]}
+      const body = type === 'officer' ? { id } : { ids: [id] };
+      await axios.post(ep, body, { withCredentials: true });
       if (type==='doc')     setDocs(p => p.filter(d => d.id !== id));
       if (type==='ann')     setAnnouncements(p => p.filter(a => a.id !== id));
       if (type==='event')   setEvents(p => p.filter(e => e.id !== id));
@@ -180,7 +182,7 @@ const Bin = () => {
     if (!window.confirm('Permanently delete? This cannot be undone.')) return;
     try {
       if (type==='doc')     await axios.delete(`${API_URL}/documents/bin/purge`, { data: [id], withCredentials: true });
-      if (type==='ann')     await axios.delete(`${API_URL}/announcements/delete`, { data: [{ id }], withCredentials: true });
+      if (type==='ann')     await axios.delete(`${API_URL}/announcements/delete`, { data: { ids: [id] }, withCredentials: true });
       if (type==='event')   await axios.delete(`${API_URL}/events/delete`, { data: { id }, withCredentials: true });
       if (type==='officer') await axios.delete(`${API_URL}/officers/delete`, { data: { ids: [id] }, withCredentials: true });
       if (type==='doc')     setDocs(p => p.filter(d => d.id !== id));
@@ -197,7 +199,9 @@ const Bin = () => {
       : type==='ann'   ? `${API_URL}/announcements/restore`
       : `${API_URL}/events/restore`;
     try {
-      await axios.post(ep, { ids: [id] }, { withCredentials: true });
+      // Officers use singleIdSchema {id}; others use {ids:[id]}
+      const body = type === 'officer' ? { id } : { ids: [id] };
+      await axios.post(ep, body, { withCredentials: true });
       if (type==='doc')     setArcDocs(p => p.filter(d => d.id !== id));
       if (type==='ann')     setArcAnns(p => p.filter(a => a.id !== id));
       if (type==='event')   setArcEvents(p => p.filter(e => e.id !== id));
@@ -208,13 +212,16 @@ const Bin = () => {
   /* ── Bulk handlers ── */
   const bulkRestoreBin = async () => {
     const byType = (t: ItemType) => selected.filter(s => s.type===t).map(s => s.id);
-    const docIds = byType('doc'); const annIds = byType('ann'); const evIds = byType('event');
+    const docIds = byType('doc'); const annIds = byType('ann'); const evIds = byType('event'); const offIds = byType('officer');
     await Promise.allSettled([
       docIds.length && axios.post(`${API_URL}/documents/restore-from-bin`, { ids: docIds }, { withCredentials: true }),
       annIds.length && axios.post(`${API_URL}/announcements/restore-from-bin`, { ids: annIds }, { withCredentials: true }),
       evIds.length  && axios.post(`${API_URL}/events/restore-from-bin`, { ids: evIds }, { withCredentials: true }),
+      // Officers use singleIdSchema — one call per officer
+      ...offIds.map(id => axios.post(`${API_URL}/officers/restore-from-bin`, { id }, { withCredentials: true })),
     ]);
     if (docIds.length) setDocs(p => p.filter(d => !docIds.includes(d.id)));
+    if (offIds.length) setBinOfficers(p => p.filter(o => !offIds.includes(o.id)));
     if (annIds.length) setAnnouncements(p => p.filter(a => !annIds.includes(a.id)));
     if (evIds.length)  setEvents(p => p.filter(e => !evIds.includes(e.id)));
     setSelected([]);

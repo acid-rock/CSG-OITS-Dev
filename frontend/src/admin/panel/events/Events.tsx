@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import "../_shared/admin-list.css";
 import Sidebar from "../_shared/Sidebar";
-import { PageHead, Tabs, Toolbar, BulkBar, TableFoot } from "../_shared/chrome";
+import { PageHead, Tabs, Toolbar, BulkBar } from "../_shared/chrome";
 import { Thumb, Tag, StatusPill } from "../_shared/atoms";
 import { I } from "../_shared/icons";
-import { timeAgo, fmtDate } from "../_shared/utils";
+import { timeAgo, fmtDate, academicYear } from "../_shared/utils";
 import Form from "../../components/form/Form";
 import DeleteModal from "../../components/modals/deleteModal/DeleteModal";
 import PublicPreviewModal from "../../components/modals/PublicPreviewModal/PublicPreviewModal";
@@ -60,10 +60,7 @@ const filterByDate = (date: string, filter: string): boolean => {
 const groupByTerm = (items: EventEntry[]): Record<string, EventEntry[]> => {
   const groups: Record<string, EventEntry[]> = {};
   items.forEach((item) => {
-    const year = item.archived_at
-      ? new Date(item.archived_at).getFullYear()
-      : new Date().getFullYear();
-    const term = `${year}-${year + 1}`;
+    const term = academicYear(item.archived_at ?? undefined);
     if (!groups[term]) groups[term] = [];
     groups[term].push(item);
   });
@@ -84,11 +81,14 @@ const Events = () => {
   const [editImages, setEditImages] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
+  const [counts, setCounts] = useState({ active: 0, archived: 0, bin: 0 });
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>("");
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [previewItem, setPreviewItem] = useState<EventEntry | null>(null);
+  const PAGE_SIZE = 25;
+  const [page, setPage] = useState(1);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -114,12 +114,20 @@ const Events = () => {
     }
   }, [tab]);
 
+  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { setOpenTerms({}); }, [tab]);
+  useEffect(() => { setPage(1); }, [tab, filter, searchQuery]);
+  useEffect(() => { setCounts(p => ({ ...p, [tab]: data.length })); }, [data, tab]);
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-  useEffect(() => {
-    setOpenTerms({});
-  }, [tab]);
+    (['active', 'archived', 'bin'] as const).filter(t => t !== tab).forEach(t => {
+      const ep = t === 'archived' ? `${API_URL}/events/archived`
+        : t === 'bin' ? `${API_URL}/events/bin` : `${API_URL}/events`;
+      axios.get(ep, { withCredentials: true })
+        .then(({ data: r }) => { setCounts(p => ({ ...p, [t]: (r as EventEntry[]).length })); })
+        .catch(() => {});
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleActive = (entryId: string) =>
     setActive((prev) =>
@@ -143,6 +151,7 @@ const Events = () => {
   };
 
   const handleSoftDelete = async (entryId: string) => {
+    if (!window.confirm('Move this event to the bin?')) return;
     try {
       await axios.post(
         `${API_URL}/events/bin`,
@@ -243,10 +252,23 @@ const Events = () => {
         (entry.description ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
+  // Active tab pagination
+  const aTotalPages = Math.max(1, Math.ceil(filteredActive.length / PAGE_SIZE));
+  const aSafePage   = Math.min(page, aTotalPages);
+  const aPageRows   = filteredActive.slice((aSafePage - 1) * PAGE_SIZE, aSafePage * PAGE_SIZE);
+  const aFrom       = filteredActive.length === 0 ? 0 : (aSafePage - 1) * PAGE_SIZE + 1;
+  const aTo         = Math.min(aSafePage * PAGE_SIZE, filteredActive.length);
+  // Bin tab pagination
+  const bTotalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+  const bSafePage   = Math.min(page, bTotalPages);
+  const bPageRows   = data.slice((bSafePage - 1) * PAGE_SIZE, bSafePage * PAGE_SIZE);
+  const bFrom       = data.length === 0 ? 0 : (bSafePage - 1) * PAGE_SIZE + 1;
+  const bTo         = Math.min(bSafePage * PAGE_SIZE, data.length);
+
   const tabItems = [
-    { label: "Active", active: tab === "active", count: tab === "active" ? data.length : undefined },
-    { label: "Archived", active: tab === "archived" },
-    { label: "Bin", active: tab === "bin" },
+    { label: "Active",   active: tab === "active",   count: counts.active   || undefined },
+    { label: "Archived", active: tab === "archived", count: counts.archived || undefined },
+    { label: "Bin",      active: tab === "bin",      count: counts.bin      || undefined },
   ];
 
   return (
@@ -349,13 +371,13 @@ const Events = () => {
                       <th>
                         <input
                           type="checkbox"
-                          title="Select All"
-                          checked={filteredActive.length > 0 && active.length === filteredActive.length}
+                          title="Select page"
+                          checked={aPageRows.length > 0 && aPageRows.every(e => active.includes(e.id))}
                           onChange={() =>
                             setActive(
-                              active.length === filteredActive.length
-                                ? []
-                                : filteredActive.map((e) => e.id),
+                              aPageRows.every(e => active.includes(e.id))
+                                ? active.filter(id => !aPageRows.find(e => e.id === id))
+                                : [...new Set([...active, ...aPageRows.map(e => e.id)])]
                             )
                           }
                         />
@@ -369,7 +391,7 @@ const Events = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredActive.map((entry) => {
+                    {aPageRows.map((entry) => {
                       const status = eventStatus(entry.date);
                       return (
                         <tr
@@ -456,12 +478,30 @@ const Events = () => {
                     })}
                     {filteredActive.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="ad-empty">No events found.</td>
+                        <td colSpan={7}><div className="ad-empty"><p>No events found.</p></div></td>
                       </tr>
                     )}
                   </tbody>
                 </table>
-                <TableFoot shown={`1–${filteredActive.length}`} total={filteredActive.length} label="events" />
+                <div className="ad-table-foot">
+                  <span className="ad-foot-count">Showing <strong>{aFrom}–{aTo}</strong> of <strong>{filteredActive.length}</strong> events</span>
+                  {aTotalPages > 1 && (
+                    <div className="ad-foot-pager">
+                      <button className="ad-page-btn" disabled={aSafePage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>‹ Previous</button>
+                      {Array.from({ length: aTotalPages }, (_, i) => i + 1)
+                        .filter(n => n === 1 || n === aTotalPages || Math.abs(n - aSafePage) <= 1)
+                        .reduce<(number | '…')[]>((acc, n, idx, arr) => {
+                          if (idx > 0 && (n as number) - (arr[idx - 1] as number) > 1) acc.push('…');
+                          acc.push(n); return acc;
+                        }, [])
+                        .map((n, i) => n === '…'
+                          ? <span key={`e${i}`} style={{ padding: '0 4px', color: 'var(--color-text-muted)' }}>…</span>
+                          : <button key={n} className={`ad-page-btn${n === aSafePage ? ' is-active' : ''}`} onClick={() => setPage(n as number)}>{n}</button>
+                        )}
+                      <button className="ad-page-btn" disabled={aSafePage >= aTotalPages} onClick={() => setPage(p => Math.min(aTotalPages, p + 1))}>Next ›</button>
+                    </div>
+                  )}
+                </div>
               </section>
             )}
 
@@ -594,7 +634,7 @@ const Events = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.map((entry) => (
+                    {bPageRows.map((entry) => (
                       <tr key={entry.id}>
                         <td>
                           <Thumb
@@ -637,12 +677,30 @@ const Events = () => {
                     ))}
                     {data.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="ad-empty">No items in bin.</td>
+                        <td colSpan={4}><div className="ad-empty"><p>No items in bin.</p></div></td>
                       </tr>
                     )}
                   </tbody>
                 </table>
-                <TableFoot shown={`1–${data.length}`} total={data.length} label="items" />
+                <div className="ad-table-foot">
+                  <span className="ad-foot-count">Showing <strong>{bFrom}–{bTo}</strong> of <strong>{data.length}</strong> items</span>
+                  {bTotalPages > 1 && (
+                    <div className="ad-foot-pager">
+                      <button className="ad-page-btn" disabled={bSafePage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>‹ Previous</button>
+                      {Array.from({ length: bTotalPages }, (_, i) => i + 1)
+                        .filter(n => n === 1 || n === bTotalPages || Math.abs(n - bSafePage) <= 1)
+                        .reduce<(number | '…')[]>((acc, n, idx, arr) => {
+                          if (idx > 0 && (n as number) - (arr[idx - 1] as number) > 1) acc.push('…');
+                          acc.push(n); return acc;
+                        }, [])
+                        .map((n, i) => n === '…'
+                          ? <span key={`e${i}`} style={{ padding: '0 4px', color: 'var(--color-text-muted)' }}>…</span>
+                          : <button key={n} className={`ad-page-btn${n === bSafePage ? ' is-active' : ''}`} onClick={() => setPage(n as number)}>{n}</button>
+                        )}
+                      <button className="ad-page-btn" disabled={bSafePage >= bTotalPages} onClick={() => setPage(p => Math.min(bTotalPages, p + 1))}>Next ›</button>
+                    </div>
+                  )}
+                </div>
               </section>
             )}
           </>
