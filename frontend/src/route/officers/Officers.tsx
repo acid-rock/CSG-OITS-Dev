@@ -384,13 +384,23 @@ const Officers = () => {
                 ? o.committee_memberships.some((m: CommitteeMembership) => m.committee_id === committeeId && m.is_official)
                 : o.is_committee_official;
 
-            // Role title from membership (or fall back to primary position)
+            // Role title resolution — priority order:
+            // 1. chair_name / vice_chair_name match (set via Committees admin panel — authoritative)
+            //    Checked FIRST so it always overrides any junction table seed data.
+            // 2. Junction table role_title (custom roles added via OfficerForm memberships)
+            // 3. Fallback: "Committee Official" or "Member"
             const roleTitle = (o: Officer) => {
+              if (selectedCommittee.chair_name && o.full_name === selectedCommittee.chair_name) {
+                return "Chairperson";
+              }
+              if (selectedCommittee.vice_chair_name && o.full_name === selectedCommittee.vice_chair_name) {
+                return "Vice-Chairperson";
+              }
               if (o.committee_memberships && o.committee_memberships.length > 0) {
                 const m = o.committee_memberships.find((m: CommitteeMembership) => m.committee_id === committeeId);
                 if (m) return m.role_title;
               }
-              return Array.isArray(o.position) ? o.position[0] : o.position;
+              return o.is_committee_official ? "Committee Official" : "Member";
             };
 
             const officials = members.filter(isOfficial);

@@ -621,12 +621,17 @@ const CommitteesPanel = () => {
 
   const resolveChair = (c: CommitteeEntry): { name: string; avatar?: string | null } | null => {
     if (c.chair_name) {
-      // Try to match the stored name to an officer record so we can show their avatar
       const matched = officers.find(o => o.full_name === c.chair_name);
       return { name: c.chair_name, avatar: matched?.avatar ?? null };
     }
     const chair = officers.find(o => o.committee != null && String(o.committee) === c.id && o.is_committee_official);
     return chair ? { name: chair.full_name, avatar: chair.avatar ?? null } : null;
+  };
+
+  const resolveViceChair = (c: CommitteeEntry): { name: string; avatar?: string | null } | null => {
+    if (!c.vice_chair_name?.trim()) return null;
+    const matched = officers.find(o => o.full_name === c.vice_chair_name);
+    return { name: c.vice_chair_name, avatar: matched?.avatar ?? null };
   };
 
   const memberCount = (c: CommitteeEntry): number =>
@@ -673,8 +678,8 @@ const CommitteesPanel = () => {
                 <tbody>
                   {filtered.length===0 && <tr><td colSpan={6}><div className="ad-empty"><p>{tab==='archived'?'No archived committees.':'No committees yet.'}</p></div></td></tr>}
                   {filtered.map(c => {
-                    const chair     = resolveChair(c);
-                    const viceChair = c.vice_chair_name?.trim() || null;
+                    const chair    = resolveChair(c);
+                    const viceChar = resolveViceChair(c);
                     return (
                       <tr key={c.id} className={selectedIds.includes(c.id)?'is-selected':''}>
                         <td><input type="checkbox" checked={selectedIds.includes(c.id)} onChange={()=>toggleSelect(c.id)} /></td>
@@ -699,12 +704,14 @@ const CommitteesPanel = () => {
                                 </div>
                               </div>
                             ) : <span className="ad-cell-muted" style={{ fontSize:12 }}>No chair assigned</span>}
-                            {viceChair && (
+                            {viceChar && (
                               <div className="ad-author" style={{ gap:6 }}>
-                                <MiniAvatar name={viceChair} />
+                                {viceChar.avatar
+                                  ? <img src={viceChar.avatar} alt={viceChar.name} style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', flexShrink:0 }} onError={e => { (e.currentTarget as HTMLImageElement).style.display='none'; }} />
+                                  : <MiniAvatar name={viceChar.name} />}
                                 <div style={{ minWidth:0 }}>
                                   <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px', color:'var(--color-text-hint)' }}>Vice Chair</div>
-                                  <div style={{ fontSize:12.5, fontWeight:600, color:'var(--color-text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:160 }}>{viceChair}</div>
+                                  <div style={{ fontSize:12.5, fontWeight:600, color:'var(--color-text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:160 }}>{viceChar.name}</div>
                                 </div>
                               </div>
                             )}
