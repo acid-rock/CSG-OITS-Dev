@@ -90,22 +90,32 @@ router.get(
     const cached = getCached(cacheKey);
     if (cached) return res.status(200).json(cached);
 
-    // Build query — include committee_memberships via join for public display
-    let query = anonSupabase
-      .from("officers")
-      .select("*, committee_memberships(*)")
-      .is("deleted_at", null)
-      .order("created_at", { ascending: true });
+    // Helper: build the base query with or without the memberships join
+    const buildQuery = (withMemberships) => {
+      let q = anonSupabase
+        .from("officers")
+        .select(withMemberships ? "*, committee_memberships(*)" : "*")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: true });
 
-    // status=all → return both active and archived (excluding bin'd)
-    if (statusFilter !== "all") {
-      query = query.eq("status", statusFilter);
+      // status=all → return both active and archived (excluding bin'd)
+      if (statusFilter !== "all") q = q.eq("status", statusFilter);
+      if (termFilter) q = q.eq("year_serving", termFilter);
+      if (termYearFilter) q = q.eq("year_serving", termYearFilter);
+
+      return q;
+    };
+
+    // First attempt: include committee_memberships join (requires migration to have run)
+    let { data, error } = await buildQuery(true);
+
+    // Graceful fallback: if the join fails because the table doesn't exist yet,
+    // retry without it so the officer list is never broken pre-migration.
+    if (error && (error.code === "42P01" || error.message?.includes("committee_memberships"))) {
+      console.warn("[officers GET] committee_memberships table not found — run the migration. Falling back to plain select.");
+      ({ data, error } = await buildQuery(false));
     }
 
-    if (termFilter) query = query.eq("year_serving", termFilter);
-    if (termYearFilter) query = query.eq("year_serving", termYearFilter);
-
-    const { data, error } = await query;
     if (error) throw new Error(error.message);
 
     const transformed = data.map(transformOfficer);
@@ -155,7 +165,6 @@ router.post(
     if (!type) throw new ApiError(400, "type is required.");
 
     const normalizedType = type?.toLowerCase();
-    const isFormer = normalizedType === "former";
 
     const insertPayload = {
       full_name,
@@ -167,8 +176,10 @@ router.post(
       committee: committee || null,
       is_committee_official:
         is_committee_official === "true" || is_committee_official === true,
-      status: isFormer ? "archived" : "active",
-      term_year: isFormer ? (year_serving ?? null) : null,
+      // Former officers stay status="active" — they remain on the current term's
+      // roster with a "Former" badge; use Archive to end-of-term retire an officer.
+      status: "active",
+      term_year: null,
       avatar: null,
     };
 

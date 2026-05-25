@@ -10,8 +10,12 @@ export default function OfficerSection() {
      ══════════════════════════════════════════ */
   const { officers } = useOutletContext<OutletContext>();
 
-  /* Exclude archived/terminated officers from the public homepage */
-  const activeOfficers = officers?.filter((o) => o.status !== "archived") ?? [];
+  /* Exclude archived officers and current-term former members from the homepage.
+     Former members (type="former") stay status="active" but have their own
+     section on /officers — they should not appear in the homepage grid. */
+  const activeOfficers = officers?.filter(
+    (o) => o.status !== "archived" && o.type !== "former",
+  ) ?? [];
 
   /* Group by type field — locked */
   const executives = activeOfficers.filter((o) => o.type === "executive");

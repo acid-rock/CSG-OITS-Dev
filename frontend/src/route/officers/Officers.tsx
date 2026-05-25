@@ -36,7 +36,11 @@ function OCard({ officer, avatarSize = 80, isAdviser = false }: OfficerCardProps
   useEffect(() => { setImgError(false); }, [officer.avatar]);
 
   const initials = getInitials(officer.full_name);   /* locked: full_name binding */
-  const pos = Array.isArray(officer.position) ? officer.position[0] : officer.position;
+  // Only show the primary position — strip anything after the first comma so
+  // officers whose position field contains multiple roles (legacy data) only
+  // display the first/highest one (e.g. "SAP IT" not "SAP IT, WebDev Chair…")
+  const rawPos = Array.isArray(officer.position) ? officer.position[0] : officer.position;
+  const pos = rawPos?.split(",")[0]?.trim() ?? rawPos;
 
   return (
     <div className="oc-card card">
@@ -105,15 +109,18 @@ const Officers = () => {
 
   const officerTermOptions = [...new Set(officers.map((o) => o.year_serving).filter(Boolean))].sort().reverse() as string[];
 
-  /* Separate active from former/archived */
-  const activeOfficers = officers?.filter((o) => o.status !== "archived") ?? [];
-  const formerOfficers = officers?.filter((o) => o.status === "archived") ?? [];
+  /* Only show current active officers publicly.
+     - type="former"   → admin-only; hidden from all public pages
+     - status="archived" → end-of-term retired; hidden from all public pages */
+  const activeOfficers = officers?.filter(
+    (o) => o.status !== "archived" && o.type !== "former",
+  ) ?? [];
 
   /* Filter by search + term — active only */
   const filteredOfficers = activeOfficers.filter((o) => {
     const matchesSearch = !officerSearch || (
       o.full_name.toLowerCase().includes(officerSearch.toLowerCase()) ||
-      (Array.isArray(o.position) ? o.position[0] : o.position).toLowerCase().includes(officerSearch.toLowerCase())
+      (Array.isArray(o.position) ? o.position[0] : o.position).split(",")[0].trim().toLowerCase().includes(officerSearch.toLowerCase())
     );
     const matchesTerm = !officerTerm || o.year_serving === officerTerm;
     return matchesSearch && matchesTerm;
@@ -191,7 +198,7 @@ const Officers = () => {
 
               <h3 className="op-pres-name">{president.full_name}</h3>
               <p className="op-pres-pos">
-                {Array.isArray(president.position) ? president.position[0] : president.position}
+                {(Array.isArray(president.position) ? president.position[0] : president.position)?.split(",")[0]?.trim()}
               </p>
               {president.year_serving && (
                 <p className="op-pres-year">{president.year_serving}</p>
@@ -252,40 +259,7 @@ const Officers = () => {
           </div>
         )}
 
-        {/* ════════════════════════════════════
-            FORMER MEMBERS (archived / terminated)
-            ════════════════════════════════════ */}
-        {formerOfficers.length > 0 && (
-          <div className="op-group">
-            <span className="section-label op-group-label" style={{ color: "var(--color-text-muted)" }}>
-              Former Members
-            </span>
-            <div className="op-exec-grid">
-              {formerOfficers.map((o) => (
-                <div key={o.id} style={{ position: "relative" }}>
-                  <OCard key={o.id} officer={o} avatarSize={80} />
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: 8,
-                      right: 8,
-                      background: "var(--color-text-muted, #6b7280)",
-                      color: "#fff",
-                      fontSize: 9,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                      padding: "3px 7px",
-                      borderRadius: 999,
-                    }}
-                  >
-                    Former
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Former members (type="former") are intentionally not shown publicly */}
 
         {/* ════════════════════════════════════
             COMMITTEES — CommitteesV1 banner cards
