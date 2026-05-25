@@ -17,7 +17,19 @@
       "Bash(python scripts/office/validate.py \"docs/CSG-OITS System Design Document.docx\")",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\),**d.get\\('devDependencies',{}\\)}; [print\\(k,v\\) for k,v in sorted\\(deps.items\\(\\)\\)]\")",
       "Bash(git restore *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(npx eslint *)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('eslintConfig','none'\\)\\); [print\\(k,v\\) for k,v in d.get\\('devDependencies',{}\\).items\\(\\) if 'eslint' in k.lower\\(\\)]\")",
+      "Bash(grep -n \"replace\\\\|\\\\\\\\\\\\\\\\|\" frontend/src/layout/main-section/Main.tsx)",
+      "Bash(grep -c \"replace.*\\\\\\\\\\\\\\\\\\\\|\")",
+      "Bash(grep -n \"replace\\\\|pipe\\\\|\\\\\\\\\\\\\\\\\\\\|\")",
+      "Bash(grep -v \"//\\\\|^\\\\s*//\")",
+      "Bash(curl -s http://localhost:5050/api/v1/borrowing/inventory)",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(f'{i[\\\\\"id\\\\\"]} | {i[\\\\\"name\\\\\"]} | qty:{i[\\\\\"quantity\\\\\"]}'\\) for i in data[:5]]\")",
+      "Bash(curl -s -X POST http://localhost:5050/api/v1/borrowing/request -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(cd /d \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\")",
+      "Bash(dir /b)",
+      "PowerShell(Set-Location \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\"; Get-ChildItem -Name | Where-Object { $_ -match 'husky|lint' })"
     ]
   }
 }

@@ -164,13 +164,24 @@
 .org-modal-close {
   position: absolute;
   top: 0.75rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 1.4rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  background: var(--color-surface-deep, #eef1fb);
+  border: 1px solid var(--color-border-soft, #eef0f5);
+  border-radius: 50%;
+  font-size: 1.2rem;
   cursor: pointer;
   color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+  transition: background 150ms ease, color 150ms ease;
+}
+.org-modal-close:hover {
+  background: var(--color-border, #e2e8f0);
+  color: var(--color-text-primary);
 }
 
 .org-modal-avatar {

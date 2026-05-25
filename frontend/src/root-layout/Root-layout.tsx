@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Navigation from "../components/navigation/Navigation";
 import Footer from "../components/footer/Footer";
+import SplashScreen from "../components/splash-screen/SplashScreen";
 import { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 
@@ -67,6 +68,8 @@ export type Officer = {
   student_number?: string;
   committee?: string | null;  // UUID FK → committees.id
   is_committee_official: boolean;
+  /** 'active' | 'archived' — terminated/former officers carry 'archived' */
+  status?: string;
 };
 
 
@@ -194,18 +197,7 @@ const Root = () => {
   }, [location.pathname]);
 
   if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-        }}
-      >
-        <p>Loading...</p>
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   if (error) {

@@ -14,6 +14,7 @@ interface OfficerItem {
   student_number?: string;
   committee?: number;
   is_committee_official: boolean;
+  status?: string;
 }
 
 interface PaginatedOfficers {

@@ -105,15 +105,19 @@ const Officers = () => {
 
   const officerTermOptions = [...new Set(officers.map((o) => o.year_serving).filter(Boolean))].sort().reverse() as string[];
 
-  /* Filter by search + term */
-  const filteredOfficers = officers?.filter((o) => {
+  /* Separate active from former/archived */
+  const activeOfficers = officers?.filter((o) => o.status !== "archived") ?? [];
+  const formerOfficers = officers?.filter((o) => o.status === "archived") ?? [];
+
+  /* Filter by search + term — active only */
+  const filteredOfficers = activeOfficers.filter((o) => {
     const matchesSearch = !officerSearch || (
       o.full_name.toLowerCase().includes(officerSearch.toLowerCase()) ||
       (Array.isArray(o.position) ? o.position[0] : o.position).toLowerCase().includes(officerSearch.toLowerCase())
     );
     const matchesTerm = !officerTerm || o.year_serving === officerTerm;
     return matchesSearch && matchesTerm;
-  }) ?? [];
+  });
 
   /* Group by type field — locked */
   const executives = filteredOfficers.filter((o) => o.type === "executive");
@@ -243,6 +247,41 @@ const Officers = () => {
             <div className="op-adviser-grid">
               {advisers.map((o) => (
                 <OCard key={o.id} officer={o} avatarSize={80} isAdviser={true} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════
+            FORMER MEMBERS (archived / terminated)
+            ════════════════════════════════════ */}
+        {formerOfficers.length > 0 && (
+          <div className="op-group">
+            <span className="section-label op-group-label" style={{ color: "var(--color-text-muted)" }}>
+              Former Members
+            </span>
+            <div className="op-exec-grid">
+              {formerOfficers.map((o) => (
+                <div key={o.id} style={{ position: "relative" }}>
+                  <OCard key={o.id} officer={o} avatarSize={80} />
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      background: "var(--color-text-muted, #6b7280)",
+                      color: "#fff",
+                      fontSize: 9,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      padding: "3px 7px",
+                      borderRadius: 999,
+                    }}
+                  >
+                    Former
+                  </span>
+                </div>
               ))}
             </div>
           </div>

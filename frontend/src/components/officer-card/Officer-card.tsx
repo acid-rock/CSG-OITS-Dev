@@ -48,6 +48,7 @@ export default function OfficerCard({
     <div
       id={id}
       className={`officer-card ${variant}`}
+      data-officer-type={officerType}
       style={style}
       onClick={onClick}
     >

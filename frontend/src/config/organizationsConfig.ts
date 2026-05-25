@@ -10,7 +10,7 @@ export interface Organization {
   logo_url: string | null;
   facebook_link: string | null;
   created_at: string;
-  org_type: "academic" | "non-academic" | "spu" | null;
+  org_type: "academic" | "non-academic" | "spu" | "rotc" | null;
 }
 
 export async function fetchOrganizations(): Promise<Organization[]> {

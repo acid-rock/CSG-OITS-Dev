@@ -296,7 +296,6 @@ const Form = ({
                   <option value="financial-statement">
                     Financial Statement
                   </option>
-                  <option value="sponsorship-letter">Sponsorship Letter</option>
                   <option value="excuse-letter">Excuse Letter</option>
                   <option value="office-memorandum">Office Memorandum</option>
                   <option value="minutes-of-the-meeting">

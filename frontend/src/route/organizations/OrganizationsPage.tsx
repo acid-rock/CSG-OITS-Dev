@@ -56,12 +56,6 @@ const ArrowIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const CalIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
-    strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
-  </svg>
-);
 
 const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
@@ -78,10 +72,11 @@ interface HeroCounts {
   academic: number;
   nonAcademic: number;
   spu: number;
+  rotc: number;
 }
 
 function OrgHero({ counts }: { counts: HeroCounts }) {
-  const total = counts.academic + counts.nonAcademic + counts.spu;
+  const total = counts.academic + counts.nonAcademic + counts.spu + counts.rotc;
   return (
     <section className="po-hero">
       <div className="po-hero-bg" />
@@ -119,14 +114,14 @@ function OrgHero({ counts }: { counts: HeroCounts }) {
    TOOLBAR
    ============================================================ */
 
-type FilterValue = 'all' | 'academic' | 'non-academic' | 'spu';
+type FilterValue = 'all' | 'academic' | 'non-academic' | 'spu' | 'rotc';
 
 interface ToolbarProps {
   query: string;
   onQuery: (q: string) => void;
   filter: FilterValue;
   onFilter: (f: FilterValue) => void;
-  counts: { all: number; academic: number; nonAcademic: number; spu: number };
+  counts: { all: number; academic: number; nonAcademic: number; spu: number; rotc: number };
 }
 
 function OrgToolbar({ query, onQuery, filter, onFilter, counts }: ToolbarProps) {
@@ -166,6 +161,14 @@ function OrgToolbar({ query, onQuery, filter, onFilter, counts }: ToolbarProps) 
           >
             Publication<span className="po-filter-count">{counts.spu}</span>
           </button>
+          {counts.rotc > 0 && (
+            <button
+              className={`po-filter${filter === 'rotc' ? ' is-active' : ''}`}
+              onClick={() => onFilter('rotc')}
+            >
+              ROTC<span className="po-filter-count">{counts.rotc}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -206,11 +209,7 @@ function OrgCard({ org, tone, tagLabel, onClick }: OrgCardProps) {
       <h3 className="po-card-name">{org.name}</h3>
       <p className="po-card-desc">{org.description ?? ''}</p>
       <div className="po-card-foot">
-        <span className="po-card-meta">
-          <CalIcon width="11" height="11" />
-          Est. {new Date(org.created_at).getFullYear()}
-        </span>
-        {org.facebook_link && (
+        {org.facebook_link ? (
           <a
             className="po-card-cta"
             href={org.facebook_link}
@@ -222,6 +221,8 @@ function OrgCard({ org, tone, tagLabel, onClick }: OrgCardProps) {
             <span>Visit page</span>
             <ArrowIcon width="13" height="13" />
           </a>
+        ) : (
+          <span />
         )}
       </div>
     </article>
@@ -255,13 +256,50 @@ function FeaturedFlare({ org, onClick }: { org: Organization; onClick: () => voi
         <h3 className="po-featured-name">{org.name}</h3>
         <p className="po-featured-desc">{org.description ?? ''}</p>
         <div className="po-featured-foot">
-          <span className="po-card-meta">
-            <CalIcon width="11" height="11" />
-            Established {new Date(org.created_at).getFullYear()}
-          </span>
           {org.facebook_link && (
             <a
               className="po-card-cta po-card-cta--prim"
+              href={org.facebook_link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FbIcon width="14" height="14" />
+              <span>Visit {org.name} on Facebook</span>
+              <ArrowIcon width="13" height="13" />
+            </a>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/* ============================================================
+   FEATURED CARD  (ROTC unit — single wide card, military palette)
+   ============================================================ */
+
+function FeaturedROTC({ org, onClick }: { org: Organization; onClick: () => void }) {
+  const initials = getInitials(org.name);
+  return (
+    <article className="po-featured po-featured--rotc" onClick={onClick} style={{ cursor: 'pointer' }}>
+      <div className="po-featured-art po-featured-art--rotc">
+        <div className="po-featured-logo">
+          {org.logo_url
+            ? <img src={org.logo_url} alt={org.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <span>{initials}</span>
+          }
+        </div>
+        <div className="po-featured-pattern" aria-hidden="true" />
+      </div>
+      <div className="po-featured-body">
+        <span className="po-tag tone-rotc">ROTC Unit</span>
+        <h3 className="po-featured-name">{org.name}</h3>
+        <p className="po-featured-desc">{org.description ?? ''}</p>
+        <div className="po-featured-foot">
+          {org.facebook_link && (
+            <a
+              className="po-card-cta po-card-cta--rotc"
               href={org.facebook_link}
               target="_blank"
               rel="noopener noreferrer"
@@ -326,6 +364,7 @@ export default function OrganizationsPage() {
     academic:    organizations.filter(o => o.org_type === 'academic').length,
     nonAcademic: organizations.filter(o => o.org_type === 'non-academic').length,
     spu:         organizations.filter(o => o.org_type === 'spu').length,
+    rotc:        organizations.filter(o => o.org_type === 'rotc').length,
   };
 
   /* Apply search + type filter */
@@ -341,10 +380,11 @@ export default function OrganizationsPage() {
   const academic    = filtered.filter(o => o.org_type === 'academic');
   const nonAcademic = filtered.filter(o => o.org_type === 'non-academic');
   const spu         = filtered.filter(o => o.org_type === 'spu');
+  const rotc        = filtered.filter(o => o.org_type === 'rotc');
 
   return (
     <div className="po-root">
-      <OrgHero counts={{ academic: counts.academic, nonAcademic: counts.nonAcademic, spu: counts.spu }} />
+      <OrgHero counts={{ academic: counts.academic, nonAcademic: counts.nonAcademic, spu: counts.spu, rotc: counts.rotc }} />
       <OrgToolbar
         query={query}
         onQuery={setQuery}
@@ -384,6 +424,15 @@ export default function OrganizationsPage() {
                   <h2>The voice of the studentry.</h2>
                 </div>
                 {spu.map(o => <FeaturedFlare key={o.id} org={o} onClick={() => setSelectedOrg(o)} />)}
+              </section>
+            )}
+            {rotc.length > 0 && (
+              <section className="po-section po-section--rotc">
+                <div className="po-section-head">
+                  <span className="po-eyebrow po-eyebrow--small po-eyebrow--rotc">ROTC Unit</span>
+                  <h2>Service, honor, and country.</h2>
+                </div>
+                {rotc.map(o => <FeaturedROTC key={o.id} org={o} onClick={() => setSelectedOrg(o)} />)}
               </section>
             )}
           </>

@@ -10,18 +10,21 @@ export default function OfficerSection() {
      ══════════════════════════════════════════ */
   const { officers } = useOutletContext<OutletContext>();
 
+  /* Exclude archived/terminated officers from the public homepage */
+  const activeOfficers = officers?.filter((o) => o.status !== "archived") ?? [];
+
   /* Group by type field — locked */
-  const executives = officers?.filter((o) => o.type === "executive");
-  const board = officers?.filter((o) => o.type === "board");
-  const advisers = officers?.filter((o) => o.type === "adviser");
+  const executives = activeOfficers.filter((o) => o.type === "executive");
+  const board = activeOfficers.filter((o) => o.type === "board");
+  const advisers = activeOfficers.filter((o) => o.type === "adviser");
 
   /* Find president — locked: position field */
-  const president = executives?.find((o) => {
+  const president = executives.find((o) => {
     const pos = Array.isArray(o.position) ? o.position[0] : o.position;
     return /president/i.test(pos) && !/vice/i.test(pos);
   });
   const otherExecs = president
-    ? executives?.filter((o) => o !== president)
+    ? executives.filter((o) => o !== president)
     : executives;
 
   const scroll = () => {

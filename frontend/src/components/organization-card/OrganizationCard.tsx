@@ -41,12 +41,6 @@ const TYPE_CONFIG: Record<string, { tone: string; label: string }> = {
   spu:          { tone: 'success', label: 'Publication' },
 };
 
-const CalIcon = () => (
-  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor"
-    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
-  </svg>
-);
 
 const FbIcon = () => (
   <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
@@ -67,7 +61,6 @@ export default function OrganizationCard({ organization, onClick }: Organization
   const [a, b] = getPalette(organization.name);
   const initials = getInitials(organization.name);
   const typeConf = organization.org_type ? TYPE_CONFIG[organization.org_type] : null;
-  const year = new Date(organization.created_at).getFullYear();
 
   return (
     <article
@@ -100,13 +93,9 @@ export default function OrganizationCard({ organization, onClick }: Organization
       {/* Description */}
       <p className="org-card-desc">{organization.description ?? ''}</p>
 
-      {/* Footer: year + Facebook CTA */}
+      {/* Footer: Facebook CTA only (established date removed) */}
       <div className="org-card-foot">
-        <span className="org-card-meta">
-          <CalIcon />
-          Est. {year}
-        </span>
-        {organization.facebook_link && (
+        {organization.facebook_link ? (
           <a
             className="org-card-cta"
             href={organization.facebook_link}
@@ -119,6 +108,8 @@ export default function OrganizationCard({ organization, onClick }: Organization
             <span>Visit page</span>
             <ArrowIcon />
           </a>
+        ) : (
+          <span />
         )}
       </div>
     </article>

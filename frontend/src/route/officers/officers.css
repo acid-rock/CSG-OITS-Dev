@@ -404,14 +404,25 @@
 
 .op-committee-modal-close {
   position: absolute;
-  top: var(--space-4);
-  right: var(--space-5);
-  background: none;
-  border: none;
-  font-size: 1.4rem;
+  top: var(--space-4, 1rem);
+  right: var(--space-4, 1rem);
+  width: 32px;
+  height: 32px;
+  background: var(--color-surface-deep, #eef1fb);
+  border: 1px solid var(--color-border-soft, #eef0f5);
+  border-radius: 50%;
+  font-size: 1.2rem;
   cursor: pointer;
   color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+  transition: background 150ms ease, color 150ms ease;
+}
+.op-committee-modal-close:hover {
+  background: var(--color-border, #e2e8f0);
+  color: var(--color-text-primary);
 }
 
 .op-committee-modal-title {
