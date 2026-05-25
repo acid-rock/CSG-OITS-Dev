@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { OutletContext } from '../../root-layout/Root-layout';
 import type { Organization } from '../../config/organizationsConfig';
+import OrganizationCard from '../../components/organization-card/OrganizationCard';
 import OrganizationModal from '../../components/organization-card/OrganizationModal';
 import './organizations.css';
 
@@ -55,7 +56,6 @@ const ArrowIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M5 12h14M13 6l6 6-6 6"/>
   </svg>
 );
-
 
 const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
@@ -176,147 +176,8 @@ function OrgToolbar({ query, onQuery, filter, onFilter, counts }: ToolbarProps) 
 }
 
 /* ============================================================
-   ORG CARD
-   ============================================================ */
-
-type Tone = 'primary' | 'warning' | 'success';
-
-interface OrgCardProps {
-  org: Organization;
-  tone: Tone;
-  tagLabel: string;
-  onClick: () => void;
-}
-
-function OrgCard({ org, tone, tagLabel, onClick }: OrgCardProps) {
-  const [a, b] = getPalette(org.name);
-  const initials = getInitials(org.name);
-  return (
-    <article className="po-card" onClick={onClick} style={{ cursor: 'pointer' }}>
-      <div className="po-card-top">
-        <div
-          className="po-card-logo"
-          style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
-        >
-          {org.logo_url
-            ? <img src={org.logo_url} alt={org.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <span>{initials}</span>
-          }
-        </div>
-        <span className={`po-tag tone-${tone}`}>{tagLabel}</span>
-      </div>
-      <h3 className="po-card-name">{org.name}</h3>
-      <p className="po-card-desc">{org.description ?? ''}</p>
-      <div className="po-card-foot">
-        {org.facebook_link ? (
-          <a
-            className="po-card-cta"
-            href={org.facebook_link}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Visit ${org.name} on Facebook`}
-          >
-            <FbIcon width="14" height="14" />
-            <span>Visit page</span>
-            <ArrowIcon width="13" height="13" />
-          </a>
-        ) : (
-          <span />
-        )}
-      </div>
-    </article>
-  );
-}
-
-/* ============================================================
-   FEATURED CARD  (publication — single wide card)
-   ============================================================ */
-
-function FeaturedFlare({ org, onClick }: { org: Organization; onClick: () => void }) {
-  const [a, b] = getPalette(org.name);
-  const initials = getInitials(org.name);
-  return (
-    <article className="po-featured" onClick={onClick} style={{ cursor: 'pointer' }}>
-      <div
-        className="po-featured-art"
-        style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
-      >
-        <div className="po-featured-logo">
-          {org.logo_url
-            ? <img src={org.logo_url} alt={org.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <span>{initials}</span>
-          }
-        </div>
-        <div className="po-featured-pattern" aria-hidden="true" />
-      </div>
-      <div className="po-featured-body">
-        <span className="po-tag tone-success">Publication</span>
-        <h3 className="po-featured-name">{org.name}</h3>
-        <p className="po-featured-desc">{org.description ?? ''}</p>
-        <div className="po-featured-foot">
-          {org.facebook_link && (
-            <a
-              className="po-card-cta po-card-cta--prim"
-              href={org.facebook_link}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FbIcon width="14" height="14" />
-              <span>Visit {org.name} on Facebook</span>
-              <ArrowIcon width="13" height="13" />
-            </a>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-/* ============================================================
-   FEATURED CARD  (ROTC unit — single wide card, military palette)
-   ============================================================ */
-
-function FeaturedROTC({ org, onClick }: { org: Organization; onClick: () => void }) {
-  const initials = getInitials(org.name);
-  return (
-    <article className="po-featured po-featured--rotc" onClick={onClick} style={{ cursor: 'pointer' }}>
-      <div className="po-featured-art po-featured-art--rotc">
-        <div className="po-featured-logo">
-          {org.logo_url
-            ? <img src={org.logo_url} alt={org.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <span>{initials}</span>
-          }
-        </div>
-        <div className="po-featured-pattern" aria-hidden="true" />
-      </div>
-      <div className="po-featured-body">
-        <span className="po-tag tone-rotc">ROTC Unit</span>
-        <h3 className="po-featured-name">{org.name}</h3>
-        <p className="po-featured-desc">{org.description ?? ''}</p>
-        <div className="po-featured-foot">
-          {org.facebook_link && (
-            <a
-              className="po-card-cta po-card-cta--rotc"
-              href={org.facebook_link}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FbIcon width="14" height="14" />
-              <span>Visit {org.name} on Facebook</span>
-              <ArrowIcon width="13" height="13" />
-            </a>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-/* ============================================================
-   ORG SECTION  (groups academic / non-academic)
+   ORG SECTION  (academic / non-academic grid)
+   Uses the shared OrganizationCard component — same as homepage
    ============================================================ */
 
 interface OrgSectionProps {
@@ -324,13 +185,11 @@ interface OrgSectionProps {
   title: string;
   sub?: string;
   items: Organization[];
-  tone: Tone;
-  tagLabel: string;
   alt?: boolean;
   onSelect: (org: Organization) => void;
 }
 
-function OrgSection({ kicker, title, sub, items, tone, tagLabel, alt, onSelect }: OrgSectionProps) {
+function OrgSection({ kicker, title, sub, items, alt, onSelect }: OrgSectionProps) {
   if (items.length === 0) return null;
   return (
     <section className={alt ? 'po-section po-section--alt' : 'po-section'}>
@@ -341,10 +200,71 @@ function OrgSection({ kicker, title, sub, items, tone, tagLabel, alt, onSelect }
       </div>
       <div className="po-grid">
         {items.map(o => (
-          <OrgCard key={o.id} org={o} tone={tone} tagLabel={tagLabel} onClick={() => onSelect(o)} />
+          <OrganizationCard key={o.id} organization={o} onClick={() => onSelect(o)} />
         ))}
       </div>
     </section>
+  );
+}
+
+/* ============================================================
+   SPECIAL UNIT CARD
+   Vertical card with coloured art panel — used for SPU & ROTC.
+   Both render in a 2-column grid so they sit side-by-side.
+   ============================================================ */
+
+interface SpecialUnitCardProps {
+  org: Organization;
+  gradientFrom: string;
+  gradientTo: string;
+  tagLabel: string;
+  tagClass: string;
+  ctaClass: string;
+  onClick: () => void;
+}
+
+function SpecialUnitCard({
+  org, gradientFrom, gradientTo, tagLabel, tagClass, ctaClass, onClick,
+}: SpecialUnitCardProps) {
+  const initials = getInitials(org.name);
+  return (
+    <article className="po-unit-card" onClick={onClick}>
+      {/* Coloured art panel */}
+      <div
+        className="po-unit-art"
+        style={{ background: `linear-gradient(145deg, ${gradientFrom}, ${gradientTo})` }}
+      >
+        <div className="po-unit-pattern" aria-hidden="true" />
+        <div className="po-unit-logo">
+          {org.logo_url
+            ? <img src={org.logo_url} alt={org.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <span>{initials}</span>
+          }
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="po-unit-body">
+        <span className={`po-tag ${tagClass}`}>{tagLabel}</span>
+        <h3 className="po-unit-name">{org.name}</h3>
+        <p className="po-unit-desc">{org.description ?? ''}</p>
+        {org.facebook_link && (
+          <div className="po-unit-foot">
+            <a
+              className={`po-card-cta ${ctaClass}`}
+              href={org.facebook_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+            >
+              <FbIcon width="14" height="14" />
+              <span>Visit {org.name} on Facebook</span>
+              <ArrowIcon width="13" height="13" />
+            </a>
+          </div>
+        )}
+      </div>
+    </article>
   );
 }
 
@@ -354,11 +274,11 @@ function OrgSection({ kicker, title, sub, items, tone, tagLabel, alt, onSelect }
 
 export default function OrganizationsPage() {
   const { organizations } = useOutletContext<OutletContext>();
-  const [query, setQuery]         = useState('');
-  const [filter, setFilter]       = useState<FilterValue>('all');
+  const [query, setQuery]   = useState('');
+  const [filter, setFilter] = useState<FilterValue>('all');
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
-  /* Stable counts based on full dataset (not filtered view) */
+  /* Stable counts (full dataset) */
   const counts = {
     all:         organizations.length,
     academic:    organizations.filter(o => o.org_type === 'academic').length,
@@ -379,8 +299,29 @@ export default function OrganizationsPage() {
 
   const academic    = filtered.filter(o => o.org_type === 'academic');
   const nonAcademic = filtered.filter(o => o.org_type === 'non-academic');
-  const spu         = filtered.filter(o => o.org_type === 'spu');
-  const rotc        = filtered.filter(o => o.org_type === 'rotc');
+  const specialUnits = filtered.filter(o => o.org_type === 'spu' || o.org_type === 'rotc');
+
+  /* Per-unit visual config */
+  function unitConfig(org: Organization): Pick<SpecialUnitCardProps, 'gradientFrom' | 'gradientTo' | 'tagLabel' | 'tagClass' | 'ctaClass'> {
+    if (org.org_type === 'rotc') {
+      return {
+        gradientFrom: '#3d4a1e',
+        gradientTo:   '#c8a23a',
+        tagLabel:     'ROTC Unit',
+        tagClass:     'tone-rotc',
+        ctaClass:     'po-card-cta--rotc',
+      };
+    }
+    /* SPU / publication — use deterministic gradient from name */
+    const [a, b] = getPalette(org.name);
+    return {
+      gradientFrom: a,
+      gradientTo:   b,
+      tagLabel:     'Publication',
+      tagClass:     'tone-success',
+      ctaClass:     'po-card-cta--prim',
+    };
+  }
 
   return (
     <div className="po-root">
@@ -403,8 +344,6 @@ export default function OrganizationsPage() {
               title="Academic Organizations"
               sub="Course-specific organizations that build community within each program — from BSCS to Communication, Hospitality to Psychology."
               items={academic}
-              tone="primary"
-              tagLabel="Academic"
               onSelect={setSelectedOrg}
             />
             <OrgSection
@@ -412,27 +351,31 @@ export default function OrganizationsPage() {
               title="Non-Academic Organizations"
               sub="Cross-program orgs across the arts, athletics, faith, leadership, and service."
               items={nonAcademic}
-              tone="warning"
-              tagLabel="Non-academic"
               alt
               onSelect={setSelectedOrg}
             />
-            {spu.length > 0 && (
-              <section className="po-section po-section--publication">
+
+            {/* Publication & ROTC — side-by-side in one row */}
+            {specialUnits.length > 0 && (
+              <section className="po-section po-section--special">
                 <div className="po-section-head">
-                  <span className="po-eyebrow po-eyebrow--small">Student Publication Unit</span>
-                  <h2>The voice of the studentry.</h2>
+                  <span className="po-eyebrow po-eyebrow--small">Special Units</span>
+                  <h2>Publication &amp; ROTC</h2>
+                  <p>The voice of the studentry and the corps of cadets — two pillars of campus life.</p>
                 </div>
-                {spu.map(o => <FeaturedFlare key={o.id} org={o} onClick={() => setSelectedOrg(o)} />)}
-              </section>
-            )}
-            {rotc.length > 0 && (
-              <section className="po-section po-section--rotc">
-                <div className="po-section-head">
-                  <span className="po-eyebrow po-eyebrow--small po-eyebrow--rotc">ROTC Unit</span>
-                  <h2>Service, honor, and country.</h2>
+                <div className="po-units-grid">
+                  {specialUnits.map(o => {
+                    const cfg = unitConfig(o);
+                    return (
+                      <SpecialUnitCard
+                        key={o.id}
+                        org={o}
+                        onClick={() => setSelectedOrg(o)}
+                        {...cfg}
+                      />
+                    );
+                  })}
                 </div>
-                {rotc.map(o => <FeaturedROTC key={o.id} org={o} onClick={() => setSelectedOrg(o)} />)}
               </section>
             )}
           </>

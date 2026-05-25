@@ -36,9 +36,10 @@ function getInitials(name: string): string {
 }
 
 const TYPE_CONFIG: Record<string, { tone: string; label: string }> = {
-  academic:     { tone: 'primary', label: 'Academic' },
-  'non-academic':{ tone: 'warning', label: 'Non-academic' },
-  spu:          { tone: 'success', label: 'Publication' },
+  academic:       { tone: 'primary', label: 'Academic' },
+  'non-academic': { tone: 'warning', label: 'Non-academic' },
+  spu:            { tone: 'success', label: 'Publication' },
+  rotc:           { tone: 'rotc',    label: 'ROTC Unit' },
 };
 
 

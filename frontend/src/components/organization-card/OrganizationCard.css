@@ -64,6 +64,7 @@
 .org-tag.tone-primary { color: var(--color-primary-deep, #2c4ba0); background: rgba(79,111,209,0.10); }
 .org-tag.tone-warning  { color: var(--color-warning-text, #92400e); background: var(--color-warning-bg, #fef3c7); }
 .org-tag.tone-success  { color: var(--color-success-text, #15803d); background: var(--color-success-bg, #dcfce7); }
+.org-tag.tone-rotc     { color: #4a3000; background: #f5e7c0; }
 
 /* Name */
 .org-card-name {
