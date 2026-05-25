@@ -4,58 +4,9 @@ import type { OutletContext } from '../../root-layout/Root-layout';
 import type { Organization } from '../../config/organizationsConfig';
 import OrganizationCard from '../../components/organization-card/OrganizationCard';
 import OrganizationModal from '../../components/organization-card/OrganizationModal';
+import SpecialUnitCard from '../../components/organization-card/SpecialUnitCard';
 import './organizations.css';
 
-/* ============================================================
-   UTILS
-   ============================================================ */
-
-const PALETTES: [string, string][] = [
-  ['#7c2d12', '#dc2626'],
-  ['#1e293b', '#475569'],
-  ['#0f766e', '#5eb5af'],
-  ['#92400e', '#f59e0b'],
-  ['#3b5fbc', '#8aaae0'],
-  ['#7c2d12', '#ea580c'],
-  ['#1e3a8a', '#3b5fbc'],
-  ['#475569', '#94a3b8'],
-  ['#15803d', '#22c55e'],
-  ['#0f766e', '#22c55e'],
-];
-
-function getPalette(name: string): [string, string] {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = (hash * 31 + name.charCodeAt(i)) & 0xffff;
-  }
-  return PALETTES[hash % PALETTES.length];
-}
-
-function getInitials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  if (words.length === 2) return (words[0][0] + words[1][0]).toUpperCase();
-  return (words[0][0] + words[1][0] + words[2][0]).toUpperCase();
-}
-
-/* ============================================================
-   ICONS
-   ============================================================ */
-
-const FbIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M22 12a10 10 0 1 0-11.56 9.88V14.9H7.9V12h2.54V9.8c0-2.51 1.49-3.9
-      3.78-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44
-      2.9h-2.34v6.98A10 10 0 0 0 22 12Z"/>
-  </svg>
-);
-
-const ArrowIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M5 12h14M13 6l6 6-6 6"/>
-  </svg>
-);
 
 const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
@@ -207,66 +158,7 @@ function OrgSection({ kicker, title, sub, items, alt, onSelect }: OrgSectionProp
   );
 }
 
-/* ============================================================
-   SPECIAL UNIT CARD
-   Vertical card with coloured art panel — used for SPU & ROTC.
-   Both render in a 2-column grid so they sit side-by-side.
-   ============================================================ */
-
-interface SpecialUnitCardProps {
-  org: Organization;
-  gradientFrom: string;
-  gradientTo: string;
-  tagLabel: string;
-  tagClass: string;
-  ctaClass: string;
-  onClick: () => void;
-}
-
-function SpecialUnitCard({
-  org, gradientFrom, gradientTo, tagLabel, tagClass, ctaClass, onClick,
-}: SpecialUnitCardProps) {
-  const initials = getInitials(org.name);
-  return (
-    <article className="po-unit-card" onClick={onClick}>
-      {/* Coloured art panel */}
-      <div
-        className="po-unit-art"
-        style={{ background: `linear-gradient(145deg, ${gradientFrom}, ${gradientTo})` }}
-      >
-        <div className="po-unit-pattern" aria-hidden="true" />
-        <div className="po-unit-logo">
-          {org.logo_url
-            ? <img src={org.logo_url} alt={org.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <span>{initials}</span>
-          }
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="po-unit-body">
-        <span className={`po-tag ${tagClass}`}>{tagLabel}</span>
-        <h3 className="po-unit-name">{org.name}</h3>
-        <p className="po-unit-desc">{org.description ?? ''}</p>
-        {org.facebook_link && (
-          <div className="po-unit-foot">
-            <a
-              className={`po-card-cta ${ctaClass}`}
-              href={org.facebook_link}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={e => e.stopPropagation()}
-            >
-              <FbIcon width="14" height="14" />
-              <span>Visit {org.name} on Facebook</span>
-              <ArrowIcon width="13" height="13" />
-            </a>
-          </div>
-        )}
-      </div>
-    </article>
-  );
-}
+/* SpecialUnitCard is imported from shared component */
 
 /* ============================================================
    PAGE  (root export — Root-layout provides Nav + Footer)
@@ -300,28 +192,6 @@ export default function OrganizationsPage() {
   const academic    = filtered.filter(o => o.org_type === 'academic');
   const nonAcademic = filtered.filter(o => o.org_type === 'non-academic');
   const specialUnits = filtered.filter(o => o.org_type === 'spu' || o.org_type === 'rotc');
-
-  /* Per-unit visual config */
-  function unitConfig(org: Organization): Pick<SpecialUnitCardProps, 'gradientFrom' | 'gradientTo' | 'tagLabel' | 'tagClass' | 'ctaClass'> {
-    if (org.org_type === 'rotc') {
-      return {
-        gradientFrom: '#3d4a1e',
-        gradientTo:   '#c8a23a',
-        tagLabel:     'ROTC Unit',
-        tagClass:     'tone-rotc',
-        ctaClass:     'po-card-cta--rotc',
-      };
-    }
-    /* SPU / publication — use deterministic gradient from name */
-    const [a, b] = getPalette(org.name);
-    return {
-      gradientFrom: a,
-      gradientTo:   b,
-      tagLabel:     'Publication',
-      tagClass:     'tone-success',
-      ctaClass:     'po-card-cta--prim',
-    };
-  }
 
   return (
     <div className="po-root">
@@ -363,18 +233,14 @@ export default function OrganizationsPage() {
                   <h2>Publication &amp; ROTC</h2>
                   <p>The voice of the studentry and the corps of cadets — two pillars of campus life.</p>
                 </div>
-                <div className="po-units-grid">
-                  {specialUnits.map(o => {
-                    const cfg = unitConfig(o);
-                    return (
-                      <SpecialUnitCard
-                        key={o.id}
-                        org={o}
-                        onClick={() => setSelectedOrg(o)}
-                        {...cfg}
-                      />
-                    );
-                  })}
+                <div className="su-grid">
+                  {specialUnits.map(o => (
+                    <SpecialUnitCard
+                      key={o.id}
+                      org={o}
+                      onClick={() => setSelectedOrg(o)}
+                    />
+                  ))}
                 </div>
               </section>
             )}

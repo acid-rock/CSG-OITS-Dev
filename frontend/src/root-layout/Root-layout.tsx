@@ -17,6 +17,7 @@ import fetchBulletinData from "../config/bulletinConfig";
 import fetchDocuments from "../config/documentsConfig";
 import fetchEvents from "../config/eventConfig";
 import fetchOfficers from "../config/officerConfig";
+import type { CommitteeMembership } from "../config/officerConfig";
 import { fetchOrganizations } from "../config/organizationsConfig";
 import type { Organization } from "../config/organizationsConfig";
 import fetchCommittees from "../config/committeeConfig";
@@ -66,11 +67,14 @@ export type Officer = {
   socials?: string;
   year_serving: string;
   student_number?: string;
-  committee?: string | null;  // UUID FK → committees.id
+  committee?: string | null;  // UUID FK → committees.id (primary/legacy)
   is_committee_official: boolean;
   /** 'active' | 'archived' — terminated/former officers carry 'archived' */
   status?: string;
+  /** Committee memberships from junction table — source of truth for multi-committee */
+  committee_memberships?: CommitteeMembership[];
 };
+export type { CommitteeMembership };
 
 
 export interface OutletContext {
@@ -104,7 +108,8 @@ const Root = () => {
         fetchBulletinData(),
         fetchDocuments(),
         fetchEvents(),
-        fetchOfficers(),
+        // status=all → returns active + archived (former) officers; frontend filters
+        fetchOfficers(undefined, undefined, undefined, 'all'),
         fetchOrganizations(),
         fetchCommittees(),
       ]);

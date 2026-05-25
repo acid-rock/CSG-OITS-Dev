@@ -29,7 +29,8 @@
       "Bash(curl -s -X POST http://localhost:5050/api/v1/borrowing/request -H 'Content-Type: application/json' -d '{ *)",
       "Bash(cd /d \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\")",
       "Bash(dir /b)",
-      "PowerShell(Set-Location \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\"; Get-ChildItem -Name | Where-Object { $_ -match 'husky|lint' })"
+      "PowerShell(Set-Location \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\"; Get-ChildItem -Name | Where-Object { $_ -match 'husky|lint' })",
+      "Bash(npx vite *)"
     ]
   }
 }

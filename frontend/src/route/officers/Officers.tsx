@@ -3,7 +3,7 @@ import "../committees/committees.css";
 import { useOutletContext } from "react-router-dom";
 import { FaFacebook } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import type { Officer, OutletContext, Committee } from "../../root-layout/Root-layout";
+import type { Officer, OutletContext, Committee, CommitteeMembership } from "../../root-layout/Root-layout";
 import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 
@@ -304,11 +304,19 @@ const Officers = () => {
               {committees
                 .filter((c) => c.status === "active" && !c.deleted_at)
                 .map((c: Committee) => {
-                  const headOfficer = officers.find(
-                    (o) => o.committee === c.id && o.is_committee_official,
+                  // Use committee_memberships junction table (prefer) or legacy committee field
+                  const membersInCommittee = officers.filter((o) =>
+                    o.committee_memberships && o.committee_memberships.length > 0
+                      ? o.committee_memberships.some((m: CommitteeMembership) => m.committee_id === c.id)
+                      : o.committee === c.id,
+                  );
+                  const headOfficer = membersInCommittee.find((o) =>
+                    o.committee_memberships && o.committee_memberships.length > 0
+                      ? o.committee_memberships.some((m: CommitteeMembership) => m.committee_id === c.id && m.is_official)
+                      : o.is_committee_official,
                   );
                   const chairName = c.chair_name || headOfficer?.full_name || null;
-                  const memberCount = officers.filter((o) => o.committee === c.id).length;
+                  const memberCount = membersInCommittee.length;
                   const chairInitials = chairName
                     ? chairName.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase()
                     : "??";
@@ -388,9 +396,32 @@ const Officers = () => {
 
           {/* Officials first */}
           {(() => {
-            const members = officers.filter((o) => o.committee === selectedCommittee.id);
-            const officials = members.filter((o) => o.is_committee_official);
-            const regulars  = members.filter((o) => !o.is_committee_official);
+            const committeeId = selectedCommittee.id;
+
+            // Prefer junction table; fall back to legacy officers.committee field
+            const members = officers.filter((o) =>
+              o.committee_memberships && o.committee_memberships.length > 0
+                ? o.committee_memberships.some((m: CommitteeMembership) => m.committee_id === committeeId)
+                : o.committee === committeeId,
+            );
+
+            const isOfficial = (o: Officer) =>
+              o.committee_memberships && o.committee_memberships.length > 0
+                ? o.committee_memberships.some((m: CommitteeMembership) => m.committee_id === committeeId && m.is_official)
+                : o.is_committee_official;
+
+            // Role title from membership (or fall back to primary position)
+            const roleTitle = (o: Officer) => {
+              if (o.committee_memberships && o.committee_memberships.length > 0) {
+                const m = o.committee_memberships.find((m: CommitteeMembership) => m.committee_id === committeeId);
+                if (m) return m.role_title;
+              }
+              return Array.isArray(o.position) ? o.position[0] : o.position;
+            };
+
+            const officials = members.filter(isOfficial);
+            const regulars  = members.filter((o) => !isOfficial(o));
+
             return (
               <>
                 {officials.length > 0 && (
@@ -406,7 +437,7 @@ const Officers = () => {
                         />
                         <div>
                           <p className="op-cm-name">{o.full_name}</p>
-                          <p className="op-cm-pos">{Array.isArray(o.position) ? o.position[0] : o.position}</p>
+                          <p className="op-cm-pos">{roleTitle(o)}</p>
                         </div>
                       </div>
                     ))}
@@ -425,7 +456,7 @@ const Officers = () => {
                         />
                         <div>
                           <p className="op-cm-name">{o.full_name}</p>
-                          <p className="op-cm-pos">{Array.isArray(o.position) ? o.position[0] : o.position}</p>
+                          <p className="op-cm-pos">{roleTitle(o)}</p>
                         </div>
                       </div>
                     ))}

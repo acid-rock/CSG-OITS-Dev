@@ -99,9 +99,10 @@ export const addOfficerSchema = z.object({
   // 'member' added — committee members are assigned this type
   type: z.enum(['executive', 'board', 'adviser', 'former', 'member']),
   // committee comes from a FormData <select>; empty string means "no committee"
+  // committees.id is UUID — never parse as number
   committee: z.preprocess(
-    (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
-    z.number().int().positive().nullable().optional(),
+    (v) => (v === '' || v === null || v === undefined ? null : v),
+    z.string().uuid('Invalid committee ID').nullable().optional(),
   ),
   // is_committee_official comes from a checkbox FormData value ("true"/"false")
   is_committee_official: z.preprocess(
@@ -144,6 +145,27 @@ export const committeeIdSchema = z.object({
 
 export const committeeIdsSchema = z.object({
   ids: z.array(uuidField).min(1),
+});
+
+// ─── Committee Memberships ───────────────────────────────────────────────────
+
+export const addMembershipSchema = z.object({
+  officer_id: uuidField,
+  committee_id: uuidField,
+  role_title: z.string().min(1, 'Role title is required').max(200).default('Member'),
+  is_official: z.preprocess(
+    (v) => v === 'true' || v === true || v === '1',
+    z.boolean().default(false),
+  ),
+});
+
+export const editMembershipSchema = z.object({
+  id: uuidField,
+  role_title: z.string().min(1).max(200).optional(),
+  is_official: z.preprocess(
+    (v) => v === 'true' || v === true || v === '1',
+    z.boolean().optional(),
+  ),
 });
 
 // ─── Organizations ───────────────────────────────────────────────────────────

@@ -54,12 +54,12 @@ export default function About() {
 
             {/* Static blockquote */}
             <blockquote className="about-blockquote">
-              <span className="about-blockquote-mark">&ldquo;</span>
-              <p className="about-blockquote-text">
+              <span className="about-blockquote-mark">&ldquo;
+                <p className="about-blockquote-text">
                 Para sa kabsuhenyo,{" "}
                 <span className="about-blockquote-highlight">puso</span> ang
                 magiging sentro ng serbisyo.
-              </p>
+              </p></span>
             </blockquote>
 
             <p className="about-body-text">

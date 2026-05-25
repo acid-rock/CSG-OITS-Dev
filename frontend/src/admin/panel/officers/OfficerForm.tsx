@@ -8,6 +8,16 @@ interface Committee {
   name: string;
 }
 
+interface Membership {
+  id: string;
+  officer_id: string;
+  committee_id: string;
+  role_title: string;
+  is_official: boolean;
+  created_at?: string;
+  committees?: { id: string; name: string };
+}
+
 interface OfficerFormProps {
   id?: string | null;
   initialData?: {
@@ -56,6 +66,15 @@ const OfficerForm = ({
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // ── Committee memberships (edit mode only) ─────────────────────────────────
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [addingMembership, setAddingMembership] = useState(false);
+  const [newCommitteeId, setNewCommitteeId] = useState('');
+  const [newRoleTitle, setNewRoleTitle] = useState('');
+  const [newIsOfficial, setNewIsOfficial] = useState(false);
+  const [membershipError, setMembershipError] = useState<string | null>(null);
+  const [membershipLoading, setMembershipLoading] = useState(false);
+
   useEffect(() => {
     axios
       .get<Committee[]>(`${API_URL}/committees`, { withCredentials: true })
@@ -63,6 +82,17 @@ const OfficerForm = ({
       .catch(() => {});
   }, []);
 
+  // Fetch existing memberships when editing
+  useEffect(() => {
+    if (!id) return;
+    axios
+      .get<Membership[]>(`${API_URL}/memberships`, {
+        params: { officer_id: id },
+        withCredentials: true,
+      })
+      .then(({ data }) => setMemberships(data))
+      .catch(() => {});
+  }, [id]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,6 +133,57 @@ const OfficerForm = ({
       setError(msg);
     }
   };
+
+  // ── Add committee membership ──────────────────────────────────────────────
+  const addMembership = async () => {
+    if (!newCommitteeId || !newRoleTitle.trim()) {
+      setMembershipError('Please select a committee and enter a role title.');
+      return;
+    }
+    setMembershipLoading(true);
+    setMembershipError(null);
+    try {
+      const { data } = await axios.post<Membership>(
+        `${API_URL}/memberships/add`,
+        {
+          officer_id: id,
+          committee_id: newCommitteeId,
+          role_title: newRoleTitle.trim(),
+          is_official: newIsOfficial,
+        },
+        { withCredentials: true },
+      );
+      setMemberships(prev => [...prev, data]);
+      setAddingMembership(false);
+      setNewCommitteeId('');
+      setNewRoleTitle('');
+      setNewIsOfficial(false);
+    } catch (err: unknown) {
+      const d = (err as { response?: { data?: { error?: string } } })?.response?.data;
+      setMembershipError(d?.error ?? 'Failed to add membership.');
+    } finally {
+      setMembershipLoading(false);
+    }
+  };
+
+  // ── Remove committee membership ───────────────────────────────────────────
+  const removeMembership = async (membershipId: string) => {
+    setMembershipError(null);
+    try {
+      await axios.delete(`${API_URL}/memberships/delete`, {
+        data: { id: membershipId },
+        withCredentials: true,
+      });
+      setMemberships(prev => prev.filter(m => m.id !== membershipId));
+    } catch {
+      setMembershipError('Failed to remove membership.');
+    }
+  };
+
+  // ── Available committees (not yet assigned as a membership) ───────────────
+  const availableCommittees = committees.filter(
+    c => !memberships.some(m => m.committee_id === c.id),
+  );
 
   return (
     <div className="form-container">
@@ -154,7 +235,7 @@ const OfficerForm = ({
           </div>
 
           <div className="form-group">
-            <label htmlFor="committee">Committee</label>
+            <label htmlFor="committee">Primary Committee</label>
             <select
               id="committee"
               value={committee}
@@ -167,6 +248,9 @@ const OfficerForm = ({
                 </option>
               ))}
             </select>
+            <span style={{ fontSize: '0.73rem', color: '#9ca3af', marginTop: '0.2rem' }}>
+              Legacy field — use <em>Committee Memberships</em> below for multi-committee roles.
+            </span>
           </div>
 
           <div className="form-group">
@@ -226,9 +310,172 @@ const OfficerForm = ({
               onChange={(e) => setIsCommitteeOfficial(e.target.checked)}
             />
             <label htmlFor="is_committee_official" style={{ marginBottom: 0 }}>
-              Committee Official (Chair/Vice)
+              Committee Official (Chair/Vice) — legacy
             </label>
           </div>
+
+          {/* ── Committee Memberships (edit mode only) ──────────────────── */}
+          {id && (
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label>Committee Memberships</label>
+              <p style={{ fontSize: '0.73rem', color: '#9ca3af', margin: '0 0 8px' }}>
+                Add this officer to one or more committees with a specific role.
+                These appear in the committee modal on the public Officers page.
+              </p>
+
+              {/* Existing memberships list */}
+              {memberships.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+                  {memberships.map(m => (
+                    <div
+                      key={m.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '8px 12px',
+                        background: 'var(--color-surface, #f4f6fd)',
+                        borderRadius: 8,
+                        border: '1px solid var(--color-border-soft, #eef0f5)',
+                      }}
+                    >
+                      <span style={{ flex: 1, fontWeight: 600, fontSize: 13, color: 'var(--color-text-primary)' }}>
+                        {m.committees?.name ?? '—'}
+                      </span>
+                      <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                        {m.role_title}
+                      </span>
+                      {m.is_official && (
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+                          background: 'rgba(79,111,209,0.10)', color: '#3b5fbc',
+                          padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap',
+                        }}>
+                          Official
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeMembership(m.id)}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          color: '#ef4444', fontSize: 14, fontWeight: 700,
+                          padding: '0 4px', lineHeight: 1,
+                        }}
+                        title="Remove"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 10 }}>
+                  No committee memberships yet.
+                </p>
+              )}
+
+              {membershipError && (
+                <p style={{ color: 'red', fontSize: 12, marginBottom: 8 }}>{membershipError}</p>
+              )}
+
+              {/* Add membership inline form */}
+              {addingMembership ? (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', gap: 10,
+                  padding: '14px', marginTop: 4,
+                  background: 'var(--color-surface-deep, #eef1fb)',
+                  borderRadius: 10,
+                  border: '1px solid var(--color-border, #e2e8f0)',
+                }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                      Committee *
+                    </label>
+                    <select
+                      value={newCommitteeId}
+                      onChange={e => setNewCommitteeId(e.target.value)}
+                      style={{ width: '100%', marginTop: 4 }}
+                    >
+                      <option value="">— Select committee —</option>
+                      {availableCommittees.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    {availableCommittees.length === 0 && (
+                      <span style={{ fontSize: 12, color: '#9ca3af' }}>
+                        All active committees already assigned.
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                      Role Title *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Chairperson, Records Officer, Member"
+                      value={newRoleTitle}
+                      onChange={e => setNewRoleTitle(e.target.value)}
+                      style={{ width: '100%', marginTop: 4 }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      id="new_is_official"
+                      checked={newIsOfficial}
+                      onChange={e => setNewIsOfficial(e.target.checked)}
+                    />
+                    <label htmlFor="new_is_official" style={{ fontSize: 13, marginBottom: 0 }}>
+                      Official (Chairperson / Vice-Chairperson)
+                    </label>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      className="btn btn-submit"
+                      style={{ flex: 1 }}
+                      onClick={addMembership}
+                      disabled={membershipLoading}
+                    >
+                      {membershipLoading ? 'Adding…' : 'Add Membership'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-cancel"
+                      style={{ flex: 1 }}
+                      onClick={() => {
+                        setAddingMembership(false);
+                        setMembershipError(null);
+                        setNewCommitteeId('');
+                        setNewRoleTitle('');
+                        setNewIsOfficial(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-submit"
+                  style={{ width: '100%', justifyContent: 'center', fontSize: 13, marginTop: 4 }}
+                  onClick={() => setAddingMembership(true)}
+                >
+                  + Add Committee Membership
+                </button>
+              )}
+            </div>
+          )}
+
+          {!id && (
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label>Committee Memberships</label>
+              <p style={{ fontSize: 13, color: '#9ca3af', padding: '10px', background: 'var(--color-surface)', borderRadius: 8, border: '1px dashed var(--color-border)' }}>
+                Save the officer first, then open the edit form to assign committee memberships.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="image-upload">

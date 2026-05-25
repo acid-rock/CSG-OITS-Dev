@@ -4,25 +4,17 @@ import type { OutletContext } from "../../root-layout/Root-layout";
 import type { Organization } from "../../config/organizationsConfig";
 import OrganizationCard from "../../components/organization-card/OrganizationCard";
 import OrganizationModal from "../../components/organization-card/OrganizationModal";
+import SpecialUnitCard from "../../components/organization-card/SpecialUnitCard";
 import "./OrganizationsSection.css";
-
-const ORG_GROUPS: { key: Organization["org_type"]; label: string }[] = [
-  { key: "academic", label: "Academic Organizations" },
-  { key: "non-academic", label: "Non-Academic Organizations" },
-  { key: "spu", label: "Student Publication Unit" },
-];
 
 export default function OrganizationsSection() {
   const { organizations } = useOutletContext<OutletContext>();
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
-  const grouped = ORG_GROUPS.map((group) => ({
-    ...group,
-    items: organizations.filter((o) => o.org_type === group.key),
-  })).filter((group) => group.items.length > 0);
-
-  const ungrouped = organizations.filter(
-    (o) => !ORG_GROUPS.some((g) => g.key === o.org_type),
+  const academic     = organizations.filter((o) => o.org_type === "academic");
+  const nonAcademic  = organizations.filter((o) => o.org_type === "non-academic");
+  const specialUnits = organizations.filter(
+    (o) => o.org_type === "spu" || o.org_type === "rotc",
   );
 
   return (
@@ -41,26 +33,13 @@ export default function OrganizationsSection() {
           </div>
         ) : (
           <div className="orgs-groups">
-            {grouped.map((group) => (
-              <div key={group.key} className="orgs-group">
-                <h3 className="orgs-group-heading">{group.label}</h3>
-                <div className="orgs-grid">
-                  {group.items.map((org) => (
-                    <OrganizationCard
-                      key={org.id}
-                      organization={org}
-                      onClick={() => setSelectedOrg(org)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
 
-            {ungrouped.length > 0 && (
+            {/* Academic */}
+            {academic.length > 0 && (
               <div className="orgs-group">
-                <h3 className="orgs-group-heading">Other Organizations</h3>
+                <h3 className="orgs-group-heading">Academic Organizations</h3>
                 <div className="orgs-grid">
-                  {ungrouped.map((org) => (
+                  {academic.map((org) => (
                     <OrganizationCard
                       key={org.id}
                       organization={org}
@@ -70,6 +49,39 @@ export default function OrganizationsSection() {
                 </div>
               </div>
             )}
+
+            {/* Non-Academic */}
+            {nonAcademic.length > 0 && (
+              <div className="orgs-group">
+                <h3 className="orgs-group-heading">Non-Academic Organizations</h3>
+                <div className="orgs-grid">
+                  {nonAcademic.map((org) => (
+                    <OrganizationCard
+                      key={org.id}
+                      organization={org}
+                      onClick={() => setSelectedOrg(org)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Publication & ROTC — side by side */}
+            {specialUnits.length > 0 && (
+              <div className="orgs-group">
+                <h3 className="orgs-group-heading">Publication &amp; ROTC</h3>
+                <div className="su-grid">
+                  {specialUnits.map((org) => (
+                    <SpecialUnitCard
+                      key={org.id}
+                      org={org}
+                      onClick={() => setSelectedOrg(org)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
         )}
       </div>

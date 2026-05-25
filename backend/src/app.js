@@ -13,6 +13,7 @@ import equipmentRoutes from "./routes/equipment.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import changelogRoutes from "./routes/changelog.routes.js";
 import organizationRoutes from "./routes/organizations.routes.js";
+import membershipRoutes from "./routes/committee-memberships.routes.js";
 import viewsRoutes from "./routes/views.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -101,6 +102,7 @@ app.use("/api/v1/officers",      adminLimiter,  officerRoutes);      // was publ
 app.use("/api/v1/committees",    adminLimiter,  committeeRoutes);    // was publicLimiter
 app.use("/api/v1/equipment",     adminLimiter,  equipmentRoutes);    // was publicLimiter
 app.use("/api/v1/organizations", adminLimiter,  organizationRoutes); // was publicLimiter
+app.use("/api/v1/memberships",  adminLimiter,  membershipRoutes);
 app.use("/api/v1/user",          adminLimiter,  userRoutes);
 app.use("/api/v1/dashboard",     adminLimiter,  dashboardRoutes);
 app.use("/api/v1/settings",      adminLimiter,  settingsRoutes);

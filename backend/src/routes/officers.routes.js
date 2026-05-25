@@ -30,10 +30,9 @@ const upload = multer({
 });
 
 const transformOfficer = (officer) => {
-  if (officer.avatar === null) return officer;
-  const avatar = anonSupabase.storage
-    .from("officers")
-    .getPublicUrl(officer.avatar).data.publicUrl;
+  const avatar = officer.avatar
+    ? anonSupabase.storage.from("officers").getPublicUrl(officer.avatar).data.publicUrl
+    : null;
   return {
     id: officer.id,
     created_at: officer.created_at,
@@ -46,6 +45,8 @@ const transformOfficer = (officer) => {
     student_number: officer.student_number,
     committee: officer.committee,
     is_committee_official: officer.is_committee_official,
+    status: officer.status,
+    committee_memberships: officer.committee_memberships ?? [],
   };
 };
 
@@ -89,11 +90,17 @@ router.get(
     const cached = getCached(cacheKey);
     if (cached) return res.status(200).json(cached);
 
+    // Build query — include committee_memberships via join for public display
     let query = anonSupabase
       .from("officers")
-      .select()
-      .eq("status", statusFilter)
+      .select("*, committee_memberships(*)")
+      .is("deleted_at", null)
       .order("created_at", { ascending: true });
+
+    // status=all → return both active and archived (excluding bin'd)
+    if (statusFilter !== "all") {
+      query = query.eq("status", statusFilter);
+    }
 
     if (termFilter) query = query.eq("year_serving", termFilter);
     if (termYearFilter) query = query.eq("year_serving", termYearFilter);
@@ -256,7 +263,7 @@ router.post(
     if (student_number !== undefined)
       updates.student_number = student_number || null;
     if (committee !== undefined)
-      updates.committee = committee ? parseInt(committee) : null;
+      updates.committee = committee || null; // committees.id is UUID — never parseInt
     if (is_committee_official !== undefined) {
       updates.is_committee_official =
         is_committee_official === "true" || is_committee_official === true;
