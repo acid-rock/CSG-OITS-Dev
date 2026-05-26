@@ -18,7 +18,8 @@ interface OrgEntry {
   facebook_link: string | null;
   created_at?: string;
   deleted_at?: string;
-  org_type?: 'academic' | 'non-academic' | 'spu' | null;
+  org_type?: 'academic' | 'non-academic' | 'spu' | 'rotc' | null;
+  parent_id?: string | null;
 }
 
 type OrgTab = 'active' | 'archived' | 'bin';
@@ -35,6 +36,8 @@ const OrganizationsPanel = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [facebookLink, setFacebookLink] = useState('');
+  const [orgType, setOrgType] = useState<OrgEntry['org_type']>(null);
+  const [parentId, setParentId] = useState<string>('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -60,8 +63,8 @@ const OrganizationsPanel = () => {
 
   useEffect(() => { fetchData(); setSelected([]); }, [fetchData]);
 
-  const openAdd = () => { setEditingId(null); setName(''); setDescription(''); setFacebookLink(''); setLogoFile(null); setLogoPreview(null); setSubmitError(null); setFormOpen(true); };
-  const openEdit = (org: OrgEntry) => { setEditingId(org.id); setName(org.name); setDescription(org.description ?? ''); setFacebookLink(org.facebook_link ?? ''); setLogoFile(null); setLogoPreview(org.logo_url ?? null); setSubmitError(null); setFormOpen(true); };
+  const openAdd = () => { setEditingId(null); setName(''); setDescription(''); setFacebookLink(''); setOrgType(null); setParentId(''); setLogoFile(null); setLogoPreview(null); setSubmitError(null); setFormOpen(true); };
+  const openEdit = (org: OrgEntry) => { setEditingId(org.id); setName(org.name); setDescription(org.description ?? ''); setFacebookLink(org.facebook_link ?? ''); setOrgType(org.org_type ?? null); setParentId(org.parent_id ?? ''); setLogoFile(null); setLogoPreview(org.logo_url ?? null); setSubmitError(null); setFormOpen(true); };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,6 +78,8 @@ const OrganizationsPanel = () => {
     try {
       const fd = new FormData();
       fd.append('name', name.trim()); fd.append('description', description); fd.append('facebook_link', facebookLink);
+      if (orgType) fd.append('org_type', orgType);
+      if (parentId) fd.append('parent_id', parentId);
       if (editingId) fd.append('id', editingId);
       if (logoFile) fd.append('logo', logoFile);
       const ep = editingId ? `${API_URL}/organizations/edit` : `${API_URL}/organizations/add`;
@@ -188,6 +193,11 @@ const OrganizationsPanel = () => {
                         <td>
                           <div className="ad-title-stack">
                             <a className="ad-title-link" href={org.facebook_link ?? '#'} target={org.facebook_link ? '_blank' : undefined} rel="noopener noreferrer">{org.name}</a>
+                            {org.parent_id && (
+                              <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--color-primary)', background: 'rgba(79,111,209,0.08)', border: '1px solid rgba(79,111,209,0.18)', borderRadius: 4, padding: '1px 6px' }}>
+                                Sub-org · {data.find(o => o.id === org.parent_id)?.name ?? 'Parent'}
+                              </span>
+                            )}
                             {org.description && <p className="ad-desc">{org.description}</p>}
                             {org.facebook_link && <div className="ad-meta"><span><I.link width="11" height="11" /> Facebook</span></div>}
                           </div>
@@ -229,6 +239,31 @@ const OrganizationsPanel = () => {
               <label className="ad-field">Name *<input value={name} onChange={e => setName(e.target.value)} required /></label>
               <label className="ad-field">Description<textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} /></label>
               <label className="ad-field">Facebook link<input value={facebookLink} onChange={e => setFacebookLink(e.target.value)} type="url" /></label>
+              <label className="ad-field">
+                Type
+                <select value={orgType ?? ''} onChange={e => { setOrgType((e.target.value || null) as OrgEntry['org_type']); if (e.target.value !== 'academic') setParentId(''); }}>
+                  <option value="">— None —</option>
+                  <option value="academic">Academic</option>
+                  <option value="non-academic">Non-Academic</option>
+                  <option value="spu">Student Publication Unit</option>
+                  <option value="rotc">ROTC</option>
+                </select>
+              </label>
+              {/* Parent org picker — only relevant for academic sub-orgs */}
+              {orgType === 'academic' && (
+                <label className="ad-field">
+                  Parent organization
+                  <select value={parentId} onChange={e => setParentId(e.target.value)}>
+                    <option value="">— None (top-level) —</option>
+                    {data
+                      .filter(o => o.org_type === 'academic' && o.id !== editingId && !o.parent_id)
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(o => <option key={o.id} value={o.id}>{o.name}</option>)
+                    }
+                  </select>
+                  {parentId && <p style={{ fontSize: 11.5, color: 'var(--color-text-muted)', margin: '4px 0 0' }}>This org will appear under the selected parent and will not count toward the academic total.</p>}
+                </label>
+              )}
               <label className="ad-field">
                 Logo
                 <input type="file" accept="image/*" onChange={handleLogoChange} style={{ fontSize: 13 }} />

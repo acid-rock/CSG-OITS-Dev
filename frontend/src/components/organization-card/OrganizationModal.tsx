@@ -7,6 +7,8 @@ interface OrganizationModalProps {
   organization: Organization;
   isOpen: boolean;
   onClose: () => void;
+  /** Sub-organizations belonging to this org */
+  subOrgs?: Organization[];
 }
 
 /* Deterministic gradient — kept in sync with OrganizationCard.tsx */
@@ -36,7 +38,33 @@ const FbIcon = () => (
   </svg>
 );
 
-export default function OrganizationModal({ organization, isOpen, onClose }: OrganizationModalProps) {
+/* Mini-card shown inside the parent org's modal */
+function SubOrgMiniCard({ org }: { org: Organization }) {
+  const [a, b] = getPalette(org.name);
+  const initials = getInitials(org.name);
+  return (
+    <div className="org-suborg-mini">
+      <div className="org-suborg-mini-logo"
+        style={{ background: org.logo_url ? undefined : `linear-gradient(135deg, ${a}, ${b})` }}>
+        {org.logo_url
+          ? <img src={org.logo_url} alt={org.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <span>{initials}</span>}
+      </div>
+      <div className="org-suborg-mini-info">
+        <span className="org-suborg-mini-name">{org.name}</span>
+        {org.facebook_link && (
+          <a className="org-suborg-mini-link" href={org.facebook_link}
+            target="_blank" rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}>
+            <FbIcon /> Visit page
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function OrganizationModal({ organization, isOpen, onClose, subOrgs = [] }: OrganizationModalProps) {
   useLockBodyScroll(isOpen);
 
   useEffect(() => {
@@ -84,6 +112,20 @@ export default function OrganizationModal({ organization, isOpen, onClose }: Org
             <FbIcon />
             Visit Facebook Page
           </a>
+        )}
+
+        {/* Sub-organizations section */}
+        {subOrgs.length > 0 && (
+          <div className="org-modal-suborgs">
+            <p className="org-modal-suborgs-label">
+              Sub-organizations ({subOrgs.length})
+            </p>
+            <div className="org-modal-suborgs-list">
+              {subOrgs.map(sub => (
+                <SubOrgMiniCard key={sub.id} org={sub} />
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </div>

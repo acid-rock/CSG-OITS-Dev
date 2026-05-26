@@ -170,11 +170,16 @@ export const editMembershipSchema = z.object({
 
 // ─── Organizations ───────────────────────────────────────────────────────────
 
+const orgTypeField = z.enum(['academic', 'non-academic', 'spu', 'rotc'])
+  .optional().nullable().or(z.literal(''));
+
 export const addOrganizationSchema = z.object({
   name: z.string().min(1, 'Organization name is required').max(200),
   description: z.string().max(2000).optional(),
   facebook_link: z.string().url('Must be a valid URL').optional().nullable()
     .or(z.literal('')),
+  org_type: orgTypeField,
+  parent_id: uuidField.optional().nullable().or(z.literal('')),
 });
 
 export const editOrganizationSchema = z.object({
@@ -182,6 +187,8 @@ export const editOrganizationSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).optional(),
   facebook_link: z.string().url().optional().nullable().or(z.literal('')),
+  org_type: orgTypeField,
+  parent_id: uuidField.optional().nullable().or(z.literal('')),
 });
 
 // ─── Equipment ───────────────────────────────────────────────────────────────

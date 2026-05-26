@@ -11,9 +11,22 @@ export default function OrganizationsSection() {
   const { organizations } = useOutletContext<OutletContext>();
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
-  const academic     = organizations.filter((o) => o.org_type === "academic");
-  const nonAcademic  = organizations.filter((o) => o.org_type === "non-academic");
-  const specialUnits = organizations.filter(
+  // Build a parent_id → children[] lookup for badge counts and modal detail
+  const subOrgMap = new Map<string, Organization[]>();
+  for (const org of organizations) {
+    if (org.parent_id) {
+      const siblings = subOrgMap.get(org.parent_id) ?? [];
+      siblings.push(org);
+      subOrgMap.set(org.parent_id, siblings);
+    }
+  }
+
+  // Only show top-level orgs in the grid; sub-orgs surface via their parent card
+  const topLevel = organizations.filter((o) => !o.parent_id);
+
+  const academic     = topLevel.filter((o) => o.org_type === "academic");
+  const nonAcademic  = topLevel.filter((o) => o.org_type === "non-academic");
+  const specialUnits = topLevel.filter(
     (o) => o.org_type === "spu" || o.org_type === "rotc",
   );
 
@@ -43,6 +56,7 @@ export default function OrganizationsSection() {
                     <OrganizationCard
                       key={org.id}
                       organization={org}
+                      subOrgsCount={subOrgMap.get(org.id)?.length ?? 0}
                       onClick={() => setSelectedOrg(org)}
                     />
                   ))}
@@ -59,6 +73,7 @@ export default function OrganizationsSection() {
                     <OrganizationCard
                       key={org.id}
                       organization={org}
+                      subOrgsCount={subOrgMap.get(org.id)?.length ?? 0}
                       onClick={() => setSelectedOrg(org)}
                     />
                   ))}
@@ -91,6 +106,7 @@ export default function OrganizationsSection() {
           organization={selectedOrg}
           isOpen={true}
           onClose={() => setSelectedOrg(null)}
+          subOrgs={subOrgMap.get(selectedOrg.id) ?? []}
         />
       )}
     </section>

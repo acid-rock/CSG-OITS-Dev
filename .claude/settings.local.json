@@ -37,7 +37,10 @@
       "Bash(git fetch *)",
       "Bash(git merge *)",
       "Bash(git checkout *)",
-      "Bash(git commit -m 'merge: resolve conflicts keeping local verified-build fixes over remote partial fixes *)"
+      "Bash(git commit -m 'merge: resolve conflicts keeping local verified-build fixes over remote partial fixes *)",
+      "Bash(git commit -m 'fix: add vercel.json SPA rewrite — all routes serve index.html on direct load/refresh *)",
+      "Bash(git push *)",
+      "Bash(git commit -m 'style\\(admin\\): custom scrollbar styling across admin panel *)"
     ]
   }
 }

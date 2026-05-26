@@ -4,6 +4,8 @@ import './OrganizationCard.css';
 interface OrganizationCardProps {
   organization: Organization;
   onClick: () => void;
+  /** Sub-organizations that list this org as their parent */
+  subOrgsCount?: number;
 }
 
 /* Deterministic gradient from org name — same palette as /organizations page */
@@ -58,7 +60,18 @@ const ArrowIcon = () => (
   </svg>
 );
 
-export default function OrganizationCard({ organization, onClick }: OrganizationCardProps) {
+const SubOrgsIcon = () => (
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7" rx="1"/>
+    <rect x="14" y="3" width="7" height="7" rx="1"/>
+    <rect x="8.5" y="14" width="7" height="7" rx="1"/>
+    <path d="M6.5 10v2a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2"/>
+    <line x1="12" y1="10" x2="12" y2="14"/>
+  </svg>
+);
+
+export default function OrganizationCard({ organization, onClick, subOrgsCount = 0 }: OrganizationCardProps) {
   const [a, b] = getPalette(organization.name);
   const initials = getInitials(organization.name);
   const typeConf = organization.org_type ? TYPE_CONFIG[organization.org_type] : null;
@@ -94,7 +107,16 @@ export default function OrganizationCard({ organization, onClick }: Organization
       {/* Description */}
       <p className="org-card-desc">{organization.description ?? ''}</p>
 
-      {/* Footer: Facebook CTA only (established date removed) */}
+      {/* Sub-org badge — only shown when this org has children */}
+      {subOrgsCount > 0 && (
+        <div className="org-card-suborgs">
+          <SubOrgsIcon />
+          <span>{subOrgsCount} sub-organization{subOrgsCount !== 1 ? 's' : ''}</span>
+          <span className="org-card-suborgs-hint">· click to view</span>
+        </div>
+      )}
+
+      {/* Footer: Facebook CTA */}
       <div className="org-card-foot">
         {organization.facebook_link ? (
           <a

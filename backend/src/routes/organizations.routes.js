@@ -53,12 +53,18 @@ router.post(
   validate(addOrganizationSchema),
   asyncHandler(async (req, res) => {
     validateImageUpload(req.file, false);
-    const { name, description, facebook_link } = req.body;
+    const { name, description, facebook_link, org_type, parent_id } = req.body;
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
 
     const { data, error: insertError } = await supabase
       .from("organizations")
-      .insert({ name: name.trim(), description: description || null, facebook_link: facebook_link || null })
+      .insert({
+        name: name.trim(),
+        description: description || null,
+        facebook_link: facebook_link || null,
+        org_type: org_type || null,
+        parent_id: parent_id || null,
+      })
       .select()
       .single();
     if (insertError) throw new ApiError(500, insertError.message);
@@ -93,7 +99,7 @@ router.post(
   validate(editOrganizationSchema),
   asyncHandler(async (req, res) => {
     validateImageUpload(req.file, false);
-    const { id, name, description, facebook_link } = req.body;
+    const { id, name, description, facebook_link, org_type, parent_id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
 
@@ -101,6 +107,9 @@ router.post(
       name: name.trim(),
       description: description || null,
       facebook_link: facebook_link || null,
+      org_type: org_type || null,
+      // Allow explicitly clearing parent by sending '' or null
+      parent_id: parent_id || null,
     };
 
     if (req.file) {

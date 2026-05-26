@@ -11,6 +11,8 @@ export interface Organization {
   facebook_link: string | null;
   created_at: string;
   org_type: "academic" | "non-academic" | "spu" | "rotc" | null;
+  /** UUID of parent organization. null = top-level org. */
+  parent_id: string | null;
 }
 
 export async function fetchOrganizations(): Promise<Organization[]> {

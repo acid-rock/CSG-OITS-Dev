@@ -138,9 +138,10 @@ interface OrgSectionProps {
   items: Organization[];
   alt?: boolean;
   onSelect: (org: Organization) => void;
+  subOrgMap: Map<string, Organization[]>;
 }
 
-function OrgSection({ kicker, title, sub, items, alt, onSelect }: OrgSectionProps) {
+function OrgSection({ kicker, title, sub, items, alt, onSelect, subOrgMap }: OrgSectionProps) {
   if (items.length === 0) return null;
   return (
     <section className={alt ? 'po-section po-section--alt' : 'po-section'}>
@@ -151,7 +152,12 @@ function OrgSection({ kicker, title, sub, items, alt, onSelect }: OrgSectionProp
       </div>
       <div className="po-grid">
         {items.map(o => (
-          <OrganizationCard key={o.id} organization={o} onClick={() => onSelect(o)} />
+          <OrganizationCard
+            key={o.id}
+            organization={o}
+            subOrgsCount={subOrgMap.get(o.id)?.length ?? 0}
+            onClick={() => onSelect(o)}
+          />
         ))}
       </div>
     </section>
@@ -170,18 +176,31 @@ export default function OrganizationsPage() {
   const [filter, setFilter] = useState<FilterValue>('all');
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
-  /* Stable counts (full dataset) */
+  // Build parent_id → children[] map; sub-orgs don't appear in grids directly
+  const subOrgMap = new Map<string, Organization[]>();
+  for (const org of organizations) {
+    if (org.parent_id) {
+      const siblings = subOrgMap.get(org.parent_id) ?? [];
+      siblings.push(org);
+      subOrgMap.set(org.parent_id, siblings);
+    }
+  }
+
+  // Only top-level orgs count toward official totals and appear in grids
+  const topLevel = organizations.filter(o => !o.parent_id);
+
+  /* Stable counts — top-level only, so sub-orgs don't inflate the numbers */
   const counts = {
-    all:         organizations.length,
-    academic:    organizations.filter(o => o.org_type === 'academic').length,
-    nonAcademic: organizations.filter(o => o.org_type === 'non-academic').length,
-    spu:         organizations.filter(o => o.org_type === 'spu').length,
-    rotc:        organizations.filter(o => o.org_type === 'rotc').length,
+    all:         topLevel.length,
+    academic:    topLevel.filter(o => o.org_type === 'academic').length,
+    nonAcademic: topLevel.filter(o => o.org_type === 'non-academic').length,
+    spu:         topLevel.filter(o => o.org_type === 'spu').length,
+    rotc:        topLevel.filter(o => o.org_type === 'rotc').length,
   };
 
-  /* Apply search + type filter */
+  /* Apply search + type filter — top-level only */
   const q = query.trim().toLowerCase();
-  const filtered = organizations.filter(o => {
+  const filtered = topLevel.filter(o => {
     const matchesType  = filter === 'all' || o.org_type === filter;
     const matchesQuery = !q
       || o.name.toLowerCase().includes(q)
@@ -215,6 +234,7 @@ export default function OrganizationsPage() {
               sub="Course-specific organizations that build community within each program — from BSCS to Communication, Hospitality to Psychology."
               items={academic}
               onSelect={setSelectedOrg}
+              subOrgMap={subOrgMap}
             />
             <OrgSection
               kicker="Non-Academic"
@@ -223,6 +243,7 @@ export default function OrganizationsPage() {
               items={nonAcademic}
               alt
               onSelect={setSelectedOrg}
+              subOrgMap={subOrgMap}
             />
 
             {/* Publication & ROTC — side-by-side in one row */}
@@ -253,6 +274,7 @@ export default function OrganizationsPage() {
           organization={selectedOrg}
           isOpen={true}
           onClose={() => setSelectedOrg(null)}
+          subOrgs={subOrgMap.get(selectedOrg.id) ?? []}
         />
       )}
     </div>
