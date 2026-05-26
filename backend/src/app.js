@@ -24,7 +24,13 @@ import helmet from "helmet";
 import morgan from "morgan";
 import "dotenv/config";
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "";
+// Support comma-separated origins so both localhost and production Vercel URL
+// can be listed in a single FRONTEND_URL env var:
+//   FRONTEND_URL=https://csg-oits.vercel.app,http://localhost:5173
+const ALLOWED_ORIGINS = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
 const supabaseHost = new URL(process.env.SUPABASE_URL || "https://placeholder.supabase.co").hostname;
 
 // Public routes — stricter limit
@@ -72,7 +78,12 @@ app.use(helmet({
 }));
 app.use(
   cors({
-    origin: FRONTEND_URL,
+    origin: (origin, cb) => {
+      // Allow server-to-server / Postman / same-origin requests (no Origin header)
+      if (!origin) return cb(null, true);
+      if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+      cb(new Error(`CORS: origin "${origin}" is not allowed`));
+    },
     credentials: true,
   }),
 );

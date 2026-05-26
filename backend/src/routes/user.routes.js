@@ -72,14 +72,14 @@ router.post(
     res.cookie("sb_access_token", data.session.access_token, {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: 60 * 60 * 1000,
     });
 
     res.cookie("sb_refresh_token", data.session.refresh_token, {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -93,12 +93,12 @@ router.post(
     res.clearCookie("sb_access_token", {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
     });
     res.clearCookie("sb_refresh_token", {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
     });
     return res.sendStatus(200);
   }),
