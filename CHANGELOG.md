@@ -5,6 +5,52 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-05-26
+### Added
+- Committee admin portal at `/committee/admin` — role-based panel access via PIN login at `/committee/login`
+  - Publication Committee: Announcements + Events panels
+  - Secretariat Committee: Documents panel
+  - Finance Committee: Equipment + Finance panels
+- `CommitteeSidebar` — dedicated sidebar using existing `ad-sb-*` CSS classes; shows only allowed modules per role; signs out by clearing `sessionStorage`
+- `CommitteeProtectedRoute` — UX gate that redirects to `/committee/login` when no valid committee session is present
+- `CommitteeAdminPage` — mounts existing admin panel components inside the committee shell; hides embedded admin sidebar via CSS (`display: none !important`) without duplicating any panel code
+- `committee-admin.css` — layout overrides for committee shell (`ca-` prefix); collapses `.ad-shell` grid to single-column when admin sidebar is hidden
+- Backend `POST /api/v1/committee-pins/verify` — validates a committee PIN against the `settings` table and returns the matching role
+- Backend `GET /api/v1/committee-pins` — returns all three current PINs (auth required)
+- Backend `POST /api/v1/committee-pins/:role` — updates a single committee PIN (auth required, min 4 chars)
+- Settings panel — Committee PINs section: per-committee PIN inputs with show/hide toggle and Update button; defaults `pub2026`, `sec2026`, `fin2026`
+- Settings panel — Account Security now shows the current admin's name, email, and initials avatar above the password change form
+- Finance admin panel — placeholder panel with "=== To Be Developed ===" content; registered in `Sidebar` and `ContentPanel` under Operations group
+- Concurrent access limiter — backend `POST /api/v1/access/join`, `POST /api/v1/access/heartbeat`, `POST /api/v1/access/leave` endpoints (in-memory slot manager, MAX 10 simultaneous public users, 60 s TTL per token)
+- `QueueScreen` component — shown when all 10 public slots are occupied; displays queue position, retries `POST /access/join` every 15 s, transitions to the site when a slot opens
+- Root-layout access integration — on mount, calls `/access/join`; sends heartbeat every 20 s; releases slot via `navigator.sendBeacon('/access/leave')` on `beforeunload`
+- Bulletin page pagination — 9 cards per page with Prev/Next and numbered pill buttons; resets to page 1 on filter or search change; smooth-scrolls to top on page change
+- `vercel.json` at `frontend/` — SPA catch-all rewrite (`/(.*) → /index.html`) so direct navigation and page refresh work correctly on Vercel
+
+### Changed
+- CORS `origin` upgraded from a single string to a multi-origin function; `FRONTEND_URL` env var now accepts a comma-separated list (e.g. `https://csg-oits.vercel.app,http://localhost:5173`)
+- Auth cookies (`sb_access_token`, `sb_refresh_token`) changed from `SameSite=Strict` to `SameSite=None` — required for cross-origin credentialed requests between the Vercel frontend and the separately hosted backend
+- Local `.env` `FRONTEND_URL` updated to include both `http://localhost:5173` and `https://csg-oits.vercel.app`
+- Finance panel now uses `<div className="ad-shell">` wrapper (was a bare React fragment) so the sidebar and content render side-by-side correctly
+
+### Fixed
+- 404 NOT_FOUND on direct navigation or page refresh on the deployed Vercel site — fixed by adding `vercel.json` SPA rewrite rule
+- "Not authenticated." on all protected admin endpoints on the deployed site — root cause was `SameSite=Strict` cookies never being sent on cross-origin requests; fixed by changing to `SameSite=None; Secure`
+- Finance panel content area was blank — bare fragment caused sidebar to stack above content with no grid layout; fixed by wrapping in `.ad-shell`
+- 18 pre-existing TypeScript `noUnusedLocals` build errors resolved across 11 files:
+  - Renamed destructured `spinning` getter to `_spinning` in Announcement, Auditlog, Bin, Committees, Document, Events, Officers panels (setter still needed for mutations)
+  - Removed unused `TableFoot` import from Auditlog
+  - Deleted unreachable `committeeSuggestions` function in Committees
+  - Deleted unreachable `handlePermanentDelete` function in Events
+  - Deleted unused `showInitials` local in Officer-card
+  - Deleted unused `hasTerm` local in SearchFilterBar
+  - Deleted unused `scrollToSection` local in Main layout
+  - Renamed `selectedFromList` to `_selectedFromList` in Borrow page
+- `TS1484` in `authError.ts` — changed `import { NavigateFunction }` to `import type { NavigateFunction }` (verbatimModuleSyntax)
+- `TS2503` in `chrome.tsx` — `JSX.Element` not in scope; added `import React from 'react'` and changed return type to `React.ReactElement`
+- `TS2322` in Officers panel — `editData.position` is `string | string[]` but `OfficerForm` expects `string`; coerced with `Array.isArray` join before passing as `initialData`
+- `TS2345` in Root-layout — `fetchDocuments()` return type is `Document[] | PaginatedDocuments`; added `Array.isArray` guard before assigning to document state
+
 ## [1.3.0] - 2026-05-22
 ### Added
 - Client-side pagination (25 rows/page) for Announcements, Documents, Events, and Borrowing admin tables — consistent with Officers table
