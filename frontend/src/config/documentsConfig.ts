@@ -10,19 +10,18 @@ interface PaginatedDocuments {
   limit: number;
 }
 
-function formatDoc(d: Document) {
-  const date = new Date(d.created_at);
+function formatDoc(d: Document): Document {
+  const rawDate = d.created_at ?? d.date ?? '';
+  const date = rawDate ? new Date(rawDate) : null;
   return {
     ...d,
     category: d.category
       .toLowerCase()
       .replace(/-/g, " ")
       .replace(/\b\w/g, (char: string) => char.toUpperCase()),
-    date: date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }),
+    date: date
+      ? date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      : d.date,
   };
 }
 
