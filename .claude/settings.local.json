@@ -32,7 +32,12 @@
       "PowerShell(Set-Location \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\"; Get-ChildItem -Name | Where-Object { $_ -match 'husky|lint' })",
       "Bash(npx vite *)",
       "Bash(git commit -m 'feat: committee portal, finance panel, queue screen, bulletin pagination, admin PIN management *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git stash *)",
+      "Bash(git fetch *)",
+      "Bash(git merge *)",
+      "Bash(git checkout *)",
+      "Bash(git commit -m 'merge: resolve conflicts keeping local verified-build fixes over remote partial fixes *)"
     ]
   }
 }

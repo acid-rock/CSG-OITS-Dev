@@ -1,26 +1,17 @@
 import axios from "axios";
+import type { Document } from "../root-layout/Root-layout";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-interface DocumentItem {
-  id: string;
-  createdAt: string;
-  name: string;
-  description: string;
-  category: string;
-  url: string;
-  thumbnail: string;
-}
-
 interface PaginatedDocuments {
-  data: DocumentItem[];
+  data: Document[];
   total: number;
   page: number;
   limit: number;
 }
 
-function formatDoc(d: DocumentItem) {
-  const date = new Date(d.createdAt);
+function formatDoc(d: Document) {
+  const date = new Date(d.created_at);
   return {
     ...d,
     category: d.category
@@ -40,7 +31,7 @@ function formatDoc(d: DocumentItem) {
 export default async function fetchDocuments(
   page?: number,
   limit?: number,
-): Promise<DocumentItem[] | PaginatedDocuments> {
+): Promise<Document[] | PaginatedDocuments> {
   const params: Record<string, number> = {};
   if (page !== undefined) params.page = page;
   if (limit !== undefined) params.limit = limit;
@@ -60,5 +51,5 @@ export default async function fetchDocuments(
   }
 
   // Flat array response (non-paginated)
-  return (data as DocumentItem[]).map(formatDoc);
+  return (data as Document[]).map(formatDoc);
 }

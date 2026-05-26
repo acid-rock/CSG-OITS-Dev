@@ -78,6 +78,8 @@ export default function BulletinDocument() {
       ? documents.length
       : documents.filter((d) => d.category === catId).length;
 
+  console.log(documents);
+
   return (
     <section id="documents" className="bd-page">
       {/* ════════════════════════════════════════
@@ -229,12 +231,7 @@ export default function BulletinDocument() {
                       <span className="bd-doc-cat">{doc.category}</span>
 
                       {/* Title — locked: file_path / description binding */}
-                      <h3 className="bd-doc-title">
-                        {doc.name
-                          ?.split("/")
-                          .pop()
-                          ?.replace(/\.pdf$/i, "") ?? doc.description}
-                      </h3>
+                      <h3 className="bd-doc-title">{doc.description}</h3>
 
                       {/* Meta row — locked: created_at / term binding */}
                       <div className="bd-doc-meta">
