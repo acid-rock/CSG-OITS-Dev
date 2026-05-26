@@ -60,7 +60,7 @@ const Bin = () => {
 
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [spinning, setSpinning] = useState(false);
+  const [_spinning, setSpinning] = useState(false);
   const [selected, setSelected] = useState<{type: ItemType; id: string}[]>([]);
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

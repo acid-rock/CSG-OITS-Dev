@@ -30,7 +30,9 @@
       "Bash(cd /d \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\")",
       "Bash(dir /b)",
       "PowerShell(Set-Location \"D:\\\\D - Documents\\\\School\\\\CVSU\\\\Graduation\\\\CSG-OITS\\\\CSG-OITS-Dev\"; Get-ChildItem -Name | Where-Object { $_ -match 'husky|lint' })",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(git commit -m 'feat: committee portal, finance panel, queue screen, bulletin pagination, admin PIN management *)",
+      "Bash(npm run *)"
     ]
   }
 }

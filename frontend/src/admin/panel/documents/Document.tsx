@@ -44,7 +44,7 @@ const Documents = () => {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const [spinning, setSpinning] = useState(false);
+  const [_spinning, setSpinning] = useState(false);
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>("");
   const [counts, setCounts] = useState({ active: 0, archived: 0, bin: 0 });

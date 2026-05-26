@@ -196,7 +196,8 @@ const Root = () => {
       });
       setBulletin(sortedBulletin);
     }
-    if (documentsResult.status === "fulfilled") setDocuments(documentsResult.value);
+    if (documentsResult.status === "fulfilled" && Array.isArray(documentsResult.value))
+      setDocuments(documentsResult.value as unknown as Document[]);
     if (eventsResult.status === "fulfilled") setEvents(eventsResult.value);
     if (officersResult.status === "fulfilled") setOfficers(officersResult.value as Officer[]);
     if (orgsResult.status === "fulfilled") setOrganizations(orgsResult.value);

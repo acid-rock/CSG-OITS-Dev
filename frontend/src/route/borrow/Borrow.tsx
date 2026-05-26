@@ -30,7 +30,7 @@ export default function Borrow() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(true);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
-  const [selectedFromList, setSelectedFromList] =
+  const [_selectedFromList, setSelectedFromList] =
     useState<InventoryItem | null>(null);
 
   // ── Section 1: Request Information ──

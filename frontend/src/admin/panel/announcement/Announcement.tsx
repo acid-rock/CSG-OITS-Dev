@@ -64,7 +64,7 @@ const Announcement = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [open, setOpen] = useState(false);
-  const [spinning, setSpinning] = useState(false);
+  const [_spinning, setSpinning] = useState(false);
   const [counts, setCounts] = useState({ active: 0, archived: 0, bin: 0 });
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>("");

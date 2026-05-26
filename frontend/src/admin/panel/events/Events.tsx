@@ -81,7 +81,7 @@ const Events = () => {
   const [editDate, setEditDate] = useState("");
   const [editImages, setEditImages] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
-  const [spinning, setSpinning] = useState(false);
+  const [_spinning, setSpinning] = useState(false);
   const [counts, setCounts] = useState({ active: 0, archived: 0, bin: 0 });
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>("");
@@ -190,25 +190,6 @@ const Events = () => {
       setData((prev) => prev.filter((e) => e.id !== entryId));
     } catch {
       fetchData();
-    }
-  };
-
-  const handlePermanentDelete = async (entryId: string) => {
-    if (!window.confirm("Permanently delete this item? This cannot be undone."))
-      return;
-    try {
-      await axios.delete(`${API_URL}/events/delete`, {
-        data: { id: entryId },
-        withCredentials: true,
-      });
-      setData((prev) => prev.filter((item) => item.id !== entryId));
-    } catch (err: unknown) {
-      setFetchError(
-        "Delete failed: " +
-          ((err as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ??
-            (err instanceof Error ? err.message : "Unknown")),
-      );
     }
   };
 

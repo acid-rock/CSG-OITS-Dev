@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import '../_shared/admin-list.css';
 import axios from 'axios';
 import Sidebar from '../_shared/Sidebar';
-import { PageHead, Toolbar, TableFoot } from '../_shared/chrome';
+import { PageHead, Toolbar } from '../_shared/chrome';
 import { Tag, MiniAvatar } from '../_shared/atoms';
 import { I } from '../_shared/icons';
 import { fmtDateTime, timeAgo, shortId, downloadCSV } from '../_shared/utils';
@@ -29,7 +29,7 @@ const Audit = () => {
   const [data, setData] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [spinning, setSpinning] = useState(false);
+  const [_spinning, setSpinning] = useState(false);
   const [sort, setSort] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');

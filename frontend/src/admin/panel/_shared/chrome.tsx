@@ -1,3 +1,4 @@
+import React from 'react';
 import type { ReactNode } from 'react';
 import { I } from './icons';
 
@@ -123,7 +124,7 @@ interface BulkBarProps {
   handlers?: Partial<Record<BulkAction, () => void>>;
   onClear?: () => void;
 }
-const BULK_ICONS: Record<BulkAction, (p: Record<string, unknown>) => JSX.Element> = {
+const BULK_ICONS: Record<BulkAction, (p: Record<string, unknown>) => React.ReactElement> = {
   Pin:     I.pin,
   Archive: I.archive,
   Delete:  I.trash,

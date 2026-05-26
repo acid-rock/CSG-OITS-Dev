@@ -64,7 +64,7 @@ const OfficersPanel = () => {
   const [active, setActive] = useState<string[]>([]);
   const [filter, setFilter] = useState("");
   const [sort, setSort] = useState("");
-  const [spinning, setSpinning] = useState(false);
+  const [_spinning, setSpinning] = useState(false);
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState<OfficerEntry | undefined>(undefined);
@@ -404,7 +404,18 @@ const OfficersPanel = () => {
       {open && (
         <div className="ad-modal-overlay" onClick={() => setOpen(false)}>
           <div onClick={e => e.stopPropagation()}>
-            <OfficerForm id={editId} initialData={editData} activeTerm={activeTerm} setOpen={setOpen} onSuccess={() => { setOpen(false); fetchAll(); }} />
+            <OfficerForm
+              id={editId}
+              initialData={editData ? {
+                ...editData,
+                position: Array.isArray(editData.position)
+                  ? editData.position.join(', ')
+                  : editData.position,
+              } : undefined}
+              activeTerm={activeTerm}
+              setOpen={setOpen}
+              onSuccess={() => { setOpen(false); fetchAll(); }}
+            />
           </div>
         </div>
       )}

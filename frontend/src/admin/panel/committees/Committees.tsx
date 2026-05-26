@@ -563,7 +563,7 @@ const CommitteesPanel = () => {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [spinning, setSpinning] = useState(false);
+  const [_spinning, setSpinning] = useState(false);
   const [editTarget, setEditTarget] = useState<CommitteeEntry | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
@@ -637,8 +637,6 @@ const CommitteesPanel = () => {
   const memberCount = (c: CommitteeEntry): number =>
     officers.filter(o => o.committee != null && String(o.committee) === c.id).length;
 
-  const committeeSuggestions = (c: CommitteeEntry): string[] =>
-    officers.filter(o => o.committee != null && String(o.committee) === c.id).map(o => o.full_name).filter(Boolean);
 
   return (
     <>
