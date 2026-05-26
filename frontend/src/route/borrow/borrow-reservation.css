@@ -112,6 +112,115 @@
   gap: 32px;
 }
 
+/* Top row: calendar + time-slot panel side by side */
+.br-body-top {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* ── Time slot panel ───────────────────────────────────────────────────────── */
+.br-timeslot-panel {
+  flex: 1;
+  min-width: 220px;
+  max-width: 320px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border-soft, #eef0f5);
+  border-radius: var(--radius-xl, 14px);
+  padding: 24px;
+  animation: br-slide-in 200ms ease;
+}
+
+@keyframes br-slide-in {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.br-timeslot-hint {
+  font-size: 13px;
+  color: var(--color-text-muted, #6b7280);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.br-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.br-slot-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 14px 16px;
+  background: var(--color-surface, #fff);
+  border: 2px solid var(--color-border-soft, #eef0f5);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+.br-slot-card:hover {
+  border-color: var(--color-primary-light, #c8d2ef);
+  background: var(--color-surface-deep, #f0f4ff);
+}
+.br-slot-card--selected {
+  border-color: var(--color-primary, #4f6fd1);
+  background: rgba(79, 111, 209, 0.07);
+}
+
+.br-slot-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f1729);
+}
+.br-slot-sub {
+  font-size: 12px;
+  color: var(--color-text-muted, #6b7280);
+  font-weight: 500;
+}
+.br-slot-card--selected .br-slot-label {
+  color: var(--color-primary-deep, #2c4ba0);
+}
+
+.br-timeslot-next {
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--color-primary, #4f6fd1);
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* ── Range warning ─────────────────────────────────────────────────────────── */
+.br-range-warning {
+  font-size: 12.5px;
+  color: var(--color-warning-text, #92400e);
+  background: var(--color-warning-bg, #fef3c7);
+  border: 1px solid rgba(245, 158, 11, 0.30);
+  border-radius: 7px;
+  padding: 8px 12px;
+  margin-top: 8px;
+}
+
+/* ── Calendar hint ─────────────────────────────────────────────────────────── */
+.br-calendar-hint {
+  font-size: 12px;
+  color: var(--color-text-muted, #6b7280);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* ── Error state (page-level, distinct from inline .br-error) ─────────────── */
+.br-error-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--color-text-muted, #6b7280);
+  font-size: 14px;
+}
+
 /* ── Section title ─────────────────────────────────────────────────────────── */
 .br-section-title {
   font-size: 16px;
@@ -149,7 +258,10 @@
 .br-date-confirm-value {
   color: var(--color-primary-deep, #2c4ba0);
   font-weight: 700;
-  flex: 1;
+}
+.br-date-confirm-arrow {
+  color: var(--color-text-muted, #6b7280);
+  font-weight: 500;
 }
 .br-date-clear {
   background: none;
@@ -197,6 +309,10 @@
 .br-chip--date {
   color: var(--color-success-text, #15803d);
   background: var(--color-success-bg, #dcfce7);
+}
+.br-chip--slot {
+  color: var(--color-primary-deep, #2c4ba0);
+  background: rgba(79, 111, 209, 0.10);
 }
 
 /* ── Form shared styles ────────────────────────────────────────────────────── */
@@ -462,7 +578,46 @@
   justify-content: center;
 }
 
+/* Success details list (borrow date / return date / time slot rows) */
+.br-success-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 1.25rem;
+  background: var(--color-surface-deep, #f0f4ff);
+  border: 1px solid var(--color-border-soft, #eef0f5);
+  border-radius: 10px;
+  padding: 12px 16px;
+  text-align: left;
+}
+.br-success-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.br-success-lbl {
+  color: var(--color-text-muted, #6b7280);
+  font-weight: 500;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+.br-success-val {
+  color: var(--color-text-primary, #0f1729);
+  font-weight: 700;
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 840px) {
+  .br-body-top {
+    flex-direction: column;
+  }
+  .br-timeslot-panel {
+    max-width: 100%;
+    min-width: unset;
+  }
+}
+
 @media (max-width: 640px) {
   .br-page {
     padding: 20px 1rem 60px;

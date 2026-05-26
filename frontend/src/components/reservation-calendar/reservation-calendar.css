@@ -184,6 +184,34 @@
 .rc-dot--pending  { background: var(--color-warning, #f59e0b); }
 .rc-dot--approved { background: var(--color-success, #22c55e); }
 
+/* ── Range selection styles ────────────────────────────────────────────────── */
+
+/* Range start and end tiles — same visual as --selected */
+.rc-tile--range-start,
+.rc-tile--range-end {
+  background: var(--color-primary, #4f6fd1) !important;
+  color: #fff !important;
+  border-color: var(--color-primary-deep, #2c4ba0) !important;
+  box-shadow: 0 3px 10px -3px rgba(79, 111, 209, 0.55);
+}
+.rc-tile--range-start:hover,
+.rc-tile--range-end:hover {
+  transform: translateY(-1px);
+}
+
+/* Dates between range start and end */
+.rc-tile--in-range {
+  background: rgba(79, 111, 209, 0.12);
+  border-color: rgba(79, 111, 209, 0.22);
+  border-radius: 4px; /* slightly flatter — "inside" feel */
+  color: var(--color-primary-deep, #2c4ba0);
+  cursor: default;
+}
+.rc-tile--in-range:hover {
+  background: rgba(79, 111, 209, 0.18);
+  transform: none;
+}
+
 /* ── Legend (user variant) ─────────────────────────────────────────────────── */
 .rc-legend {
   display: flex;

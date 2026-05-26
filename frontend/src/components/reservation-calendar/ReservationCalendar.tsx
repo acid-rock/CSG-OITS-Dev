@@ -17,11 +17,16 @@ interface ReservationCalendarProps {
 
   /* user variant ----------------------------------------------------------- */
   getDateStatus?: (dateStr: string) => DateStatus;
-  selectedDate?: string | null;
+  /** Borrow date (range start). Replaces the old single selectedDate. */
+  rangeStart?: string | null;
+  /** Return date (range end). Dates between start and end get in-range styling. */
+  rangeEnd?: string | null;
   onSelectDate?: (dateStr: string) => void;
 
   /* admin-dots variant ----------------------------------------------------- */
   getDots?: (dateStr: string) => AdminDot[];
+  /** Single highlighted date for admin-dots variant */
+  selectedDate?: string | null;
   onDateClick?: (dateStr: string) => void;
 }
 
@@ -54,9 +59,11 @@ export default function ReservationCalendar({
   onMonthChange,
   variant = 'user',
   getDateStatus,
-  selectedDate,
+  rangeStart,
+  rangeEnd,
   onSelectDate,
   getDots,
+  selectedDate,
   onDateClick,
 }: ReservationCalendarProps) {
   const cells = buildCells(year, month);
@@ -97,13 +104,13 @@ export default function ReservationCalendar({
           if (!cell) return <div key={`empty-${i}`} className="rc-tile rc-tile--empty" />;
 
           const dayNum = parseInt(cell.split('-')[2], 10);
-          const isSelected = cell === selectedDate;
           const isToday = cell === today;
-          const todayStyle = isToday && !isSelected ? { textDecoration: 'underline' as const } : undefined;
+          const todayStyle = isToday ? { textDecoration: 'underline' as const } : undefined;
 
           /* ── admin-dots variant ── */
           if (variant === 'admin-dots') {
             const isPast = cell < today;
+            const isSelected = cell === selectedDate;
             const dots = getDots?.(cell) ?? [];
             return (
               <button
@@ -120,7 +127,7 @@ export default function ReservationCalendar({
                 disabled={isPast}
                 aria-label={cell}
               >
-                <span style={todayStyle}>{dayNum}</span>
+                <span style={isToday && !isSelected ? todayStyle : undefined}>{dayNum}</span>
                 {dots.length > 0 && (
                   <div className="rc-dots">
                     {dots.slice(0, 4).map((dot, di) => (
@@ -136,16 +143,37 @@ export default function ReservationCalendar({
           const status = getDateStatus?.(cell) ?? 'available';
           const isDisabled = status === 'past' || status === 'full';
 
+          // Range class logic
+          const isRangeStart = rangeStart ? cell === rangeStart : false;
+          const isRangeEnd   = rangeEnd   ? cell === rangeEnd   : false;
+          const isInRange    =
+            rangeStart && rangeEnd && cell > rangeStart && cell < rangeEnd;
+
+          let tileClass: string;
+          if (isRangeStart) {
+            tileClass = 'rc-tile rc-tile--range-start';
+          } else if (isRangeEnd) {
+            tileClass = 'rc-tile rc-tile--range-end';
+          } else if (isInRange) {
+            tileClass = 'rc-tile rc-tile--in-range';
+          } else {
+            // For in-range tiles with 'full' status the range warning will be shown
+            // in the parent, but we still render them visually with their status
+            tileClass = `rc-tile rc-tile--${status}`;
+          }
+
           return (
             <button
               key={cell}
               type="button"
-              className={`rc-tile rc-tile--${isSelected ? 'selected' : status}`}
+              className={tileClass}
               onClick={!isDisabled ? () => onSelectDate?.(cell) : undefined}
-              disabled={isDisabled}
+              disabled={isDisabled && !isInRange}
               aria-label={`${cell} — ${status}`}
             >
-              <span style={todayStyle}>{dayNum}</span>
+              <span style={isToday && !isRangeStart && !isRangeEnd ? todayStyle : undefined}>
+                {dayNum}
+              </span>
             </button>
           );
         })}
@@ -170,11 +198,8 @@ export default function ReservationCalendar({
             Fully booked
           </div>
           <div className="rc-legend-item">
-            <span
-              className="rc-legend-swatch"
-              style={{ background: 'var(--color-primary, #4f6fd1)' }}
-            />
-            Selected
+            <span className="rc-legend-swatch" style={{ background: 'var(--color-primary, #4f6fd1)' }} />
+            Selected / In range
           </div>
         </div>
       )}

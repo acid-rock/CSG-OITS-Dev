@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ReservationCalendar, { type DateStatus } from '../../components/reservation-calendar/ReservationCalendar';
@@ -18,31 +18,38 @@ interface InventoryItem {
 }
 
 interface AvailabilityEntry {
-  borrow_date: string;   // 'YYYY-MM-DD'
-  return_date: string;   // 'YYYY-MM-DD'
+  borrow_date: string;
+  return_date: string;
   status: 'pending' | 'approved';
   quantity_requested: number;
 }
 
 type PurposeType = 'academic' | 'event' | 'organization' | 'others' | '';
+type TimeSlot = 'AM' | 'PM' | 'whole-day';
 
 /* ── Helpers ─────────────────────────────────────────────────────────────────── */
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
-}
-
 function formatDisplayDate(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-    weekday: 'long',
+    weekday: 'short',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+}
+
+function timeSlotLabel(slot: TimeSlot): string {
+  if (slot === 'AM') return 'AM (8:00 AM – 12:00 PM)';
+  if (slot === 'PM') return 'PM (1:00 PM – 5:00 PM)';
+  return 'Whole Day (8:00 AM – 5:00 PM)';
+}
+
+function timeSlotShort(slot: TimeSlot): string {
+  if (slot === 'AM') return 'Morning (AM)';
+  if (slot === 'PM') return 'Afternoon (PM)';
+  return 'Whole Day';
 }
 
 /* ── Availability status logic ───────────────────────────────────────────────── */
@@ -61,6 +68,14 @@ function computeDateStatus(
   return 'full';
 }
 
+/* ── Time slot definitions ───────────────────────────────────────────────────── */
+
+const TIME_SLOTS: { id: TimeSlot; label: string; sub: string }[] = [
+  { id: 'AM',        label: 'Morning',   sub: 'AM  ·  8:00 AM – 12:00 PM' },
+  { id: 'PM',        label: 'Afternoon', sub: 'PM  ·  1:00 PM – 5:00 PM'  },
+  { id: 'whole-day', label: 'Whole Day', sub: '8:00 AM – 5:00 PM'          },
+];
+
 /* ── Page component ──────────────────────────────────────────────────────────── */
 
 export default function BorrowReservation() {
@@ -77,11 +92,12 @@ export default function BorrowReservation() {
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
 
-  /* Selected reservation date */
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  /* Date range selection */
+  const [rangeStart, setRangeStart] = useState<string | null>(null);
+  const [rangeEnd,   setRangeEnd]   = useState<string | null>(null);
 
-  /* Return date (user picks it) */
-  const [returnDate, setReturnDate] = useState('');
+  /* Time slot */
+  const [timeSlot, setTimeSlot] = useState<TimeSlot | null>(null);
 
   /* Form fields */
   const [requesterName, setRequesterName] = useState('');
@@ -94,7 +110,6 @@ export default function BorrowReservation() {
   const [purposeOthersDetail, setPurposeOthersDetail] = useState('');
   const [activityName, setActivityName] = useState('');
   const [venue, setVenue] = useState('');
-  const [timeOfUse, setTimeOfUse] = useState('');
   const [signature, setSignature] = useState('');
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [quantityRequested, setQuantityRequested] = useState(1);
@@ -111,7 +126,6 @@ export default function BorrowReservation() {
     if (!id) return;
     setLoadingEquip(true);
     setEquipError(null);
-
     Promise.all([
       axios.get<InventoryItem>(`${API_URL}/borrowing/inventory/${id}`),
       axios.get<AvailabilityEntry[]>(`${API_URL}/borrowing/availability/${id}`),
@@ -126,32 +140,75 @@ export default function BorrowReservation() {
       .finally(() => setLoadingEquip(false));
   }, [id]);
 
-  /* Reset return date when borrow date changes */
-  useEffect(() => {
-    if (selectedDate) {
-      setReturnDate(addDays(selectedDate, 1));
-    } else {
-      setReturnDate('');
-    }
-  }, [selectedDate]);
-
-  /* ── Date status helper ──────────────────────────────────────────────────────── */
+  /* ── Date status helper ──────────────────────────────────────────────────── */
 
   const getDateStatus = (dateStr: string): DateStatus =>
     computeDateStatus(dateStr, availability, equipment?.max_quantity ?? 1);
 
-  /* ── Submit ──────────────────────────────────────────────────────────────────── */
+  /* ── Range conflict check ────────────────────────────────────────────────── */
+
+  const rangeConflict = useMemo(() => {
+    if (!rangeStart || !rangeEnd || !equipment) return false;
+    const d = new Date(rangeStart + 'T00:00:00');
+    const end = new Date(rangeEnd + 'T00:00:00');
+    while (d <= end) {
+      const ds = d.toISOString().split('T')[0];
+      if (computeDateStatus(ds, availability, equipment.max_quantity) === 'full') return true;
+      d.setDate(d.getDate() + 1);
+    }
+    return false;
+  }, [rangeStart, rangeEnd, availability, equipment]);
+
+  /* ── Date selection handler ──────────────────────────────────────────────── */
+
+  const handleDateSelect = (dateStr: string) => {
+    setSubmitError(null);
+    // If no start yet, or both already set → start a fresh range
+    if (!rangeStart || rangeEnd) {
+      setRangeStart(dateStr);
+      setRangeEnd(null);
+      setTimeSlot(null);
+      return;
+    }
+    // rangeStart is set but no rangeEnd yet
+    if (dateStr === rangeStart) {
+      setRangeStart(null);
+      setTimeSlot(null);
+      return;
+    }
+    if (dateStr < rangeStart) {
+      // Clicked an earlier date → make it the new start
+      setRangeStart(dateStr);
+      setRangeEnd(null);
+      return;
+    }
+    // Valid range end
+    setRangeEnd(dateStr);
+  };
+
+  const clearRange = () => {
+    setRangeStart(null);
+    setRangeEnd(null);
+    setTimeSlot(null);
+    setSubmitError(null);
+  };
+
+  /* ── Submit ──────────────────────────────────────────────────────────────── */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
 
-    if (!selectedDate) {
-      setSubmitError('Please select a reservation date on the calendar.');
+    if (!rangeStart || !rangeEnd) {
+      setSubmitError('Please select a borrow date and return date on the calendar.');
       return;
     }
-    if (!returnDate || returnDate <= selectedDate) {
-      setSubmitError('Return date must be after the borrow date.');
+    if (!timeSlot) {
+      setSubmitError('Please select a time slot (AM, PM, or Whole Day).');
+      return;
+    }
+    if (rangeConflict) {
+      setSubmitError('Your selected date range includes fully booked dates. Please choose another range.');
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -188,12 +245,10 @@ export default function BorrowReservation() {
           purpose_others_detail: purposeOthersDetail || undefined,
           activity_name: activityName || undefined,
           venue: venue || undefined,
-          borrow_date: selectedDate,
-          return_date: returnDate,
-          time_of_use: timeOfUse || undefined,
-          equipment_items: [
-            { equipment_id: id, quantity_requested: quantityRequested },
-          ],
+          borrow_date: rangeStart,
+          return_date: rangeEnd,
+          time_of_use: timeSlotLabel(timeSlot),
+          equipment_items: [{ equipment_id: id, quantity_requested: quantityRequested }],
         },
       );
       setEmailSent(result?.email_sent ?? false);
@@ -208,7 +263,7 @@ export default function BorrowReservation() {
     }
   };
 
-  /* ── Success screen ──────────────────────────────────────────────────────────── */
+  /* ── Success screen ──────────────────────────────────────────────────────── */
 
   if (step === 'success') {
     return (
@@ -217,18 +272,32 @@ export default function BorrowReservation() {
           <div className="br-success-icon">✓</div>
           <h2>Reservation submitted!</h2>
           <p>
-            Your reservation for <strong>{equipment?.name ?? 'equipment'}</strong> on{' '}
-            <strong>{formatDisplayDate(selectedDate!)}</strong> has been received.
+            Your reservation for <strong>{equipment?.name ?? 'equipment'}</strong> has been received.
           </p>
-          <p>The CSG Property Manager will review your request and contact you via email or phone.</p>
+          <div className="br-success-details">
+            <div className="br-success-row">
+              <span className="br-success-lbl">Borrow date</span>
+              <span className="br-success-val">{rangeStart ? formatDisplayDate(rangeStart) : '—'}</span>
+            </div>
+            <div className="br-success-row">
+              <span className="br-success-lbl">Return date</span>
+              <span className="br-success-val">{rangeEnd ? formatDisplayDate(rangeEnd) : '—'}</span>
+            </div>
+            <div className="br-success-row">
+              <span className="br-success-lbl">Time slot</span>
+              <span className="br-success-val">{timeSlot ? timeSlotShort(timeSlot) : '—'}</span>
+            </div>
+          </div>
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+            The CSG Property Manager will review your request and contact you via email or phone.
+          </p>
           {emailSent ? (
             <p className="br-success-email br-success-email--ok">
               ✓ A confirmation email was sent to your email address.
             </p>
           ) : (
             <p className="br-success-email br-success-email--warn">
-              Note: We were unable to send a confirmation email. Your request was saved — please
-              take note of your submission for reference.
+              Note: We were unable to send a confirmation email. Your request was saved.
             </p>
           )}
           <div className="br-success-actions">
@@ -241,7 +310,7 @@ export default function BorrowReservation() {
     );
   }
 
-  /* ── Loading / error states ──────────────────────────────────────────────────── */
+  /* ── Loading / error states ──────────────────────────────────────────────── */
 
   if (loadingEquip) {
     return (
@@ -254,7 +323,7 @@ export default function BorrowReservation() {
   if (equipError || !equipment) {
     return (
       <div className="br-page">
-        <div className="br-error">
+        <div className="br-error-state">
           <p>{equipError ?? 'Equipment not found.'}</p>
           <button className="br-btn-ghost" onClick={() => navigate('/borrow')}>
             ← Back to Equipment List
@@ -264,14 +333,21 @@ export default function BorrowReservation() {
     );
   }
 
-  const reservedOnSelected = selectedDate
+  /* Available quantity for selected date range */
+  const reservedOnRange = rangeStart
     ? availability
-        .filter((r) => r.borrow_date <= selectedDate && selectedDate <= r.return_date)
+        .filter((r) => {
+          // Any reservation that overlaps with the borrow date
+          return r.borrow_date <= rangeStart && rangeStart <= r.return_date;
+        })
         .reduce((s, r) => s + r.quantity_requested, 0)
     : 0;
-  const maxAllowed = equipment.max_quantity - reservedOnSelected;
+  const maxAllowed = Math.max(1, equipment.max_quantity - reservedOnRange);
 
-  /* ── Main reserve view ──────────────────────────────────────────────────────── */
+  /* Whether to show the form (all 3 steps complete) */
+  const showForm = !!(rangeStart && rangeEnd && timeSlot);
+
+  /* ── Main reserve view ───────────────────────────────────────────────────── */
 
   return (
     <div className="br-page">
@@ -293,7 +369,11 @@ export default function BorrowReservation() {
           <h1 className="br-equip-name">{equipment.name}</h1>
           <div className="br-equip-meta">
             <span
-              className={`br-equip-badge ${equipment.is_available && equipment.quantity > 0 ? 'br-equip-badge--ok' : 'br-equip-badge--out'}`}
+              className={`br-equip-badge ${
+                equipment.is_available && equipment.quantity > 0
+                  ? 'br-equip-badge--ok'
+                  : 'br-equip-badge--out'
+              }`}
             >
               {equipment.is_available && equipment.quantity > 0
                 ? `${equipment.quantity} of ${equipment.max_quantity} available`
@@ -301,56 +381,114 @@ export default function BorrowReservation() {
             </span>
           </div>
           <p className="br-equip-hint">
-            Select a date on the calendar to see availability and complete your reservation.
+            Click a date to start your reservation. Then pick a time slot and return date.
           </p>
         </div>
       </div>
 
       <div className="br-body">
-        {/* ── Calendar panel ── */}
-        <div className="br-cal-panel">
-          <h2 className="br-section-title">Step 1 — Choose a date</h2>
-          <ReservationCalendar
-            year={calYear}
-            month={calMonth}
-            onMonthChange={(y, m) => { setCalYear(y); setCalMonth(m); }}
-            variant="user"
-            getDateStatus={getDateStatus}
-            selectedDate={selectedDate}
-            onSelectDate={(d) => {
-              setSelectedDate(d);
-              setSubmitError(null);
-            }}
-          />
+        {/* ── Step 1 & 2: Calendar + Time Slot side by side ── */}
+        <div className="br-body-top">
+          {/* Calendar */}
+          <div className="br-cal-panel">
+            <h2 className="br-section-title">Step 1 — Choose dates</h2>
+            <ReservationCalendar
+              year={calYear}
+              month={calMonth}
+              onMonthChange={(y, m) => {
+                setCalYear(y);
+                setCalMonth(m);
+              }}
+              variant="user"
+              getDateStatus={getDateStatus}
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              onSelectDate={handleDateSelect}
+            />
 
-          {selectedDate && (
-            <div className="br-date-confirm">
-              <span className="br-date-confirm-label">Selected date:</span>
-              <span className="br-date-confirm-value">{formatDisplayDate(selectedDate)}</span>
-              <button
-                type="button"
-                className="br-date-clear"
-                onClick={() => setSelectedDate(null)}
-                aria-label="Clear selected date"
-              >
-                ×
-              </button>
+            {/* Confirmation / conflict bar */}
+            {rangeStart && (
+              <div className="br-date-confirm">
+                <div className="br-date-confirm-inner">
+                  <div className="br-date-confirm-row">
+                    <span className="br-date-confirm-label">Borrow:</span>
+                    <span className="br-date-confirm-value">{formatDisplayDate(rangeStart)}</span>
+                  </div>
+                  {rangeEnd && (
+                    <div className="br-date-confirm-row">
+                      <span className="br-date-confirm-label">Return:</span>
+                      <span className="br-date-confirm-value">{formatDisplayDate(rangeEnd)}</span>
+                    </div>
+                  )}
+                  {timeSlot && (
+                    <div className="br-date-confirm-row">
+                      <span className="br-date-confirm-label">Slot:</span>
+                      <span className="br-chip br-chip--slot">{timeSlotShort(timeSlot)}</span>
+                    </div>
+                  )}
+                </div>
+                <button className="br-date-clear" onClick={clearRange} aria-label="Clear selection" type="button">
+                  ×
+                </button>
+              </div>
+            )}
+
+            {rangeConflict && (
+              <p className="br-range-warning">
+                ⚠ Some dates in this range are fully booked. Please choose a different date range.
+              </p>
+            )}
+
+            {rangeStart && !rangeEnd && (
+              <p className="br-calendar-hint">
+                {timeSlot
+                  ? '← Now click a return date on the calendar above'
+                  : 'Select a time slot →, then pick a return date'}
+              </p>
+            )}
+          </div>
+
+          {/* Time Slot Panel — slides in once a start date is chosen */}
+          {rangeStart && (
+            <div className="br-timeslot-panel">
+              <h2 className="br-section-title">Step 2 — Time slot</h2>
+              <p className="br-timeslot-hint">How long will you need the equipment?</p>
+              <div className="br-slots">
+                {TIME_SLOTS.map((slot) => (
+                  <button
+                    key={slot.id}
+                    type="button"
+                    className={`br-slot-card${timeSlot === slot.id ? ' br-slot-card--selected' : ''}`}
+                    onClick={() => setTimeSlot(slot.id)}
+                  >
+                    <span className="br-slot-label">{slot.label}</span>
+                    <span className="br-slot-sub">{slot.sub}</span>
+                  </button>
+                ))}
+              </div>
+
+              {timeSlot && !rangeEnd && (
+                <p className="br-timeslot-next">← Now pick a return date on the calendar</p>
+              )}
             </div>
           )}
         </div>
 
-        {/* ── Form panel (visible once date is selected) ── */}
-        {selectedDate && (
+        {/* ── Step 3: Form — shown once all three selections are made ── */}
+        {showForm && (
           <div className="br-form-panel">
-            <h2 className="br-section-title">Step 2 — Complete your reservation</h2>
+            <h2 className="br-section-title">Step 3 — Complete your reservation</h2>
+
+            {/* Summary chips */}
+            <div className="br-summary-chips">
+              <span className="br-chip br-chip--equip">{equipment.name}</span>
+              <span className="br-chip br-chip--date">
+                {rangeStart} → {rangeEnd}
+              </span>
+              <span className="br-chip br-chip--slot">{timeSlotShort(timeSlot)}</span>
+            </div>
 
             <form className="br-form" onSubmit={handleSubmit}>
-              {/* Reservation summary chips */}
-              <div className="br-summary-chips">
-                <span className="br-chip br-chip--equip">{equipment.name}</span>
-                <span className="br-chip br-chip--date">{selectedDate}</span>
-              </div>
-
               {/* Section 1: Request Information */}
               <div className="br-section-label">Section 1 — Request Information</div>
               <div className="br-two-col">
@@ -423,21 +561,23 @@ export default function BorrowReservation() {
                 <div className="br-field" style={{ gridColumn: '1' }}>
                   <label>Purpose of Equipment Use</label>
                   <div className="br-checkbox-group">
-                    {(['academic', 'event', 'organization', 'others'] as PurposeType[]).map((pt) => (
-                      <label key={pt} className="br-checkbox-row">
-                        <input
-                          type="checkbox"
-                          checked={purposeType === pt}
-                          onChange={() => setPurposeType(purposeType === pt ? '' : pt)}
-                        />
-                        <span>
-                          {pt === 'academic' && 'Academic / Class Use'}
-                          {pt === 'event' && 'Event / Program'}
-                          {pt === 'organization' && 'Organization'}
-                          {pt === 'others' && 'Others:'}
-                        </span>
-                      </label>
-                    ))}
+                    {(['academic', 'event', 'organization', 'others'] as PurposeType[]).map(
+                      (pt) => (
+                        <label key={pt} className="br-checkbox-row">
+                          <input
+                            type="checkbox"
+                            checked={purposeType === pt}
+                            onChange={() => setPurposeType(purposeType === pt ? '' : pt)}
+                          />
+                          <span>
+                            {pt === 'academic' && 'Academic / Class Use'}
+                            {pt === 'event' && 'Event / Program'}
+                            {pt === 'organization' && 'Organization'}
+                            {pt === 'others' && 'Others:'}
+                          </span>
+                        </label>
+                      ),
+                    )}
                     {purposeType === 'others' && (
                       <input
                         type="text"
@@ -468,19 +608,10 @@ export default function BorrowReservation() {
                       placeholder="e.g. College Auditorium"
                     />
                   </div>
-                  <div className="br-field">
-                    <label>Time of Use</label>
-                    <input
-                      type="text"
-                      value={timeOfUse}
-                      onChange={(e) => setTimeOfUse(e.target.value)}
-                      placeholder="e.g. 10:00 AM – 12:00 PM"
-                    />
-                  </div>
                 </div>
               </div>
 
-              {/* Section 3: Equipment / Dates */}
+              {/* Section 3: Equipment & Dates (all read-only — set via calendar) */}
               <div className="br-section-label">Section 3 — Equipment &amp; Dates</div>
               <div className="br-two-col">
                 <div className="br-field">
@@ -492,28 +623,26 @@ export default function BorrowReservation() {
                   <input
                     type="number"
                     min={1}
-                    max={maxAllowed > 0 ? maxAllowed : 1}
+                    max={maxAllowed}
                     value={quantityRequested}
                     onChange={(e) =>
                       setQuantityRequested(
-                        Math.min(parseInt(e.target.value) || 1, maxAllowed > 0 ? maxAllowed : 1),
+                        Math.min(parseInt(e.target.value) || 1, maxAllowed),
                       )
                     }
                   />
                 </div>
                 <div className="br-field">
                   <label>Borrow Date</label>
-                  <input type="date" value={selectedDate} readOnly className="br-readonly" />
+                  <input type="text" value={formatDisplayDate(rangeStart)} readOnly className="br-readonly" />
                 </div>
                 <div className="br-field">
-                  <label>Return Date <span className="br-req">*</span></label>
-                  <input
-                    type="date"
-                    value={returnDate}
-                    min={addDays(selectedDate, 1)}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                    required
-                  />
+                  <label>Return Date</label>
+                  <input type="text" value={formatDisplayDate(rangeEnd)} readOnly className="br-readonly" />
+                </div>
+                <div className="br-field">
+                  <label>Time Slot</label>
+                  <input type="text" value={timeSlotLabel(timeSlot)} readOnly className="br-readonly" />
                 </div>
               </div>
 
@@ -526,7 +655,9 @@ export default function BorrowReservation() {
               </p>
               <div className="br-two-col">
                 <div className="br-field">
-                  <label>Requester's Signature (typed name) <span className="br-req">*</span></label>
+                  <label>
+                    Requester's Signature (typed name) <span className="br-req">*</span>
+                  </label>
                   <input
                     type="text"
                     value={signature}
