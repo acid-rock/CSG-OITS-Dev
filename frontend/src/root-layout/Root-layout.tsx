@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Navigation from "../components/navigation/Navigation";
 import Footer from "../components/footer/Footer";
 import SplashScreen from "../components/splash-screen/SplashScreen";
+import MaintenanceScreen from "../components/splash-screen/MaintenanceScreen";
 import QueueScreen from "../components/queue-screen/QueueScreen";
 import { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
@@ -99,6 +100,7 @@ const Root = () => {
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   // ── Concurrent-access slot management ──────────────────────
   // 'checking' → awaiting /access/join response
@@ -168,7 +170,7 @@ const Root = () => {
     setLoading(true);
     setError(null);
 
-    const [bulletinResult, documentsResult, eventsResult, officersResult, orgsResult, committeesResult] =
+    const [bulletinResult, documentsResult, eventsResult, officersResult, orgsResult, committeesResult, pauseResult] =
       await Promise.allSettled([
         fetchBulletinData(),
         fetchDocuments(),
@@ -177,7 +179,16 @@ const Root = () => {
         fetchOfficers(undefined, undefined, undefined, 'all'),
         fetchOrganizations(),
         fetchCommittees(),
+        // Check if admin has paused public access
+        axios.get<{ key: string; value: string }>(`${VITE_API_URL}/settings/access_paused`),
       ]);
+
+    // Check pause state first — 404 means the key was never set (not paused)
+    if (pauseResult.status === 'fulfilled' && pauseResult.value.data.value === 'true') {
+      setIsPaused(true);
+      setLoading(false);
+      return;
+    }
 
     const allFailed = [bulletinResult, documentsResult, eventsResult, officersResult]
       .every((r) => r.status === "rejected");
@@ -284,6 +295,11 @@ const Root = () => {
   // Show splash while checking access OR while data is loading
   if (accessState === 'checking' || loading) {
     return <SplashScreen />;
+  }
+
+  // Admin toggled "Pause access for students" — show maintenance screen
+  if (isPaused) {
+    return <MaintenanceScreen />;
   }
 
   if (error) {
