@@ -684,3 +684,55 @@
   /* clip scrollbar track to the form's rounded corners */
   border-radius:16px;
 }
+
+/* ── Custom Scrollbars ──────────────────────────────────────── */
+
+/* Sidebar — thin white-tinted thumb on dark gradient background */
+.ad-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+.ad-sidebar::-webkit-scrollbar { width: 4px; }
+.ad-sidebar::-webkit-scrollbar-track { background: transparent; }
+.ad-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.18);
+  border-radius: 99px;
+}
+.ad-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.38);
+}
+
+/* Main content area — thin blue thumb on light surface */
+.ad-main {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-light) transparent;
+}
+.ad-main::-webkit-scrollbar { width: 6px; }
+.ad-main::-webkit-scrollbar-track { background: transparent; }
+.ad-main::-webkit-scrollbar-thumb {
+  background: var(--color-primary-light);
+  border-radius: 99px;
+}
+.ad-main::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Modal scroll areas — subtle neutral thumb */
+.ad-modal-overlay,
+.ad-modal-overlay > * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+.ad-modal-overlay::-webkit-scrollbar,
+.ad-modal-overlay > *::-webkit-scrollbar { width: 5px; }
+.ad-modal-overlay::-webkit-scrollbar-track,
+.ad-modal-overlay > *::-webkit-scrollbar-track { background: transparent; }
+.ad-modal-overlay::-webkit-scrollbar-thumb,
+.ad-modal-overlay > *::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 99px;
+}
+.ad-modal-overlay::-webkit-scrollbar-thumb:hover,
+.ad-modal-overlay > *::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-light);
+}
