@@ -1,9 +1,9 @@
 import Main from "../../layout/main-section/Main";
 import Announcement from "../../layout/announcement-section/Announcement";
-import Document from "../../layout/document-section/Document";
-import Events from "../../layout/events-section/events";
 import About from "../../layout/about-section/About";
-import Officer from "../../layout/officer-layout/Officer";
+import Events from "../../layout/events-section/events";
+import OrganizationsSection from "../../layout/organizations-section/OrganizationsSection";
+import "./homepage.css";
 
 const Homepage = () => {
   return (
@@ -14,18 +14,13 @@ const Homepage = () => {
       <div id="announcement">
         <Announcement />
       </div>
-      <div id="document">
-        <Document />
-      </div>
       <div id="events">
         <Events />
       </div>
       <div id="about">
         <About />
       </div>
-      <div id="officers">
-        <Officer />
-      </div>
+      <OrganizationsSection />
     </div>
   );
 };

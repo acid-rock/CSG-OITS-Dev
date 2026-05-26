@@ -1,4 +1,5 @@
-import './confirmationModal.css';
+import "./confirmationModal.css";
+import { useLockBodyScroll } from "../../../../hooks/useLockBodyScroll";
 
 interface confirmationProps {
   onClose: () => void;
@@ -6,26 +7,27 @@ interface confirmationProps {
 }
 
 const ConfimationModal = ({ onConfirm, onClose }: confirmationProps) => {
+  useLockBodyScroll(true);
   return (
-    <div className='admin-confirm-overlay'>
-      <div className='admin-confirm-container'>
-        <h2 className='admin-confirm-title'>
+    <div className="admin-confirm-overlay">
+      <div className="admin-confirm-container">
+        <h2 className="admin-confirm-title">
           Confirm System Information Update
         </h2>
-        <p className='admin-confirm-message'>
+        <p className="admin-confirm-message">
           You're about to change system information. Please review the details
           carefully before confirming. These changes will take effect
           immediately.
         </p>
-        <div className='admin-confirm-actions'>
+        <div className="admin-confirm-actions">
           <button
-            className='admin-confirm-btn admin-confirm-btn--confirm'
+            className="admin-confirm-btn admin-confirm-btn--confirm"
             onClick={onConfirm}
           >
             Confirm
           </button>
           <button
-            className='admin-confirm-btn admin-confirm-btn--cancel'
+            className="admin-confirm-btn admin-confirm-btn--cancel"
             onClick={onClose}
           >
             Cancel

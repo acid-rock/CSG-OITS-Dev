@@ -5,10 +5,8 @@ import Button from "../../components/button/Button";
 import { Link, useOutletContext } from "react-router-dom";
 import { useState } from "react";
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
-import type {
-  OutletContext,
-  Document,
-} from "../../root-layout/Root-layout.tsx";
+import type { OutletContext } from "../../root-layout/Root-layout.tsx";
+import type { Document } from "../../root-layout/Root-layout.tsx";
 
 export default function Document() {
   const { documents } = useOutletContext<OutletContext>();
@@ -20,15 +18,20 @@ export default function Document() {
     setIsModalOpen(true);
   };
 
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="document-container">
       <div className="document-layout">
         <div className="document-texts">
-          <Typography size="text-md" color="text-dark">
+          <Typography size="text-lg" color="text-dark">
             Comprehensive Document Library
           </Typography>
-          <Typography size="text-sm" color="text-ghost">
-            This is where the documents
+          <Typography size="text-sm" color="text-dark">
+            Explore our comprehensive library of official documents, memos, and
+            reports.
           </Typography>
         </div>
 
@@ -37,9 +40,13 @@ export default function Document() {
             <DocumentCard
               key={docu.id}
               id={docu.id}
+              category={docu.category}
               title={docu.description}
+              description={docu.description}
+              term={docu.term ?? ""}
+              date={docu.date}
               variant="default"
-              onSelect={() => {}} // no preview panel on this page
+              onSelect={() => {}}
               onView={() => handleView(docu)}
             />
           ))}
@@ -50,6 +57,7 @@ export default function Document() {
             <Link
               to="/bulletin"
               style={{ textDecoration: "none", color: "white" }}
+              onClick={scroll}
             >
               VIEW ALL
             </Link>

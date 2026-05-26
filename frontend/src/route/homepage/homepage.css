@@ -1,0 +1,36 @@
+.hp-orgs-section {
+  padding: var(--space-16) var(--section-padding-x);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.hp-orgs-inner {
+  max-width: var(--max-width-content);
+  margin: 0 auto;
+}
+
+.hp-orgs-heading {
+  text-align: center;
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin: 0 0 var(--space-2);
+}
+
+.hp-orgs-sub {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-10);
+}
+
+.hp-orgs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .hp-orgs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,47 +1,178 @@
-import Typography from '../../components/typography/Typography';
-import './main.css';
-import Button from '../../components/button/Button';
-import wave from '../../assets/Wave_Section.svg';
+import "./main.css";
+import { useState, useEffect } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import axios from "axios";
+import Button from "../../components/button/Button";
+import type { OutletContext } from "../../root-layout/Root-layout";
 
 export default function Main() {
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
+  const navigate = useNavigate();
+  const { bulletin } = useOutletContext<OutletContext>();
+
+  const [docs, setDocs] = useState<string>("—");
+  const [committees, setCommittees] = useState<string>("—");
+  const [officers, setOfficers] = useState<string>("—");
+  const [equipmentLabel, setEquipmentLabel] =
+    useState<string>("— of — available");
+
+  // Derive pinned info from outlet context (already fetched by Root-layout)
+  const pinnedAnn =
+    bulletin.find((a) => a.is_pinned) ??
+    [...bulletin].sort(
+      (a, b) =>
+        new Date(b.created_at ?? "").getTime() -
+        new Date(a.created_at ?? "").getTime(),
+    )[0] ??
+    null;
+
+  const pinnedTitle = pinnedAnn
+    ? pinnedAnn.title.replace(/\|/g, "–").replace(/\s{2,}/g, " ").trim()
+    : "No announcements";
+
+  // Hero image: pinned announcement photo, or fallback static photo
+  const heroImg = pinnedAnn?.imgUrl || "/home1.JPG";
+
+  useEffect(() => {
+    const base = import.meta.env.VITE_API_URL as string;
+
+    // Stat counters
+    Promise.all([
+      axios
+        .get(`${base}/documents/`)
+        .then((r) => setDocs(String(r.data.length)))
+        .catch(() => {}),
+      axios
+        .get(`${base}/committees/`)
+        .then((r) => setCommittees(String(r.data.length)))
+        .catch(() => {}),
+      axios
+        .get(`${base}/officers/`)
+        .then((r) => setOfficers(String(r.data.length)))
+        .catch(() => {}),
+    ]);
+
+    // Equipment Online badge
+    axios
+      .get(`${base}/equipment/`)
+      .then((r) => {
+        const rows: {
+          quantity: number;
+          max_quantity: number;
+          is_available: boolean;
+        }[] = r.data;
+        const available = rows
+          .filter((row) => row.is_available)
+          .reduce((sum, row) => sum + row.quantity, 0);
+        const total = rows.reduce((sum, row) => sum + row.max_quantity, 0);
+        setEquipmentLabel(`${available} of ${total} available`);
+      })
+      .catch(() => setEquipmentLabel("— of — available"));
+  }, []);
+
 
   return (
-    <div className='hero-container'>
-      <div className='hero-layout'>
-        <div className='hero-text'>
-          <Typography size='text-lg' color='text-dark'>
-            Online Information and Trasparency System
-          </Typography>
-          <Typography
-            size='text-md'
-            color='text-ghost'
-            style={{ fontSize: '1rem' }}
-          >
-            We believe in open communication and accountability. Our mission is
-            to represent student voices and ensure every decision in clever and
-            accesible.
-          </Typography>
-          <div className='hero-buttons'>
-            <Button
-              variant='primary'
-              onClick={() => scrollToSection('document')}
-            >
+    <div className="hero-container">
+      <div className="hero-layout">
+        {/* TEXT SIDE */}
+        <div className="hero-text">
+          <span className="hero-eyebrow">
+            <span className="dot" />
+            AY 2025–2026 · Now in session
+          </span>
+
+          <h1 className="hero-headline">
+            Your voice, your campus, your <em>student</em> government.
+          </h1>
+
+          <p className="hero-subtext">
+            Stay informed about resolutions, events, and the day-to-day work of
+            the CSG. Borrow equipment, follow announcements, and meet the
+            officers serving you this academic year.
+          </p>
+
+          <div className="hero-buttons">
+            <Button variant="primary" onClick={() => navigate("/borrow")}>
+              Borrow Equipment →
+            </Button>
+            <Button variant="secondary" onClick={() => navigate("/documents")}>
               Documents
             </Button>
           </div>
+
+          {/* Stat tiles */}
+          <div className="hero-stats">
+            <div className="hero-stat">
+              <div className="hero-stat-num">{docs}</div>
+              <div className="hero-stat-lbl">Public documents filed</div>
+            </div>
+            <div className="hero-stat">
+              <div className="hero-stat-num">{committees}</div>
+              <div className="hero-stat-lbl">Active committees</div>
+            </div>
+            <div className="hero-stat">
+              <div className="hero-stat-num">{officers}</div>
+              <div className="hero-stat-lbl">Officers serving</div>
+            </div>
+          </div>
         </div>
-        <div className='hero-image'>
-          <img src='./home2.JPG' alt='test' />
+
+        {/* IMAGE SIDE */}
+        <div className="hero-image-container">
+          <div className="image-carousel-track">
+            <div className="slide">
+              <img src={heroImg} alt="" />
+            </div>
+          </div>
+
+          {/* Floating badges — clickable links */}
+          <div
+            className="hero-badge bg1"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate("/bulletin")}
+            onKeyDown={(e) => e.key === "Enter" && navigate("/bulletin")}
+            style={{ cursor: "pointer" }}
+            title="View all announcements"
+          >
+            <div className="ico">📌</div>
+            <div>
+              <div className="lbl">Pinned now</div>
+              <div className="val">{pinnedTitle}</div>
+            </div>
+          </div>
+          <div
+            className="hero-badge bg2"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate("/borrow")}
+            onKeyDown={(e) => e.key === "Enter" && navigate("/borrow")}
+            style={{ cursor: "pointer" }}
+            title="Borrow equipment"
+          >
+            <div
+              className="ico"
+              style={{
+                background: "#22C55E",
+                color: "#fff",
+                borderRadius: "50%",
+                width: "20px",
+                height: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "11px",
+                fontWeight: "700",
+                flexShrink: 0,
+              }}
+            >
+              ✓
+            </div>
+            <div>
+              <div className="lbl">Equipment online</div>
+              <div className="val">{equipmentLabel}</div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className='wave-image'>
-        <img className='wave' src={wave} alt='Wave' />
       </div>
     </div>
   );

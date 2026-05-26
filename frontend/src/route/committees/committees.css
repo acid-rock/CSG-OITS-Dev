@@ -1,0 +1,197 @@
+/* ============================================================
+   CSG-OITS Public Committees — CommitteesV1 (image banner)
+   Tokens cascade from :root via tokens.css / index.css
+   ============================================================ */
+
+/* ── Section wrapper ─────────────────────────────────────── */
+.cc-section {
+  padding: 80px 60px;
+  max-width: var(--max-width-content);
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Section heading ─────────────────────────────────────── */
+.cc-section-head {
+  max-width: 680px; margin: 0 auto 36px; text-align: center;
+}
+.cc-kicker {
+  display: inline-block;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 10px;
+}
+.cc-section-head h2 {
+  color: var(--color-text-primary); font-size: 32px; font-weight: 800;
+  margin: 0 0 8px; letter-spacing: -0.02em; line-height: 1.15;
+  font-family: var(--font-family-heading);
+}
+.cc-section-head h2 em {
+  font-family: var(--font-family-serif); font-style: italic; font-weight: 400;
+  color: var(--color-primary-deep);
+}
+.cc-section-head p {
+  font-size: 14.5px; color: var(--color-text-secondary); margin: 0; font-weight: 450;
+}
+
+/* ── Grid — flex so partial last row centres (4-4-2 tree layout) ── */
+.cc-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+/* 4 per row: (100% - 3 × 18px) / 4 */
+.cc-grid--banner > * { flex: 0 0 calc(25% - 13.5px); min-width: 0; }
+
+/* ── Card base ───────────────────────────────────────────── */
+.cc-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: var(--transition-base);
+  position: relative;
+  cursor: pointer;
+}
+.cc-card:hover {
+  border-color: var(--color-primary-mid);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-3px);
+}
+.cc-card-body {
+  padding: 16px 18px 18px;
+  display: flex; flex-direction: column; gap: 10px; flex: 1;
+}
+.cc-card-title {
+  font-size: 14.5px; font-weight: 700; line-height: 1.35;
+  color: var(--color-text-primary); margin: 0;
+  letter-spacing: -0.01em;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 40px;
+  font-family: var(--font-family-heading);
+}
+.cc-card-foot {
+  margin-top: auto; padding-top: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+/* ── Photo block ─────────────────────────────────────────── */
+.cc-photo {
+  background: var(--color-surface-deep) center/cover no-repeat;
+  border-bottom: 1px solid var(--color-border-soft);
+  position: relative;
+  aspect-ratio: 16/9;
+}
+.cc-card--banner .cc-photo { aspect-ratio: 16/9; }
+
+.cc-photo--ph {
+  background:
+    linear-gradient(135deg, rgba(79,111,209,0.06), rgba(138,170,224,0.04)),
+    repeating-linear-gradient(135deg, #eef2fb 0 14px, #e2e8f0 14px 28px);
+  display: flex; align-items: center; justify-content: center;
+}
+.cc-photo-mark {
+  font-family: var(--font-family-serif); font-style: italic; font-weight: 600;
+  font-size: 34px; color: var(--color-primary);
+  background: rgba(255,255,255,0.7);
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,255,255,0.9);
+  box-shadow: 0 4px 12px -4px rgba(15,23,41,0.15);
+}
+
+/* CSG logo placeholder — white background with centred logo */
+.cc-photo--logo {
+  background: #ffffff;
+  display: flex; align-items: center; justify-content: center;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+.cc-photo-logo-img {
+  width: 52px; height: 52px;
+  opacity: 0.45;
+  object-fit: contain;
+}
+
+/* ── Avatar ──────────────────────────────────────────────── */
+.cc-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--gradient-deep);
+  color: #fff; font-weight: 700; letter-spacing: -0.01em;
+  flex-shrink: 0;
+  font-family: var(--font-family-heading);
+}
+.cc-avatar.has-ring {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--color-primary-light), 0 4px 12px -4px rgba(79,111,209,0.35);
+}
+
+/* ── Chair line ──────────────────────────────────────────── */
+.cc-chair { display: flex; align-items: center; gap: 10px; }
+/* Photo avatar — rendered when the chair officer has a resolved avatar URL */
+.cc-chair-photo {
+  width: 28px; height: 28px; border-radius: 50%;
+  object-fit: cover; object-position: top center;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--color-primary-light);
+}
+.cc-chair-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.cc-chair-label {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.cc-chair-name {
+  font-size: 13px; font-weight: 600; color: var(--color-text-primary);
+  letter-spacing: -0.005em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ── Member count ────────────────────────────────────────── */
+.cc-count {
+  font-size: 11.5px; font-weight: 700; color: var(--color-text-primary);
+  letter-spacing: -0.005em;
+}
+.cc-count span {
+  font-weight: 500; color: var(--color-text-muted); margin-left: 4px;
+  text-transform: lowercase;
+}
+
+/* ── CTA link ────────────────────────────────────────────── */
+.cc-link {
+  font-size: 12.5px; font-weight: 600; color: var(--color-primary);
+  display: inline-flex; align-items: center; gap: 4px;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.cc-link svg { transition: transform 200ms ease; }
+.cc-card:hover .cc-link { color: var(--color-primary-deep); }
+.cc-card:hover .cc-link svg { transform: translateX(3px); }
+
+/* ── Focus states ────────────────────────────────────────── */
+.cc-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(79,111,209,0.12), var(--shadow-card-hover);
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* 3 per row: (100% - 2 × 18px) / 3 */
+  .cc-grid--banner > * { flex: 0 0 calc(33.333% - 12px); }
+}
+@media (max-width: 768px) {
+  /* 2 per row: (100% - 18px) / 2 */
+  .cc-grid--banner > * { flex: 0 0 calc(50% - 9px); }
+  .cc-section { padding: 60px 32px; }
+}
+@media (max-width: 480px) {
+  /* 1 per row */
+  .cc-grid--banner > * { flex: 0 0 100%; }
+  .cc-section { padding: 48px 20px; }
+  .cc-section-head h2 { font-size: 26px; }
+}

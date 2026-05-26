@@ -1,223 +1,421 @@
+import '../_shared/admin-list.css';
+import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import PauseAccessModal from '../../components/modals/PauseAccessModal/PauseAccessModal';
-import './settings.css';
-import { useState } from 'react';
-import SettingsForm from '../../components/settings-form/general-form/SettingsForm';
-import WhitelistForm from '../../components/settings-form/whitelist-form/WhitelistForm';
-import DeleteModal from '../../components/modals/deleteModal/DeleteModal';
+import ChangelogModal from '../../components/modals/changelogModal/ChangelogModal';
+import PasswordForm from '../../components/settings-form/password-form/PasswordForm';
+import Sidebar from '../_shared/Sidebar';
+import { PageHead } from '../_shared/chrome';
+import { I } from '../_shared/icons';
 
-const admins = [
-  { name: 'Juan Dela Cruz', email: 'jdelacruz@cvsu.edu.ph' },
-  { name: 'Maria Santos', email: 'msantos@cvsu.edu.ph' },
-  { name: 'Pedro Reyes', email: 'preyes@cvsu.edu.ph' },
-  { name: 'Ana Lopez', email: 'alopez@cvsu.edu.ph' },
-  { name: 'Jose Ramos', email: 'jramos@cvsu.edu.ph' },
-  { name: 'Pedro Reyes', email: 'preyes2@cvsu.edu.ph' },
-  { name: 'Pedro Reyes', email: 'preyes3@cvsu.edu.ph' },
-  { name: 'Pedro Reyes', email: 'preyes4@cvsu.edu.ph' },
-  { name: 'Pedro Reyes', email: 'preyes5@cvsu.edu.ph' },
-  { name: 'Pedro Reyes', email: 'preyes6@cvsu.edu.ph' },
-  { name: 'Pedro Reyes', email: 'preyes7@cvsu.edu.ph' },
-  { name: 'Pedro Reyes', email: 'preyes8@cvsu.edu.ph' },
-];
+const API_URL = import.meta.env.VITE_API_URL as string;
+
+interface AdminAccount {
+  id: string;
+  owner_id: string;
+  role: string;
+  email: string | null;
+}
+
+type CommitteePins = { publication: string; secretariat: string; finance: string };
+type CommitteePinInput = { publication: string; secretariat: string; finance: string };
+type CommitteePinSaving = { publication: boolean; secretariat: boolean; finance: boolean };
+type CommitteePinSaved  = { publication: boolean; secretariat: boolean; finance: boolean };
+
+const COMMITTEE_LABELS: Record<keyof CommitteePins, string> = {
+  publication: 'Publication Committee',
+  secretariat: 'Secretariat Committee',
+  finance:     'Finance Committee',
+};
 
 const Settings = () => {
-  const [spinning, setSpinning] = useState(false);
-  const [active, setActive] = useState<string[]>([]);
+  const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>([]);
+  const [adminLoading, setAdminLoading] = useState(true);
+  const [adminError, setAdminError] = useState<string | null>(null);
 
   const [pauseModal, setPauseModal] = useState(false);
-  const [editForm, setEditForm] = useState(false);
-  const [whitelistForm, setWhitelistForm] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [pause, setPause] = useState(false);
+  const [pauseSaving, setPauseSaving] = useState(false);
 
-  const handleActive = (name: string) => {
-    setActive((prev) =>
-      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
-    );
+  const [activeTerm, setActiveTerm] = useState('');
+  const [termSelect, setTermSelect] = useState('');
+  const [termOptions, setTermOptions] = useState<string[]>([]);
+  const [termSaving, setTermSaving] = useState(false);
+  const [termSaved, setTermSaved] = useState(false);
+
+  /* ── Committee PIN management ── */
+  const [pins, setPins]         = useState<CommitteePins>({ publication: '', secretariat: '', finance: '' });
+  const [pinInput, setPinInput] = useState<CommitteePinInput>({ publication: '', secretariat: '', finance: '' });
+  const [pinSaving, setPinSaving] = useState<CommitteePinSaving>({ publication: false, secretariat: false, finance: false });
+  const [pinSaved,  setPinSaved]  = useState<CommitteePinSaved>({ publication: false, secretariat: false, finance: false });
+  const [pinError,  setPinError]  = useState<Partial<Record<keyof CommitteePins, string>>>({});
+  const [pinsLoading, setPinsLoading] = useState(true);
+  const [showPin, setShowPin] = useState<Partial<Record<keyof CommitteePins, boolean>>>({});
+
+  /* ── Current logged-in user (for Account Security label) ── */
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string | null } | null>(null);
+
+  useEffect(() => {
+    axios.get(`${API_URL}/settings/access_paused`, { withCredentials: true })
+      .then(({ data }) => setPause(data.value === 'true'))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    axios.get(`${API_URL}/settings/term`, { withCredentials: true })
+      .then(({ data }) => { setActiveTerm(data.value ?? ''); setTermSelect(data.value ?? ''); })
+      .catch(() => {});
+    axios.get(`${API_URL}/officers/terms`, { withCredentials: true })
+      .then(({ data }) => setTermOptions(Array.isArray(data) ? data : []))
+      .catch(() => setTermOptions([]));
+  }, []);
+
+  const handleSaveTerm = async () => {
+    if (!termSelect.trim()) return;
+    setTermSaving(true); setTermSaved(false);
+    try {
+      await axios.post(`${API_URL}/settings/term`, { value: termSelect.trim() }, { withCredentials: true });
+      setActiveTerm(termSelect.trim());
+      setTermSaved(true);
+      setTimeout(() => setTermSaved(false), 2500);
+    } catch { /* silently ignore */ }
+    finally { setTermSaving(false); }
   };
 
-  const handleRefresh = () => {
-    setSpinning(true);
-    setTimeout(() => window.location.reload(), 600);
+  /* ── Load committee PINs ── */
+  useEffect(() => {
+    setPinsLoading(true);
+    axios
+      .get<CommitteePins>(`${API_URL}/committee-pins`, { withCredentials: true })
+      .then(({ data }) => {
+        setPins(data);
+        setPinInput({ publication: data.publication, secretariat: data.secretariat, finance: data.finance });
+      })
+      .catch(() => { /* silently ignore */ })
+      .finally(() => setPinsLoading(false));
+  }, []);
+
+  /* ── Fetch current user info ── */
+  useEffect(() => {
+    axios
+      .get<{ name: string; email: string; role: string }>(
+        `${API_URL}/user/me`,
+        { withCredentials: true },
+      )
+      .then(({ data }) => {
+        setCurrentUser({
+          name:  data.name ?? 'Admin',
+          email: data.email ?? null,
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSavePin = async (role: keyof CommitteePins) => {
+    const newPin = pinInput[role].trim();
+    if (newPin.length < 4) {
+      setPinError((prev) => ({ ...prev, [role]: 'PIN must be at least 4 characters.' }));
+      return;
+    }
+    setPinError((prev) => ({ ...prev, [role]: undefined }));
+    setPinSaving((prev) => ({ ...prev, [role]: true }));
+    try {
+      await axios.post(`${API_URL}/committee-pins/${role}`, { pin: newPin }, { withCredentials: true });
+      setPins((prev) => ({ ...prev, [role]: newPin }));
+      setPinSaved((prev) => ({ ...prev, [role]: true }));
+      setTimeout(() => setPinSaved((prev) => ({ ...prev, [role]: false })), 2500);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to update PIN.';
+      setPinError((prev) => ({ ...prev, [role]: msg }));
+    } finally {
+      setPinSaving((prev) => ({ ...prev, [role]: false }));
+    }
   };
 
-  const handleRemoveClick = (name: string) => {
-    setDeleteId(name);
-    setDeleteModal(true);
+  const handlePauseConfirm = async () => {
+    const next = !pause;
+    setPauseSaving(true);
+    try {
+      await axios.post(`${API_URL}/settings/access_paused`, { value: String(next) }, { withCredentials: true });
+      setPause(next);
+    } catch { /* silently ignore */ }
+    finally { setPauseSaving(false); }
   };
+
+  const fetchAdminAccounts = useCallback(async () => {
+    setAdminLoading(true); setAdminError(null);
+    try {
+      const { data } = await axios.get(`${API_URL}/user/list`, { withCredentials: true });
+      setAdminAccounts(data);
+    } catch (err: unknown) {
+      setAdminError(
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Could not load accounts.',
+      );
+    } finally { setAdminLoading(false); }
+  }, []);
+
+  useEffect(() => { fetchAdminAccounts(); }, [fetchAdminAccounts]);
+
+  const SectionHead = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
+    <div className="ads-head">
+      <span className="ads-head-icon">{icon}</span>
+      <span className="ads-head-title">{title}</span>
+    </div>
+  );
 
   return (
-    <div className='settings-container'>
-      <div className='settings-header'>
-        <span>Settings</span>
-      </div>
+    <div className="ad-shell">
+      <Sidebar active="settings" />
+      <main className="ad-main">
+        <PageHead
+          title="Settings"
+          subtitle="Manage the active term, access controls, admin accounts, and your password."
+        />
 
-      <div className='settings-content'>
-        {/* ── Consolidated General Settings ── */}
-        <div className='general-settings'>
-          <label>
-            <img src='/globe.png' title='globe' />
-            General System Settings
-            <img
-              src='/edit.png'
-              title='Edit'
-              className='edit-icon'
-              onClick={() => setEditForm(true)}
-            />
-          </label>
+        {/* ── General System Settings ── */}
+        <div className="ad-card ads-section">
+          <SectionHead icon={<I.settings width="17" height="17" />} title="General System Settings" />
 
-          <div className='general-settings-data'>
-            <span className='system-name'>
-              System Name: <p>Online Transparency System</p>
-            </span>
-            <span className='system-logo'>
-              System Logo:
-              <img src='/vite.svg' className='system-logo-img' alt='' />
-            </span>
+          <div className="ads-sub">
+            <div className="ads-label-row">
+              <span className="ads-label">Administration Term</span>
+              {activeTerm && (
+                <span className="ads-active-tag">
+                  <span className="ads-active-dot" />
+                  {activeTerm} — active
+                </span>
+              )}
+            </div>
+            <p className="ads-hint">
+              This term is used across all modules (Officers, Documents, etc.) as the default term year.
+            </p>
+            <div className="ads-row">
+              <select className="ads-term-select" value={termSelect} onChange={e => setTermSelect(e.target.value)}>
+                <option value="">Select a term year…</option>
+                {/* Always include the current active term even if no officers are assigned to it yet */}
+                {activeTerm && !termOptions.includes(activeTerm) && (
+                  <option value={activeTerm}>{activeTerm} — current</option>
+                )}
+                {termOptions.map(t => (
+                  <option key={t} value={t}>{t}{t === activeTerm ? ' — current' : ''}</option>
+                ))}
+              </select>
+              <button
+                className="ad-btn-primary"
+                onClick={handleSaveTerm}
+                disabled={termSaving || !termSelect.trim() || termSelect.trim() === activeTerm}
+              >
+                {termSaving ? 'Saving…' : 'Save'}
+              </button>
+              {termSaved && <span className="ads-saved">✓ Saved</span>}
+            </div>
+            {termOptions.length === 0 && (
+              <p className="ads-no-data">
+                No term years available. Assign <em>year_serving</em> to officers first.
+              </p>
+            )}
           </div>
 
-          <div className='maintenance-divider' />
-
-          <div className='maintenance-inline'>
-            <span className='maintenance-label'>Pause access for students</span>
-            <label className='switch'>
-              <input
-                type='checkbox'
-                title='toggle'
-                checked={pause}
-                onClick={() => setPauseModal(true)}
-                readOnly
-              />
-              <span className='slider'></span>
-            </label>
+          <div className="ads-pause-row">
+            <div className="ads-pause-text">
+              <p className="ads-pause-label">
+                Pause access for students
+                {pauseSaving && <span className="ads-saving">Saving…</span>}
+              </p>
+              <p className="ads-pause-sub">When enabled, the public site shows a maintenance message.</p>
+            </div>
+            <span className="ads-toggle" onClick={() => setPauseModal(true)}>
+              <span className={`ads-toggle-track${pause ? ' is-on' : ''}`}>
+                <span className="ads-toggle-thumb" />
+              </span>
+            </span>
           </div>
         </div>
 
-        {/* ── Whitelist ── */}
-        <div className='addmin-whitelist-container'>
-          <div className='whitelist-header'>
-            <span>Whitelist</span>
-            <div className='whitelist-toolbar-actions'>
-              <button
-                className='settings-refresh-btn'
-                title='Refresh'
-                onClick={handleRefresh}
-              >
-                <img
-                  src='/refresh.png'
-                  alt='refresh'
-                  className={
-                    spinning ? 'settings-spin refresh-img' : 'refresh-img'
-                  }
-                />
-              </button>
-              <button
-                type='button'
-                className='whitelist-add-btn'
-                onClick={() => setWhitelistForm(!whitelistForm)}
-              >
-                Add Whitelist
-              </button>
-            </div>
+        {/* ── Admin Accounts ── */}
+        <div className="ad-card">
+          <div className="ads-section" style={{ paddingBottom: 4 }}>
+            <SectionHead icon={<I.users width="17" height="17" />} title="Admin Accounts" />
           </div>
-
-          <div className='whitelist-table-wrapper'>
-            <table>
-              <colgroup>
-                <col className='settings-col-name' />
-                <col className='settings-col-email' />
-                <col className='settings-col-actions' />
-              </colgroup>
-              <thead>
-                <tr className='settings-thead-row'>
-                  <th>Name</th>
-                  <th>Email / Student ID</th>
-                  <th></th>
-                </tr>
-              </thead>
+          {adminLoading ? (
+            <div className="ad-empty"><p>Loading accounts…</p></div>
+          ) : adminError ? (
+            <div style={{ padding: '12px 24px', fontSize: 13, color: 'var(--color-danger-text)' }}>{adminError}</div>
+          ) : (
+            <table className="ad-table">
+              <thead><tr>
+                <th>Email</th>
+                <th style={{ width: 140 }}>Role</th>
+                <th className="ad-th-right" style={{ width: 120 }}>Actions</th>
+              </tr></thead>
               <tbody>
-                {admins.map((admin, idx) => (
-                  <tr
-                    key={idx}
-                    className={`settings-table-row ${active.includes(admin.name) ? 'settings-active' : ''}`}
-                    onClick={() => handleActive(admin.name)}
-                  >
-                    <td>
-                      <span className='name-data'>{admin.name}</span>
-                    </td>
-                    <td>
-                      <span className='email-data'>{admin.email}</span>
-                    </td>
-                    <td className='settings-file-btn'>
+                {adminAccounts.length === 0 && (
+                  <tr><td colSpan={3}><div className="ad-empty"><p>No admin accounts found.</p></div></td></tr>
+                )}
+                {adminAccounts.map(acct => (
+                  <tr key={acct.id}>
+                    <td><span style={{ fontSize: 13.5, color: 'var(--color-text-primary)' }}>{acct.email ?? '—'}</span></td>
+                    <td><span className="ad-tag tone-neutral" style={{ fontSize: 11 }}>{acct.role}</span></td>
+                    <td className="ad-actions">
                       <button
-                        type='button'
-                        className='remove-link-btn'
-                        title='Remove from whitelist'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveClick(admin.name);
-                        }}
+                        className="ad-icon-btn ad-icon-btn--danger"
+                        style={{ width: 'auto', padding: '0 10px', fontSize: 12, fontWeight: 600 }}
+                        onClick={() => console.warn('remove', acct.owner_id)}
                       >
-                        <img src='./bin.png' alt='Remove' />
+                        Remove
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          )}
+        </div>
+
+        {/* ── Account Security ── */}
+        <div className="ad-card ads-section">
+          <SectionHead
+            icon={<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>}
+            title="Account Security"
+          />
+          <p className="ads-hint" style={{ marginBottom: 16 }}>
+            Change your admin account password. You will remain logged in after saving.
+          </p>
+
+          {/* Account identity badge */}
+          {currentUser && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '10px 14px',
+              background: 'var(--color-surface-deep, #eef1fb)',
+              border: '1px solid var(--color-border, #e2e8f0)',
+              borderRadius: 10,
+              marginBottom: 18,
+              maxWidth: 400,
+            }}>
+              <span style={{
+                width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                background: 'var(--gradient-deep, linear-gradient(160deg,#3b5fbc,#4f6fd1))',
+                color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, fontWeight: 700,
+              }}>
+                {currentUser.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'A'}
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary, #0f1729)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {currentUser.name}
+                </span>
+                {currentUser.email && (
+                  <span style={{ fontSize: 11.5, color: 'var(--color-text-muted, #6b7280)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {currentUser.email}
+                  </span>
+                )}
+              </div>
+              <span className="ad-tag tone-neutral" style={{ fontSize: 10.5, marginLeft: 'auto', flexShrink: 0 }}>
+                Current account
+              </span>
+            </div>
+          )}
+
+          <PasswordForm />
+        </div>
+
+        {/* ── Committee PINs ── */}
+        <div className="ad-card ads-section">
+          <SectionHead
+            icon={<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 1 1 8 0v3"/></svg>}
+            title="Committee PINs"
+          />
+          <p className="ads-hint" style={{ marginBottom: 16 }}>
+            Each committee uses a unique PIN to access the committee portal at{' '}
+            <strong>/committee/login</strong>. Change a PIN here if a committee forgets theirs.
+          </p>
+
+          {pinsLoading ? (
+            <p className="ads-hint">Loading PINs…</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {(Object.keys(COMMITTEE_LABELS) as (keyof CommitteePins)[]).map((role) => (
+                <div key={role} className="ads-sub" style={{ borderRadius: 10, border: '1px solid var(--color-border)', padding: '14px 18px' }}>
+                  <div className="ads-label-row" style={{ marginBottom: 8 }}>
+                    <span className="ads-label">{COMMITTEE_LABELS[role]}</span>
+                    <span className="ad-tag tone-neutral" style={{ fontSize: 11 }}>
+                      current: {showPin[role] ? pins[role] : '•'.repeat(Math.min(pins[role].length, 8))}
+                    </span>
+                  </div>
+                  <div className="ads-row">
+                    <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+                      <input
+                        type={showPin[role] ? 'text' : 'password'}
+                        className="ads-term-select"
+                        style={{ paddingRight: 56, flex: 1, minWidth: 0 }}
+                        placeholder={`New PIN for ${COMMITTEE_LABELS[role]}`}
+                        value={pinInput[role]}
+                        onChange={(e) => setPinInput((prev) => ({ ...prev, [role]: e.target.value }))}
+                        minLength={4}
+                      />
+                      <button
+                        type="button"
+                        style={{
+                          position: 'absolute', right: 10,
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          fontSize: 11, fontWeight: 600,
+                          color: 'var(--color-primary, #4f6fd1)',
+                          fontFamily: 'inherit',
+                        }}
+                        onClick={() => setShowPin((prev) => ({ ...prev, [role]: !prev[role] }))}
+                      >
+                        {showPin[role] ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
+                    <button
+                      className="ad-btn-primary"
+                      onClick={() => handleSavePin(role)}
+                      disabled={pinSaving[role] || !pinInput[role].trim() || pinInput[role].trim() === pins[role]}
+                    >
+                      {pinSaving[role] ? 'Saving…' : 'Update'}
+                    </button>
+                    {pinSaved[role] && <span className="ads-saved">✓ Updated</span>}
+                  </div>
+                  {pinError[role] && (
+                    <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--color-danger-text, #b91c1c)' }}>
+                      {pinError[role]}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── About ── */}
-        <div className='about-section'>
-          <div>
-            <span className='about-title'>About</span>
-            <div className='about-details'>
-              <div>Current Version: v1.2.0 (Stable)</div>
-              <div>Last Updated: Jan 25, 2026</div>
+        <div className="ad-card ads-section">
+          <SectionHead icon={<I.doc width="17" height="17" />} title="About" />
+          <div className="ads-about">
+            <div className="ads-about-meta">
+              <span className="ads-about-version">Current Version: <strong>v1.3.0</strong> (Stable)</span>
+              <span className="ads-about-date">Last Updated: May 22, 2026</span>
             </div>
+            <button className="ad-btn-ghost" onClick={() => setIsChangelogOpen(true)}>
+              View System Changelog
+            </button>
           </div>
-          <button className='changelog-btn'>View System Changelog</button>
         </div>
-      </div>
+      </main>
 
-      {whitelistForm && (
-        <div className='modal-position'>
-          <WhitelistForm close={() => setWhitelistForm(false)} />
-        </div>
-      )}
-      {editForm && (
-        <div className='modal-position'>
-          <SettingsForm setEdit={setEditForm} />
-        </div>
-      )}
       {pauseModal && (
-        <div className='modal-position'>
-          <PauseAccessModal
-            isPause={pause}
-            isOpen={pauseModal}
-            onClose={() => setPauseModal(!pauseModal)}
-            onConfirm={() => setPause(!pause)}
-          />
-        </div>
+        <PauseAccessModal
+          isPause={pause}
+          isOpen={pauseModal}
+          onClose={() => setPauseModal(false)}
+          onConfirm={handlePauseConfirm}
+        />
       )}
-      {deleteModal && (
-        <div className='modal-position'>
-          <DeleteModal
-            isOpen={deleteModal}
-            source='settings'
-            id={deleteId}
-            title='Remove from Whitelist'
-            message={`Are you sure you want to remove this user from the whitelist? This action can't be undone.`}
-            onClose={() => setDeleteModal(false)}
-            onConfirm={() =>
-              setActive((prev) => prev.filter((a) => a !== deleteId))
-            }
-          />
-        </div>
-      )}
+      <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />
     </div>
   );
 };

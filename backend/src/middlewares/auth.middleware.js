@@ -19,7 +19,7 @@ export async function requireAuth(req, res, next) {
     return next();
   } catch (error) {
     if (!refreshToken) {
-      return res.status(403).json({ message: "Session expired." });
+      return res.status(401).json({ error: "Session expired" });
     }
 
     try {
@@ -31,14 +31,14 @@ export async function requireAuth(req, res, next) {
 
       res.cookie("sb_access_token", data.session.access_token, {
         httpOnly: true,
-        // secure: true, // Change this in production
+        secure: true,
         sameSite: "strict",
-        maxAge: data.session.expires_in * 1000,
+        maxAge: 60 * 60 * 1000,
       });
 
       res.cookie("sb_refresh_token", data.session.refresh_token, {
         httpOnly: true,
-        // secure: true, // Change this in production
+        secure: true,
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
@@ -46,7 +46,7 @@ export async function requireAuth(req, res, next) {
       req.user = data.session.user;
       next();
     } catch (error) {
-      return res.status(403).json({ message: "Invalid refresh token." });
+      return res.status(401).json({ error: "Session expired" });
     }
   }
 }

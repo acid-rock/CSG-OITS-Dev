@@ -5,7 +5,7 @@
   min-height: 100vh;
   position: relative;
   font-family:
-    'Roboto', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    "Roboto", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .forgotPassword-container *,
@@ -16,13 +16,13 @@
 
 /* Blurred background layer */
 .forgotPassword-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: url('../../../../public/login-background.jpg');
+  background: url("../../../../public/login-background.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -33,7 +33,7 @@
 
 /* ── Blue gradient overlay — matches login page ── */
 .forgotPassword-container::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -92,7 +92,7 @@
 }
 
 .forgotPassword-title {
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
   color: #0f172a;
@@ -204,7 +204,7 @@
 }
 
 .success-title {
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
   color: #0f172a;

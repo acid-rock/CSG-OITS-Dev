@@ -1,152 +1,341 @@
+/* ── Hero / Main section — restyled to Figma design tokens ── */
+
+/* ═══════════════════════════════════════════════════════════
+   OUTER CONTAINER
+   Full-viewport gradient background, soft fade top → bottom.
+   ═══════════════════════════════════════════════════════════ */
 .hero-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem 1rem;
-}
-
-.hero-layout {
-  display: grid;
-  max-width: 1400px;
-  padding-top: 4rem;
+  background: linear-gradient(
+    to bottom,
+    var(--color-background-hero),       /* #7B8FD4 */
+    var(--color-background-hero-end)    /* #B8C4E8 */
+  );
+  min-height: 100vh;
   width: 100%;
-  gap: 2rem;
-  margin: 0 auto;
-  grid-template-columns: 1fr 1fr;
+  padding: var(--section-padding-y) var(--section-padding-x);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
   align-items: center;
 }
 
-.hero-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+/* Remove old radial-glow and dot-pattern overlays */
+.hero-container::before,
+.hero-container::after {
+  display: none;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   INNER LAYOUT — two-column flex row, max-width constrained
+   ═══════════════════════════════════════════════════════════ */
+.hero-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-16);                 /* 64px between columns */
+  max-width: var(--max-width-content);  /* 1200px (was 1400px) */
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;                           /* remove old 4rem 0 padding */
+  position: relative;
+  z-index: 2;
+  height: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LEFT COLUMN — text content (~50% width)
+   ═══════════════════════════════════════════════════════════ */
+.hero-text {
+  flex: 1 1 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Session badge ──────────────────────────────────────── */
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);                        /* 8px */
+  width: fit-content;
+  background: var(--color-badge-session-bg);  /* rgba(255,255,255,0.18) */
+  border: 1px solid var(--color-badge-session-border); /* rgba(255,255,255,0.35) */
+  border-radius: var(--radius-full);
+  color: var(--color-badge-session-text);     /* #0D1117 — dark on light hero */
+  font-size: var(--font-size-xs);             /* 0.75rem */
+  font-weight: var(--font-weight-semibold);   /* 600 */
+  letter-spacing: var(--letter-spacing-wide); /* 0.06em */
+  text-transform: uppercase;
+  padding: 6px 16px;
+  margin-bottom: var(--space-6);              /* 24px */
+  backdrop-filter: none;                      /* removed old blur */
+  -webkit-backdrop-filter: none;
+}
+
+/* Swap the blue dot for the ✦ sparkle glyph */
+.hero-eyebrow .dot {
+  display: none;
+}
+.hero-eyebrow::before {
+  content: "✦";
+  font-size: 10px;
+  line-height: 1;
+  color: inherit;
+}
+
+/* ── Main heading ───────────────────────────────────────── */
+.hero-text h1,
+.hero-headline {
+  font-size: clamp(2.25rem, 5vw, 3.5rem);       /* was clamp(36px,4.6vw,56px) */
+  font-weight: var(--font-weight-extrabold);     /* 800 */
+  line-height: var(--line-height-tight);         /* 1.2 (was 1.05) */
+  color: var(--color-text-primary);              /* #0D1117 */
+  letter-spacing: var(--letter-spacing-tight);   /* -0.02em (was -0.025em) */
+  margin: 0 0 var(--space-6);                    /* 0 0 24px (was 0 0 20px) */
+}
+
+/* <em>student</em> — italic serif accent */
+.hero-text h1 em,
+.hero-headline em {
+  font-family: var(--font-family-italic-accent); /* Georgia, serif (was --font-serif) */
+  font-style: italic;
+  font-weight: var(--font-weight-normal);         /* 400 */
+  color: var(--color-accent-italic);              /* #4F6EF7 (was --color-primary-deep) */
+  letter-spacing: inherit;
+}
+
+/* ── Subtext paragraph ──────────────────────────────────── */
+.hero-text p,
+.hero-subtext {
+  font-size: var(--font-size-base);          /* 1rem (was 15.5px) */
+  font-weight: var(--font-weight-normal);    /* 400 (was 450) */
+  color: var(--color-text-secondary);        /* #374151 */
+  line-height: var(--line-height-relaxed);   /* 1.75 (was 1.65) */
+  max-width: 480px;                          /* was 540px */
+  margin: 0 0 var(--space-8);               /* 0 0 32px (was 0 0 32px) */
+}
+
+/* ── CTA buttons row ────────────────────────────────────── */
 .hero-buttons {
   display: flex;
+  gap: var(--space-3);                      /* 12px (was 12px — same) */
+  align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
-.hero-image {
+/* ── Stat cards ─────────────────────────────────────────── */
+.hero-stats {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-3);                      /* 12px (was 12px) */
+  margin-top: var(--space-10);              /* 40px (was 36px) */
+  max-width: none;                          /* remove old 540px cap */
+}
+
+.hero-stat {
+  flex: 1;
+  background: rgba(255,255,255,0.55);       /* was rgba(255,255,255,0.65) */
+  border-radius: var(--radius-xl);          /* 16px (was 12px) */
+  padding: var(--space-4) var(--space-5);   /* 16px 20px (was 16px 18px) */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.6);  /* unchanged */
+  transition: var(--transition-base);
+}
+.hero-stat:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.75);       /* was rgba(255,255,255,0.85) */
+}
+
+.hero-stat-num {
+  font-size: var(--font-size-3xl);           /* 1.875rem ≈ 30px (was 26px) */
+  font-weight: var(--font-weight-extrabold); /* 800 */
+  color: var(--color-stat-value);            /* #0D1117 — live API number preserved */
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+/* Remove old italic-suffix styling inside stat numbers */
+.hero-stat-num em {
+  font-size: inherit;
+  font-family: inherit;
+  font-style: normal;
+  font-weight: inherit;
+  color: inherit;
+  margin-left: 0;
+}
+
+.hero-stat-lbl {
+  font-size: var(--font-size-xs);            /* 0.75rem (was 11.5px) */
+  color: var(--color-stat-label);            /* #6B7280 */
+  margin-top: var(--space-1);               /* 4px (was 6px) */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-base);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RIGHT COLUMN — image frame + floating badges (~45% width)
+   ═══════════════════════════════════════════════════════════ */
+.hero-image-container,
+.hero-photo-wrap {
+  flex: 0 0 45%;
+  width: 45%;
+  max-width: 540px;
   position: relative;
+  overflow: visible;      /* badges hang outside the container — do NOT clip */
+  justify-self: unset;
+  box-shadow: none;
+}
+
+/* Rounded image frame (carousel track acts as the visual border) */
+.hero-image-container .image-carousel-track,
+.hero-photo {
+  border-radius: var(--radius-2xl);          /* 24px (was 18px) */
+  overflow: hidden;                          /* clip images to rounded corners */
+  min-height: unset;
+  background: var(--color-border);           /* placeholder fill while loading */
   width: 100%;
-  max-width: 700px;
-  aspect-ratio: 16 / 10;
-  min-height: 220px;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  box-shadow:
-    0 20px 60px -10px rgba(66, 68, 90, 0.3),
-    0 10px 30px -5px rgba(66, 68, 90, 0.2);
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  aspect-ratio: unset;
+  height: clamp(380px, calc(100svh - 300px), 580px);
+  box-shadow: var(--shadow-lg);              /* was heavy 30px/80px spread */
+  border: 1px solid rgba(255,255,255,0.5);
+  position: relative;
+  animation: none;
 }
 
-.hero-image:hover {
-  transform: translateY(-5px);
-  box-shadow:
-    0 30px 80px -10px rgba(66, 68, 90, 0.4),
-    0 15px 40px -5px rgba(66, 68, 90, 0.3);
+.hero-image-container .slide {
+  width: 100%;
+  flex-shrink: 0;
+  aspect-ratio: unset;
+  height: 100%;
 }
-
-.hero-image img {
+.hero-image-container .slide img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: inherit;
-  opacity: 0.95;
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
 }
 
-.hero-image:hover img {
-  opacity: 1;
-  transform: scale(1.05);
+/* Remove ghost pseudo-elements on image container */
+.hero-image-container::before,
+.hero-image-container::after {
+  display: none;
 }
 
-/* Left-to-right fade — blends image into white background */
-.hero-image::before {
-  content: '';
+/* ── Floating badge cards ───────────────────────────────── */
+.hero-badge {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(255, 255, 255, 0.4) 30%,
-    transparent 60%
-  );
-  pointer-events: none;
-  z-index: 1;
-  border-radius: inherit;
+  background: var(--color-surface);          /* #FFFFFF */
+  border-radius: var(--radius-xl);           /* 16px (was 14px) */
+  padding: var(--space-3) var(--space-4);    /* 12px 16px (was 14px 18px) */
+  box-shadow: var(--shadow-hero-badge);      /* 0 4px 16px rgba(0,0,0,0.12) */
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);                       /* 12px (was 12px) */
+  border: none;                              /* remove old border-soft */
+  z-index: 3;
+  min-width: 160px;
 }
 
-/* Bottom fade + inner depth shadow */
-.hero-image::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.18) 0%, transparent 40%);
-  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.12);
-  pointer-events: none;
-  z-index: 2;
-  border-radius: inherit;
+/* "PINNED NOW" — top-left of image, offset above edge */
+.hero-badge.bg1 {
+  top: -16px;
+  left: 24px;
+  bottom: unset;
+  right: unset;
 }
 
-.wave-image {
-  padding-top: 2rem;
-  width: 100vw;
+/* "EQUIPMENT ONLINE" — bottom-right of image, offset below edge */
+.hero-badge.bg2 {
+  bottom: -16px;
+  right: 24px;
+  top: unset;
+  left: unset;
+}
+
+/* Default icon box (used by bg1 pin badge) */
+.hero-badge .ico {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);           /* 12px (was 10px) */
+  background: rgba(239,68,68,0.10);          /* light red tint for pin */
+  color: #EF4444;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
 }
+/* bg2 .ico is fully overridden by the inline style in Main.tsx:
+   { background: "#22C55E", color: "#fff", borderRadius: "50%",
+     width: "20px", height: "20px", display: "flex",
+     alignItems: "center", justifyContent: "center",
+     fontSize: "11px", fontWeight: "700", flexShrink: 0 }
+*/
 
-.wave {
-  width: 100vw;
-  height: auto;
+/* Badge text */
+.hero-badge .lbl {
+  font-size: var(--font-size-xs);             /* 0.75rem (was 10.5px) */
+  font-weight: var(--font-weight-semibold);   /* 600 */
+  color: var(--color-text-muted);             /* #6B7280 */
+  letter-spacing: var(--letter-spacing-wider); /* 0.1em */
+  text-transform: uppercase;                  /* "PINNED NOW" / "EQUIPMENT ONLINE" */
   display: block;
-  object-fit: cover;
+  line-height: 1.2;
+  margin-bottom: 2px;
 }
 
-@media (max-width: 1080px) {
-  .hero-container {
-    padding: 1rem;
-  }
+.hero-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+}
 
-  .hero-layout {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
+.hero-badge .val {
+  font-size: var(--font-size-sm);             /* 0.875rem (was 14px) */
+  font-weight: var(--font-weight-semibold);   /* 600 */
+  color: var(--color-text-primary);           /* #0D1117 — live API data preserved */
+  line-height: 1.3;
+  /* CSS truncation prevents partial-glyph rendering at container edge */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
 
-  .hero-image {
-    max-width: 100%;
-    aspect-ratio: 16 / 9;
-    min-height: 200px;
-  }
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .hero-container  { padding: var(--space-16) var(--space-8); min-height: unset; }
+  .hero-layout     { flex-direction: column; gap: var(--space-10); padding: 0; }
+  .hero-text       { flex: none; width: 100%; max-width: 100%; }
+  .hero-image-container,
+  .hero-photo-wrap { flex: none; width: 100%; max-width: 100%; }
+  .hero-text p,
+  .hero-subtext    { max-width: 100%; }
+  .hero-badge.bg1  { left: 12px; }
+  .hero-badge.bg2  { right: 12px; }
+  .hero-image-container .image-carousel-track,
+  .hero-photo      { height: auto; aspect-ratio: 5/4; min-height: 280px; }
+  .hero-image-container .slide { height: auto; aspect-ratio: 5/4; }
+}
 
-  /* On mobile, fade from top instead of left */
-  .hero-image::before {
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.6) 0%,
-      transparent 40%
-    );
-  }
+@media (max-width: 768px) {
+  .hero-container  { padding: var(--space-12) var(--space-6); }
+  .hero-text h1,
+  .hero-headline   { font-size: clamp(1.75rem, 6vw, 2.5rem); }
+  .hero-stats      { flex-wrap: wrap; }
+  .hero-stat       { min-width: calc(50% - var(--space-2)); }
+  .hero-stat-num   { font-size: var(--font-size-2xl); }
+  .hero-badge      { min-width: 140px; }
 }
 
 @media (max-width: 480px) {
-  .hero-image {
-    min-height: 160px;
-    border-radius: calc(var(--border-radius) * 0.75);
-  }
+  .hero-container  { padding: var(--space-10) var(--space-4); }
+  .hero-stats      { flex-direction: column; }
+  .hero-stat       { min-width: 100%; }
+  .hero-badge      { display: none; } /* badges hidden on very small screens */
 }

@@ -1,27 +1,36 @@
 import './adminPanel.css';
-import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-// Layout
-import Sidebar from './components/sidebar/Sidebar';
+import { useSearchParams } from 'react-router-dom';
+import axios from 'axios';
 import ContentPanel from './contentPanel/ContentPanel';
+import SessionExpiredModal from './components/modals/SessionExpiredModal/SessionExpiredModal';
 
 const DEFAULT_PANEL = 'dashboard';
 
 const AdminPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const panelParam = searchParams.get('panel') || DEFAULT_PANEL;
-
-  const [panel, setPanel] = useState(panelParam);
-  //state the controls what panel to show
+  const [searchParams] = useSearchParams();
+  const panel = searchParams.get('panel') || DEFAULT_PANEL;
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
-    setSearchParams({ panel });
-  }, [panel]);
+    const interceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          setSessionExpired(true);
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => {
+      axios.interceptors.response.eject(interceptorId);
+    };
+  }, []);
 
   return (
-    <div className='admin-panel'>
-      <Sidebar panel={panel} setPanel={setPanel} />
+    <div className="ad-root">
       <ContentPanel active={panel} />
+      <SessionExpiredModal isOpen={sessionExpired} />
     </div>
   );
 };

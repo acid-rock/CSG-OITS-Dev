@@ -1,133 +1,158 @@
-import { useState, useMemo } from "react";
-import Card from "../../components/event-card/Card";
-import Typography from "../../components/typography/Typography";
+import { useState } from "react";
 import "./event.css";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Modal from "../../components/modal/Modal";
 import { useOutletContext } from "react-router-dom";
 import type { OutletContext } from "../../root-layout/Root-layout";
 
+
+const EVENTS_PER_PAGE = 2;
+
 export default function Events() {
   const { events } = useOutletContext<OutletContext>();
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(0);
   const [open, setOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null); // Add state for selected event
-  const EVENTS_PER_SLIDE = 4;
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
-  /*function to take all the event object and group into 4*/
-  const eventSlides = useMemo(() => {
-    const slides = [];
-    for (let i = 0; i < events.length; i += EVENTS_PER_SLIDE) {
-      slides.push(events.slice(i, i + EVENTS_PER_SLIDE));
-    }
-    return slides;
-  }, [events]);
+  // scroll lock owned by <Modal>
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => Math.min(prev + 1, eventSlides.length - 1));
-  };
+  const totalPages = Math.ceil(events.length / EVENTS_PER_PAGE);
+  const currentPageEvents = events.slice(
+    currentPage * EVENTS_PER_PAGE,
+    currentPage * EVENTS_PER_PAGE + EVENTS_PER_PAGE,
+  );
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => Math.max(prev - 1, 0));
-  };
+  const nextPage = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
+  const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
 
-  // Function to handle card click
   const handleCardClick = (event: any) => {
     setSelectedEvent(event);
     setOpen(true);
   };
 
-  console.log(events)
-
   return (
-    <div className="event-container">
-      <div className="event-layout">
-        <div className="event-texts">
-          <Typography size="text-md" color="text-dark">
-            Events
-          </Typography>
-          <Typography size="text-sm" color="text-ghost">
-            Explore official events from students government
-          </Typography>
-        </div>
+    <>
+      <div className="event-container">
+        <div className="event-layout">
+          {/* Section header */}
+          <div className="event-texts">
+            <h2 className="ev-heading">
+              Latest <em className="italic-accent">events</em>
+            </h2>
+            <p className="ev-sub">
+              Explore official events from the student government.
+            </p>
+          </div>
 
-        <div className="carousel-wrapper">
-          <div
-            className="carousel-track"
-            style={{
-              transform: `translateX(-${currentSlide * 100}%)`,
-            }}
-          >
-            {eventSlides.map((slide, slideIndex) => (
-              <div key={slideIndex} className="carousel-slide">
-                <div className="card-container">
-                  {slide.map((event, index) => (
-                    <div
+          {/* 2×2 card grid */}
+          <div className="ev-grid">
+            {currentPageEvents.map((event) => (
+              <div
+                key={event.id}
+                className="ev-grid-card card"
+                onClick={() => handleCardClick(event)}
+              >
+                {/* Cover image */}
+                <div className="ev-grid-img">
+                  {event.images?.[0] ? (
+                    <img
                       key={event.id}
-                      className={`card-item-${index}`}
-                      onClick={() => handleCardClick(event)}
-                      style={{ cursor: "pointer" }} // Make it clear it's clickable
-                    >
-                      <Card
-                        title={event.name}
-                        description={event.description}
-                        image={event.images[0]}
-                        date={event.date}
-                        variant="default"
-                      />
-                    </div>
-                  ))}
+                      src={event.images[0]}
+                      alt={event.name}
+                      className="ev-grid-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src =
+                          "/CSG_logo.svg";
+                        (e.currentTarget as HTMLImageElement).style.objectFit =
+                          "contain";
+                        (e.currentTarget as HTMLImageElement).style.opacity =
+                          "0.3";
+                      }}
+                    />
+                  ) : (
+                    <img
+                      src="/CSG_logo.svg"
+                      alt="CSG"
+                      className="ev-grid-cover"
+                      style={{ objectFit: "contain", opacity: 0.3 }}
+                    />
+                  )}
+                </div>
+                {/* Card body */}
+                <div className="ev-grid-body">
+                  <p className="ev-grid-date">&bull;&nbsp;{event.date}</p>
+                  <h3 className="ev-grid-title">{event.name}</h3>
+                  <p className="ev-grid-desc">{event.description}</p>
                 </div>
               </div>
             ))}
           </div>
-          <div className="carousel-controls">
+
+          {/* Pagination */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "var(--space-4)",
+              marginTop: "var(--space-8)",
+            }}
+          >
             <button
               className="event-button"
               type="button"
-              onClick={prevSlide}
-              aria-label="Previous slide"
-              title="Previous slide"
-              disabled={currentSlide === 0}
+              onClick={prevPage}
+              disabled={currentPage === 0}
+              aria-label="Previous page"
             >
-              <ChevronLeft size={30} />
+              <ChevronLeft size={20} />
             </button>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "var(--space-2)",
+                alignItems: "center",
+              }}
+            >
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  aria-label={`Go to page ${index + 1}`}
+                  className={`dot ${index === currentPage ? "active" : ""}`}
+                  onClick={() => setCurrentPage(index)}
+                />
+              ))}
+            </div>
+
             <button
               className="event-button"
               type="button"
-              onClick={nextSlide}
-              aria-label="next slide"
-              title="next slide"
-              disabled={currentSlide === eventSlides.length - 1}
+              onClick={nextPage}
+              disabled={currentPage >= totalPages - 1}
+              aria-label="Next page"
             >
-              <ChevronRight size={30} />
+              <ChevronRight size={20} />
             </button>
-          </div>
-          <div className="dot-indicators">
-            {eventSlides.map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                aria-label={`Go to slide ${index + 1}`}
-                className={`dot ${index === currentSlide ? "active" : ""}`}
-                onClick={() => setCurrentSlide(index)}
-              />
-            ))}
           </div>
         </div>
       </div>
 
       {open && selectedEvent && (
         <Modal
+          type="event"
           isOpen={open}
           setOpen={setOpen}
-          imageSrc={selectedEvent.images[0]}
+          imageSrc={selectedEvent.images?.[0] ?? "/CSG_logo.svg"}
           imageAlt={selectedEvent.name}
           date={selectedEvent.date}
           title={selectedEvent.name}
           description={selectedEvent.description}
-        ></Modal>
+          extraImage={selectedEvent.images}
+        />
       )}
-    </div>
+    </>
   );
 }

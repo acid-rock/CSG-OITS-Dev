@@ -1,0 +1,4 @@
+git add -A
+git restore --staged .claude/settings.local.json
+git commit -m "your message"   # no --no-verify needed anymore
+git push origin overhaul

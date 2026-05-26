@@ -1,97 +1,208 @@
 import OfficerCard from "../../components/officer-card/Officer-card";
-import Typography from "../../components/typography/Typography";
 import { Link, useOutletContext } from "react-router-dom";
 import Button from "../../components/button/Button";
-import type { OutletContext, Officer } from "../../root-layout/Root-layout";
 import "./officer.css";
+import type { Officer, OutletContext } from "../../root-layout/Root-layout";
 
-export default function Officer() {
+export default function OfficerSection() {
+  /* ══════════════════════════════════════════
+     LOCKED DATA BINDINGS — do not modify
+     ══════════════════════════════════════════ */
   const { officers } = useOutletContext<OutletContext>();
-  const executives = officers?.filter((officer) => {
-    return officer.type === "executive";
-  });
 
-  const board = officers?.filter((officer) => {
-    return officer.type === "board";
-  });
+  /* Exclude archived officers and current-term former members from the homepage.
+     Former members (type="former") stay status="active" but have their own
+     section on /officers — they should not appear in the homepage grid. */
+  const activeOfficers = officers?.filter(
+    (o) => o.status !== "archived" && o.type !== "former",
+  ) ?? [];
 
-  const advisers = officers?.filter((officer) => {
-    return officer.type === "adviser";
+  /* Group by type field — locked */
+  const executives = activeOfficers.filter((o) => o.type === "executive");
+  const board = activeOfficers.filter((o) => o.type === "board");
+  const advisers = activeOfficers.filter((o) => o.type === "adviser");
+
+  /* Find president — locked: position field */
+  const president = executives.find((o) => {
+    const pos = Array.isArray(o.position) ? o.position[0] : o.position;
+    return /president/i.test(pos) && !/vice/i.test(pos);
   });
+  const otherExecs = president
+    ? executives.filter((o) => o !== president)
+    : executives;
+
+  const scroll = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <section className="officer-container" id="officers">
       <div className="officer-layout">
-        <div className="document-texts">
-          <Typography size="text-md" color="text-dark">
-            Executive Officers
-          </Typography>
-          <Typography size="text-light" color="text-ghost">
-            These are the executive officers
-          </Typography>
+        {/* Section header */}
+        <div className="section-head">
+          <div className="kicker">Elected by the student body</div>
+          <h2>
+            Meet your <em>executive</em> officers
+          </h2>
+          <p>AY 2025–2026 · CSG-CVSU Imus Campus</p>
         </div>
 
-        <div className="officer-grid">
-          {executives?.slice(0, 6).map((o: Officer) => (
-            <div key={o.id} className="office-card-container">
-              <OfficerCard
-                id={o.full_name}
-                title={o.position[0]}
-                image={o.avatar}
-                variant="default"
-              />
+        {/* President spotlight */}
+        {president && (
+          <div className="officer-pres">
+            <span className="officer-pres-crown">President</span>
+            <OfficerCard
+              id={president.full_name} /* locked: full_name */
+              title={
+                Array.isArray(president.position)
+                  ? president.position[0]
+                  : president.position
+              }
+              image={president.avatar} /* locked: avatar */
+              socials={president.socials} /* locked: socials */
+              term={president.year_serving}
+              officerType={president.type} /* locked: type */
+              variant="default"
+            />
+          </div>
+        )}
+
+        {/* Other executive officers */}
+        {otherExecs && otherExecs.length > 0 && (
+          <>
+            <div className="officer-texts" style={{ textAlign: "center" }}>
+              <span className="section-label" style={{ color: "#ffffff" }}>
+                Executive Officers
+              </span>
             </div>
-          ))}
-        </div>
-
-        <div className="document-texts">
-          <Typography size="text-md" color="text-dark">
-            Board Members
-          </Typography>
-          <Typography size="text-light" color="text-ghost">
-            These are the board members
-          </Typography>
-        </div>
-
-        <div className="board-member-grid">
-          {board?.slice(0, 10).map((b: Officer) => (
-            <div key={b.id} className="office-card-container">
-              <OfficerCard
-                id={b.full_name}
-                title={b.position[0]}
-                image={b.avatar}
-                variant="default"
-              />
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                gap: "1rem",
+                width: "100%",
+              }}
+            >
+              {otherExecs.map((o: Officer) => (
+                <div
+                  key={o.id}
+                  className="office-card-container"
+                  style={{
+                    width: "160px",
+                    minWidth: "160px",
+                    maxWidth: "160px",
+                  }}
+                >
+                  <OfficerCard
+                    id={o.full_name}
+                    title={
+                      Array.isArray(o.position) ? o.position[0] : o.position
+                    }
+                    image={o.avatar} /* locked: avatar */
+                    socials={o.socials} /* locked: socials */
+                    term={o.year_serving}
+                    officerType={o.type} /* locked: type */
+                    variant="default"
+                  />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
 
-        <div className="document-texts">
-          <Typography size="text-md" color="text-dark">
-            Advisers
-          </Typography>
-          <Typography size="text-light" color="text-ghost">
-            These are the advisers
-          </Typography>
-        </div>
-
-        <div className="adviser-grid">
-          {advisers?.slice(0, 2).map((a: Officer) => (
-            <div key={a.id} className="office-card-container">
-              <OfficerCard
-                id={a.full_name}
-                title={a.position}
-                image={a.avatar}
-                variant="default"
-              />
+        {/* Board members */}
+        {board && board.length > 0 && (
+          <>
+            <div className="officer-texts">
+              <span className="section-label" style={{ color: "#ffffff" }}>
+                Board Members
+              </span>
             </div>
-          ))}
-        </div>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                gap: "1rem",
+                width: "100%",
+              }}
+            >
+              {board.map((b: Officer) => (
+                <div
+                  key={b.id}
+                  className="office-card-container"
+                  style={{
+                    width: "160px",
+                    minWidth: "160px",
+                    maxWidth: "160px",
+                  }}
+                >
+                  <OfficerCard
+                    id={b.full_name}
+                    title={
+                      Array.isArray(b.position) ? b.position[0] : b.position
+                    }
+                    image={b.avatar} /* locked: avatar */
+                    socials={b.socials} /* locked: socials */
+                    officerType={b.type} /* locked: type */
+                    variant="default"
+                  />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
+        {/* Advisers — no Facebook icon */}
+        {advisers && advisers.length > 0 && (
+          <>
+            <div className="officer-texts">
+              <span className="section-label" style={{ color: "#ffffff" }}>
+                Advisers
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                gap: "1rem",
+                width: "100%",
+              }}
+            >
+              {advisers.map((a: Officer) => (
+                <div
+                  key={a.id}
+                  className="office-card-container"
+                  style={{
+                    width: "160px",
+                    minWidth: "160px",
+                    maxWidth: "160px",
+                  }}
+                >
+                  <OfficerCard
+                    id={a.full_name}
+                    title={
+                      Array.isArray(a.position) ? a.position[0] : a.position
+                    }
+                    image={a.avatar} /* locked: avatar */
+                    officerType={a.type} /* locked: type — hides FB */
+                    variant="default"
+                  />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* VIEW ALL — preserved */}
         <div className="view-btn">
           <Button variant="primary">
             <Link
               to="/officers"
               style={{ textDecoration: "none", color: "white" }}
+              onClick={scroll}
             >
               VIEW ALL
             </Link>

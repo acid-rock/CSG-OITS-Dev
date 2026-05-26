@@ -1,234 +1,523 @@
-.officers-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 20px;
+/* ── Officers standalone page ── */
+
+/* ════════════════════════════════════════════════════
+   PAGE HEADER
+   ════════════════════════════════════════════════════ */
+.op-page {
+  background: var(--color-surface);
+  min-height: 100vh;
 }
 
-.officers-layout {
-  display: flex;
-  flex-direction: column;
-  max-width: 1400px;
-  width: 100%;
-  margin-top: 5rem;
-}
-
-.committee-section {
-  margin-bottom: 60px;
-}
-
-.committee-title {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  margin-bottom: 30px;
+.op-header {
   text-align: center;
-  border-bottom: 2px solid #2563eb;
-  padding-bottom: 10px;
-  display: inline-block;
-  width: 100%;
-  color: var(--text-color);
+  padding: var(--space-16) var(--section-padding-x) var(--space-10);
+  background: linear-gradient(
+    to bottom,
+    var(--color-background-hero) 0%,
+    rgba(184, 196, 232, 0.25) 60%,
+    var(--color-background) 100%
+  );
 }
 
-.committee-layout {
-  display: flex;
-  flex-direction: row;
-  gap: 30px;
-  align-items: flex-start;
+.op-kicker {
+  display: block;
+  text-align: center;
+  margin-bottom: var(--space-3);
 }
 
-.officials-section {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  flex: 1;
+.op-heading {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight);
+  margin: 0 0 var(--space-2);
 }
 
-.members-section {
-  flex: 1;
-  min-width: 300px;
-  align-self: flex-start;
+.op-subtext {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 0;
 }
 
-.officer-card {
+/* ════════════════════════════════════════════════════
+   CONTENT AREA
+   ════════════════════════════════════════════════════ */
+.op-content {
+  max-width: var(--max-width-content);
+  margin: 0 auto;
+  padding: var(--space-12) var(--section-padding-x) var(--space-16);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  gap: 0;
 }
 
-.officer-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+/* ════════════════════════════════════════════════════
+   PRESIDENT CARD (centered, single)
+   ════════════════════════════════════════════════════ */
+.op-pres-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: var(--space-16);
 }
 
-.officer-image {
-  width: 100px;
-  height: 100px;
+.op-pres-card {
+  position: relative;
+  max-width: 220px;
+  width: 100%;
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: var(--space-5); /* room for the badge above */
+}
+
+/* "PRESIDENT" badge — absolute, centred above card top edge */
+.op-pres-badge {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border-radius: var(--radius-full);
+  padding: 4px 16px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  white-space: nowrap;
+  z-index: 1;
+}
+
+/* 96px avatar circle */
+.op-pres-avatar {
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 15px;
-  border: 3px solid #2563eb;
-}
-
-.officer-name {
-  font-family: var(--font-heading);
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin: 0 0 5px 0;
-  text-align: center;
-  color: var(--text-color);
-}
-
-.officer-title {
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--text-muted);
-  margin: 0 0 15px 0;
-  text-align: center;
-}
-
-.social-icons {
-  display: flex;
-  gap: 12px;
-  color: white;
-}
-
-.social-icon {
-  color: #fff;
-  transition: color 0.2s;
-  text-decoration: none;
-}
-
-.social-icon:hover {
-  color: #2563eb;
-}
-
-/* Members section */
-.members-dropdown {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-}
-
-.dropdown-toggle {
-  width: 100%;
-  padding: 20px;
-  background: var(--primary-blue);
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: background 0.2s;
-  border: none;
-  outline: none;
-  list-style: none;
-  box-sizing: border-box;
-}
-
-.dropdown-toggle::-webkit-details-marker {
-  display: none;
-}
-
-.dropdown-toggle::marker {
-  display: none;
-}
-
-.dropdown-toggle-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.dropdown-icon {
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  min-width: 24px;
-  min-height: 24px;
-}
-
-.dropdown-icons {
-  display: flex;
-  align-items: center;
+  box-shadow:
+    0 0 0 3px var(--color-surface),
+    0 0 0 5px var(--color-primary-light),
+    0 8px 20px -6px rgba(79, 110, 247, 0.4);
   flex-shrink: 0;
-  color: white;
+  margin-bottom: var(--space-4);
+}
+.op-pres-initials {
+  font-size: 32px;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-surface);
+  line-height: 1;
+  user-select: none;
 }
 
-.dropdown-toggle:hover {
-  background: #1d4ed8;
+.op-pres-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-1);
+  letter-spacing: var(--letter-spacing-tight);
+}
+.op-pres-pos {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-1);
+}
+.op-pres-year {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+  font-family: var(--font-family-mono, monospace);
+}
+.op-pres-fb {
+  margin-top: var(--space-4);
 }
 
-.dropdown-content {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.member-item {
-  padding: 15px 20px;
-  border-bottom: 1px solid #e2e8f0;
+/* ════════════════════════════════════════════════════
+   SECTION GROUPS (exec / board / advisers)
+   ════════════════════════════════════════════════════ */
+.op-group {
+  width: 100%;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  transition: background 0.2s;
+  margin-top: var(--space-16);
 }
 
-.member-item:last-child {
+.op-group-label {
+  text-align: center;
+  margin-bottom: var(--space-6);
+  display: block;
+}
+
+/* Executive grid — up to 6 columns */
+.op-exec-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-4);
+  width: 100%;
+}
+
+/* Board grid — flex wrap, centred, 160px cards */
+.op-board-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+}
+.op-board-grid .oc-card {
+  width: 160px;
+  flex-shrink: 0;
+}
+
+/* Adviser grid — flex wrap, centred, 200px cards */
+.op-adviser-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-5);
+  width: 100%;
+}
+.op-adviser-grid .oc-card {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════════════
+   SHARED OFFICER CARD  (.oc-card)
+   .card utility provides bg, border, shadow, hover
+   ════════════════════════════════════════════════════ */
+.oc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-5) var(--space-4);
+  position: relative;
+  overflow: visible;
+}
+
+/* Avatar container */
+.oc-avatar {
+  border-radius: 50%;
+  overflow: hidden;
+  /* Default: primary blue — applies to executive, board, and advisers */
+  background: var(--gradient-deep, linear-gradient(160deg,#3b5fbc 0%,#4f6fd1 50%,#8aaae0 100%));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: var(--space-4);
+  box-shadow:
+    0 0 0 3px var(--color-surface),
+    0 0 0 4px var(--color-primary-light),
+    0 8px 20px -6px rgba(79, 110, 247, 0.35);
+  transition: transform var(--transition-base);
+  /* Needed so ::after vignette positions inside the clipped circle */
+  position: relative;
+}
+/* Blue vignette at the rim — turns white photo backgrounds blue at the edges
+   while leaving the center (face) fully transparent and natural-looking */
+.oc-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Gradient starts transparent at centre, fades to solid blue at the rim */
+  background: radial-gradient(
+    circle at 50% 38%,
+    transparent 42%,
+    rgba(59, 95, 188, 0.62) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+.oc-card:hover .oc-avatar {
+  transform: translateY(-4px) scale(1.04);
+}
+
+/* Photo inside avatar */
+.oc-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+/* Initials inside avatar — inherits container background */
+.oc-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-surface);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  user-select: none;
+  border-radius: 50%;
+}
+/* Adviser initials — same white text as exec/board (all avatars now blue) */
+.op-adviser-grid .oc-initials {
+  color: var(--color-surface);
+}
+
+/* Text */
+.oc-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-1);
+  letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-snug);
+}
+.oc-pos {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-1);
+  line-height: var(--line-height-base);
+}
+.oc-year {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+  font-family: var(--font-family-mono, monospace);
+}
+
+/* Facebook link */
+.oc-fb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  margin-top: var(--space-4);
+  text-decoration: none;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+.oc-fb:hover {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+/* ════════════════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .op-exec-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .op-header {
+    padding: var(--space-12) var(--space-6) var(--space-8);
+  }
+  .op-heading {
+    font-size: var(--font-size-3xl);
+  }
+  .op-content {
+    padding: var(--space-8) var(--space-6) var(--space-12);
+  }
+  .op-exec-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .op-board-grid .oc-card,
+  .op-adviser-grid .oc-card {
+    width: calc(50% - var(--space-2));
+  }
+}
+@media (max-width: 480px) {
+  .op-exec-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .op-board-grid .oc-card,
+  .op-adviser-grid .oc-card {
+    width: 100%;
+  }
+}
+
+/* ── Committee cards — flex 4-4-2 centred layout ── */
+.op-committee-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);        /* matches var(--space-4) = 16px */
+  width: 100%;
+}
+/* 4 per row: (100% - 3 × 16px) / 4 */
+.op-committee-grid > * {
+  flex: 0 0 calc(25% - 12px);
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  /* 3 per row: (100% - 2 × 16px) / 3 */
+  .op-committee-grid > * { flex: 0 0 calc(33.333% - 10.667px); }
+}
+@media (max-width: 768px) {
+  /* 2 per row: (100% - 16px) / 2 */
+  .op-committee-grid > * { flex: 0 0 calc(50% - 8px); }
+}
+@media (max-width: 480px) {
+  .op-committee-grid > * { flex: 0 0 100%; }
+}
+
+.op-committee-card {
+  padding: var(--space-4) var(--space-5);
+  text-align: center;
+}
+
+.op-committee-name {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  margin: 0 0 var(--space-1);
+}
+
+.op-committee-head {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Clickable committee card */
+.op-committee-card-clickable {
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.op-committee-card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.op-committee-view {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  margin-top: var(--space-2);
+}
+
+/* Committee modal */
+.op-committee-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.op-committee-modal {
+  background: var(--color-surface, #fff);
+  border-radius: var(--radius-xl, 12px);
+  padding: var(--space-8);
+  max-width: 440px;
+  width: 92%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: var(--shadow-modal, 0 10px 40px rgba(0, 0, 0, 0.2));
+}
+
+.op-committee-modal-close {
+  position: absolute;
+  top: var(--space-4, 1rem);
+  right: var(--space-4, 1rem);
+  width: 32px;
+  height: 32px;
+  background: var(--color-surface-deep, #eef1fb);
+  border: 1px solid var(--color-border-soft, #eef0f5);
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 400;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  padding-bottom: 2px;   /* optical × centering */
+  transition: background 150ms ease, color 150ms ease;
+}
+.op-committee-modal-close:hover {
+  background: var(--color-border, #e2e8f0);
+  color: var(--color-text-primary);
+}
+
+.op-committee-modal-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-5);
+}
+
+.op-cm-section {
+  margin-bottom: var(--space-5);
+}
+
+.op-cm-section-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--space-3);
+}
+
+.op-cm-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.op-cm-row:last-child {
   border-bottom: none;
 }
 
-.member-item:hover {
-  background: #f8fafc;
+.op-cm-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-.member-name {
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-color);
+.op-cm-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
 }
 
-.member-role {
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--text-muted);
-}
-
-.fb-icon {
-  color: #fff;
-}
-
-@media (max-width: 768px) {
-  .committee-layout {
-    flex-direction: column;
-  }
-
-  .officials-section {
-    justify-content: center;
-  }
-
-  .members-section {
-    width: 100%;
-  }
-
-  .committee-title {
-    margin-top: 3rem;
-  }
+.op-cm-pos {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
 }

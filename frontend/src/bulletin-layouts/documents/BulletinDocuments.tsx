@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-import DocumentCard from "../../components/document-card/Document-card";
+import { useState } from "react";
 import "./bulletinDocument.css";
-import Typography from "../../components/typography/Typography";
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
 import type {
   Document,
@@ -9,126 +7,315 @@ import type {
 } from "../../root-layout/Root-layout.tsx";
 import { useOutletContext } from "react-router-dom";
 
+/* Fix 7: letter helper removed — CSG logo used instead */
+
+/* ── Helper: map category to a tag colour class ── */
+function getDocTagClass(doc: Document): string {
+  const cat = (doc.category || "").toLowerCase();
+  if (cat.includes("event") || cat.includes("bulletin")) return "tag-event";
+  if (cat.includes("memo") || cat.includes("update")) return "tag-update";
+  return "tag-notice";
+}
+
 export default function BulletinDocument() {
+  /* ══════════════════════════════════════════════════
+     LOCKED DATA BINDINGS — do not modify
+     ══════════════════════════════════════════════════ */
   const { documents } = useOutletContext<OutletContext>();
+
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedTerm, setSelectedTerm] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null,
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (documents.length > 0 && !selectedDocument) {
-      setSelectedDocument(documents[0]);
-    }
-  }, [documents]);
-
-  // Derive unique categories directly from the documents array
+  /* Derived category list — locked logic */
   const uniqueCategories = Array.from(
     new Set(documents.map((doc) => doc.category)),
   );
-
   const categories = [
     { id: "all", label: "All Documents" },
     ...uniqueCategories.map((cat) => ({ id: cat, label: cat })),
   ];
 
-  // Filter documents by selected category
-  const filteredDocuments =
-    selectedCategory === "all"
-      ? documents
-      : documents.filter((doc) => doc.category === selectedCategory);
+  /* Derived term list — locked logic */
+  const uniqueTerms = Array.from(
+    new Set(documents.map((doc) => doc.term).filter(Boolean) as string[]),
+  ).sort();
 
-  // Clicking a card updates the preview panel
+  /* Filtered documents — locked logic */
+  const filteredDocuments = documents
+    .filter((doc) =>
+      selectedCategory === "all" ? true : doc.category === selectedCategory,
+    )
+    .filter((doc) =>
+      selectedTerm === "all" ? true : doc.term === selectedTerm,
+    )
+    .filter((doc) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        doc.name.toLowerCase().includes(q) ||
+        doc.description.toLowerCase().includes(q)
+      );
+    });
+
+  /* Locked handlers */
   const handleSelect = (doc: Document) => {
     setSelectedDocument(doc);
   };
 
-  // Clicking "View" opens the modal
   const handleView = (doc: Document) => {
     setSelectedDocument(doc);
     setIsModalOpen(true);
   };
 
+  /* ── Category count helper (new — no binding change) ── */
+  const catCount = (catId: string) =>
+    catId === "all"
+      ? documents.length
+      : documents.filter((d) => d.category === catId).length;
+
   return (
-    <section id="documents" className="bulletin-document-container">
-      <div className="bulletin-document-header">
-        <Typography size="text-md" color="text-dark">
-          Documents
-        </Typography>
-        <Typography size="text-sm" color="text-ghost">
-          Explore official documents from student government
-        </Typography>
-      </div>
+    <section id="documents" className="bd-page">
+      {/* ════════════════════════════════════════
+          PAGE HEADER (centered, white bg)
+          ════════════════════════════════════════ */}
+      <header className="bd-header">
+        <span className="section-label bd-kicker">Public Archive</span>
+        <h1 className="bd-heading">
+          <em className="italic-accent">Documents</em> &amp; filings
+        </h1>
+        <p className="bd-subheading">
+          Resolutions, memoranda, and reports filed by the CSG and its
+          committees.
+        </p>
+      </header>
 
-      <div className="bulletin-document-layout-wrapper">
-        <div className="bulletin-document-layout">
-          {/* Sidebar Navigation */}
-          <aside className="bulletin-document-navigation">
-            <Typography size="text-sm" color="text-dark">
-              Categories
-            </Typography>
-            <nav className="bulletin-nav-menu">
-              {categories.map((category) => (
+      {/* ════════════════════════════════════════
+          TWO-COLUMN LAYOUT
+          ════════════════════════════════════════ */}
+      <div className="bd-layout">
+        {/* ── LEFT SIDEBAR ── */}
+        <aside className="bd-sidebar">
+          {/* Search — preserves searchQuery state */}
+          <input
+            type="text"
+            placeholder="Search documents..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bd-search"
+          />
+
+          {/* Categories — preserves selectedCategory + setSelectedCategory */}
+          <span className="section-label bd-cat-label">Categories</span>
+          <ul className="bd-cat-list">
+            {categories.map((cat) => (
+              <li key={cat.id}>
                 <button
-                  key={category.id}
                   type="button"
-                  className={`bulletin-nav-item ${
-                    selectedCategory === category.id ? "active" : ""
-                  }`}
-                  onClick={() => setSelectedCategory(category.id)}
+                  className={`bd-cat-item${selectedCategory === cat.id ? " bd-cat-active" : ""}`}
+                  onClick={() => setSelectedCategory(cat.id)}
                 >
-                  {category.label}
+                  <span className="bd-cat-name">{cat.label}</span>
+                  <span className="bd-cat-count">{catCount(cat.id)}</span>
                 </button>
-              ))}
-            </nav>
-          </aside>
+              </li>
+            ))}
+          </ul>
 
-          {/* Document Grid */}
-          <main className="bulletin-document-content">
-            <div className="bulletin-document-grid">
-              {filteredDocuments.map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  id={doc.id}
-                  title={doc.description}
-                  description={doc.category}
-                  date={doc.date}
-                  onSelect={() => handleSelect(doc)}
-                  onView={() => handleView(doc)}
-                />
-              ))}
-            </div>
-          </main>
-        </div>
+          {/* Terms — preserves selectedTerm + setSelectedTerm */}
+          {uniqueTerms.length > 0 && (
+            <>
+              <span className="section-label bd-cat-label">Term</span>
+              <ul className="bd-cat-list">
+                <li>
+                  <button
+                    type="button"
+                    className={`bd-cat-item${selectedTerm === "all" ? " bd-cat-active" : ""}`}
+                    onClick={() => setSelectedTerm("all")}
+                  >
+                    <span className="bd-cat-name">All Terms</span>
+                  </button>
+                </li>
+                {uniqueTerms.map((t) => (
+                  <li key={t}>
+                    <button
+                      type="button"
+                      className={`bd-cat-item${selectedTerm === t ? " bd-cat-active" : ""}`}
+                      onClick={() => setSelectedTerm(t)}
+                    >
+                      <span className="bd-cat-name">{t}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </aside>
 
-        {/* Always Visible Document Preview Panel */}
-        <aside className="bulletin-preview-panel">
-          <div className="bulletin-preview-content">
-            <div className="bulletin-preview-body">
-              {selectedDocument?.date && (
-                <p className="bulletin-preview-date">
-                  {selectedDocument?.date}
-                </p>
-              )}
-              <h2 className="bulletin-preview-title">
-                {selectedDocument?.description}
-              </h2>
-              <p className="bulletin-preview-description">
-                {selectedDocument?.category}
+        {/* ── RIGHT DOCUMENT GRID ── */}
+        <main className="bd-grid-area">
+          {filteredDocuments.length === 0 ? (
+            <div className="bd-empty">
+              <p className="bd-empty-title">No documents found</p>
+              <p className="bd-empty-sub">
+                Try a different search term or category.
               </p>
             </div>
-          </div>
-        </aside>
+          ) : (
+            <div className="bd-grid">
+              {filteredDocuments.map((doc) => {
+                const tagClass = getDocTagClass(doc);
+                return (
+                  <div
+                    key={doc.id}
+                    className="bd-doc-card card"
+                    onClick={() => handleSelect(doc)} /* locked: handleSelect */
+                  >
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "160px",
+                        background: "var(--color-primary-light)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "var(--radius-xl) var(--radius-xl) 0 0",
+                        position: "relative",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <span className={`tag ${tagClass} bd-doc-type-tag`}>
+                        {doc.category ?? "Document"}
+                      </span>
+                      {doc.thumbnail ? (
+                        <img
+                          src={doc.thumbnail}
+                          alt={doc.description}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "top",
+                          }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            (
+                              e.currentTarget
+                                .nextElementSibling as HTMLElement | null
+                            )?.style?.setProperty("display", "flex");
+                          }}
+                        />
+                      ) : null}
+                      <img
+                        src="/CSG_logo.svg"
+                        alt="CSG"
+                        style={{
+                          width: "72px",
+                          height: "72px",
+                          objectFit: "contain",
+                          opacity: 0.7,
+                          display: doc.thumbnail ? "none" : "block",
+                          position: "absolute",
+                        }}
+                      />
+                    </div>
+
+                    {/* Card body */}
+                    <div className="bd-doc-body">
+                      <span className="bd-doc-cat">{doc.category}</span>
+
+                      {/* Title — locked: file_path / description binding */}
+                      <h3 className="bd-doc-title">
+                        {doc.name
+                          ?.split("/")
+                          .pop()
+                          ?.replace(/\.pdf$/i, "") ?? doc.description}
+                      </h3>
+
+                      {/* Meta row — locked: created_at / term binding */}
+                      <div className="bd-doc-meta">
+                        <span>{doc.date}</span>
+                        {doc.term && <span>{doc.term}</span>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </main>
       </div>
 
-      {/* Modal for document preview */}
-      {isModalOpen && (
+      {/* ════════════════════════════════════════
+          SLIDE-IN DETAIL PANEL
+          All selectedDocument.* bindings locked
+          ════════════════════════════════════════ */}
+      {selectedDocument && (
+        <>
+          <div
+            onClick={() => setSelectedDocument(null)}
+            className="bd-panel-backdrop"
+          />
+          <div className="bd-panel">
+            <button
+              onClick={() => setSelectedDocument(null)}
+              className="bd-panel-close"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+
+            <span className="bd-panel-cat">
+              {selectedDocument.category ?? "Document"}
+            </span>
+
+            <h2 className="bd-panel-title">
+              {selectedDocument.name
+                ?.split("/")
+                .pop()
+                ?.replace(/\.pdf$/i, "") ??
+                selectedDocument.description ??
+                "Document"}
+            </h2>
+
+            {selectedDocument.description && (
+              <p className="bd-panel-desc">{selectedDocument.description}</p>
+            )}
+
+            {selectedDocument.date && (
+              <p className="bd-panel-date">{selectedDocument.date}</p>
+            )}
+
+            {/* Document thumbnail preview */}
+            {selectedDocument.thumbnail && (
+              <img
+                src={selectedDocument.thumbnail}
+                alt={selectedDocument.description}
+                className="bd-panel-preview"
+              />
+            )}
+
+            <button
+              type="button"
+              className="btn btn-primary bd-panel-view-btn"
+              onClick={() => handleView(selectedDocument)}
+            >
+              View Document
+            </button>
+          </div>
+        </>
+      )}
+
+      {isModalOpen && selectedDocument && (
         <DocumentModal
           selected={{
-            title: selectedDocument?.name ?? "",
-            date: selectedDocument?.date ?? "",
-            memoSrc: selectedDocument?.url ?? "",
+            title: selectedDocument.name ?? "",
+            date: selectedDocument.date ?? "",
+            memoSrc: selectedDocument.url ?? "",
           }}
           onClose={() => setIsModalOpen(false)}
         />

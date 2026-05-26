@@ -1,0 +1,51 @@
+/* ============================================================
+   Committee Admin Page — wraps existing admin panel components
+   with a committee-specific sidebar; hides the embedded admin
+   sidebar via CSS so panels don't need to be duplicated.
+   ca- prefix to avoid collision with admin ad-* classes.
+   ============================================================ */
+
+.ca-root {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--color-surface, #f4f6fd);
+  font-family: var(--font-stack, 'Plus Jakarta Sans', system-ui, sans-serif);
+}
+
+/* ── Panel host ─────────────────────────────────────────────── */
+.ca-panel-host {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+/*
+ * When an admin panel component renders inside the committee host,
+ * hide its embedded admin Sidebar (we provide CommitteeSidebar instead).
+ */
+.ca-panel-host .ad-sidebar {
+  display: none !important;
+}
+
+/*
+ * For panels using .ad-shell (display: grid 248px 1fr):
+ * collapse to single-column so the hidden sidebar gap disappears.
+ */
+.ca-panel-host .ad-shell {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100vh;
+}
+
+/*
+ * For fragment-based panels: main fills the remaining flex space.
+ */
+.ca-panel-host .ad-main {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 100vh;
+}

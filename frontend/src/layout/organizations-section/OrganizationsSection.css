@@ -1,0 +1,83 @@
+.orgs-section {
+  padding: var(--space-16) var(--section-padding-x);
+  scroll-margin-top: 80px;
+}
+
+.orgs-inner {
+  max-width: var(--max-width-content);
+  margin: 0 auto;
+}
+
+.orgs-kicker {
+  display: block;
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.orgs-heading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  text-align: center;
+  margin: 0 0 var(--space-3);
+}
+
+.orgs-sub {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto var(--space-10);
+}
+
+.orgs-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.orgs-group-heading {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.022em;
+  line-height: 1.15;
+  margin: 0 0 24px;
+}
+
+/* Flex so that a partial last row (e.g. 2 of 4) is centered — tree-like */
+.orgs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+}
+/* 4 per row: (100% - 3 × 18px) / 4 */
+.orgs-grid > * {
+  flex: 0 0 calc(25% - 13.5px);
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  /* 3 per row: (100% - 2 × 18px) / 3 */
+  .orgs-grid > * { flex: 0 0 calc(33.333% - 12px); }
+}
+@media (max-width: 768px) {
+  /* 2 per row: (100% - 18px) / 2 */
+  .orgs-grid > * { flex: 0 0 calc(50% - 9px); }
+  .orgs-group-heading { font-size: 22px; }
+}
+@media (max-width: 480px) {
+  /* 1 per row */
+  .orgs-grid > * { flex: 0 0 100%; }
+  .orgs-heading { font-size: var(--font-size-xl); }
+  .orgs-group-heading { font-size: 20px; }
+}
+
+.orgs-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-16) 0;
+  font-size: var(--font-size-base);
+}
+

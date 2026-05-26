@@ -1,4 +1,5 @@
-import './pauseAccessModal.css';
+import "./pauseAccessModal.css";
+import { useLockBodyScroll } from "../../../../hooks/useLockBodyScroll";
 
 interface PauseAccessModalProps {
   isOpen: boolean;
@@ -13,19 +14,20 @@ const PauseAccessModal = ({
   isOpen,
   onClose,
   onConfirm,
-  title = 'Pause Access',
+  title = "Pause Access",
 }: PauseAccessModalProps) => {
+  useLockBodyScroll(isOpen);
   if (!isOpen) return null;
 
   const message = isPause ? (
     <>
-      This will <strong style={{ color: 'black' }}>ENABLE</strong> guest access
+      This will <strong style={{ color: "black" }}>ENABLE</strong> guest access
       to the page. Users will be able to view content until access is restricted
       again.
     </>
   ) : (
     <>
-      This will temporarily <strong style={{ color: 'black' }}>DISABLE</strong>{' '}
+      This will temporarily <strong style={{ color: "black" }}>DISABLE</strong>{" "}
       guest access to the page. Users won't be able to view content until access
       is restored.
     </>
@@ -37,32 +39,32 @@ const PauseAccessModal = ({
   };
 
   return (
-    <div className='pause-modal-overlay' onClick={onClose}>
+    <div className="pause-modal-overlay" onClick={onClose}>
       <div
-        className='pause-modal-container'
+        className="pause-modal-container"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className='pause-modal-content'>
-          <div className='pause-modal-icon'>
-            <svg width='60' height='60' viewBox='0 0 60 60' fill='none'>
-              <circle cx='30' cy='30' r='25' fill='#FFA726' />
-              <rect x='22' y='18' width='6' height='24' rx='2' fill='white' />
-              <rect x='32' y='18' width='6' height='24' rx='2' fill='white' />
+        <div className="pause-modal-content">
+          <div className="pause-modal-icon">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+              <circle cx="30" cy="30" r="25" fill="#FFA726" />
+              <rect x="22" y="18" width="6" height="24" rx="2" fill="white" />
+              <rect x="32" y="18" width="6" height="24" rx="2" fill="white" />
             </svg>
           </div>
 
-          <h2 className='pause-modal-title'>{title}</h2>
+          <h2 className="pause-modal-title">{title}</h2>
 
-          <p className='pause-modal-message'>{message}</p>
+          <p className="pause-modal-message">{message}</p>
 
-          <div className='pause-modal-actions'>
+          <div className="pause-modal-actions">
             <button
-              className='pause-btn pause-btn-confirm'
+              className="pause-btn pause-btn-confirm"
               onClick={handleConfirm}
             >
               Confirm
             </button>
-            <button className='pause-btn pause-btn-cancel' onClick={onClose}>
+            <button className="pause-btn pause-btn-cancel" onClick={onClose}>
               Cancel
             </button>
           </div>

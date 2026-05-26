@@ -1,6 +1,6 @@
-import './announcement-card.css';
-import { useState, useEffect } from 'react';
-import Button from '../button/Button';
+import "./announcement-card.css";
+import { useState, useEffect } from "react";
+import Button from "../button/Button";
 
 type AnnouncementCardProps = {
   id?: string;
@@ -8,7 +8,7 @@ type AnnouncementCardProps = {
   description?: string;
   image?: string;
   date?: string;
-  variant?: 'default' | 'outlined' | 'elevated';
+  variant?: "default" | "outlined" | "elevated";
   onClick?: () => void;
   className?: string;
   style?: React.CSSProperties;
@@ -22,11 +22,11 @@ type AnnouncementCardProps = {
 
 export default function AnnouncementCard({
   id,
-  title = '',
-  description = '',
-  image = '',
-  date = '',
-  variant = 'default',
+  title = "",
+  description = "",
+  image = "",
+  date = "",
+  variant = "default",
   onClick,
   style,
   items = [],
@@ -50,7 +50,7 @@ export default function AnnouncementCard({
 
   const handleLearnMore = () => {
     // Learn more function
-    console.log('Learn more clicked for:', currentItem.title);
+    console.log("Learn more clicked for:", currentItem.title);
   };
 
   return (
@@ -60,25 +60,25 @@ export default function AnnouncementCard({
       style={style}
       onClick={onClick}
     >
-      <div className='announcement-card-image'>
+      <div className="announcement-card-image">
         <img
           src={currentItem.image}
-          alt={currentItem.title || 'Announcement'}
+          alt={currentItem.title || "Announcement"}
         />
       </div>
 
-      <div className='announcement-card-content'>
-        <h3 className='announcement-card-title'>{currentItem.title}</h3>
-        <p className='announcement-card-date'>{currentItem.date}</p>
-        <p className='announcement-card-description'>
+      <div className="announcement-card-content">
+        <h3 className="announcement-card-title">{currentItem.title}</h3>
+        <p className="announcement-card-date">{currentItem.date}</p>
+        <p className="announcement-card-description">
           {currentItem.description}
         </p>
 
         <Button
-          variant='primary'
-          id='learnmore'
+          variant="primary"
+          id="learnmore"
           onClick={handleLearnMore}
-          style={{ padding: '.75rem' }}
+          style={{ padding: ".75rem" }}
         >
           Learn More
         </Button>

@@ -1,0 +1,32 @@
+/* ── Queue screen — extends splash-screen.css base classes ── */
+
+.queue-content {
+  /* a bit more vertical gap to make room for the sublabel */
+  gap: 32px;
+}
+
+.queue-row {
+  /* allow the label to wrap on small screens */
+  align-items: flex-start;
+}
+
+.queue-label {
+  white-space: normal;
+  text-align: left;
+  max-width: 300px;
+  line-height: 1.55;
+}
+
+.queue-position {
+  color: var(--color-primary, #4f6fd1);
+  font-weight: 800;
+}
+
+.queue-sublabel {
+  margin: 0;
+  font-family: var(--font-family-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-size: 11.5px;
+  color: var(--color-text-muted, #9ca3af);
+  text-align: center;
+  letter-spacing: 0.01em;
+}

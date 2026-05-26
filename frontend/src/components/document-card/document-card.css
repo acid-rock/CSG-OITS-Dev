@@ -1,105 +1,137 @@
-.document-card {
-  display: flex;
-  flex-direction: column;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.401);
-  max-width: 360px;
+/* Wave 11A — Document Card */
+.document-card,
+.doc-card{
+  background:var(--color-white);
+  border:1px solid var(--color-border-soft);
+  border-radius:var(--radius-card);
+  display:flex;flex-direction:column;justify-content:space-between;
+  height:160px;
+  transition:var(--transition);
+  overflow:hidden;
+  cursor:pointer;
+}
+.document-card:hover,
+.doc-card:hover{
+  box-shadow:var(--shadow-card-hover);
+  border-color:var(--color-primary-mid);
+  transform:translateY(-2px);
 }
 
-.document-card-image {
-  background: #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px;
-  min-height: 140px;
+.doc-thumb,
+.document-thumbnail{
+  height:120px;
+  background:var(--color-surface);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+  border-bottom:1px solid var(--color-border-soft);
+}
+.doc-thumb::before,
+.document-thumbnail::before{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(135deg,transparent 0 16px,rgba(79,111,209,0.04) 16px 32px);
+}
+.doc-thumb-glyph,
+.document-glyph{
+  position:relative;z-index:1;
+  width:64px;height:80px;border-radius:6px 6px 4px 4px;
+  background:linear-gradient(180deg,var(--color-white),var(--color-doc-glyph-bg));
+  border:1px solid var(--color-border);
+  box-shadow:0 4px 12px -4px rgba(79,111,209,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-family-serif);font-style:italic;
+  color:var(--color-primary);font-size:32px;font-weight:var(--font-weight-semibold);
+}
+.doc-thumb-glyph::after,
+.document-glyph::after{
+  content:"";position:absolute;top:0;right:0;
+  width:14px;height:14px;
+  background:linear-gradient(225deg,transparent 50%,var(--color-doc-fold) 50%);
+  border-bottom-left-radius:3px;
 }
 
-.document-card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.doc-card-body,
+.document-card-body{
+  padding:16px 18px 18px;
+  display:flex;flex-direction:column;gap:8px;flex:1;
+}
+.doc-type,
+.document-type{
+  font-size:var(--font-size-xs);color:var(--color-text-muted);
+  font-weight:var(--font-weight-medium);margin-bottom:4px;
+  display:inline-flex;align-items:center;gap:6px;
+  text-transform:uppercase;letter-spacing:0.4px;
+}
+.doc-type::before,
+.document-type::before{
+  content:"";width:5px;height:5px;
+  border-radius:50%;background:var(--color-primary-mid);
+}
+.doc-title,
+.document-title{
+  font-size:var(--font-size-md);font-weight:var(--font-weight-bold);
+  color:var(--color-text-primary);
+  line-height:var(--line-height-base);margin:0;
+  letter-spacing:-0.005em;
+}
+.doc-meta,
+.document-meta{display:flex;align-items:center;gap:8px}
+.doc-date,
+.document-date{
+  font-size:11px;color:var(--color-text-hint);font-weight:var(--font-weight-medium);
+}
+.doc-term,
+.document-term{
+  font-size:var(--font-size-xs);color:var(--color-text-muted);
+  font-weight:var(--font-weight-medium);font-family:var(--font-family-mono);
+}
+.doc-view,
+.document-view-btn{
+  width:100%;padding:8px;font-size:12px;font-weight:var(--font-weight-semibold);
+  border:1.5px solid var(--color-primary);
+  border-radius:var(--radius-md);
+  color:var(--color-primary);background:transparent;
+  cursor:pointer;transition:var(--transition));
+  margin-top:auto;
+}
+.doc-view:hover,
+.document-view-btn:hover{
+  background:var(--color-primary);color:var(--color-white);
+  box-shadow:0 4px 12px -4px rgba(79,111,209,0.4);
 }
 
-.document-placeholder {
-  width: 60px;
-  height: 60px;
-  background: #d1d5db;
-  border-radius: 4px;
+/* SOURCE A — backward-compat inner classes */
+.document-card-content{
+  padding:14px 16px;
+  display:flex;flex-direction:column;gap:6px;flex:1;
 }
-
-.document-card-content {
-  padding: 20px;
-  text-align: left;
-  flex-grow: 1;
+.document-card-title{
+  font-size:var(--font-size-md);font-weight:var(--font-weight-bold);
+  color:var(--color-text-primary);
+  line-height:var(--line-height-base);margin:0;
+  letter-spacing:-0.005em;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
 }
-
-.document-card-title {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-  line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.document-card-date{
+  font-size:11px;color:var(--color-text-hint);
+  font-weight:var(--font-weight-medium);margin:0;
 }
-
-.document-card-description {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  color: #6b7280;
-  line-height: 1.5;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
+.document-card-description{
+  font-size:13px;color:var(--color-text-secondary);
+  line-height:1.5;margin:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-
-.document-card-description.single-line {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.document-card-button{
+  width:100%;padding:8px;font-size:12px;font-weight:var(--font-weight-semibold);
+  border:1.5px solid var(--color-primary);
+  border-radius:var(--radius-md);
+  color:var(--color-primary);background:transparent;
+  cursor:pointer;transition:var(--transition);
+  margin-top:auto;
 }
-
-.document-card-date {
-  margin: 0 0 8px 0;
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.document-card-button {
-  margin: 0 20px 20px 20px;
-  padding: 10px;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.document-card-button:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
-
-.document-card-button:active {
-  background: #f3f4f6;
-}
-
-.document-card.outlined {
-  border: 1px solid #e5e7eb;
-  box-shadow: none;
-}
-
-.document-card.elevated {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.533);
+.document-card-button:hover{
+  background:var(--color-primary);color:var(--color-white);
+  box-shadow:0 4px 12px -4px rgba(79,111,209,0.4);
 }

@@ -1,8 +1,8 @@
-import './typography.css';
+import "./typography.css";
 
 type typographyType = {
   size?: string;
-  color: 'text-dark' | 'text-ghost' | 'text-primary' | 'text-nonbold';
+  color: "text-dark" | "text-ghost" | "text-primary" | "text-nonbold";
   style?: React.CSSProperties;
   children: React.ReactNode;
 };
