@@ -264,7 +264,7 @@
   max-width: 860px;
   width: 94%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 20px;
   padding: 24px;
   text-align: left;
@@ -296,9 +296,7 @@
   flex: 0 0 auto;
   font-size: 28px;
   color: var(--color-primary-light, #c8d2ef);
-  align-self: center;
   line-height: 1;
-  padding-top: 8px;
 }
 
 /* Right panel — 2-column grid of sub-org cards */
