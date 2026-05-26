@@ -17,6 +17,17 @@ interface AdminAccount {
   email: string | null;
 }
 
+type CommitteePins = { publication: string; secretariat: string; finance: string };
+type CommitteePinInput = { publication: string; secretariat: string; finance: string };
+type CommitteePinSaving = { publication: boolean; secretariat: boolean; finance: boolean };
+type CommitteePinSaved  = { publication: boolean; secretariat: boolean; finance: boolean };
+
+const COMMITTEE_LABELS: Record<keyof CommitteePins, string> = {
+  publication: 'Publication Committee',
+  secretariat: 'Secretariat Committee',
+  finance:     'Finance Committee',
+};
+
 const Settings = () => {
   const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>([]);
   const [adminLoading, setAdminLoading] = useState(true);
@@ -32,6 +43,18 @@ const Settings = () => {
   const [termOptions, setTermOptions] = useState<string[]>([]);
   const [termSaving, setTermSaving] = useState(false);
   const [termSaved, setTermSaved] = useState(false);
+
+  /* ── Committee PIN management ── */
+  const [pins, setPins]         = useState<CommitteePins>({ publication: '', secretariat: '', finance: '' });
+  const [pinInput, setPinInput] = useState<CommitteePinInput>({ publication: '', secretariat: '', finance: '' });
+  const [pinSaving, setPinSaving] = useState<CommitteePinSaving>({ publication: false, secretariat: false, finance: false });
+  const [pinSaved,  setPinSaved]  = useState<CommitteePinSaved>({ publication: false, secretariat: false, finance: false });
+  const [pinError,  setPinError]  = useState<Partial<Record<keyof CommitteePins, string>>>({});
+  const [pinsLoading, setPinsLoading] = useState(true);
+  const [showPin, setShowPin] = useState<Partial<Record<keyof CommitteePins, boolean>>>({});
+
+  /* ── Current logged-in user (for Account Security label) ── */
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string | null } | null>(null);
 
   useEffect(() => {
     axios.get(`${API_URL}/settings/access_paused`, { withCredentials: true })
@@ -58,6 +81,56 @@ const Settings = () => {
       setTimeout(() => setTermSaved(false), 2500);
     } catch { /* silently ignore */ }
     finally { setTermSaving(false); }
+  };
+
+  /* ── Load committee PINs ── */
+  useEffect(() => {
+    setPinsLoading(true);
+    axios
+      .get<CommitteePins>(`${API_URL}/committee-pins`, { withCredentials: true })
+      .then(({ data }) => {
+        setPins(data);
+        setPinInput({ publication: data.publication, secretariat: data.secretariat, finance: data.finance });
+      })
+      .catch(() => { /* silently ignore */ })
+      .finally(() => setPinsLoading(false));
+  }, []);
+
+  /* ── Fetch current user info ── */
+  useEffect(() => {
+    axios
+      .get<{ name: string; email: string; role: string }>(
+        `${API_URL}/user/me`,
+        { withCredentials: true },
+      )
+      .then(({ data }) => {
+        setCurrentUser({
+          name:  data.name ?? 'Admin',
+          email: data.email ?? null,
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSavePin = async (role: keyof CommitteePins) => {
+    const newPin = pinInput[role].trim();
+    if (newPin.length < 4) {
+      setPinError((prev) => ({ ...prev, [role]: 'PIN must be at least 4 characters.' }));
+      return;
+    }
+    setPinError((prev) => ({ ...prev, [role]: undefined }));
+    setPinSaving((prev) => ({ ...prev, [role]: true }));
+    try {
+      await axios.post(`${API_URL}/committee-pins/${role}`, { pin: newPin }, { withCredentials: true });
+      setPins((prev) => ({ ...prev, [role]: newPin }));
+      setPinSaved((prev) => ({ ...prev, [role]: true }));
+      setTimeout(() => setPinSaved((prev) => ({ ...prev, [role]: false })), 2500);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to update PIN.';
+      setPinError((prev) => ({ ...prev, [role]: msg }));
+    } finally {
+      setPinSaving((prev) => ({ ...prev, [role]: false }));
+    }
   };
 
   const handlePauseConfirm = async () => {
@@ -209,7 +282,114 @@ const Settings = () => {
           <p className="ads-hint" style={{ marginBottom: 16 }}>
             Change your admin account password. You will remain logged in after saving.
           </p>
+
+          {/* Account identity badge */}
+          {currentUser && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '10px 14px',
+              background: 'var(--color-surface-deep, #eef1fb)',
+              border: '1px solid var(--color-border, #e2e8f0)',
+              borderRadius: 10,
+              marginBottom: 18,
+              maxWidth: 400,
+            }}>
+              <span style={{
+                width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                background: 'var(--gradient-deep, linear-gradient(160deg,#3b5fbc,#4f6fd1))',
+                color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, fontWeight: 700,
+              }}>
+                {currentUser.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'A'}
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary, #0f1729)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {currentUser.name}
+                </span>
+                {currentUser.email && (
+                  <span style={{ fontSize: 11.5, color: 'var(--color-text-muted, #6b7280)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {currentUser.email}
+                  </span>
+                )}
+              </div>
+              <span className="ad-tag tone-neutral" style={{ fontSize: 10.5, marginLeft: 'auto', flexShrink: 0 }}>
+                Current account
+              </span>
+            </div>
+          )}
+
           <PasswordForm />
+        </div>
+
+        {/* ── Committee PINs ── */}
+        <div className="ad-card ads-section">
+          <SectionHead
+            icon={<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 1 1 8 0v3"/></svg>}
+            title="Committee PINs"
+          />
+          <p className="ads-hint" style={{ marginBottom: 16 }}>
+            Each committee uses a unique PIN to access the committee portal at{' '}
+            <strong>/committee/login</strong>. Change a PIN here if a committee forgets theirs.
+          </p>
+
+          {pinsLoading ? (
+            <p className="ads-hint">Loading PINs…</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {(Object.keys(COMMITTEE_LABELS) as (keyof CommitteePins)[]).map((role) => (
+                <div key={role} className="ads-sub" style={{ borderRadius: 10, border: '1px solid var(--color-border)', padding: '14px 18px' }}>
+                  <div className="ads-label-row" style={{ marginBottom: 8 }}>
+                    <span className="ads-label">{COMMITTEE_LABELS[role]}</span>
+                    <span className="ad-tag tone-neutral" style={{ fontSize: 11 }}>
+                      current: {showPin[role] ? pins[role] : '•'.repeat(Math.min(pins[role].length, 8))}
+                    </span>
+                  </div>
+                  <div className="ads-row">
+                    <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+                      <input
+                        type={showPin[role] ? 'text' : 'password'}
+                        className="ads-term-select"
+                        style={{ paddingRight: 56, flex: 1, minWidth: 0 }}
+                        placeholder={`New PIN for ${COMMITTEE_LABELS[role]}`}
+                        value={pinInput[role]}
+                        onChange={(e) => setPinInput((prev) => ({ ...prev, [role]: e.target.value }))}
+                        minLength={4}
+                      />
+                      <button
+                        type="button"
+                        style={{
+                          position: 'absolute', right: 10,
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          fontSize: 11, fontWeight: 600,
+                          color: 'var(--color-primary, #4f6fd1)',
+                          fontFamily: 'inherit',
+                        }}
+                        onClick={() => setShowPin((prev) => ({ ...prev, [role]: !prev[role] }))}
+                      >
+                        {showPin[role] ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
+                    <button
+                      className="ad-btn-primary"
+                      onClick={() => handleSavePin(role)}
+                      disabled={pinSaving[role] || !pinInput[role].trim() || pinInput[role].trim() === pins[role]}
+                    >
+                      {pinSaving[role] ? 'Saving…' : 'Update'}
+                    </button>
+                    {pinSaved[role] && <span className="ads-saved">✓ Updated</span>}
+                  </div>
+                  {pinError[role] && (
+                    <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--color-danger-text, #b91c1c)' }}>
+                      {pinError[role]}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── About ── */}

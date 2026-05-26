@@ -153,6 +153,64 @@
   flex-shrink: 0;
 }
 
+/* ── Pinned announcement — compact collapsed tab ── */
+.ann-pinned-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4) var(--space-6);
+  cursor: pointer;
+  transition:
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    border-color var(--transition-fast);
+}
+.ann-pinned-tab:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.ann-pinned-tab-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ann-pinned-tab:hover .ann-pinned-tab-title {
+  color: var(--color-primary);
+}
+.ann-pinned-tab-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ann-pinned-tab-cta {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .ann-pinned-tab {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .ann-pinned-tab-meta {
+    display: none;
+  }
+}
+
 /* ── Single announcement card area ── */
 .announcement-content {
   max-width: var(--max-width-content);

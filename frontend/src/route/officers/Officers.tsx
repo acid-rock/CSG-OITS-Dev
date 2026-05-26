@@ -294,6 +294,11 @@ const Officers = () => {
                   const chairInitials = chairName
                     ? chairName.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase()
                     : "??";
+                  // Look up the chair's avatar from the officers list
+                  const chairOfficer = chairName
+                    ? officers.find((o) => o.full_name === chairName)
+                    : null;
+                  const chairAvatar = chairOfficer?.avatar ?? null;
 
                   return (
                     <article
@@ -304,7 +309,7 @@ const Officers = () => {
                       onClick={() => setSelectedCommittee(c)}
                       onKeyDown={(e) => e.key === "Enter" && setSelectedCommittee(c)}
                     >
-                      {/* Cover photo or striped fallback */}
+                      {/* Cover photo or CSG-logo placeholder */}
                       {c.cover_image_url ? (
                         <div
                           className="cc-photo"
@@ -313,17 +318,34 @@ const Officers = () => {
                           aria-label="Committee cover photo"
                         />
                       ) : (
-                        <div className="cc-photo cc-photo--ph" role="img" aria-label="Committee placeholder">
-                          <span className="cc-photo-mark">{chairInitials}</span>
+                        <div className="cc-photo cc-photo--logo" role="img" aria-label="No committee photo">
+                          <img src="/CSG_logo.svg" alt="CSG" className="cc-photo-logo-img" />
                         </div>
                       )}
 
                       <div className="cc-card-body">
                         <h3 className="cc-card-title">{c.name}</h3>
                         <div className="cc-chair">
+                          {chairAvatar ? (
+                            <img
+                              src={chairAvatar}
+                              alt={chairName ?? "Chair"}
+                              className="cc-chair-photo"
+                              onError={(e) => {
+                                // Fall back to initials circle on broken URL
+                                const el = e.currentTarget as HTMLImageElement;
+                                el.style.display = "none";
+                                const next = el.nextElementSibling as HTMLElement | null;
+                                if (next) next.style.display = "inline-flex";
+                              }}
+                            />
+                          ) : null}
                           <span
                             className="cc-avatar"
-                            style={{ width: 28, height: 28, fontSize: 28 * 0.34 }}
+                            style={{
+                              width: 28, height: 28, fontSize: 28 * 0.34,
+                              display: chairAvatar ? "none" : "inline-flex",
+                            }}
                           >
                             {chairInitials}
                           </span>
@@ -404,7 +426,13 @@ const Officers = () => {
             };
 
             const officials = members.filter(isOfficial);
-            const regulars  = members.filter((o) => !isOfficial(o));
+            const nonOfficials = members.filter((o) => !isOfficial(o));
+
+            // Split non-officials: officers with a custom role (anything other than
+            // plain "Member") come above those with no special role.
+            // Hierarchy: Chairperson → Vice-Chairperson → (Other roles) → Member
+            const withCustomRole = nonOfficials.filter((o) => roleTitle(o) !== "Member");
+            const plainMembers   = nonOfficials.filter((o) => roleTitle(o) === "Member");
 
             return (
               <>
@@ -427,10 +455,11 @@ const Officers = () => {
                     ))}
                   </div>
                 )}
-                {regulars.length > 0 && (
+                {(withCustomRole.length > 0 || plainMembers.length > 0) && (
                   <div className="op-cm-section">
                     <p className="op-cm-section-label">Members</p>
-                    {regulars.map((o) => (
+                    {/* Custom-role officers appear first, plain "Member" entries at the bottom */}
+                    {[...withCustomRole, ...plainMembers].map((o) => (
                       <div key={o.id} className="op-cm-row">
                         <img
                           src={o.avatar || "/CSG_logo.svg"}

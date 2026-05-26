@@ -63,18 +63,20 @@ export default function AnnouncementSection() {
           <p>Notices, advisories, and updates from your CSG officers.</p>
         </div>
 
-        {/* Pinned strip */}
+        {/* Pinned announcement — compact strip tab */}
         {pinned && (
-          <button
-            type="button"
-            className="pinned-strip"
+          <div
+            className="ann-pinned-tab"
             onClick={() => handleCardClick(pinned)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && handleCardClick(pinned)}
           >
             <span className="pinned-badge">📌 Pinned</span>
-            <span className="pinned-title">{pinned.title}</span>
-            <span className="pinned-date">{formatDate(pinned.date)}</span>
-            <span className="pinned-arrow">→</span>
-          </button>
+            <span className="ann-pinned-tab-title">{pinned.title}</span>
+            <span className="ann-pinned-tab-meta">{formatDate(pinned.date)}</span>
+            <span className="ann-pinned-tab-cta">Read more →</span>
+          </div>
         )}
 
         {/* 3-card grid — same visual style as dedicated /announcements page */}

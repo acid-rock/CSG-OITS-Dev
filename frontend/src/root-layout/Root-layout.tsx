@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Navigation from "../components/navigation/Navigation";
 import Footer from "../components/footer/Footer";
 import SplashScreen from "../components/splash-screen/SplashScreen";
+import QueueScreen from "../components/queue-screen/QueueScreen";
 import { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 
@@ -98,6 +99,70 @@ const Root = () => {
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // ── Concurrent-access slot management ──────────────────────
+  // 'checking' → awaiting /access/join response
+  // 'allowed'  → slot granted; heartbeat active
+  // 'queued'   → over capacity; QueueScreen polls until allowed
+  const [accessState, setAccessState]     = useState<'checking' | 'allowed' | 'queued'>('checking');
+  const [queuePosition, setQueuePosition] = useState(1);
+  const accessToken   = useRef<string | null>(null);
+  const heartbeatRef  = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startHeartbeat = (token: string) => {
+    if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+    heartbeatRef.current = setInterval(async () => {
+      try {
+        await axios.post(`${VITE_API_URL}/access/heartbeat`, { token });
+      } catch (err: unknown) {
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        if (status === 410) {
+          // Token expired — try to re-join
+          clearInterval(heartbeatRef.current!);
+          tryAccessJoin();
+        }
+      }
+    }, 20_000);
+  };
+
+  const tryAccessJoin = useCallback(async () => {
+    try {
+      const { data } = await axios.post<{ allowed: boolean; token?: string; position?: number }>(
+        `${VITE_API_URL}/access/join`,
+      );
+      if (data.allowed && data.token) {
+        accessToken.current = data.token;
+        startHeartbeat(data.token);
+        setAccessState('allowed');
+      } else {
+        setQueuePosition(data.position ?? 1);
+        setAccessState('queued');
+      }
+    } catch {
+      // Access endpoint unavailable (e.g. local dev without backend) — allow through
+      setAccessState('allowed');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Kick off access check on mount (runs concurrently with fetchAll)
+  useEffect(() => {
+    tryAccessJoin();
+
+    // Release slot when the tab closes
+    const releaseSlot = () => {
+      if (accessToken.current) {
+        const body = JSON.stringify({ token: accessToken.current });
+        navigator.sendBeacon(`${VITE_API_URL}/access/leave`, new Blob([body], { type: 'application/json' }));
+      }
+    };
+    window.addEventListener('beforeunload', releaseSlot);
+    return () => {
+      window.removeEventListener('beforeunload', releaseSlot);
+      if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+      releaseSlot();
+    };
+  }, [tryAccessJoin]);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -201,7 +266,22 @@ const Root = () => {
       .catch(() => { /* non-fatal — backend may not have migration yet */ });
   }, [location.pathname]);
 
-  if (loading) {
+  // Show queue screen while waiting for a slot
+  if (accessState === 'queued') {
+    return (
+      <QueueScreen
+        initialPosition={queuePosition}
+        onAllowed={(token) => {
+          accessToken.current = token;
+          startHeartbeat(token);
+          setAccessState('allowed');
+        }}
+      />
+    );
+  }
+
+  // Show splash while checking access OR while data is loading
+  if (accessState === 'checking' || loading) {
     return <SplashScreen />;
   }
 

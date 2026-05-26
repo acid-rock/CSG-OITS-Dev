@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import Modal from "../../components/modal/Modal";
 import type {
@@ -7,6 +7,8 @@ import type {
 } from "../../root-layout/Root-layout";
 import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 import "./bulletin.css";
+
+const PAGE_SIZE = 9;
 
 function getTagClass(type?: string): string {
   if (!type) return "tag-notice";
@@ -34,6 +36,7 @@ const Bulletin = () => {
   const [query, setQuery] = useState("");
   const [activeTerm, setActiveTerm] = useState<string>("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [page, setPage] = useState(1);
 
   const CATEGORIES = [
     "All",
@@ -81,6 +84,13 @@ const Bulletin = () => {
   });
 
   const remaining = filtered.filter((a) => !a.is_pinned);
+
+  // Reset to page 1 whenever filters change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setPage(1); }, [query, activeTerm, activeCategory]);
+
+  const totalPages = Math.max(1, Math.ceil(remaining.length / PAGE_SIZE));
+  const paginated  = remaining.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <>
@@ -183,10 +193,10 @@ const Bulletin = () => {
           <p className="bl-empty">No announcements found.</p>
         )}
 
-        {/* Three-column grid */}
+        {/* Three-column grid — paginated */}
         {remaining.length > 0 && (
           <div className="bl-grid">
-            {remaining.map((ann) => (
+            {paginated.map((ann) => (
               <div
                 key={ann.id}
                 className="bl-card card"
@@ -220,6 +230,39 @@ const Bulletin = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination controls */}
+        {totalPages > 1 && (
+          <div className="bl-pagination">
+            <button
+              className="bl-page-btn"
+              onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              disabled={page === 1}
+            >
+              ← Prev
+            </button>
+
+            <div className="bl-page-pills">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  className={`bl-page-pill${n === page ? ' bl-page-pill-active' : ''}`}
+                  onClick={() => { setPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+
+            <button
+              className="bl-page-btn"
+              onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              disabled={page === totalPages}
+            >
+              Next →
+            </button>
           </div>
         )}
       </div>

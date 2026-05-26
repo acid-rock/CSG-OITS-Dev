@@ -19,13 +19,17 @@ import Borrow from "./route/borrow/Borrow";
 import ContributorsPage from "./route/contributors/Contributors";
 import OrganizationsPage from "./route/organizations/OrganizationsPage";
 
-
 // Admin Login (Public)
 import Login from "./admin/admin-loginpage/login/Login";
 import Forgot from "./admin/admin-loginpage/forgot/Forgot";
 import Reset from "./admin/admin-loginpage/reset/Reset";
 import AdminPage from "./admin/AdminPage";
 import ProtectedRoute from "./admin/ProtectedRoute";
+
+// Committee portal
+import CommitteeLogin from "./route/committee-login/CommitteeLogin";
+import CommitteeAdminPage from "./route/committee-admin/CommitteeAdminPage";
+import CommitteeProtectedRoute from "./route/committee-admin/CommitteeProtectedRoute";
 
 const router = createBrowserRouter([
   // Guest Routes
@@ -71,6 +75,19 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/admin?panel=bin" replace /> },
     ],
+  },
+  // Committee Portal
+  {
+    path: "/committee/login",
+    element: <CommitteeLogin />,
+  },
+  {
+    path: "/committee/admin",
+    element: (
+      <CommitteeProtectedRoute>
+        <CommitteeAdminPage />
+      </CommitteeProtectedRoute>
+    ),
   },
 ]);
 

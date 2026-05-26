@@ -57,11 +57,12 @@ export default function AboutPage() {
             ready to reignite that fire.
           </p>
           <blockquote className="ap-blockquote">
-            <span className="ap-quote-mark">&ldquo;</span>
             <p className="ap-quote-text">
+              <span className="ap-quote-mark">&ldquo;</span>
               Para sa kabsuhenyo,{" "}
               <strong style={{ color: "var(--color-primary)" }}>puso</strong>{" "}
               ang magiging sentro ng serbisyo.
+              <span className="ap-quote-mark">&ldquo;</span>
             </p>
           </blockquote>
           <p className="ap-body">

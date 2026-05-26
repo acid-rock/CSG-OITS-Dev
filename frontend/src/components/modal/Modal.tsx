@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./modal.css";
 import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 
@@ -29,10 +29,22 @@ const Modal: React.FC<ModalProps> = ({
   const [imageIndex, setImageIndex] = useState<number>(0);
   const [transitioning, setTransitioning] = useState(false);
   const [direction, setDirection] = useState<"left" | "right">("right");
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   // Use the shared hook so the scrollbar is properly restored (including
   // padding compensation) when the modal closes — same as every other modal.
   useLockBodyScroll(isOpen);
+
+  // Close lightbox on Escape
+  const closeLightbox = useCallback(() => setLightboxSrc(null), []);
+  useEffect(() => {
+    if (!lightboxSrc) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxSrc, closeLightbox]);
 
   // Preload adjacent images
   useEffect(() => {
@@ -84,6 +96,30 @@ const Modal: React.FC<ModalProps> = ({
       };
 
   return (
+    <>
+    {lightboxSrc && (
+      <div
+        className="modal-lightbox"
+        onClick={closeLightbox}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Zoomed image"
+      >
+        <button
+          className="modal-lightbox-close"
+          onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
+          aria-label="Close zoomed view"
+        >
+          ×
+        </button>
+        <img
+          src={lightboxSrc}
+          alt=""
+          className="modal-lightbox-img"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    )}
     <div className="modal-backdrop" onClick={handleBackdropClick}>
       <div className="modal-container">
         <button className="modal-close-btn" onClick={() => setOpen(false)}>
@@ -95,12 +131,20 @@ const Modal: React.FC<ModalProps> = ({
             <img
               src={extraImage[imageIndex]}
               alt={imageAlt}
-              className="modal-image"
+              className="modal-image modal-image--zoomable"
               style={slideStyle}
+              onClick={() => setLightboxSrc(extraImage[imageIndex])}
+              title="Click to zoom"
             />
           ) : (
             imageSrc && (
-              <img src={imageSrc} alt={imageAlt} className="modal-image" />
+              <img
+                src={imageSrc}
+                alt={imageAlt}
+                className="modal-image modal-image--zoomable"
+                onClick={() => setLightboxSrc(imageSrc)}
+                title="Click to zoom"
+              />
             )
           )}
 
@@ -145,6 +189,7 @@ const Modal: React.FC<ModalProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };
 

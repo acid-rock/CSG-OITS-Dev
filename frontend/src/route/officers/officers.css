@@ -209,7 +209,8 @@
 .oc-avatar {
   border-radius: 50%;
   overflow: hidden;
-  background: var(--color-primary);
+  /* Default: primary blue — applies to executive, board, and advisers */
+  background: var(--gradient-deep, linear-gradient(160deg,#3b5fbc 0%,#4f6fd1 50%,#8aaae0 100%));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -220,6 +221,24 @@
     0 0 0 4px var(--color-primary-light),
     0 8px 20px -6px rgba(79, 110, 247, 0.35);
   transition: transform var(--transition-base);
+  /* Needed so ::after vignette positions inside the clipped circle */
+  position: relative;
+}
+/* Blue vignette at the rim — turns white photo backgrounds blue at the edges
+   while leaving the center (face) fully transparent and natural-looking */
+.oc-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Gradient starts transparent at centre, fades to solid blue at the rim */
+  background: radial-gradient(
+    circle at 50% 38%,
+    transparent 42%,
+    rgba(59, 95, 188, 0.62) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
 }
 .oc-card:hover .oc-avatar {
   transform: translateY(-4px) scale(1.04);
@@ -234,19 +253,23 @@
   display: block;
 }
 
-/* Initials inside avatar */
+/* Initials inside avatar — inherits container background */
 .oc-initials {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary);
+  background: transparent;
   color: var(--color-surface);
   font-weight: var(--font-weight-bold);
   line-height: 1;
   user-select: none;
   border-radius: 50%;
+}
+/* Adviser initials — same white text as exec/board (all avatars now blue) */
+.op-adviser-grid .oc-initials {
+  color: var(--color-surface);
 }
 
 /* Text */
@@ -333,12 +356,30 @@
   }
 }
 
-/* ── Committee cards ── */
+/* ── Committee cards — flex 4-4-2 centred layout ── */
 .op-committee-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);        /* matches var(--space-4) = 16px */
   width: 100%;
+}
+/* 4 per row: (100% - 3 × 16px) / 4 */
+.op-committee-grid > * {
+  flex: 0 0 calc(25% - 12px);
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  /* 3 per row: (100% - 2 × 16px) / 3 */
+  .op-committee-grid > * { flex: 0 0 calc(33.333% - 10.667px); }
+}
+@media (max-width: 768px) {
+  /* 2 per row: (100% - 16px) / 2 */
+  .op-committee-grid > * { flex: 0 0 calc(50% - 8px); }
+}
+@media (max-width: 480px) {
+  .op-committee-grid > * { flex: 0 0 100%; }
 }
 
 .op-committee-card {
@@ -411,13 +452,16 @@
   background: var(--color-surface-deep, #eef1fb);
   border: 1px solid var(--color-border-soft, #eef0f5);
   border-radius: 50%;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 400;
   cursor: pointer;
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  padding: 0;
+  padding-bottom: 2px;   /* optical × centering */
   transition: background 150ms ease, color 150ms ease;
 }
 .op-committee-modal-close:hover {

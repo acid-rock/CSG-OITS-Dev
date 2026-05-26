@@ -347,10 +347,10 @@
   width: 100%;
 }
 
-/* ── 2-column card grid — equal-height cards ── */
+/* ── 3-column card grid — equal-height cards (matches announcements page) ── */
 .ep-card-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   align-items: stretch;
   gap: var(--space-6);
 }
@@ -420,6 +420,11 @@
   overflow: hidden;
 }
 
+@media (max-width: 1024px) {
+  .ep-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 @media (max-width: 640px) {
   .ep-card-grid {
     grid-template-columns: 1fr;

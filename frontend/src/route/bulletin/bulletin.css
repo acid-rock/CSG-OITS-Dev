@@ -428,6 +428,79 @@
   font-size: var(--font-size-base);
 }
 
+/* ════════════════════════════════════════════════════
+   PAGINATION
+   ════════════════════════════════════════════════════ */
+.bl-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-10);
+  flex-wrap: wrap;
+}
+
+.bl-page-btn {
+  height: 38px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary, #374151);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast),
+    border-color var(--transition-fast);
+  white-space: nowrap;
+}
+.bl-page-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light, #c8d2ef);
+}
+.bl-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bl-page-pills {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.bl-page-pill {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary, #374151);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast),
+    border-color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bl-page-pill:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.bl-page-pill-active {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: #fff !important;
+  font-weight: var(--font-weight-bold) !important;
+}
+
 /* ── Backward-compat: keep old class names in case they are referenced ── */
 .bulletin-content {
   max-width: var(--max-width-content);

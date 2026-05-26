@@ -28,6 +28,7 @@ const GROUPS = [
   ]},
   { label: 'Operations', links: [
     { id: 'borrowing',     label: 'Equipment',     Icon: I.hdd,      preview: false },
+    { id: 'finance',       label: 'Finance',       Icon: I.trend,    preview: false },
     { id: 'auditlog',      label: 'Audit Log',     Icon: I.log,      preview: false },
     { id: 'contributors',  label: 'Contributors',  Icon: I.users,    preview: false },
     { id: 'settings',      label: 'Settings',      Icon: I.settings, preview: false },

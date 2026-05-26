@@ -288,6 +288,11 @@
   margin-bottom: 2px;
 }
 
+.hero-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+}
+
 .hero-badge .val {
   font-size: var(--font-size-sm);             /* 0.875rem (was 14px) */
   font-weight: var(--font-weight-semibold);   /* 600 */

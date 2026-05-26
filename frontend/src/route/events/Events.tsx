@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import Modal from "../../components/modal/Modal";
 import type { OutletContext } from "../../root-layout/Root-layout";
 import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 import "./events.css";
-
-const EVENTS_PER_PAGE = 2;
 
 export default function EventsPage() {
   /* ══════════════════════════════════════════════════════
@@ -14,7 +11,6 @@ export default function EventsPage() {
      ══════════════════════════════════════════════════════ */
   const { events } = useOutletContext<OutletContext>();
 
-  const [currentPage, setCurrentPage] = useState<number>(0);
   const [open, setOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,7 +24,7 @@ export default function EventsPage() {
 
   // scroll lock owned by <Modal>
 
-  /* Search + term filtered list */
+  /* Search + term filtered list — all results shown, no pagination */
   const filtered = events.filter((e) => {
     const matchesSearch =
       !searchQuery.trim() ||
@@ -37,22 +33,6 @@ export default function EventsPage() {
     const matchesTerm = !termFilter || (e as any).term_year === termFilter;
     return matchesSearch && matchesTerm;
   });
-
-  const totalPages = Math.ceil(filtered.length / EVENTS_PER_PAGE);
-  const currentPageEvents = filtered.slice(
-    currentPage * EVENTS_PER_PAGE,
-    currentPage * EVENTS_PER_PAGE + EVENTS_PER_PAGE,
-  );
-
-  /* Locked pagination handlers */
-  const nextPage = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
-  const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
-
-  const handleSearchChange = (q: string) => {
-    setSearchQuery(q);
-    setCurrentPage(0);
-  };
 
   /* Locked modal handler */
   const handleCardClick = (event: any) => {
@@ -93,14 +73,9 @@ export default function EventsPage() {
         >
           <SearchFilterBar
             searchValue={searchQuery}
-            onSearchChange={(v) => {
-              handleSearchChange(v);
-            }}
+            onSearchChange={setSearchQuery}
             termValue={termFilter}
-            onTermChange={(v) => {
-              setTermFilter(v);
-              setCurrentPage(0);
-            }}
+            onTermChange={setTermFilter}
             termOptions={termOptions}
             searchPlaceholder="Search events..."
           />
@@ -116,82 +91,43 @@ export default function EventsPage() {
             {searchQuery ? "No events match your search." : "No events yet."}
           </p>
         ) : (
-          <>
-            {/* ── 2-column card grid ── */}
-            <div className="ep-card-grid">
-              {currentPageEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="ep-grid-card card"
-                  onClick={() => handleCardClick(event)}
-                >
-                  {/* Full-cover image at top */}
-                  <div className="ep-grid-img">
-                    {event.images?.[0] ? (
-                      <img
-                        src={event.images[0]}
-                        alt={event.name}
-                        className="ep-grid-cover"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display =
-                            "none";
-                        }}
-                      />
-                    ) : (
-                      <img
-                        src="/CSG_logo.svg"
-                        alt="CSG"
-                        className="ep-grid-logo"
-                      />
-                    )}
-                  </div>
-                  {/* Card body */}
-                  <div className="ep-grid-body">
-                    <p className="ep-sidebar-date">&bull;&nbsp;{event.date}</p>
-                    <h3 className="ep-feat-title">{event.name}</h3>
-                    <p className="ep-feat-desc">{event.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* ── Pagination ── */}
-            {totalPages > 1 && (
-              <div className="ep-pagination">
-                <button
-                  type="button"
-                  className="ep-arrow"
-                  onClick={prevPage}
-                  disabled={currentPage === 0}
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-
-                <div className="ep-dots">
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className={`ep-dot${i === currentPage ? " ep-dot-active" : ""}`}
-                      onClick={() => setCurrentPage(i)}
-                      aria-label={`Go to page ${i + 1}`}
+          /* 3-column card grid — all filtered results, no pagination */
+          <div className="ep-card-grid">
+            {filtered.map((event) => (
+              <div
+                key={event.id}
+                className="ep-grid-card card"
+                onClick={() => handleCardClick(event)}
+              >
+                {/* Full-cover image at top */}
+                <div className="ep-grid-img">
+                  {event.images?.[0] ? (
+                    <img
+                      src={event.images[0]}
+                      alt={event.name}
+                      className="ep-grid-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          "none";
+                      }}
                     />
-                  ))}
+                  ) : (
+                    <img
+                      src="/CSG_logo.svg"
+                      alt="CSG"
+                      className="ep-grid-logo"
+                    />
+                  )}
                 </div>
-
-                <button
-                  type="button"
-                  className="ep-arrow"
-                  onClick={nextPage}
-                  disabled={currentPage >= totalPages - 1}
-                  aria-label="Next page"
-                >
-                  <ChevronRight size={20} />
-                </button>
+                {/* Card body */}
+                <div className="ep-grid-body">
+                  <p className="ep-sidebar-date">&bull;&nbsp;{event.date}</p>
+                  <h3 className="ep-feat-title">{event.name}</h3>
+                  <p className="ep-feat-desc">{event.description}</p>
+                </div>
               </div>
-            )}
-          </>
+            ))}
+          </div>
         )}
       </div>
 

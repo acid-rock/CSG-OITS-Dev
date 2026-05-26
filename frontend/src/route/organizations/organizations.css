@@ -204,10 +204,17 @@
 }
 
 /* ── ORG CARD GRID ────────────────────────────────────────── */
+/* Flex so that a partial last row (e.g. 2 of 4) centers itself */
 .po-grid{
-  display:grid;
-  grid-template-columns:repeat(4, 1fr);
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
   gap:18px;
+}
+.po-grid > *{
+  /* 4 per row: (100% - 3×18px) / 4 */
+  flex:0 0 calc(25% - 13.5px);
+  min-width:0;
 }
 
 .po-card{
@@ -318,12 +325,14 @@
 
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .po-grid{ grid-template-columns:repeat(3, 1fr); }
+  /* 3 per row: (100% - 2×18px) / 3 */
+  .po-grid > *{ flex:0 0 calc(33.333% - 12px); }
   .po-nav-inner, .po-toolbar-inner, .po-main,
   .po-footer-inner, .po-footer-bottom{ padding-left:24px; padding-right:24px; }
 }
 @media (max-width: 768px) {
-  .po-grid{ grid-template-columns:repeat(2, 1fr); }
+  /* 2 per row: (100% - 1×18px) / 2 */
+  .po-grid > *{ flex:0 0 calc(50% - 9px); }
   .po-featured{ grid-template-columns:1fr; }
   .po-featured-art{ min-height:180px; }
   .po-hero{ padding:48px 24px 40px; }
@@ -335,6 +344,7 @@
   .po-nav-links{ display:none; }
 }
 @media (max-width: 480px) {
-  .po-grid{ grid-template-columns:1fr; }
+  /* 1 per row */
+  .po-grid > *{ flex:0 0 100%; }
   .po-hero-stats{ grid-template-columns:repeat(3, 1fr); }
 }

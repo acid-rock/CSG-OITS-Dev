@@ -1,18 +1,36 @@
 import "./main.css";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import axios from "axios";
 import Button from "../../components/button/Button";
+import type { OutletContext } from "../../root-layout/Root-layout";
 
 export default function Main() {
   const navigate = useNavigate();
+  const { bulletin } = useOutletContext<OutletContext>();
+
   const [docs, setDocs] = useState<string>("—");
   const [committees, setCommittees] = useState<string>("—");
   const [officers, setOfficers] = useState<string>("—");
-
-  const [pinnedTitle, setPinnedTitle] = useState<string>("Loading...");
   const [equipmentLabel, setEquipmentLabel] =
     useState<string>("— of — available");
+
+  // Derive pinned info from outlet context (already fetched by Root-layout)
+  const pinnedAnn =
+    bulletin.find((a) => a.is_pinned) ??
+    [...bulletin].sort(
+      (a, b) =>
+        new Date(b.created_at ?? "").getTime() -
+        new Date(a.created_at ?? "").getTime(),
+    )[0] ??
+    null;
+
+  const pinnedTitle = pinnedAnn
+    ? pinnedAnn.title.replace(/\|/g, "–").replace(/\s{2,}/g, " ").trim()
+    : "No announcements";
+
+  // Hero image: pinned announcement photo, or fallback static photo
+  const heroImg = pinnedAnn?.imgUrl || "/home1.JPG";
 
   useEffect(() => {
     const base = import.meta.env.VITE_API_URL as string;
@@ -32,32 +50,6 @@ export default function Main() {
         .then((r) => setOfficers(String(r.data.length)))
         .catch(() => {}),
     ]);
-
-    // Pinned Now badge — prefer admin-pinned item, fall back to most recent
-    axios
-      .get(`${base}/announcements/`)
-      .then((r) => {
-        const announcements: {
-          title: string;
-          created_at: string;
-          is_pinned?: boolean;
-        }[] = r.data;
-        const pinned =
-          announcements.find((a) => a.is_pinned) ??
-          [...announcements].sort(
-            (a, b) =>
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime(),
-          )[0];
-        if (pinned?.title) {
-          // Replace pipe chars that render as replacement glyphs in the badge font
-          const title = pinned.title.replace(/\|/g, '–').replace(/\s{2,}/g, ' ').trim();
-          setPinnedTitle(title);
-        } else {
-          setPinnedTitle("No announcements");
-        }
-      })
-      .catch(() => setPinnedTitle("No announcements"));
 
     // Equipment Online badge
     axios
@@ -81,8 +73,6 @@ export default function Main() {
     const element = document.getElementById(id);
     if (element) element.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-
-  const slides = ["/home1.JPG", "/home2.JPG"];
 
   return (
     <div className="hero-container">
@@ -133,22 +123,36 @@ export default function Main() {
         {/* IMAGE SIDE */}
         <div className="hero-image-container">
           <div className="image-carousel-track">
-            {slides.map((slide, i) => (
-              <div key={i} className="slide">
-                <img src={slide} alt="" />
-              </div>
-            ))}
+            <div className="slide">
+              <img src={heroImg} alt="" />
+            </div>
           </div>
 
-          {/* Floating badges */}
-          <div className="hero-badge bg1">
+          {/* Floating badges — clickable links */}
+          <div
+            className="hero-badge bg1"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate("/bulletin")}
+            onKeyDown={(e) => e.key === "Enter" && navigate("/bulletin")}
+            style={{ cursor: "pointer" }}
+            title="View all announcements"
+          >
             <div className="ico">📌</div>
             <div>
               <div className="lbl">Pinned now</div>
               <div className="val">{pinnedTitle}</div>
             </div>
           </div>
-          <div className="hero-badge bg2">
+          <div
+            className="hero-badge bg2"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate("/borrow")}
+            onKeyDown={(e) => e.key === "Enter" && navigate("/borrow")}
+            style={{ cursor: "pointer" }}
+            title="Borrow equipment"
+          >
             <div
               className="ico"
               style={{

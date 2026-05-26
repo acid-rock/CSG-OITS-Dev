@@ -98,19 +98,25 @@
   border-left: 3px solid var(--color-blockquote-border);
 }
 .ap-quote-mark {
-  display: block;
-  font-size: var(--font-size-2xl);
+  /* Inline so the " sits on the same line as the text */
+  display: inline;
+  font-size: 1.25em;          /* slightly larger than surrounding text */
   color: var(--color-primary);
-  line-height: 1;
-  margin-bottom: var(--space-1);
   font-family: var(--font-family-italic-accent);
+  line-height: inherit;
+  margin-right: 0.15em;
+  vertical-align: baseline;
 }
 .ap-quote-text {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);   /* 1rem — fits the column comfortably */
   font-style: italic;
   color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
   margin: 0;
+  white-space: nowrap;   /* keep mark + phrase on one line at desktop widths */
+}
+@media (max-width: 900px) {
+  .ap-quote-text { white-space: normal; }
 }
 
 /* Pillars */

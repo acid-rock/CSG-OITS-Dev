@@ -171,12 +171,15 @@
   background: var(--color-surface-deep, #eef1fb);
   border: 1px solid var(--color-border-soft, #eef0f5);
   border-radius: 50%;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   cursor: pointer;
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Nudge × glyph into optical center */
+  padding: 0;
+  padding-bottom: 2px;
   line-height: 1;
   transition: background 150ms ease, color 150ms ease;
 }
