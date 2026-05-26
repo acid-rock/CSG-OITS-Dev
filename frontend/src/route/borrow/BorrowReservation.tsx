@@ -25,7 +25,7 @@ interface AvailabilityEntry {
 }
 
 type PurposeType = 'academic' | 'event' | 'organization' | 'others' | '';
-type TimeSlot = 'AM' | 'PM' | 'whole-day';
+type TimeSlot = 'AM' | 'PM' | 'evening' | 'whole-day';
 
 /* ── Helpers ─────────────────────────────────────────────────────────────────── */
 
@@ -41,15 +41,22 @@ function formatDisplayDate(dateStr: string): string {
 }
 
 function timeSlotLabel(slot: TimeSlot): string {
-  if (slot === 'AM') return 'AM (8:00 AM – 12:00 PM)';
-  if (slot === 'PM') return 'PM (1:00 PM – 5:00 PM)';
+  if (slot === 'AM')       return 'AM (8:00 AM – 12:00 PM)';
+  if (slot === 'PM')       return 'PM (1:00 PM – 5:00 PM)';
+  if (slot === 'evening')  return 'Evening (5:00 PM – 9:00 PM)';
   return 'Whole Day (8:00 AM – 5:00 PM)';
 }
 
 function timeSlotShort(slot: TimeSlot): string {
-  if (slot === 'AM') return 'Morning (AM)';
-  if (slot === 'PM') return 'Afternoon (PM)';
+  if (slot === 'AM')       return 'Morning (AM)';
+  if (slot === 'PM')       return 'Afternoon (PM)';
+  if (slot === 'evening')  return 'Evening';
   return 'Whole Day';
+}
+
+/** AM and PM allow returning the equipment on the same borrow date. */
+function sameDayReturnAllowed(slot: TimeSlot | null): boolean {
+  return slot === 'AM' || slot === 'PM';
 }
 
 /* ── Availability status logic ───────────────────────────────────────────────── */
@@ -70,10 +77,11 @@ function computeDateStatus(
 
 /* ── Time slot definitions ───────────────────────────────────────────────────── */
 
-const TIME_SLOTS: { id: TimeSlot; label: string; sub: string }[] = [
-  { id: 'AM',        label: 'Morning',   sub: 'AM  ·  8:00 AM – 12:00 PM' },
-  { id: 'PM',        label: 'Afternoon', sub: 'PM  ·  1:00 PM – 5:00 PM'  },
-  { id: 'whole-day', label: 'Whole Day', sub: '8:00 AM – 5:00 PM'          },
+const TIME_SLOTS: { id: TimeSlot; label: string; sub: string; note: string; sameDayReturn: boolean }[] = [
+  { id: 'AM',        label: 'Morning',   sub: 'AM  ·  8:00 AM – 12:00 PM',  note: 'Same-day return allowed',        sameDayReturn: true  },
+  { id: 'PM',        label: 'Afternoon', sub: 'PM  ·  1:00 PM – 5:00 PM',   note: 'Same-day return allowed',        sameDayReturn: true  },
+  { id: 'evening',   label: 'Evening',   sub: '5:00 PM – 9:00 PM',          note: 'Return date must be a later day', sameDayReturn: false },
+  { id: 'whole-day', label: 'Whole Day', sub: '8:00 AM – 5:00 PM',          note: 'Return date must be a later day', sameDayReturn: false },
 ];
 
 /* ── Page component ──────────────────────────────────────────────────────────── */
@@ -172,6 +180,12 @@ export default function BorrowReservation() {
     }
     // rangeStart is set but no rangeEnd yet
     if (dateStr === rangeStart) {
+      // AM / PM allow returning on the same borrow date → confirm the same-day range
+      if (sameDayReturnAllowed(timeSlot)) {
+        setRangeEnd(dateStr);
+        return;
+      }
+      // Evening / Whole Day require a later date → clicking the start tile again clears
       setRangeStart(null);
       setTimeSlot(null);
       return;
@@ -182,9 +196,17 @@ export default function BorrowReservation() {
       setRangeEnd(null);
       return;
     }
-    // Valid range end
+    // dateStr > rangeStart → always valid as return date
     setRangeEnd(dateStr);
   };
+
+  /* If the time slot changes to one that forbids same-day return, clear a same-day rangeEnd */
+  useEffect(() => {
+    if (rangeStart && rangeEnd === rangeStart && !sameDayReturnAllowed(timeSlot)) {
+      setRangeEnd(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeSlot]);
 
   const clearRange = () => {
     setRangeStart(null);
@@ -441,9 +463,11 @@ export default function BorrowReservation() {
 
             {rangeStart && !rangeEnd && (
               <p className="br-calendar-hint">
-                {timeSlot
-                  ? '← Now click a return date on the calendar above'
-                  : 'Select a time slot →, then pick a return date'}
+                {!timeSlot
+                  ? 'Select a time slot → then pick a return date'
+                  : sameDayReturnAllowed(timeSlot)
+                    ? '← Click the same date or a later date to set the return'
+                    : '← Click a later date to set the return date'}
               </p>
             )}
           </div>
@@ -463,6 +487,9 @@ export default function BorrowReservation() {
                   >
                     <span className="br-slot-label">{slot.label}</span>
                     <span className="br-slot-sub">{slot.sub}</span>
+                    <span className={`br-slot-note${slot.sameDayReturn ? ' br-slot-note--ok' : ' br-slot-note--next'}`}>
+                      {slot.note}
+                    </span>
                   </button>
                 ))}
               </div>

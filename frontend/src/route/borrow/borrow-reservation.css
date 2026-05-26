@@ -185,6 +185,17 @@
 .br-slot-card--selected .br-slot-label {
   color: var(--color-primary-deep, #2c4ba0);
 }
+.br-slot-note {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 1px;
+}
+.br-slot-note--ok {
+  color: var(--color-success-text, #15803d);
+}
+.br-slot-note--next {
+  color: var(--color-text-muted, #6b7280);
+}
 
 .br-timeslot-next {
   margin-top: 14px;
