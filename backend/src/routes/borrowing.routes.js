@@ -655,4 +655,22 @@ router.post(
   }),
 );
 
+// ── Public availability (no auth) ────────────────────────────────────────────
+// Returns all pending+approved borrow windows for a specific equipment item so
+// the frontend calendar can shade dates as available / partial / fully booked.
+
+router.get(
+  '/availability/:equipment_id',
+  asyncHandler(async (req, res) => {
+    const { equipment_id } = req.params;
+    const { data, error } = await anonSupabase
+      .from('borrowing_requests')
+      .select('borrow_date, return_date, status, quantity_requested')
+      .eq('equipment_id', equipment_id)
+      .in('status', ['pending', 'approved']);
+    if (error) throw new ApiError(500, error.message);
+    return res.status(200).json(data);
+  }),
+);
+
 export default router;

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../_shared/Sidebar';
+import ReservationCalendar, { type AdminDot } from '../../../components/reservation-calendar/ReservationCalendar';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 const LIMIT_MB = 1024;
@@ -361,7 +362,12 @@ const Dashboard = () => {
   const [uploadView, setUploadView] = useState<'weekly' | 'monthly'>('weekly');
 
   const [storageData, setStorageData] = useState<StorageBucket[]>([]);
-  const [pendingBorrows, setPendingBorrows] = useState<BorrowRequest[]>([]);
+  // All pending + approved requests used by the calendar widget
+  const [borrowRequests, setBorrowRequests] = useState<BorrowRequest[]>([]);
+  // Mini calendar state
+  const [calYear, setCalYear]   = useState(new Date().getFullYear());
+  const [calMonth, setCalMonth] = useState(new Date().getMonth());
+  const [calSelected, setCalSelected] = useState<string | null>(null);
   const [viewStats7, setViewStats7]   = useState<ViewStats | null>(null);
   const [viewStats30, setViewStats30] = useState<ViewStats | null>(null);
   const [viewRange, setViewRange]     = useState<7 | 30>(7);
@@ -473,15 +479,19 @@ const Dashboard = () => {
 
   const fetchPendingBorrows = useCallback(async () => {
     try {
-      // Backend: GET /api/v1/borrowing/requests?status=pending
-      const { data } = await axios.get<BorrowRequest[]>(
-        `${API_URL}/borrowing/requests?status=pending`,
-        { withCredentials: true },
-      );
-      // Show only first 3 in the dashboard card
-      setPendingBorrows(Array.isArray(data) ? data.slice(0, 3) : []);
+      // Fetch both pending and approved so the calendar can show dots for both
+      const [pendingRes, approvedRes] = await Promise.allSettled([
+        axios.get<BorrowRequest[]>(`${API_URL}/borrowing/requests?status=pending`,  { withCredentials: true }),
+        axios.get<BorrowRequest[]>(`${API_URL}/borrowing/requests?status=approved`, { withCredentials: true }),
+      ]);
+      const pending  = pendingRes.status  === 'fulfilled' ? pendingRes.value.data  : [];
+      const approved = approvedRes.status === 'fulfilled' ? approvedRes.value.data : [];
+      setBorrowRequests([
+        ...(Array.isArray(pending)  ? pending  : []),
+        ...(Array.isArray(approved) ? approved : []),
+      ]);
     } catch {
-      setPendingBorrows([]);
+      setBorrowRequests([]);
     }
   }, []);
 
@@ -547,13 +557,18 @@ const Dashboard = () => {
         <div>
           <span className="dh-page-eyebrow">{formatGreetingDate()}</span>
           <h1>Good {timeOfDay()}, <em>{adminFirstName}</em>.</h1>
-          <p>
-            You have{' '}
-            <strong>{pendingBorrows.length} pending borrow {pendingBorrows.length === 1 ? 'request' : 'requests'}</strong>
-            {' '}and{' '}
-            <strong>{documentsThisWeek ?? 0} {(documentsThisWeek ?? 0) === 1 ? 'document' : 'documents'}</strong>
-            {' '}uploaded this week.
-          </p>
+          {(() => {
+            const pendingCount = borrowRequests.filter(r => r.status === 'pending').length;
+            return (
+              <p>
+                You have{' '}
+                <strong>{pendingCount} pending borrow {pendingCount === 1 ? 'request' : 'requests'}</strong>
+                {' '}and{' '}
+                <strong>{documentsThisWeek ?? 0} {(documentsThisWeek ?? 0) === 1 ? 'document' : 'documents'}</strong>
+                {' '}uploaded this week.
+              </p>
+            );
+          })()}
         </div>
         <div className="dh-page-actions">
           <button className="dh-action" onClick={() => navigate('/admin?panel=announcement&action=new')}>
@@ -709,45 +724,109 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Pending borrow requests card */}
-          <div className="dh-card dh-pending">
-            <div className="dh-card-head">
-              <div>
-                <h3>Pending borrow requests</h3>
-                <span className="dh-card-sub">
-                  {pendingBorrows.length} awaiting approval
-                </span>
-              </div>
-              <span className="dh-pulse" />
-            </div>
-            {pendingBorrows.length === 0 ? (
-              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: 0 }}>
-                No pending requests
-              </p>
-            ) : (
-              <ul className="dh-pending-list">
-                {pendingBorrows.map((r, i) => (
-                  <li key={i}>
-                    <span className="dh-pending-mark">
-                      <IHdd width="14" height="14" />
-                    </span>
-                    <div className="dh-pending-text">
-                      <span className="dh-pending-item">{r.equipment_name ?? '—'}</span>
-                      <span className="dh-pending-meta">
-                        {r.borrower_name ?? '—'} · {r.borrow_date ?? '—'}
-                      </span>
+          {/* Borrow requests calendar widget */}
+          {(() => {
+            // Build date → requests map for dot display
+            const dateMap = new Map<string, BorrowRequest[]>();
+            for (const r of borrowRequests) {
+              if (!r.borrow_date) continue;
+              const existing = dateMap.get(r.borrow_date) ?? [];
+              existing.push(r);
+              dateMap.set(r.borrow_date, existing);
+            }
+
+            const getDots = (dateStr: string): AdminDot[] => {
+              const reqs = dateMap.get(dateStr) ?? [];
+              const dots: AdminDot[] = [];
+              if (reqs.some(r => r.status === 'pending'))  dots.push({ tone: 'pending' });
+              if (reqs.some(r => r.status === 'approved')) dots.push({ tone: 'approved' });
+              return dots;
+            };
+
+            const selectedReqs = calSelected ? (dateMap.get(calSelected) ?? []) : [];
+            const pendingCount = borrowRequests.filter(r => r.status === 'pending').length;
+
+            return (
+              <div className="dh-card dh-pending">
+                <div className="dh-card-head">
+                  <div>
+                    <h3>Borrow requests</h3>
+                    <span className="dh-card-sub">{pendingCount} pending approval</span>
+                  </div>
+                  {pendingCount > 0 && <span className="dh-pulse" />}
+                </div>
+
+                <ReservationCalendar
+                  year={calYear}
+                  month={calMonth}
+                  onMonthChange={(y, m) => { setCalYear(y); setCalMonth(m); }}
+                  variant="admin-dots"
+                  getDots={getDots}
+                  selectedDate={calSelected}
+                  onDateClick={(d) => setCalSelected(calSelected === d ? null : d)}
+                />
+
+                {/* Dot legend */}
+                <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--color-text-muted)' }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-warning, #f59e0b)', display: 'inline-block' }} />
+                    Pending
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--color-text-muted)' }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-success, #22c55e)', display: 'inline-block' }} />
+                    Approved
+                  </span>
+                </div>
+
+                {/* Inline date detail */}
+                {calSelected && (
+                  <div className="dh-cal-detail">
+                    <div className="dh-cal-detail-head">
+                      <span>{calSelected}</span>
+                      <button onClick={() => setCalSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--color-text-muted)', lineHeight: 1 }}>×</button>
                     </div>
-                    <button
-                      className="dh-pending-cta"
-                      onClick={() => navigate('/admin?panel=borrowing')}
-                    >
-                      Review <IArrow width="11" height="11" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                    {selectedReqs.length === 0 ? (
+                      <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: 0 }}>No requests on this date.</p>
+                    ) : (
+                      <ul className="dh-pending-list" style={{ marginTop: 0 }}>
+                        {selectedReqs.map((r, i) => (
+                          <li key={i}>
+                            <span className="dh-pending-mark">
+                              <IHdd width="14" height="14" />
+                            </span>
+                            <div className="dh-pending-text">
+                              <span className="dh-pending-item">{r.equipment_name ?? '—'}</span>
+                              <span className="dh-pending-meta">
+                                {r.borrower_name ?? '—'}
+                                {' · '}
+                                <span style={{
+                                  fontWeight: 700,
+                                  color: r.status === 'pending' ? 'var(--color-warning-text, #92400e)' : 'var(--color-success-text, #15803d)',
+                                }}>
+                                  {r.status}
+                                </span>
+                              </span>
+                            </div>
+                            <button className="dh-pending-cta" onClick={() => navigate('/admin?panel=borrowing')}>
+                              Review <IArrow width="11" height="11" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  className="dh-btn-ghost"
+                  style={{ width: '100%', marginTop: 10, justifyContent: 'center' }}
+                  onClick={() => navigate('/admin?panel=borrowing')}
+                >
+                  View all requests <IArrow width="12" height="12" />
+                </button>
+              </div>
+            );
+          })()}
 
           {/* Content Views line chart */}
           <div className="dh-card dh-views">

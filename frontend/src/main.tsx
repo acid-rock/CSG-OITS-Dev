@@ -16,6 +16,7 @@ import EventsPage from "./route/events/Events";
 import Officers from "./route/officers/Officers";
 import AboutPage from "./route/about/AboutPage";
 import Borrow from "./route/borrow/Borrow";
+import BorrowReservation from "./route/borrow/BorrowReservation";
 import ContributorsPage from "./route/contributors/Contributors";
 import OrganizationsPage from "./route/organizations/OrganizationsPage";
 
@@ -44,6 +45,7 @@ const router = createBrowserRouter([
       { path: "about", element: <AboutPage /> },
       { path: "officers", element: <Officers /> },
       { path: "borrow", element: <Borrow /> },
+      { path: "borrow/:id", element: <BorrowReservation /> },
       { path: "contributors", element: <ContributorsPage /> },
       { path: "organizations", element: <OrganizationsPage /> },
     ],

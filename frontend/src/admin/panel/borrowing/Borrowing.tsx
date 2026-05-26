@@ -6,6 +6,7 @@ import { StatusPill, Thumb } from "../_shared/atoms";
 import { I } from "../_shared/icons";
 import { fmtDate } from "../_shared/utils";
 import axios from "axios";
+import ReservationCalendar, { type AdminDot } from "../../../components/reservation-calendar/ReservationCalendar";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -280,6 +281,13 @@ const BorrowingPanel = () => {
   const [reqPage, setReqPage] = useState(1);
   const [invPage, setInvPage] = useState(1);
 
+  // Requests view: 'table' (default) or 'calendar'
+  const [requestsView, setRequestsView] = useState<'table' | 'calendar'>('table');
+  // Calendar navigation state
+  const [calYear,  setCalYear]  = useState(new Date().getFullYear());
+  const [calMonth, setCalMonth] = useState(new Date().getMonth());
+  const [calSelected, setCalSelected] = useState<string | null>(null);
+
   const fetchRequests = useCallback(async () => {
     setRequestsLoading(true);
     setRequestsError(null);
@@ -486,6 +494,44 @@ const BorrowingPanel = () => {
                 <option value="rejected">Rejected</option>
                 <option value="returned">Returned</option>
               </select>
+              {/* View toggle */}
+              <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: 7, overflow: 'hidden', flexShrink: 0 }}>
+                <button
+                  type="button"
+                  title="Table view"
+                  onClick={() => setRequestsView('table')}
+                  style={{
+                    padding: '5px 9px',
+                    background: requestsView === 'table' ? 'var(--color-primary)' : 'transparent',
+                    color: requestsView === 'table' ? '#fff' : 'var(--color-text-muted)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    transition: 'background 150ms',
+                  }}
+                >
+                  <I.list width="14" height="14" />
+                </button>
+                <button
+                  type="button"
+                  title="Calendar view"
+                  onClick={() => setRequestsView('calendar')}
+                  style={{
+                    padding: '5px 9px',
+                    background: requestsView === 'calendar' ? 'var(--color-primary)' : 'transparent',
+                    color: requestsView === 'calendar' ? '#fff' : 'var(--color-text-muted)',
+                    border: 'none',
+                    borderLeft: '1px solid var(--color-border)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    transition: 'background 150ms',
+                  }}
+                >
+                  <I.calendar width="14" height="14" />
+                </button>
+              </div>
             </Toolbar>
 
             {requestsLoading ? (
@@ -494,6 +540,122 @@ const BorrowingPanel = () => {
               <p style={{ padding: "0.5rem 1rem", color: "var(--color-danger)" }}>
                 {requestsError}
               </p>
+            ) : requestsView === 'calendar' ? (
+              /* ── Calendar view ── */
+              (() => {
+                // Build date → requests map
+                const dateMap = new Map<string, BorrowRequest[]>();
+                for (const r of filteredRequests) {
+                  if (!r.borrow_date) continue;
+                  const arr = dateMap.get(r.borrow_date) ?? [];
+                  arr.push(r);
+                  dateMap.set(r.borrow_date, arr);
+                }
+
+                const getDots = (dateStr: string): AdminDot[] => {
+                  const reqs = dateMap.get(dateStr) ?? [];
+                  const dots: AdminDot[] = [];
+                  if (reqs.some(r => r.status === 'pending'))  dots.push({ tone: 'pending' });
+                  if (reqs.some(r => r.status === 'approved')) dots.push({ tone: 'approved' });
+                  return dots;
+                };
+
+                const selectedReqs = calSelected ? (dateMap.get(calSelected) ?? []) : [];
+
+                return (
+                  <section className="ad-card" style={{ padding: '1.25rem' }}>
+                    <div style={{ maxWidth: 480 }}>
+                      <ReservationCalendar
+                        year={calYear}
+                        month={calMonth}
+                        onMonthChange={(y, m) => { setCalYear(y); setCalMonth(m); }}
+                        variant="admin-dots"
+                        getDots={getDots}
+                        selectedDate={calSelected}
+                        onDateClick={(d) => setCalSelected(calSelected === d ? null : d)}
+                      />
+                    </div>
+
+                    {/* Dot legend */}
+                    <div style={{ display: 'flex', gap: 12, margin: '8px 0 16px', flexWrap: 'wrap' }}>
+                      {[
+                        { label: 'Pending',  color: 'var(--color-warning, #f59e0b)' },
+                        { label: 'Approved', color: 'var(--color-success, #22c55e)' },
+                      ].map(l => (
+                        <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: l.color, display: 'inline-block' }} />
+                          {l.label}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Inline date detail */}
+                    {calSelected && (
+                      <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 14 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                            Requests for {calSelected}
+                          </span>
+                          <button
+                            onClick={() => setCalSelected(null)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-muted)', lineHeight: 1 }}
+                          >×</button>
+                        </div>
+
+                        {selectedReqs.length === 0 ? (
+                          <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>No requests on this date.</p>
+                        ) : (
+                          <table className="ad-table" style={{ fontSize: 12.5 }}>
+                            <thead>
+                              <tr>
+                                <th>Borrower</th>
+                                <th>Equipment</th>
+                                <th>Qty</th>
+                                <th>Return date</th>
+                                <th>Status</th>
+                                <th className="ad-th-right">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {selectedReqs.map((r) => (
+                                <tr key={r.id}>
+                                  <td>{r.borrower_name}</td>
+                                  <td>{r.equipment_name}</td>
+                                  <td>{r.quantity_requested}</td>
+                                  <td><span className="ad-date-abs">{fmtDate(r.return_date)}</span></td>
+                                  <td>
+                                    <StatusPill
+                                      label={r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                                      tone={requestStatusTone(r.status)}
+                                    />
+                                  </td>
+                                  <td className="ad-actions" onClick={(e) => e.stopPropagation()}>
+                                    {r.status === 'pending' && (
+                                      <>
+                                        <button className="ad-icon-btn is-on" title="Approve" onClick={() => openConfirm('approve', r.id)}>
+                                          <I.check width="13" height="13" />
+                                        </button>
+                                        <button className="ad-icon-btn ad-icon-btn--danger" title="Reject" onClick={() => openConfirm('reject', r.id)}>
+                                          <I.x width="14" height="14" />
+                                        </button>
+                                      </>
+                                    )}
+                                    {r.status === 'approved' && (
+                                      <button className="ad-icon-btn" title="Mark returned" onClick={() => handleReturn(r.id)} style={{ color: 'var(--color-primary)' }}>
+                                        <I.restore width="14" height="14" />
+                                      </button>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                );
+              })()
             ) : (
               <section className="ad-card">
                 <table className="ad-table">

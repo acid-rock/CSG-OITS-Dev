@@ -1,0 +1,209 @@
+/* ── ReservationCalendar — shared tile calendar component ─────────────────── */
+
+.rc-wrap {
+  width: 100%;
+  user-select: none;
+}
+
+/* ── Month navigation ──────────────────────────────────────────────────────── */
+.rc-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.rc-nav-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 7px;
+  background: var(--color-surface, #fff);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary, #374151);
+  font-size: 16px;
+  line-height: 1;
+  transition: background 150ms ease, border-color 150ms ease;
+  padding: 0;
+  padding-bottom: 1px; /* optical center */
+}
+.rc-nav-btn:hover {
+  background: var(--color-surface-deep, #f0f4ff);
+  border-color: var(--color-primary-light, #c8d2ef);
+}
+
+.rc-nav-label {
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--color-text-primary, #0f1729);
+  letter-spacing: -0.01em;
+}
+
+/* ── Weekday header ────────────────────────────────────────────────────────── */
+.rc-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 5px;
+}
+
+.rc-weekday {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted, #6b7280);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 0;
+}
+
+/* ── Day grid ──────────────────────────────────────────────────────────────── */
+.rc-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+/* ── User-variant tiles ────────────────────────────────────────────────────── */
+.rc-tile {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: background 120ms ease, border-color 120ms ease, transform 100ms ease;
+  padding: 0;
+  background: none;
+  color: inherit;
+}
+
+.rc-tile--empty {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Status colours */
+.rc-tile--past {
+  color: var(--color-text-hint, #9ca3af);
+  background: transparent;
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+.rc-tile--available {
+  color: var(--color-text-primary, #0f1729);
+  background: var(--color-surface, #fff);
+  border-color: var(--color-border-soft, #eef0f5);
+}
+.rc-tile--available:hover {
+  background: var(--color-surface-deep, #f0f4ff);
+  border-color: var(--color-primary-light, #c8d2ef);
+  transform: translateY(-1px);
+}
+
+.rc-tile--partial {
+  color: var(--color-warning-text, #92400e);
+  background: var(--color-warning-bg, #fef3c7);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+.rc-tile--partial:hover {
+  background: #fde68a;
+  border-color: rgba(245, 158, 11, 0.55);
+  transform: translateY(-1px);
+}
+
+.rc-tile--full {
+  color: var(--color-danger-text, #b91c1c);
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.20);
+  cursor: not-allowed;
+}
+
+.rc-tile--selected {
+  background: var(--color-primary, #4f6fd1) !important;
+  color: #fff !important;
+  border-color: var(--color-primary-deep, #2c4ba0) !important;
+  box-shadow: 0 3px 10px -3px rgba(79, 111, 209, 0.55);
+}
+.rc-tile--selected:hover {
+  transform: translateY(-1px);
+}
+
+/* ── Admin-dots variant ────────────────────────────────────────────────────── */
+.rc-wrap--admin-dots .rc-tile {
+  aspect-ratio: unset;
+  min-height: 36px;
+  padding: 4px 2px 3px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: var(--color-surface, #fff);
+  border-color: transparent;
+}
+
+.rc-wrap--admin-dots .rc-tile--past {
+  color: var(--color-text-hint, #9ca3af);
+  background: transparent;
+  cursor: default;
+}
+
+.rc-wrap--admin-dots .rc-tile:not(.rc-tile--past):not(.rc-tile--empty):hover {
+  background: var(--color-surface-deep, #f0f4ff);
+}
+
+.rc-wrap--admin-dots .rc-tile--selected {
+  background: var(--color-primary, #4f6fd1) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 6px -2px rgba(79, 111, 209, 0.40);
+}
+
+/* Dot row */
+.rc-dots {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1px;
+}
+
+.rc-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rc-dot--pending  { background: var(--color-warning, #f59e0b); }
+.rc-dot--approved { background: var(--color-success, #22c55e); }
+
+/* ── Legend (user variant) ─────────────────────────────────────────────────── */
+.rc-legend {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.rc-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--color-text-muted, #6b7280);
+  font-weight: 500;
+}
+
+.rc-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
