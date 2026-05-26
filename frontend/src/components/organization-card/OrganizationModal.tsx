@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import type { Organization } from '../../config/organizationsConfig';
+import OrganizationCard from './OrganizationCard';
 import './OrganizationCard.css';
 
 interface OrganizationModalProps {
@@ -11,7 +12,7 @@ interface OrganizationModalProps {
   subOrgs?: Organization[];
 }
 
-/* Deterministic gradient — kept in sync with OrganizationCard.tsx */
+/* ── Helpers used by the plain (no-suborgs) modal only ── */
 const PALETTES: [string, string][] = [
   ['#7c2d12', '#dc2626'], ['#1e293b', '#475569'], ['#0f766e', '#5eb5af'],
   ['#92400e', '#f59e0b'], ['#3b5fbc', '#8aaae0'], ['#7c2d12', '#ea580c'],
@@ -29,7 +30,6 @@ function getInitials(name: string): string {
   if (words.length === 2) return (words[0][0] + words[1][0]).toUpperCase();
   return (words[0][0] + words[1][0] + words[2][0]).toUpperCase();
 }
-
 const FbIcon = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
     <path d="M22 12a10 10 0 1 0-11.56 9.88V14.9H7.9V12h2.54V9.8c0-2.51 1.49-3.9
@@ -38,33 +38,12 @@ const FbIcon = () => (
   </svg>
 );
 
-/* Mini-card shown inside the parent org's modal */
-function SubOrgMiniCard({ org }: { org: Organization }) {
-  const [a, b] = getPalette(org.name);
-  const initials = getInitials(org.name);
-  return (
-    <div className="org-suborg-mini">
-      <div className="org-suborg-mini-logo"
-        style={{ background: org.logo_url ? undefined : `linear-gradient(135deg, ${a}, ${b})` }}>
-        {org.logo_url
-          ? <img src={org.logo_url} alt={org.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <span>{initials}</span>}
-      </div>
-      <div className="org-suborg-mini-info">
-        <span className="org-suborg-mini-name">{org.name}</span>
-        {org.facebook_link && (
-          <a className="org-suborg-mini-link" href={org.facebook_link}
-            target="_blank" rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}>
-            <FbIcon /> Visit page
-          </a>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default function OrganizationModal({ organization, isOpen, onClose, subOrgs = [] }: OrganizationModalProps) {
+export default function OrganizationModal({
+  organization,
+  isOpen,
+  onClose,
+  subOrgs = [],
+}: OrganizationModalProps) {
   useLockBodyScroll(isOpen);
 
   useEffect(() => {
@@ -76,6 +55,40 @@ export default function OrganizationModal({ organization, isOpen, onClose, subOr
 
   if (!isOpen) return null;
 
+  /* ── Wide two-panel layout: parent card → sub-org grid ── */
+  if (subOrgs.length > 0) {
+    return (
+      <div className="org-modal-overlay" onClick={onClose}>
+        <div className="org-modal org-modal--wide" onClick={e => e.stopPropagation()}>
+          <button className="org-modal-close" onClick={onClose} aria-label="Close">×</button>
+
+          {/* Left — parent org card (same size as grid cards) */}
+          <div className="org-modal-parent">
+            <OrganizationCard
+              organization={organization}
+              onClick={() => {}}
+            />
+          </div>
+
+          {/* Arrow connector */}
+          <div className="org-modal-arrow" aria-hidden="true">→</div>
+
+          {/* Right — sub-org cards in 2-column grid */}
+          <div className="org-modal-children">
+            {subOrgs.map(sub => (
+              <OrganizationCard
+                key={sub.id}
+                organization={sub}
+                onClick={() => {}}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Standard centered modal (no sub-orgs) — unchanged ── */
   const [a, b] = getPalette(organization.name);
   const initials = getInitials(organization.name);
 
@@ -84,7 +97,6 @@ export default function OrganizationModal({ organization, isOpen, onClose, subOr
       <div className="org-modal" onClick={(e) => e.stopPropagation()}>
         <button className="org-modal-close" onClick={onClose} aria-label="Close">×</button>
 
-        {/* Avatar — gradient background matches the card */}
         <div
           className="org-modal-avatar"
           style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
@@ -112,20 +124,6 @@ export default function OrganizationModal({ organization, isOpen, onClose, subOr
             <FbIcon />
             Visit Facebook Page
           </a>
-        )}
-
-        {/* Sub-organizations section */}
-        {subOrgs.length > 0 && (
-          <div className="org-modal-suborgs">
-            <p className="org-modal-suborgs-label">
-              Sub-organizations ({subOrgs.length})
-            </p>
-            <div className="org-modal-suborgs-list">
-              {subOrgs.map(sub => (
-                <SubOrgMiniCard key={sub.id} org={sub} />
-              ))}
-            </div>
-          </div>
         )}
       </div>
     </div>
