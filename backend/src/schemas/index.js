@@ -232,3 +232,25 @@ export const loginSchema = z.object({
 export const settingValueSchema = z.object({
   value: z.string().min(1, 'Value is required').max(100),
 });
+
+// ─── Logbook ─────────────────────────────────────────────────────────────────
+
+export const logbookCheckinSchema = z.object({
+  token:          z.string().min(1).max(64),
+  officer_id:     uuidField,
+  student_number: z.string().min(1).max(30),
+  lat: z.number().min(-90).max(90).optional(),
+  lng: z.number().min(-180).max(180).optional(),
+});
+
+export const logbookCheckoutSchema = z.object({
+  officer_id: uuidField,
+});
+
+export const logbookAdminCheckoutSchema = z.object({
+  session_id: uuidField,
+});
+
+export const logbookAdminDeleteSchema = z.object({
+  session_id: uuidField,
+});

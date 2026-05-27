@@ -16,6 +16,7 @@ import EventsPage from "./route/events/Events";
 import Officers from "./route/officers/Officers";
 import AboutPage from "./route/about/AboutPage";
 import Borrow from "./route/borrow/Borrow";
+import BorrowCheckout from "./route/borrow/BorrowCheckout";
 import BorrowReservation from "./route/borrow/BorrowReservation";
 import ContributorsPage from "./route/contributors/Contributors";
 import OrganizationsPage from "./route/organizations/OrganizationsPage";
@@ -26,6 +27,13 @@ import Forgot from "./admin/admin-loginpage/forgot/Forgot";
 import Reset from "./admin/admin-loginpage/reset/Reset";
 import AdminPage from "./admin/AdminPage";
 import ProtectedRoute from "./admin/ProtectedRoute";
+
+// Logbook (standalone — no nav header)
+import LogbookCheckin from "./route/logbook/LogbookCheckin";
+import LogbookDisplay from "./route/logbook/LogbookDisplay";
+
+// Public Office Hours (under RootLayout)
+import OfficePage from "./route/office/OfficePage";
 
 // Committee portal
 import CommitteeLogin from "./route/committee-login/CommitteeLogin";
@@ -45,9 +53,11 @@ const router = createBrowserRouter([
       { path: "about", element: <AboutPage /> },
       { path: "officers", element: <Officers /> },
       { path: "borrow", element: <Borrow /> },
+      { path: "borrow/checkout", element: <BorrowCheckout /> },
       { path: "borrow/:id", element: <BorrowReservation /> },
       { path: "contributors",  element: <ContributorsPage /> },
       { path: "organizations", element: <OrganizationsPage /> },
+      { path: "office",        element: <OfficePage /> },
     ],
   },
   // Admin Public Routes (Login)
@@ -78,6 +88,10 @@ const router = createBrowserRouter([
       { index: true, element: <Navigate to="/admin?panel=bin" replace /> },
     ],
   },
+  // Logbook — standalone kiosk/mobile pages
+  { path: "/logbook",         element: <LogbookCheckin /> },
+  { path: "/logbook/display", element: <LogbookDisplay /> },
+
   // Committee Portal
   {
     path: "/committee/login",

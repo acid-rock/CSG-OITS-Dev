@@ -64,6 +64,9 @@ export default function CommitteeLogin() {
       sessionStorage.setItem('committee_role',    data.role);
       sessionStorage.setItem('committee_label',   ROLE_LABELS[data.role] ?? data.role);
       sessionStorage.setItem('committee_session', '1');
+      // Store nonce for single-session enforcement — a new sign-in from any browser
+      // overwrites this, invalidating all prior sessions for the same role.
+      sessionStorage.setItem('committee_nonce',   data.nonce ?? '');
       navigate('/committee/admin');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })

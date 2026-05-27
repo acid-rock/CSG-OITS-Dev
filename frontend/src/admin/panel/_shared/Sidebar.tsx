@@ -27,6 +27,7 @@ const GROUPS = [
     { id: 'organizations', label: 'Organizations', Icon: I.users,    preview: true  },
   ]},
   { label: 'Operations', links: [
+    { id: 'logbook',       label: 'Office Duty',   Icon: I.duty,     preview: false },
     { id: 'borrowing',     label: 'Equipment',     Icon: I.hdd,      preview: false },
     { id: 'finance',       label: 'Finance',       Icon: I.trend,    preview: false },
     { id: 'auditlog',      label: 'Audit Log',     Icon: I.log,      preview: false },

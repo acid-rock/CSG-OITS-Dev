@@ -1,42 +1,143 @@
 import '../_shared/admin-list.css';
+import '../_shared/admin-settings.css';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import PauseAccessModal from '../../components/modals/PauseAccessModal/PauseAccessModal';
 import ChangelogModal from '../../components/modals/changelogModal/ChangelogModal';
-import PasswordForm from '../../components/settings-form/password-form/PasswordForm';
 import Sidebar from '../_shared/Sidebar';
-import { PageHead } from '../_shared/chrome';
-import { I } from '../_shared/icons';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
+// ── Inline SVG icon helpers ──────────────────────────────────────────────────
+type SvgP = React.SVGProps<SVGSVGElement>;
+
+const CogIcon    = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>;
+const UserIcon   = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+const ShieldIcon = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3Z"/></svg>;
+const PinIcon    = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 22s7-7.58 7-13a7 7 0 0 0-14 0c0 5.42 7 13 7 13Z"/><circle cx="12" cy="9" r="2.5"/></svg>;
+const KeyIcon    = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M16 8l3 3M14 10l3 3"/></svg>;
+const InfoIcon   = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h1v5h1"/></svg>;
+const ChevIcon   = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><polyline points="9 18 15 12 9 6"/></svg>;
+const AlertIcon  = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+const CopyIcon   = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
+const DocIcon    = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>;
+const EyeIcon    = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
+const EyeOffIcon = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
+
+// ── Card wrapper ─────────────────────────────────────────────────────────────
+interface StCardProps {
+  glyph?: React.ReactNode;
+  glyphTone?: 'default' | 'warn' | 'success' | 'danger';
+  title: string;
+  sub?: string;
+  children: React.ReactNode;
+}
+
+function StCard({ glyph, glyphTone = 'default', title, sub, children }: StCardProps) {
+  return (
+    <section className="st-card">
+      <div className="st-card-head">
+        <div className="st-card-head-left">
+          {glyph && (
+            <span className={`st-card-glyph${glyphTone !== 'default' ? ` tone-${glyphTone}` : ''}`}>
+              {glyph}
+            </span>
+          )}
+          <div className="st-card-title">
+            {title}
+            {sub && <small>{sub}</small>}
+          </div>
+        </div>
+      </div>
+      <div className="st-card-body">{children}</div>
+    </section>
+  );
+}
+
+// ── Types ────────────────────────────────────────────────────────────────────
 interface AdminAccount {
   id: string;
   owner_id: string;
   role: string;
   email: string | null;
+  full_name?: string | null;
 }
 
+interface CommitteePins {
+  publication: string;
+  secretariat: string;
+  finance: string;
+}
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function initials(name: string | null | undefined): string {
+  return (name ?? 'A')
+    .split(' ')
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'A';
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
 const Settings = () => {
+  const [activeSection, setActiveSection] = useState('general');
+
+  // Admin accounts
   const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>([]);
   const [adminLoading, setAdminLoading] = useState(true);
   const [adminError, setAdminError] = useState<string | null>(null);
 
+  // Modals
   const [pauseModal, setPauseModal] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+
+  // Pause access
   const [pause, setPause] = useState(false);
   const [pauseSaving, setPauseSaving] = useState(false);
 
+  // Active term
   const [activeTerm, setActiveTerm] = useState('');
   const [termSelect, setTermSelect] = useState('');
   const [termOptions, setTermOptions] = useState<string[]>([]);
   const [termSaving, setTermSaving] = useState(false);
   const [termSaved, setTermSaved] = useState(false);
 
-  /* ── Current logged-in user (for Account Security label) ── */
+  // Current user (for security section identity badge)
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string | null } | null>(null);
 
+  // Logbook geo config
+  const [geoLat,      setGeoLat]      = useState('');
+  const [geoLng,      setGeoLng]      = useState('');
+  const [geoRadius,   setGeoRadius]   = useState('');
+  const [geoSaving,   setGeoSaving]   = useState(false);
+  const [geoSaved,    setGeoSaved]    = useState(false);
+  const [geoError,    setGeoError]    = useState('');
+  // Saved coords — only update on successful save (drives the map preview)
+  const [savedGeoLat, setSavedGeoLat] = useState('');
+  const [savedGeoLng, setSavedGeoLng] = useState('');
+
+  // Committee PINs
+  const [pins,       setPins]       = useState<CommitteePins>({ publication: '', secretariat: '', finance: '' });
+  const [pinSaving,  setPinSaving]  = useState<Record<string, boolean>>({});
+  const [pinSaved,   setPinSaved]   = useState<Record<string, boolean>>({});
+  const [pinError,   setPinError]   = useState<Record<string, string>>({});
+  const [pinVisible, setPinVisible] = useState<Record<string, boolean>>({});
+
+  // Password change
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew,     setPwNew]     = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwShowCur, setPwShowCur] = useState(false);
+  const [pwShowNew, setPwShowNew] = useState(false);
+  const [pwShowCon, setPwShowCon] = useState(false);
+  const [pwSaving,  setPwSaving]  = useState(false);
+  const [pwError,   setPwError]   = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+  const [pwErrors,  setPwErrors]  = useState<{ current?: string; new?: string; confirm?: string }>({});
+
+  // ── Data loading ────────────────────────────────────────────────────────
   useEffect(() => {
     axios.get(`${API_URL}/settings/access_paused`, { withCredentials: true })
       .then(({ data }) => setPause(data.value === 'true'))
@@ -52,6 +153,52 @@ const Settings = () => {
       .catch(() => setTermOptions([]));
   }, []);
 
+  useEffect(() => {
+    axios.get<{ name: string; email: string; role: string }>(`${API_URL}/user/me`, { withCredentials: true })
+      .then(({ data }) => setCurrentUser({ name: data.name ?? 'Admin', email: data.email ?? null }))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    Promise.allSettled([
+      axios.get(`${API_URL}/settings/logbook_lat`,      { withCredentials: true }),
+      axios.get(`${API_URL}/settings/logbook_lng`,      { withCredentials: true }),
+      axios.get(`${API_URL}/settings/logbook_radius_m`, { withCredentials: true }),
+    ]).then(([latR, lngR, radR]) => {
+      const lat = latR.status === 'fulfilled' ? (latR.value.data.value ?? '') : '';
+      const lng = lngR.status === 'fulfilled' ? (lngR.value.data.value ?? '') : '';
+      setGeoLat(lat); setSavedGeoLat(lat);
+      setGeoLng(lng); setSavedGeoLng(lng);
+      if (radR.status === 'fulfilled') setGeoRadius(radR.value.data.value ?? '150');
+    });
+  }, []);
+
+  useEffect(() => {
+    axios.get(`${API_URL}/committee-pins`, { withCredentials: true })
+      .then(({ data }) => setPins({
+        publication: data.publication ?? '',
+        secretariat: data.secretariat ?? '',
+        finance:     data.finance     ?? '',
+      }))
+      .catch(() => {});
+  }, []);
+
+  const fetchAdminAccounts = useCallback(async () => {
+    setAdminLoading(true); setAdminError(null);
+    try {
+      const { data } = await axios.get(`${API_URL}/user/list`, { withCredentials: true });
+      setAdminAccounts(data);
+    } catch (err: unknown) {
+      setAdminError(
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+          ?? 'Could not load accounts.',
+      );
+    } finally { setAdminLoading(false); }
+  }, []);
+
+  useEffect(() => { fetchAdminAccounts(); }, [fetchAdminAccounts]);
+
+  // ── Handlers ────────────────────────────────────────────────────────────
   const handleSaveTerm = async () => {
     if (!termSelect.trim()) return;
     setTermSaving(true); setTermSaved(false);
@@ -64,22 +211,6 @@ const Settings = () => {
     finally { setTermSaving(false); }
   };
 
-  /* ── Fetch current user info ── */
-  useEffect(() => {
-    axios
-      .get<{ name: string; email: string; role: string }>(
-        `${API_URL}/user/me`,
-        { withCredentials: true },
-      )
-      .then(({ data }) => {
-        setCurrentUser({
-          name:  data.name ?? 'Admin',
-          email: data.email ?? null,
-        });
-      })
-      .catch(() => {});
-  }, []);
-
   const handlePauseConfirm = async () => {
     const next = !pause;
     setPauseSaving(true);
@@ -90,202 +221,688 @@ const Settings = () => {
     finally { setPauseSaving(false); }
   };
 
-  const fetchAdminAccounts = useCallback(async () => {
-    setAdminLoading(true); setAdminError(null);
+  const handleSaveGeo = async () => {
+    setGeoSaving(true); setGeoSaved(false); setGeoError('');
     try {
-      const { data } = await axios.get(`${API_URL}/user/list`, { withCredentials: true });
-      setAdminAccounts(data);
+      await Promise.all([
+        axios.post(`${API_URL}/settings/logbook_lat`,      { value: geoLat.trim()    || '0'   }, { withCredentials: true }),
+        axios.post(`${API_URL}/settings/logbook_lng`,      { value: geoLng.trim()    || '0'   }, { withCredentials: true }),
+        axios.post(`${API_URL}/settings/logbook_radius_m`, { value: geoRadius.trim() || '150' }, { withCredentials: true }),
+      ]);
+      setSavedGeoLat(geoLat.trim() || '0');
+      setSavedGeoLng(geoLng.trim() || '0');
+      setGeoSaved(true);
+      setTimeout(() => setGeoSaved(false), 2500);
+    } catch { setGeoError('Failed to save. Please try again.'); }
+    finally { setGeoSaving(false); }
+  };
+
+  const handleSavePin = async (role: 'publication' | 'secretariat' | 'finance') => {
+    const pin = pins[role].trim();
+    if (!pin || pin.length < 4) {
+      setPinError((e) => ({ ...e, [role]: 'PIN must be at least 4 characters.' }));
+      return;
+    }
+    setPinSaving((s) => ({ ...s, [role]: true }));
+    setPinSaved((s)  => ({ ...s, [role]: false }));
+    setPinError((e)  => ({ ...e, [role]: '' }));
+    try {
+      await axios.post(`${API_URL}/committee-pins/${role}`, { pin }, { withCredentials: true });
+      setPinSaved((s) => ({ ...s, [role]: true }));
+      setTimeout(() => setPinSaved((s) => ({ ...s, [role]: false })), 2500);
     } catch (err: unknown) {
-      setAdminError(
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Could not load accounts.',
-      );
-    } finally { setAdminLoading(false); }
-  }, []);
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        ?? 'Failed to save PIN.';
+      setPinError((e) => ({ ...e, [role]: msg }));
+    } finally {
+      setPinSaving((s) => ({ ...s, [role]: false }));
+    }
+  };
 
-  useEffect(() => { fetchAdminAccounts(); }, [fetchAdminAccounts]);
+  const handleCopyPin = (value: string) => {
+    navigator.clipboard.writeText(value).catch(() => {});
+  };
 
-  const SectionHead = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
-    <div className="ads-head">
-      <span className="ads-head-icon">{icon}</span>
-      <span className="ads-head-title">{title}</span>
-    </div>
-  );
+  const handleChangePassword = async () => {
+    const errs: { current?: string; new?: string; confirm?: string } = {};
+    if (!pwCurrent) errs.current = 'Current password is required.';
+    if (!pwNew) errs.new = 'New password is required.';
+    else if (pwNew.length < 8) errs.new = 'Must be at least 8 characters.';
+    if (!pwConfirm) errs.confirm = 'Please confirm your new password.';
+    else if (pwConfirm !== pwNew) errs.confirm = 'Passwords do not match.';
+    if (Object.keys(errs).length > 0) { setPwErrors(errs); return; }
+    setPwErrors({});
+    setPwSaving(true); setPwError(''); setPwSuccess(false);
+    try {
+      await axios.post(`${API_URL}/user/change-password`, {
+        current_password: pwCurrent,
+        new_password:     pwNew,
+        confirm_password: pwConfirm,
+      }, { withCredentials: true });
+      setPwCurrent(''); setPwNew(''); setPwConfirm('');
+      setPwSuccess(true);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        ?? 'Failed to change password.';
+      setPwError(msg);
+    } finally { setPwSaving(false); }
+  };
+
+  const handleCancelPassword = () => {
+    setPwCurrent(''); setPwNew(''); setPwConfirm('');
+    setPwErrors({}); setPwError(''); setPwSuccess(false);
+    setPwShowCur(false); setPwShowNew(false); setPwShowCon(false);
+  };
+
+  // ── Nav definition ───────────────────────────────────────────────────────
+  const navGroups = [
+    {
+      group: 'Account',
+      items: [
+        { id: 'general',  label: 'General',          icon: <CogIcon    width="15" height="15" /> },
+        { id: 'admins',   label: 'Admin accounts',   icon: <UserIcon   width="15" height="15" />, hint: adminAccounts.length > 0 ? String(adminAccounts.length) : undefined },
+        { id: 'security', label: 'Account security', icon: <ShieldIcon width="15" height="15" /> },
+      ],
+    },
+    {
+      group: 'Modules',
+      items: [
+        { id: 'logbook', label: 'Office location', icon: <PinIcon width="15" height="15" /> },
+        { id: 'pins',    label: 'Committee PINs',  icon: <KeyIcon width="15" height="15" />, hint: '3' },
+      ],
+    },
+    {
+      group: 'System',
+      items: [
+        { id: 'about', label: 'About', icon: <InfoIcon width="15" height="15" /> },
+      ],
+    },
+  ];
+
+  const PIN_CARDS = [
+    { role: 'publication' as const, name: 'Publication', scope: 'Announcements · Events' },
+    { role: 'secretariat' as const, name: 'Secretariat', scope: 'Documents' },
+    { role: 'finance'     as const, name: 'Finance',     scope: 'Equipment · Finance' },
+  ];
 
   return (
     <div className="ad-shell">
       <Sidebar active="settings" />
+
       <main className="ad-main">
-        <PageHead
-          title="Settings"
-          subtitle="Manage the active term, access controls, admin accounts, and your password."
-        />
+        <div className="st-page">
 
-        {/* ── General System Settings ── */}
-        <div className="ad-card ads-section">
-          <SectionHead icon={<I.settings width="17" height="17" />} title="General System Settings" />
-
-          <div className="ads-sub">
-            <div className="ads-label-row">
-              <span className="ads-label">Administration Term</span>
-              {activeTerm && (
-                <span className="ads-active-tag">
-                  <span className="ads-active-dot" />
-                  {activeTerm} — active
-                </span>
-              )}
+          {/* ── Page header ──────────────────────────────────────────── */}
+          <header className="st-page-head">
+            <div>
+              <h1>Settings</h1>
+              <p>Term-level defaults, access controls, admin accounts, and module configuration.</p>
             </div>
-            <p className="ads-hint">
-              This term is used across all modules (Officers, Documents, etc.) as the default term year.
-            </p>
-            <div className="ads-row">
-              <select className="ads-term-select" value={termSelect} onChange={e => setTermSelect(e.target.value)}>
-                <option value="">Select a term year…</option>
-                {/* Always include the current active term even if no officers are assigned to it yet */}
-                {activeTerm && !termOptions.includes(activeTerm) && (
-                  <option value={activeTerm}>{activeTerm} — current</option>
-                )}
-                {termOptions.map(t => (
-                  <option key={t} value={t}>{t}{t === activeTerm ? ' — current' : ''}</option>
-                ))}
-              </select>
-              <button
-                className="ad-btn-primary"
-                onClick={handleSaveTerm}
-                disabled={termSaving || !termSelect.trim() || termSelect.trim() === activeTerm}
-              >
-                {termSaving ? 'Saving…' : 'Save'}
-              </button>
-              {termSaved && <span className="ads-saved">✓ Saved</span>}
-            </div>
-            {termOptions.length === 0 && (
-              <p className="ads-no-data">
-                No term years available. Assign <em>year_serving</em> to officers first.
-              </p>
+            {activeTerm && (
+              <span className="st-meta-pill">
+                <span className="st-meta-pill-glyph">T</span>
+                Term&nbsp;<strong>{activeTerm}</strong>&nbsp;
+                <span style={{ color: 'var(--color-text-muted)' }}>·&nbsp;</span>
+                <span className="st-meta-dot" />active
+              </span>
             )}
-          </div>
+          </header>
 
-          <div className="ads-pause-row">
-            <div className="ads-pause-text">
-              <p className="ads-pause-label">
-                Pause access for students
-                {pauseSaving && <span className="ads-saving">Saving…</span>}
-              </p>
-              <p className="ads-pause-sub">When enabled, the public site shows a maintenance message.</p>
-            </div>
-            <span className="ads-toggle" onClick={() => setPauseModal(true)}>
-              <span className={`ads-toggle-track${pause ? ' is-on' : ''}`}>
-                <span className="ads-toggle-thumb" />
-              </span>
-            </span>
-          </div>
-        </div>
+          {/* ── Two-pane layout ──────────────────────────────────────── */}
+          <div className="st-twopane">
 
-        {/* ── Admin Accounts ── */}
-        <div className="ad-card">
-          <div className="ads-section" style={{ paddingBottom: 4 }}>
-            <SectionHead icon={<I.users width="17" height="17" />} title="Admin Accounts" />
-          </div>
-          {adminLoading ? (
-            <div className="ad-empty"><p>Loading accounts…</p></div>
-          ) : adminError ? (
-            <div style={{ padding: '12px 24px', fontSize: 13, color: 'var(--color-danger-text)' }}>{adminError}</div>
-          ) : (
-            <table className="ad-table">
-              <thead><tr>
-                <th>Email</th>
-                <th style={{ width: 140 }}>Role</th>
-                <th className="ad-th-right" style={{ width: 120 }}>Actions</th>
-              </tr></thead>
-              <tbody>
-                {adminAccounts.length === 0 && (
-                  <tr><td colSpan={3}><div className="ad-empty"><p>No admin accounts found.</p></div></td></tr>
-                )}
-                {adminAccounts.map(acct => (
-                  <tr key={acct.id}>
-                    <td><span style={{ fontSize: 13.5, color: 'var(--color-text-primary)' }}>{acct.email ?? '—'}</span></td>
-                    <td><span className="ad-tag tone-neutral" style={{ fontSize: 11 }}>{acct.role}</span></td>
-                    <td className="ad-actions">
+            {/* ── Nav rail ── */}
+            <aside className="st-nav">
+              {navGroups.map((g) => (
+                <div key={g.group}>
+                  <div className="st-nav-group">{g.group}</div>
+                  {g.items.map((item) => (
+                    <button
+                      key={item.id}
+                      className={`st-nav-link${activeSection === item.id ? ' is-active' : ''}`}
+                      onClick={() => setActiveSection(item.id)}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                      {item.hint != null && (
+                        <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 600, color: 'var(--color-text-hint)' }}>
+                          {item.hint}
+                        </span>
+                      )}
+                      <ChevIcon width="13" height="13" className="st-nav-chev" />
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </aside>
+
+            {/* ── Content pane ── */}
+            <div className="st-pane">
+
+              {/* ── GENERAL ── */}
+              {activeSection === 'general' && (
+                <StCard
+                  glyph={<CogIcon width="16" height="16" />}
+                  title="General"
+                  sub="System-wide defaults and access state"
+                >
+                  <div className="st-stack">
+
+                    {/* Administration term */}
+                    <div className="st-field-row">
+                      <div className="st-field-row-label">
+                        <strong>Administration term</strong>
+                        <span>Default school year applied to officers, documents, finance.</span>
+                      </div>
+                      <div className="st-field">
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <select
+                            className="st-select"
+                            value={termSelect}
+                            onChange={(e) => setTermSelect(e.target.value)}
+                            style={{ maxWidth: 220 }}
+                          >
+                            <option value="">Select a term year…</option>
+                            {activeTerm && !termOptions.includes(activeTerm) && (
+                              <option value={activeTerm}>{activeTerm} — current</option>
+                            )}
+                            {termOptions.map((t) => (
+                              <option key={t} value={t}>
+                                {t}{t === activeTerm ? ' — current' : ''}
+                              </option>
+                            ))}
+                          </select>
+                          {activeTerm && (
+                            <span className="st-meta-pill" style={{ padding: '4px 12px 4px 8px' }}>
+                              <span className="st-meta-dot" />
+                              <strong>{activeTerm}</strong>&nbsp;active
+                            </span>
+                          )}
+                        </div>
+                        <div className="st-field-hint">
+                          Officers must have{' '}
+                          <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px' }}>
+                            year_serving
+                          </code>{' '}
+                          set for a term to appear here.
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
+                          <button
+                            className="st-btn st-btn-primary"
+                            onClick={handleSaveTerm}
+                            disabled={termSaving || !termSelect.trim() || termSelect.trim() === activeTerm}
+                          >
+                            {termSaving ? 'Saving…' : 'Save term'}
+                          </button>
+                          {termSaved && (
+                            <span style={{ fontSize: 12, color: 'var(--color-success-text)' }}>✓ Saved</span>
+                          )}
+                        </div>
+                        {termOptions.length === 0 && (
+                          <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-muted)' }}>
+                            No term years available. Assign <em>year_serving</em> to officers first.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Pause access toggle */}
+                    <div className="st-field-row">
+                      <div className="st-field-row-label">
+                        <strong>Pause access for students</strong>
+                        <span>Shows a maintenance screen on the public site. Admins stay open.</span>
+                      </div>
+                      <div className="st-row-control">
+                        <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                          {pauseSaving ? 'Saving…' : pause ? 'Paused' : 'Live'}
+                        </span>
+                        <button
+                          className={`st-toggle${pause ? ' is-on' : ''}`}
+                          onClick={() => setPauseModal(true)}
+                          aria-pressed={pause}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </StCard>
+              )}
+
+              {/* ── ADMIN ACCOUNTS ── */}
+              {activeSection === 'admins' && (
+                <StCard
+                  glyph={<UserIcon width="16" height="16" />}
+                  title="Admin accounts"
+                  sub="Who can sign into the admin panel"
+                >
+                  {adminLoading ? (
+                    <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>Loading accounts…</p>
+                  ) : adminError ? (
+                    <p style={{ fontSize: 13, color: 'var(--color-danger-text)', margin: 0 }}>{adminError}</p>
+                  ) : (
+                    <table className="st-admin-list" style={{ margin: '-18px -18px 0' }}>
+                      <thead>
+                        <tr>
+                          <th>Account</th>
+                          <th>Role</th>
+                          <th style={{ textAlign: 'right' }}>&nbsp;</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adminAccounts.length === 0 && (
+                          <tr>
+                            <td
+                              colSpan={3}
+                              style={{ textAlign: 'center', padding: 24, color: 'var(--color-text-muted)', fontSize: 13 }}
+                            >
+                              No admin accounts found.
+                            </td>
+                          </tr>
+                        )}
+                        {adminAccounts.map((acct) => {
+                          const isSelf = currentUser?.email != null && currentUser.email === acct.email;
+                          return (
+                            <tr key={acct.id} className={isSelf ? 'is-self' : ''}>
+                              <td>
+                                <div className="st-admin-user">
+                                  <span className="st-admin-avatar">
+                                    {initials(acct.full_name ?? acct.email)}
+                                  </span>
+                                  <div className="st-admin-meta">
+                                    <strong>
+                                      {acct.full_name ?? acct.email ?? '—'}
+                                      {isSelf && <span className="st-self-tag">You</span>}
+                                    </strong>
+                                    <small>{acct.email ?? '—'}</small>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <span className={`st-role-tag role-${acct.role === 'super' ? 'super' : 'admin'}`}>
+                                  {acct.role === 'super' ? 'Super admin' : 'Admin'}
+                                </span>
+                              </td>
+                              <td className="is-right">
+                                {isSelf ? (
+                                  <button
+                                    className="st-btn st-btn-ghost st-btn-sm"
+                                    disabled
+                                    style={{ opacity: 0.5, cursor: 'not-allowed' }}
+                                  >
+                                    Remove
+                                  </button>
+                                ) : (
+                                  <button
+                                    className="st-btn st-btn-danger st-btn-sm"
+                                    onClick={() => console.warn('remove', acct.owner_id)}
+                                  >
+                                    Remove
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </StCard>
+              )}
+
+              {/* ── ACCOUNT SECURITY ── */}
+              {activeSection === 'security' && (
+                <StCard
+                  glyph={<ShieldIcon width="16" height="16" />}
+                  title="Account security"
+                  sub="Change the password for your admin account"
+                >
+                  {currentUser && (
+                    <div className="st-row" style={{ paddingTop: 0 }}>
+                      <div className="st-row-text">
+                        <strong>Signed in as</strong>
+                        <span>{currentUser.email ?? currentUser.name}</span>
+                      </div>
+                      <div className="st-admin-user">
+                        <span className="st-admin-avatar">{initials(currentUser.name)}</span>
+                        <div className="st-admin-meta">
+                          <strong>{currentUser.name}</strong>
+                          {currentUser.email && <small>{currentUser.email}</small>}
+                        </div>
+                        <span className="st-self-tag">Current account</span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="st-stack">
+                    {/* Current password */}
+                    <div className="st-field-row">
+                      <div className="st-field-row-label">
+                        <strong>Current password</strong>
+                        <span>Required to verify your identity.</span>
+                      </div>
+                      <div className="st-field">
+                        <div className="st-input-wrap">
+                          <input
+                            className="st-input"
+                            type={pwShowCur ? 'text' : 'password'}
+                            placeholder="Current password"
+                            value={pwCurrent}
+                            onChange={(e) => setPwCurrent(e.target.value)}
+                            autoComplete="current-password"
+                          />
+                          <button
+                            className="st-input-icon"
+                            type="button"
+                            title={pwShowCur ? 'Hide' : 'Show'}
+                            onClick={() => setPwShowCur((v) => !v)}
+                          >
+                            {pwShowCur
+                              ? <EyeOffIcon width="13" height="13" />
+                              : <EyeIcon    width="13" height="13" />}
+                          </button>
+                        </div>
+                        {pwErrors.current && (
+                          <span className="st-field-error">{pwErrors.current}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* New + Confirm */}
+                    <div className="st-field-row">
+                      <div className="st-field-row-label">
+                        <strong>New password</strong>
+                        <span>Minimum 8 characters.</span>
+                      </div>
+                      <div className="st-field">
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <div className="st-input-wrap" style={{ flex: 1 }}>
+                            <input
+                              className="st-input"
+                              type={pwShowNew ? 'text' : 'password'}
+                              placeholder="New password"
+                              value={pwNew}
+                              onChange={(e) => setPwNew(e.target.value)}
+                              autoComplete="new-password"
+                            />
+                            <button
+                              className="st-input-icon"
+                              type="button"
+                              title={pwShowNew ? 'Hide' : 'Show'}
+                              onClick={() => setPwShowNew((v) => !v)}
+                            >
+                              {pwShowNew
+                                ? <EyeOffIcon width="13" height="13" />
+                                : <EyeIcon    width="13" height="13" />}
+                            </button>
+                          </div>
+                          <div className="st-input-wrap" style={{ flex: 1 }}>
+                            <input
+                              className="st-input"
+                              type={pwShowCon ? 'text' : 'password'}
+                              placeholder="Confirm password"
+                              value={pwConfirm}
+                              onChange={(e) => setPwConfirm(e.target.value)}
+                              autoComplete="new-password"
+                            />
+                            <button
+                              className="st-input-icon"
+                              type="button"
+                              title={pwShowCon ? 'Hide' : 'Show'}
+                              onClick={() => setPwShowCon((v) => !v)}
+                            >
+                              {pwShowCon
+                                ? <EyeOffIcon width="13" height="13" />
+                                : <EyeIcon    width="13" height="13" />}
+                            </button>
+                          </div>
+                        </div>
+                        {(pwErrors.new || pwErrors.confirm) && (
+                          <span className="st-field-error">
+                            {pwErrors.new ?? pwErrors.confirm}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {pwError && (
+                      <div className="st-callout" style={{ background: 'var(--color-danger-bg)', borderColor: '#fca5a5', color: 'var(--color-danger-text)' }}>
+                        {pwError}
+                      </div>
+                    )}
+                    {pwSuccess && (
+                      <div className="st-callout" style={{ background: 'var(--color-success-bg)', borderColor: '#86efac', color: 'var(--color-success-text)' }}>
+                        Password changed successfully.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Save bar */}
+                  <div className="st-save-bar" style={{ margin: '4px -18px -18px' }}>
+                    <div className="st-save-bar-status">
+                      <ShieldIcon width="14" height="14" />
+                      You&rsquo;ll stay signed in after saving.
+                    </div>
+                    <div className="st-save-bar-actions">
                       <button
-                        className="ad-icon-btn ad-icon-btn--danger"
-                        style={{ width: 'auto', padding: '0 10px', fontSize: 12, fontWeight: 600 }}
-                        onClick={() => console.warn('remove', acct.owner_id)}
+                        className="st-btn st-btn-ghost"
+                        onClick={handleCancelPassword}
+                        disabled={pwSaving}
                       >
-                        Remove
+                        Cancel
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+                      <button
+                        className="st-btn st-btn-primary"
+                        onClick={handleChangePassword}
+                        disabled={pwSaving}
+                      >
+                        {pwSaving ? 'Saving…' : 'Change password'}
+                      </button>
+                    </div>
+                  </div>
+                </StCard>
+              )}
 
-        {/* ── Account Security ── */}
-        <div className="ad-card ads-section">
-          <SectionHead
-            icon={<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>}
-            title="Account Security"
-          />
-          <p className="ads-hint" style={{ marginBottom: 16 }}>
-            Change your admin account password. You will remain logged in after saving.
-          </p>
+              {/* ── OFFICE LOCATION (logbook) ── */}
+              {activeSection === 'logbook' && (
+                <StCard
+                  glyph={<PinIcon width="16" height="16" />}
+                  title="Office location"
+                  sub="Geofence for the digital logbook"
+                >
+                  <div className="st-grid-coords">
+                    <div className="st-field">
+                      <label className="st-field-label">Latitude</label>
+                      <input
+                        className="st-input is-mono"
+                        placeholder="e.g. 14.4017"
+                        value={geoLat}
+                        onChange={(e) => setGeoLat(e.target.value)}
+                      />
+                    </div>
+                    <div className="st-field">
+                      <label className="st-field-label">Longitude</label>
+                      <input
+                        className="st-input is-mono"
+                        placeholder="e.g. 120.9413"
+                        value={geoLng}
+                        onChange={(e) => setGeoLng(e.target.value)}
+                      />
+                    </div>
+                    <div className="st-field">
+                      <label className="st-field-label">Radius</label>
+                      <div className="st-input-suffix">
+                        <input
+                          className="st-input"
+                          placeholder="150"
+                          value={geoRadius}
+                          onChange={(e) => setGeoRadius(e.target.value)}
+                          type="number"
+                          min={10}
+                          max={5000}
+                        />
+                        <span className="st-input-suffix-tag">meters</span>
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Account identity badge */}
-          {currentUser && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '10px 14px',
-              background: 'var(--color-surface-deep, #eef1fb)',
-              border: '1px solid var(--color-border, #e2e8f0)',
-              borderRadius: 10,
-              marginBottom: 18,
-              maxWidth: 400,
-            }}>
-              <span style={{
-                width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                background: 'var(--gradient-deep, linear-gradient(160deg,#3b5fbc,#4f6fd1))',
-                color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 700,
-              }}>
-                {currentUser.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'A'}
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary, #0f1729)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {currentUser.name}
-                </span>
-                {currentUser.email && (
-                  <span style={{ fontSize: 11.5, color: 'var(--color-text-muted, #6b7280)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {currentUser.email}
-                  </span>
-                )}
-              </div>
-              <span className="ad-tag tone-neutral" style={{ fontSize: 10.5, marginLeft: 'auto', flexShrink: 0 }}>
-                Current account
-              </span>
-            </div>
-          )}
+                  <div className="st-callout">
+                    <AlertIcon width="14" height="14" className="st-callout-icon" />
+                    <div>
+                      <strong>Tip:</strong> open the office on Google Maps, right-click the building,
+                      and paste the coordinates here. 200 m covers the CSG office and adjacent rooms.
+                      Leave lat/lng blank to disable geolocation enforcement.
+                    </div>
+                  </div>
 
-          <PasswordForm />
-        </div>
+                  {/* Map preview — shows saved coordinates, not live input values */}
+                  {savedGeoLat && savedGeoLng
+                    && !isNaN(parseFloat(savedGeoLat)) && !isNaN(parseFloat(savedGeoLng)) && (
+                    <div style={{
+                      borderRadius: 12, overflow: 'hidden', height: 200,
+                      border: '1px solid var(--color-border-soft)',
+                      background: 'var(--color-surface-deep)',
+                    }}>
+                      <iframe
+                        src={`https://maps.google.com/maps?q=${savedGeoLat},${savedGeoLng}&z=18&output=embed&iwloc=&maptype=roadmap`}
+                        title="Office location preview"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        allowFullScreen
+                        style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                      />
+                    </div>
+                  )}
 
-        {/* ── About ── */}
-        <div className="ad-card ads-section">
-          <SectionHead icon={<I.doc width="17" height="17" />} title="About" />
-          <div className="ads-about">
-            <div className="ads-about-meta">
-              <span className="ads-about-version">Current Version: <strong>v1.3.0</strong> (Stable)</span>
-              <span className="ads-about-date">Last Updated: May 22, 2026</span>
-            </div>
-            <button className="ad-btn-ghost" onClick={() => setIsChangelogOpen(true)}>
-              View System Changelog
-            </button>
-          </div>
-        </div>
+                  {geoError && (
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--color-danger-text)' }}>{geoError}</p>
+                  )}
+
+                  {/* Save bar — negative margins stretch it to card edges */}
+                  <div className="st-save-bar" style={{ margin: '4px -18px -18px' }}>
+                    <div className="st-save-bar-status">
+                      <PinIcon width="14" height="14" />
+                      {geoLat && geoLng ? (
+                        <>Pinned to <strong style={{ color: 'var(--color-text-primary)', marginLeft: 4 }}>CvSU Imus — CSG Office</strong></>
+                      ) : (
+                        'No location set — geofence disabled'
+                      )}
+                    </div>
+                    <div className="st-save-bar-actions">
+                      <button
+                        className="st-btn st-btn-primary"
+                        onClick={handleSaveGeo}
+                        disabled={geoSaving}
+                      >
+                        {geoSaving ? 'Saving…' : 'Save location'}
+                      </button>
+                      {geoSaved && (
+                        <span style={{ fontSize: 12, color: 'var(--color-success-text)' }}>✓ Saved</span>
+                      )}
+                    </div>
+                  </div>
+                </StCard>
+              )}
+
+              {/* ── COMMITTEE PINs ── */}
+              {activeSection === 'pins' && (
+                <StCard
+                  glyph={<KeyIcon width="16" height="16" />}
+                  title="Committee PINs"
+                  sub="Codes each committee uses to enter their portal"
+                >
+                  <div className="st-pins">
+                    {PIN_CARDS.map((p) => (
+                      <div key={p.role} className="st-pin-card">
+                        <div className="st-pin-head">
+                          <span className="st-pin-name">{p.name}</span>
+                          <span className="st-pin-scope">{p.scope}</span>
+                        </div>
+                        <div className="st-pin-input">
+                          <div className="st-input-wrap" style={{ flex: 1 }}>
+                            <input
+                              className="st-input is-mono"
+                              type={pinVisible[p.role] ? 'text' : 'password'}
+                              placeholder="Enter PIN…"
+                              value={pins[p.role]}
+                              onChange={(e) => setPins((prev) => ({ ...prev, [p.role]: e.target.value }))}
+                              autoComplete="off"
+                            />
+                            <button
+                              className="st-input-icon"
+                              type="button"
+                              title={pinVisible[p.role] ? 'Hide PIN' : 'Reveal PIN'}
+                              onClick={() => setPinVisible((v) => ({ ...v, [p.role]: !v[p.role] }))}
+                            >
+                              {pinVisible[p.role]
+                                ? <EyeOffIcon width="13" height="13" />
+                                : <EyeIcon    width="13" height="13" />}
+                            </button>
+                          </div>
+                          <button
+                            className="st-input-icon"
+                            type="button"
+                            title="Copy PIN"
+                            onClick={() => handleCopyPin(pins[p.role])}
+                            style={{ background: 'var(--color-surface-deep)', border: '1px solid var(--color-border-soft)', borderRadius: 8, width: 36, height: 36, flexShrink: 0 }}
+                          >
+                            <CopyIcon width="13" height="13" />
+                          </button>
+                          <button
+                            className="st-btn st-btn-primary st-btn-sm"
+                            onClick={() => handleSavePin(p.role)}
+                            disabled={pinSaving[p.role] || !pins[p.role].trim()}
+                          >
+                            {pinSaving[p.role] ? '…' : pinSaved[p.role] ? '✓' : 'Save'}
+                          </button>
+                        </div>
+                        {pinError[p.role] && (
+                          <p className="st-field-error" style={{ margin: 0 }}>{pinError[p.role]}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="st-callout">
+                    <AlertIcon width="14" height="14" className="st-callout-icon" />
+                    <div>
+                      Rotating a PIN signs out anyone currently using the old one.
+                      Share the new code in the committee group chat after saving.
+                    </div>
+                  </div>
+                </StCard>
+              )}
+
+              {/* ── ABOUT ── */}
+              {activeSection === 'about' && (
+                <div className="st-about">
+                  <div className="st-about-stat">
+                    <span className="st-about-stat-lbl">Version</span>
+                    <span className="st-about-stat-val">v1.7.0 <small>Stable</small></span>
+                  </div>
+                  <div className="st-about-stat">
+                    <span className="st-about-stat-lbl">Last update</span>
+                    <span className="st-about-stat-val">May 28, 2026</span>
+                  </div>
+                  <div className="st-about-stat">
+                    <span className="st-about-stat-lbl">Environment</span>
+                    <span className="st-about-stat-val">
+                      {['localhost', '127.0.0.1'].includes(window.location.hostname)
+                        ? 'Development'
+                        : 'Production'}
+                    </span>
+                  </div>
+                  <div className="st-about-spacer" />
+                  <button className="st-btn st-btn-ghost" onClick={() => setIsChangelogOpen(true)}>
+                    <DocIcon width="13" height="13" />View changelog
+                  </button>
+                </div>
+              )}
+
+            </div>{/* end .st-pane */}
+          </div>{/* end .st-twopane */}
+
+        </div>{/* end .st-page */}
       </main>
 
+      {/* ── Modals ── */}
       {pauseModal && (
         <PauseAccessModal
           isPause={pause}

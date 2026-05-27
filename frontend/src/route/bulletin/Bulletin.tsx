@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useOutletContext } from "react-router-dom";
 import Modal from "../../components/modal/Modal";
 import type {
@@ -68,6 +68,7 @@ const Bulletin = () => {
   const [activeTerm, setActiveTerm] = useState<string>("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [page, setPage] = useState(1);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const CATEGORIES = [
     "All",
@@ -177,7 +178,7 @@ const Bulletin = () => {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="bl-content">
+      <div className="bl-content" ref={gridRef}>
         {/* Pinned hero card */}
         {pinned && (
           <div className="bl-pinned card" onClick={() => handleOpen(pinned)}>
@@ -269,7 +270,7 @@ const Bulletin = () => {
           <div className="bl-pagination">
             <button
               className="bl-page-btn"
-              onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onClick={() => { setPage((p) => Math.max(1, p - 1)); }}
               disabled={page === 1}
             >
               ← Prev
@@ -282,7 +283,7 @@ const Bulletin = () => {
                   : <button
                       key={n}
                       className={`bl-page-pill${n === page ? ' bl-page-pill-active' : ''}`}
-                      onClick={() => { setPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      onClick={() => { setPage(n); }}
                     >
                       {n}
                     </button>
@@ -291,7 +292,7 @@ const Bulletin = () => {
 
             <button
               className="bl-page-btn"
-              onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); }}
               disabled={page === totalPages}
             >
               Next →

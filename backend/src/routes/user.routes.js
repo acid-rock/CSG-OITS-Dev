@@ -1,4 +1,5 @@
 import { Router } from "express";
+import crypto from "crypto";
 import { supabase, anonSupabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import ApiError from "../lib/apiError.js";
@@ -83,6 +84,21 @@ router.post(
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    // ── Single-device enforcement — generate a new session nonce ──────────
+    // Upserting a new nonce invalidates any existing admin session on other
+    // browsers; auth.middleware.js validates this nonce on every requireAuth call.
+    const nonce = crypto.randomUUID();
+    await supabase
+      .from("settings")
+      .upsert({ key: "admin_session_nonce", value: nonce }, { onConflict: "key" });
+    res.cookie("admin_nonce", nonce, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // match refresh token lifespan
+    });
+    // ──────────────────────────────────────────────────────────────────────
+
     return res.status(200).json({ message: "Login successful." });
   }),
 );
@@ -100,6 +116,16 @@ router.post(
       secure: true,
       sameSite: "none",
     });
+    res.clearCookie("admin_nonce", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+    // Remove the stored nonce so no session can reuse it after logout
+    await supabase
+      .from("settings")
+      .delete()
+      .eq("key", "admin_session_nonce");
     return res.sendStatus(200);
   }),
 );

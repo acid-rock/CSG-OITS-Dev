@@ -1,7 +1,31 @@
 import { supabase } from "../lib/supabaseClient.js";
 import jwt from "jsonwebtoken";
+import { getCached, setCache } from "../lib/cache.js";
 
 const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
+
+/** Shared nonce-check helper (single-device enforcement for admin sessions). */
+async function checkAdminNonce(req, res) {
+  const adminNonce = req.cookies["admin_nonce"];
+  if (!adminNonce) return true; // no nonce cookie → skip check (committee/public users)
+
+  let dbNonce = getCached("admin:session_nonce");
+  if (dbNonce === undefined) {
+    const { data } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "admin_session_nonce")
+      .single();
+    dbNonce = data?.value ?? null;
+    setCache("admin:session_nonce", dbNonce, 5_000); // 5-second cache
+  }
+
+  if (dbNonce && dbNonce !== adminNonce) {
+    res.status(401).json({ error: "Session invalidated. Another device has logged in." });
+    return false;
+  }
+  return true;
+}
 
 export async function requireAuth(req, res, next) {
   let accessToken = req.cookies["sb_access_token"];
@@ -16,6 +40,10 @@ export async function requireAuth(req, res, next) {
 
     req.user = payload;
     req.token = accessToken;
+
+    // Single-device enforcement
+    if (!(await checkAdminNonce(req, res))) return;
+
     return next();
   } catch (error) {
     if (!refreshToken) {
@@ -44,9 +72,32 @@ export async function requireAuth(req, res, next) {
       });
 
       req.user = data.session.user;
+      req.token = data.session.access_token;
+
+      // Single-device enforcement after token refresh
+      if (!(await checkAdminNonce(req, res))) return;
+
       next();
     } catch (error) {
       return res.status(401).json({ error: "Session expired" });
     }
   }
+}
+
+/**
+ * optionalAuth — attempts JWT verification without blocking the request.
+ * Sets req.isAdmin = true when a valid admin token is found.
+ * Always calls next().
+ */
+export function optionalAuth(req, _res, next) {
+  try {
+    const token = req.cookies?.sb_access_token;
+    if (token) {
+      jwt.verify(token, SUPABASE_JWT_SECRET);
+      req.isAdmin = true;
+    }
+  } catch {
+    // invalid or expired token — treat as public
+  }
+  next();
 }

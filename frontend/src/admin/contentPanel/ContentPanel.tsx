@@ -13,6 +13,7 @@ import Bin from "../panel/bin/Bin";
 import BorrowingPanel from "../panel/borrowing/Borrowing";
 import OrganizationsPanel from "../panel/organizations/Organizations";
 import FinancePanel from "../panel/finance/Finance";
+import AdminLogbook from "../panel/logbook/AdminLogbook";
 
 const panel = [
   { name: "dashboard", content: <Dashboard /> },
@@ -28,6 +29,7 @@ const panel = [
   { name: "bin", content: <Bin /> },
   { name: "organizations", content: <OrganizationsPanel /> },
   { name: "finance",       content: <FinancePanel /> },
+  { name: "logbook",       content: <AdminLogbook /> },
 ];
 
 const ContentPanel = ({ active }: { active: string | null }) => {

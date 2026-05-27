@@ -32,7 +32,17 @@ function renderInline(text: string): React.ReactNode[] {
 }
 
 function MarkdownChangelog({ raw }: { raw: string }) {
-  const lines = raw.split("\n");
+  const isDev = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+  // In production: strip the [Unreleased] section entirely so the latest
+  // released version is the first thing visible.
+  // In development: keep it and badge it with "DEV" so the team can see
+  // in-progress notes without confusion.
+  const processedRaw = isDev
+    ? raw
+    : raw.replace(/## \[Unreleased\][^\n]*\n[\s\S]*?(?=## \[)/, '');
+
+  const lines = processedRaw.split("\n");
   const nodes: React.ReactNode[] = [];
   let listBuffer: string[] = [];
   let key = 0;
@@ -63,9 +73,16 @@ function MarkdownChangelog({ raw }: { raw: string }) {
       );
     } else if (line.startsWith("## ")) {
       flushList();
+      const heading = line.slice(3);
+      const isUnreleased = /^\[Unreleased\]/i.test(heading.trim());
       nodes.push(
-        <h2 key={key++} style={{ fontSize: "1rem", fontWeight: 700, color: "#111827", margin: "22px 0 2px", paddingBottom: 6, borderBottom: "1px solid #e5e7eb" }}>
-          {renderInline(line.slice(3))}
+        <h2 key={key++} style={{ fontSize: "1rem", fontWeight: 700, color: "#111827", margin: "22px 0 2px", paddingBottom: 6, borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 8 }}>
+          {renderInline(heading)}
+          {isUnreleased && (
+            <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", background: "#fef3c7", color: "#92400e", borderRadius: 4, padding: "2px 7px", lineHeight: 1.5, flexShrink: 0 }}>
+              Dev
+            </span>
+          )}
         </h2>
       );
     } else if (line.startsWith("# ")) {

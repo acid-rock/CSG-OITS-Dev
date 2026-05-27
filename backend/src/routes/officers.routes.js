@@ -8,7 +8,7 @@ import {
   createUserClient,
 } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
-import { requireAuth } from "../middlewares/auth.middleware.js";
+import { requireAuth, optionalAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
 import multer from "multer";
 import { getCached, setCache, invalidateCachePrefix } from "../lib/cache.js";
@@ -29,11 +29,16 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-const transformOfficer = (officer) => {
+/**
+ * @param {object}  officer        — raw DB row
+ * @param {boolean} includePrivate — true for authenticated admin requests;
+ *                                   includes student_number (logbook credential)
+ */
+const transformOfficer = (officer, includePrivate = false) => {
   const avatar = officer.avatar
     ? anonSupabase.storage.from("officers").getPublicUrl(officer.avatar).data.publicUrl
     : null;
-  return {
+  const result = {
     id: officer.id,
     created_at: officer.created_at,
     full_name: officer.full_name,
@@ -42,19 +47,24 @@ const transformOfficer = (officer) => {
     type: officer.type,
     socials: officer.socials,
     year_serving: officer.year_serving,
-    student_number: officer.student_number,
     committee: officer.committee,
     is_committee_official: officer.is_committee_official,
     status: officer.status,
     committee_memberships: officer.committee_memberships ?? [],
   };
+  // student_number is excluded from public responses — it is the logbook identity
+  // credential and must never appear in unauthenticated API responses.
+  if (includePrivate) result.student_number = officer.student_number ?? null;
+  return result;
 };
 
 // ── Read ──────────────────────────────────────────────────────────────────────
 
 router.get(
   "/",
+  optionalAuth,
   asyncHandler(async (req, res) => {
+    const isAdmin = req.isAdmin ?? false;
     const pageStr = req.query.page;
     const limitStr = req.query.limit;
 
@@ -75,7 +85,7 @@ router.get(
       if (error) throw new Error(error.message);
 
       return res.status(200).json({
-        data: data.map(transformOfficer),
+        data: data.map((o) => transformOfficer(o, isAdmin)),
         total: count,
         page,
         limit,
@@ -86,7 +96,8 @@ router.get(
     const termFilter = req.query.term || null;
     const termYearFilter = req.query.term_year || null;
 
-    const cacheKey = `officers:${statusFilter}:${termFilter ?? "all"}`;
+    // Separate cache keys for admin (includes student_number) vs public
+    const cacheKey = `officers:${statusFilter}:${termFilter ?? "all"}:${isAdmin ? "private" : "public"}`;
     const cached = getCached(cacheKey);
     if (cached) return res.status(200).json(cached);
 
@@ -118,7 +129,7 @@ router.get(
 
     if (error) throw new Error(error.message);
 
-    const transformed = data.map(transformOfficer);
+    const transformed = data.map((o) => transformOfficer(o, isAdmin));
     setCache(cacheKey, transformed, 60_000);
     return res.status(200).json(transformed);
   }),
@@ -362,7 +373,8 @@ router.get(
       .eq("status", "archived")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return res.status(200).json(data.map(transformOfficer));
+    // /archived is requireAuth — always include private fields
+    return res.status(200).json(data.map((o) => transformOfficer(o, true)));
   }),
 );
 

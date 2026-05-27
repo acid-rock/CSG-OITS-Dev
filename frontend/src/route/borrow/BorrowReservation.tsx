@@ -25,7 +25,7 @@ export interface AvailabilityEntry {
 }
 
 type PurposeType = 'academic' | 'event' | 'organization' | 'others' | '';
-type TimeSlot = 'AM' | 'PM' | 'evening' | 'whole-day';
+export type TimeSlot = 'AM' | 'PM' | 'evening' | 'whole-day';
 
 /* ── Helpers ─────────────────────────────────────────────────────────────────── */
 

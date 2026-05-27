@@ -1,0 +1,624 @@
+/* ============================================================
+   CSG OITS — Logbook kiosk + mobile check-in/out
+   Prefix: .kk-
+   Two contexts:
+     - .kk-display  → 1920×1080 kiosk landscape (the TV in the office)
+     - .kk-phone    → full-bleed mobile portrait (officer's phone after QR scan)
+                      Production: width 100%, min-height 100vh — no bezel, no status bar
+   ============================================================ */
+.kk-root {
+  --color-primary:#4f6fd1;
+  --color-primary-dark:#3b5fbc;
+  --color-primary-deep:#2c4ba0;
+  --color-primary-mid:#8aaae0;
+  --color-primary-light:#c8d2ef;
+  --color-surface:#f4f6fd;
+  --color-surface-deep:#eef1fb;
+  --color-white:#ffffff;
+  --color-border:#e2e8f0;
+  --color-border-soft:#eef0f5;
+  --color-text-primary:#0f1729;
+  --color-text-secondary:#374151;
+  --color-text-muted:#6b7280;
+  --color-text-hint:#9ca3af;
+  --color-success-bg:#dcfce7;
+  --color-success-text:#15803d;
+  --color-warning-bg:#fef3c7;
+  --color-warning-text:#92400e;
+  --color-danger-bg:#fee2e2;
+  --color-danger-text:#b91c1c;
+  --gradient-hero:linear-gradient(160deg,#4f6fd1 0%,#8aaae0 55%,#c8d2ef 100%);
+  --gradient-deep:linear-gradient(160deg,#3b5fbc 0%,#4f6fd1 50%,#8aaae0 100%);
+  --font-stack:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-serif:'Instrument Serif',Georgia,serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --radius-card:14px;
+  --radius-card-lg:18px;
+  --radius-btn:12px;
+  --radius-pill:999px;
+  --transition:all 200ms cubic-bezier(.2,.8,.2,1);
+}
+.kk-root, .kk-root *{ box-sizing:border-box; }
+.kk-root{
+  font-family:var(--font-stack);
+  color:var(--color-text-secondary);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ============================================================
+   KIOSK DISPLAY — full-bleed 1920×1080
+   ============================================================ */
+
+/* Viewport-scaled wrapper — applied when the root also has .kk-root--display */
+.kk-root--display {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #1e2a4f;
+}
+.kk-root--display .kk-display {
+  position: absolute;
+  transform-origin: top left;
+}
+
+.kk-display{
+  width:1920px; height:1080px;
+  position:relative; overflow:hidden;
+  background:#1e2a4f;
+}
+.kk-display-bg{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse at 18% 12%, rgba(255,255,255,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 84% 88%, rgba(79,111,209,0.45) 0%, transparent 60%),
+    linear-gradient(160deg, #3b5fbc 0%, #2c4ba0 60%, #1e2a4f 100%);
+}
+.kk-display-bg::after{
+  content:""; position:absolute; inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><defs><pattern id='g' width='40' height='40' patternUnits='userSpaceOnUse'><circle cx='1.5' cy='1.5' r='1.5' fill='%23ffffff' opacity='0.05'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
+  opacity:0.8;
+}
+.kk-display-inner{
+  position:relative; z-index:1;
+  width:100%; height:100%;
+  display:grid; grid-template-columns:1.35fr 1fr;
+  padding:64px 72px;
+  gap:64px;
+}
+
+/* Header — brand + clock — overlay across top */
+.kk-display-head{
+  position:absolute; top:48px; left:72px; right:72px;
+  display:flex; justify-content:space-between; align-items:center;
+  z-index:2;
+}
+.kk-display-brand{ display:flex; align-items:center; gap:18px; color:#fff; }
+.kk-display-brand-text{ display:flex; flex-direction:column; line-height:1.2; }
+.kk-display-brand-name{ font-size:22px; font-weight:700; letter-spacing:-0.005em; }
+.kk-display-brand-sub{ font-size:13px; font-weight:500; letter-spacing:0.6px; text-transform:uppercase; color:rgba(255,255,255,0.62); }
+.kk-display-clock{
+  text-align:right; color:#fff;
+}
+.kk-display-time{
+  font-size:36px; font-weight:700; font-variant-numeric:tabular-nums;
+  letter-spacing:-0.02em; line-height:1;
+}
+.kk-display-date{
+  font-size:14px; color:rgba(255,255,255,0.7); margin-top:6px;
+  font-weight:500; letter-spacing:0.4px; text-transform:uppercase;
+}
+
+/* Left column — QR */
+.kk-display-qr-col{
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  padding-top:64px;
+}
+.kk-display-eyebrow{
+  display:inline-flex; align-items:center; gap:10px;
+  font-size:14px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+  color:rgba(255,255,255,0.8);
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  padding:10px 20px 10px 14px;
+  border-radius:var(--radius-pill);
+  backdrop-filter:blur(8px);
+  margin-bottom:32px;
+}
+.kk-display-eyebrow-dot{
+  width:10px; height:10px; border-radius:50%;
+  background:#22c55e;
+  box-shadow:0 0 0 4px rgba(34,197,94,0.22);
+  position:relative;
+}
+.kk-display-eyebrow-dot::after{
+  content:""; position:absolute; inset:-4px; border-radius:50%;
+  background:rgba(34,197,94,0.4);
+  animation:kk-pulse 1.8s ease-out infinite;
+}
+@keyframes kk-pulse{
+  0%{ transform:scale(1); opacity:0.7; }
+  100%{ transform:scale(2.5); opacity:0; }
+}
+.kk-display-h1{
+  font-size:64px; font-weight:800; color:#fff;
+  letter-spacing:-0.03em; line-height:1.05;
+  text-align:center; margin:0 0 18px;
+  max-width:680px;
+}
+.kk-display-h1 em{
+  font-family:var(--font-serif); font-style:italic; font-weight:400;
+  color:#f1d27a;
+}
+.kk-display-sub{
+  font-size:18px; color:rgba(255,255,255,0.8); font-weight:450;
+  text-align:center; line-height:1.55; max-width:520px;
+  margin:0 0 40px;
+}
+.kk-qr-card{
+  background:#fff;
+  border-radius:32px;
+  padding:36px;
+  box-shadow:0 60px 100px -30px rgba(15,23,41,0.55), 0 24px 50px -20px rgba(15,23,41,0.4);
+  position:relative;
+}
+.kk-qr-card::before{
+  content:""; position:absolute; inset:-2px;
+  border-radius:34px; padding:2px;
+  background:linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.05));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  pointer-events:none;
+}
+.kk-qr-img{
+  width:420px; height:420px;
+  display:block;
+  background:#fff;
+}
+.kk-qr-foot{
+  display:flex; align-items:center; gap:12px; justify-content:center;
+  margin-top:24px;
+  font-size:16px; color:var(--color-text-secondary); font-weight:600;
+}
+.kk-qr-foot-corner{
+  width:16px; height:16px; border-radius:3px;
+  background:var(--color-primary-deep);
+  position:relative;
+}
+.kk-qr-foot-corner::before, .kk-qr-foot-corner::after{
+  content:""; position:absolute; background:#fff;
+}
+.kk-qr-foot-corner::before{ inset:3px 3px 3px 3px; border-radius:1px; background:#fff; }
+.kk-qr-foot-corner::after{
+  inset:5px 5px 5px 5px; background:var(--color-primary-deep); border-radius:1px;
+}
+
+/* Refresh countdown */
+.kk-qr-refresh{
+  margin-top:28px;
+  background:rgba(255,255,255,0.10);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:var(--radius-pill);
+  padding:10px 20px;
+  font-size:13px; font-weight:600; letter-spacing:0.4px;
+  color:rgba(255,255,255,0.85);
+  display:inline-flex; align-items:center; gap:12px;
+  backdrop-filter:blur(8px);
+}
+.kk-qr-refresh-bar{
+  width:100px; height:5px; border-radius:999px;
+  background:rgba(255,255,255,0.15);
+  position:relative; overflow:hidden;
+}
+/* bar-pct is driven by inline style: style={{ '--bar-pct': `${pct}%` }} */
+.kk-qr-refresh-bar::after{
+  content:""; position:absolute; left:0; top:0; bottom:0;
+  width:var(--bar-pct,100%); background:#22c55e;
+  border-radius:999px;
+  transition:width 1s linear;
+}
+
+/* Right column — roster + checkout instructions */
+.kk-display-side{
+  display:flex; flex-direction:column; gap:32px;
+  padding-top:120px;
+}
+.kk-roster-card{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:24px;
+  padding:32px 32px 28px;
+  backdrop-filter:blur(10px);
+}
+.kk-roster-head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:24px;
+}
+.kk-roster-eyebrow{
+  display:flex; align-items:center; gap:10px;
+  font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  color:rgba(255,255,255,0.85);
+}
+.kk-roster-count{
+  font-family:var(--font-serif); font-style:italic; font-weight:400;
+  font-size:54px; color:#fff; letter-spacing:-0.025em; line-height:1;
+}
+.kk-roster-list{
+  display:flex; flex-direction:column; gap:14px;
+}
+.kk-roster-row{
+  display:flex; align-items:center; gap:16px;
+  padding:14px 16px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;
+}
+.kk-roster-avatar{
+  width:52px; height:52px; border-radius:50%;
+  color:#fff; font-size:16px; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  box-shadow:0 0 0 2px rgba(255,255,255,0.2);
+}
+.kk-roster-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.kk-roster-name{ font-size:17px; font-weight:700; color:#fff; letter-spacing:-0.005em; }
+.kk-roster-pos{ font-size:13px; color:rgba(255,255,255,0.65); }
+.kk-roster-dur{
+  font-family:var(--font-serif); font-style:italic; font-weight:400;
+  font-size:22px; color:#f1d27a; letter-spacing:-0.01em;
+}
+.kk-roster-empty{
+  padding:32px 8px; text-align:center;
+  color:rgba(255,255,255,0.55); font-size:15px;
+  border:1px dashed rgba(255,255,255,0.18);
+  border-radius:14px;
+  display:flex; flex-direction:column; gap:8px; align-items:center;
+}
+
+/* Checkout hint card — also used as an <a> button on the kiosk */
+.kk-checkout-card{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:18px;
+  padding:24px 26px;
+  display:flex; align-items:center; gap:18px;
+  transition:background 180ms ease, border-color 180ms ease;
+}
+.kk-checkout-card:hover{
+  background:rgba(255,255,255,0.10);
+  border-color:rgba(255,255,255,0.25);
+}
+.kk-checkout-ico{
+  width:48px; height:48px; border-radius:12px;
+  background:rgba(241,210,122,0.12);
+  color:#f1d27a;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.kk-checkout-body{ display:flex; flex-direction:column; gap:2px; }
+.kk-checkout-lbl{
+  font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  color:rgba(255,255,255,0.6);
+}
+.kk-checkout-val{
+  font-size:18px; font-weight:700; color:#fff;
+}
+.kk-checkout-val-url{
+  font-family:var(--font-mono); font-size:14px; color:#f1d27a;
+  margin-top:2px; letter-spacing:0;
+}
+
+/* ============================================================
+   MOBILE PHONE — full-bleed, production layout
+   No fixed 390×800 dimensions; fills the viewport.
+   .kk-bezel and .kk-phone-status kept for reference only —
+   they are NOT rendered in production components.
+   ============================================================ */
+.kk-phone{
+  width:100%;
+  min-height:100vh;
+  background:var(--color-surface);
+  font-family:var(--font-stack);
+}
+.kk-phone-body{
+  padding:24px 20px;
+  display:flex; flex-direction:column;
+  min-height:100vh;
+}
+
+/* ── Phone branded dark mode — matches display page aesthetic ── */
+.kk-root--phone {
+  /* Same gradient family as .kk-display-bg */
+  background:
+    radial-gradient(ellipse at 10% 15%, rgba(255,255,255,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 88% 85%, rgba(79,111,209,0.4) 0%, transparent 60%),
+    linear-gradient(160deg, #3b5fbc 0%, #2c4ba0 55%, #1e2a4f 100%);
+  min-height: 100vh;
+}
+/* dotted grid overlay — same data-URI as the display */
+.kk-root--phone::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><defs><pattern id='g' width='40' height='40' patternUnits='userSpaceOnUse'><circle cx='1.5' cy='1.5' r='1.5' fill='%23ffffff' opacity='0.05'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 0;
+}
+.kk-root--phone .kk-phone {
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+/* Brand text becomes white on dark */
+.kk-root--phone .kk-brand-name { color: #fff; }
+.kk-root--phone .kk-brand-sub  { color: rgba(255,255,255,0.62); }
+/* Footer fades into the dark background */
+.kk-root--phone .kk-foot { color: rgba(255,255,255,0.32); }
+/* Card lifts with a deeper shadow on dark */
+.kk-root--phone .kk-card {
+  box-shadow:
+    0 60px 100px -30px rgba(15,23,41,0.55),
+    0 24px 50px -20px rgba(15,23,41,0.4);
+}
+
+/* Brand strip on each page */
+.kk-brand{
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:24px;
+}
+.kk-brand-text{ display:flex; flex-direction:column; line-height:1.18; }
+.kk-brand-name{ color:var(--color-text-primary); font-size:14px; font-weight:700; }
+.kk-brand-sub{ color:var(--color-text-muted); font-size:11px; }
+
+.kk-card{
+  background:#fff;
+  border:1px solid var(--color-border-soft);
+  border-radius:18px;
+  padding:24px 22px;
+  box-shadow:0 1px 2px rgba(15,23,41,0.04), 0 8px 24px -10px rgba(15,23,41,0.08);
+}
+.kk-card h1{
+  margin:0 0 6px;
+  font-size:24px; font-weight:800; color:var(--color-text-primary);
+  letter-spacing:-0.02em; line-height:1.15;
+}
+.kk-card h1 em{
+  font-family:var(--font-serif); font-style:italic; font-weight:400;
+  color:var(--color-primary-deep);
+}
+.kk-card .lead{
+  font-size:13.5px; color:var(--color-text-muted);
+  line-height:1.5; margin:0 0 20px;
+}
+
+.kk-token-pill{
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--color-success-bg);
+  color:var(--color-success-text);
+  font-size:10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;
+  padding:5px 10px 5px 8px; border-radius:var(--radius-pill);
+  margin-bottom:16px;
+}
+.kk-token-pill::before{
+  content:""; width:6px; height:6px; border-radius:50%;
+  background:#22c55e; box-shadow:0 0 0 2.5px rgba(34,197,94,0.25);
+}
+
+.kk-field{
+  display:flex; flex-direction:column; gap:7px;
+  margin-bottom:14px;
+}
+.kk-field-lbl{
+  font-size:11px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase;
+  color:var(--color-text-muted);
+}
+.kk-field-input, .kk-field-select{
+  appearance:none; -webkit-appearance:none;
+  width:100%;
+  font-family:inherit; font-size:15px; font-weight:500;
+  color:var(--color-text-primary);
+  background:#fff;
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-btn);
+  padding:14px 16px;
+  transition:var(--transition);
+}
+.kk-field-input:focus, .kk-field-select:focus{
+  outline:none;
+  border-color:var(--color-primary);
+  box-shadow:0 0 0 4px rgba(79,111,209,0.10);
+}
+.kk-field-select{
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%236b7280' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='1 1 6 6 11 1'/></svg>");
+  background-repeat:no-repeat; background-position:right 14px center;
+  padding-right:40px;
+}
+.kk-field-hint{
+  font-size:11.5px; color:var(--color-text-muted);
+  font-style:italic;
+}
+.kk-field-err{
+  font-size:11.5px; color:var(--color-danger-text);
+  font-weight:600;
+}
+
+/* Geolocation status row */
+.kk-geo{
+  display:flex; align-items:center; gap:12px;
+  padding:12px 14px;
+  background:var(--color-surface);
+  border:1px solid var(--color-border-soft);
+  border-radius:12px;
+  margin-bottom:18px;
+}
+.kk-geo-ico{
+  width:34px; height:34px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.kk-geo-ico.is-ok{ background:var(--color-success-bg); color:var(--color-success-text); }
+.kk-geo-ico.is-pending{ background:rgba(79,111,209,0.10); color:var(--color-primary); }
+.kk-geo-ico.is-err{ background:var(--color-danger-bg); color:var(--color-danger-text); }
+.kk-geo-body{ flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.3; }
+.kk-geo-lbl{ font-size:13px; font-weight:700; color:var(--color-text-primary); }
+.kk-geo-sub{ font-size:11.5px; color:var(--color-text-muted); margin-top:1px; }
+
+.kk-btn{
+  width:100%;
+  font-family:inherit; font-size:15px; font-weight:700;
+  letter-spacing:-0.005em;
+  border-radius:var(--radius-btn);
+  padding:14px 18px;
+  border:none; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  transition:var(--transition);
+}
+.kk-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+.kk-btn--primary{
+  background:var(--color-primary); color:#fff;
+  box-shadow:0 6px 14px -4px rgba(79,111,209,0.5);
+}
+.kk-btn--primary:hover:not(:disabled){ background:var(--color-primary-dark); }
+.kk-btn--ghost{
+  background:#fff; color:var(--color-text-primary);
+  border:1px solid var(--color-border);
+}
+.kk-btn--ghost:hover:not(:disabled){ border-color:var(--color-primary-mid); color:var(--color-primary); }
+.kk-btn--danger-ghost{
+  background:#fff; color:var(--color-danger-text);
+  border:1px solid #fecaca;
+}
+
+.kk-btn-row{
+  display:flex; gap:10px;
+  margin-top:6px;
+}
+
+/* Success card */
+.kk-success-ico{
+  width:72px; height:72px; border-radius:50%;
+  background:var(--color-success-bg); color:var(--color-success-text);
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 18px;
+  box-shadow:0 0 0 8px rgba(34,197,94,0.10);
+}
+.kk-success-name{
+  text-align:center;
+  font-size:13px; color:var(--color-text-muted);
+  text-transform:uppercase; letter-spacing:0.6px; font-weight:600;
+  margin-bottom:6px;
+}
+.kk-success-name strong{
+  display:block;
+  font-size:22px; color:var(--color-text-primary); font-weight:800;
+  letter-spacing:-0.015em; text-transform:none; margin-top:2px;
+}
+.kk-summary{
+  background:var(--color-surface);
+  border-radius:14px;
+  padding:14px 16px;
+  margin:18px 0 20px;
+}
+.kk-summary-row{
+  display:flex; justify-content:space-between;
+  padding:6px 0;
+  border-bottom:1px dashed var(--color-border);
+  font-size:13px;
+}
+.kk-summary-row:last-child{ border-bottom:none; }
+.kk-summary-row .lbl{ color:var(--color-text-muted); }
+.kk-summary-row .val{ color:var(--color-text-primary); font-weight:600; }
+.kk-summary-row .val.duration{
+  font-family:var(--font-serif); font-style:italic; font-weight:400;
+  font-size:18px; color:var(--color-primary-deep);
+}
+
+/* Error card */
+.kk-error-ico{
+  width:72px; height:72px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 18px;
+}
+.kk-error-ico.is-warn{ background:var(--color-warning-bg); color:var(--color-warning-text); box-shadow:0 0 0 8px rgba(245,158,11,0.10); }
+.kk-error-ico.is-danger{ background:var(--color-danger-bg); color:var(--color-danger-text); box-shadow:0 0 0 8px rgba(239,68,68,0.10); }
+.kk-error-h{
+  text-align:center;
+  font-size:22px; font-weight:800; color:var(--color-text-primary);
+  letter-spacing:-0.015em; margin:0 0 8px;
+}
+.kk-error-p{
+  text-align:center;
+  font-size:13.5px; color:var(--color-text-muted); line-height:1.55;
+  margin:0 0 20px;
+}
+.kk-error-detail{
+  background:var(--color-warning-bg); color:var(--color-warning-text);
+  font-family:var(--font-mono); font-size:11.5px;
+  padding:10px 14px; border-radius:8px;
+  margin-bottom:16px;
+}
+.kk-error-detail.is-danger{ background:var(--color-danger-bg); color:var(--color-danger-text); }
+
+/* Footer copyright */
+.kk-foot{
+  margin-top:auto; padding-top:18px;
+  text-align:center;
+  font-size:11px; color:var(--color-text-hint);
+}
+
+/* ── Officer typeahead combobox ── */
+.kk-combo-drop{
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:100;
+  background:#fff;
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-btn);
+  box-shadow:0 8px 24px -8px rgba(15,23,41,0.22), 0 2px 6px -2px rgba(15,23,41,0.12);
+  max-height:220px; overflow-y:auto;
+}
+.kk-combo-opt{
+  width:100%; background:none; border:none;
+  border-bottom:1px solid var(--color-border-soft);
+  padding:10px 14px;
+  cursor:pointer;
+  display:flex; flex-direction:column; gap:2px;
+  text-align:left;
+  transition:background 100ms ease;
+}
+.kk-combo-opt:last-child{ border-bottom:none; }
+.kk-combo-opt:hover,
+.kk-combo-opt.is-selected{ background:var(--color-surface); }
+.kk-combo-name{
+  font-size:14px; font-weight:600;
+  color:var(--color-text-primary);
+  font-family:var(--font-stack);
+}
+.kk-combo-pos{
+  font-size:11.5px;
+  color:var(--color-text-muted);
+  font-family:var(--font-stack);
+}
+.kk-combo-empty{
+  padding:14px; text-align:center;
+  font-size:13px; color:var(--color-text-muted);
+}
+
+/* ============================================================
+   Design-canvas decoration — NOT rendered in production.
+   Kept here so the reference file stays consistent.
+   ============================================================ */
+.kk-bezel{
+  width:418px; height:828px;
+  background:#0f1729;
+  border-radius:48px;
+  padding:14px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06), 0 30px 80px -20px rgba(15,23,41,0.5);
+  display:flex; align-items:center; justify-content:center;
+}
+.kk-bezel .kk-phone{ border-radius:36px; }
+.kk-phone-status{
+  height:44px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px;
+  font-size:14px; font-weight:600; color:var(--color-text-primary);
+}
+.kk-phone-status-right{ display:flex; gap:6px; align-items:center; }
