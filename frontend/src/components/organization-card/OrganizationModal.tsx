@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import type { Organization } from '../../config/organizationsConfig';
 import OrganizationCard from './OrganizationCard';
@@ -44,19 +44,29 @@ export default function OrganizationModal({
   onClose,
   subOrgs = [],
 }: OrganizationModalProps) {
+  const [selectedSub, setSelectedSub] = useState<Organization | null>(null);
+
   useLockBodyScroll(isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
-    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (selectedSub) setSelectedSub(null);
+        else onClose();
+      }
+    };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, selectedSub]);
 
   if (!isOpen) return null;
 
   /* ── Wide two-panel layout: parent card → sub-org grid ── */
   if (subOrgs.length > 0) {
+    const [sa, sb] = selectedSub ? getPalette(selectedSub.name) : ['', ''];
+    const subInitials = selectedSub ? getInitials(selectedSub.name) : '';
+
     return (
       <div className="org-modal-overlay" onClick={onClose}>
         <div className="org-modal org-modal--wide" onClick={e => e.stopPropagation()}>
@@ -73,17 +83,62 @@ export default function OrganizationModal({
           {/* Arrow connector */}
           <div className="org-modal-arrow" aria-hidden="true">→</div>
 
-          {/* Right — sub-org cards in 2-column grid */}
+          {/* Right — sub-org cards in 2-column grid, each clickable */}
           <div className="org-modal-children">
             {subOrgs.map(sub => (
               <OrganizationCard
                 key={sub.id}
                 organization={sub}
-                onClick={() => {}}
+                onClick={() => setSelectedSub(sub)}
               />
             ))}
           </div>
         </div>
+
+        {/* Sub-org detail modal — stacks on top when a child card is clicked */}
+        {selectedSub && (
+          <div
+            className="org-modal-overlay org-modal-overlay--sub"
+            onClick={() => setSelectedSub(null)}
+          >
+            <div className="org-modal" onClick={e => e.stopPropagation()}>
+              <button
+                className="org-modal-close"
+                onClick={() => setSelectedSub(null)}
+                aria-label="Close"
+              >×</button>
+
+              <div
+                className="org-modal-avatar"
+                style={{ background: `linear-gradient(135deg, ${sa}, ${sb})` }}
+              >
+                {selectedSub.logo_url ? (
+                  <img src={selectedSub.logo_url} alt={selectedSub.name} className="org-modal-img" />
+                ) : (
+                  <span className="org-initials">{subInitials}</span>
+                )}
+              </div>
+
+              <h2 className="org-modal-name">{selectedSub.name}</h2>
+
+              {selectedSub.description && (
+                <p className="org-modal-desc">{selectedSub.description}</p>
+              )}
+
+              {selectedSub.facebook_link && (
+                <a
+                  href={selectedSub.facebook_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="org-modal-fb-btn"
+                >
+                  <FbIcon />
+                  Visit Facebook Page
+                </a>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

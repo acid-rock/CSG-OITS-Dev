@@ -242,6 +242,79 @@
   margin-top: auto;
   font-size: var(--font-size-sm) !important;
 }
+/* ── Inventory header right cluster ── */
+.eq-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* ── Date filter bar ── */
+.eq-date-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-4);
+  height: 34px;
+  color: var(--color-text-muted);
+  transition: border-color var(--transition-fast);
+}
+.eq-date-filter:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.08);
+}
+.eq-date-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  padding: 0;
+}
+.eq-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+.eq-date-checking {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Date-filter caption */
+.eq-date-caption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-5);
+}
+.eq-date-limit {
+  margin-left: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint, var(--color-text-muted));
+}
+
+/* ── Card booked state ── */
+.eq-card--booked {
+  opacity: 0.6;
+}
+.eq-card--booked .eq-thumb {
+  filter: grayscale(0.5);
+}
+
+/* ── Date-aware status badges ── */
+.eq-status-partial {
+  color: var(--color-warning, #d97706);
+}
+.eq-status-booked {
+  color: var(--color-danger);
+}
+
 @media (max-width: 1024px) {
   .eq-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -253,6 +326,13 @@
   }
   .eq-hero {
     padding: var(--space-12) var(--space-6) var(--space-8);
+  }
+  .eq-inventory-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .eq-header-right {
+    width: 100%;
   }
 }
 @media (max-width: 480px) {

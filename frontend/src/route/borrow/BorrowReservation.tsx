@@ -17,7 +17,7 @@ interface InventoryItem {
   image?: string | null;
 }
 
-interface AvailabilityEntry {
+export interface AvailabilityEntry {
   borrow_date: string;
   return_date: string;
   status: 'pending' | 'approved';
@@ -31,6 +31,12 @@ type TimeSlot = 'AM' | 'PM' | 'evening' | 'whole-day';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
+const maxBookingDate = (): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  return d.toISOString().split('T')[0];
+};
+
 function formatDisplayDate(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
     weekday: 'short',
@@ -40,14 +46,14 @@ function formatDisplayDate(dateStr: string): string {
   });
 }
 
-function timeSlotLabel(slot: TimeSlot): string {
+export function timeSlotLabel(slot: TimeSlot): string {
   if (slot === 'AM')       return 'AM (8:00 AM – 12:00 PM)';
   if (slot === 'PM')       return 'PM (1:00 PM – 5:00 PM)';
   if (slot === 'evening')  return 'Evening (5:00 PM – 9:00 PM)';
   return 'Whole Day (8:00 AM – 5:00 PM)';
 }
 
-function timeSlotShort(slot: TimeSlot): string {
+export function timeSlotShort(slot: TimeSlot): string {
   if (slot === 'AM')       return 'Morning (AM)';
   if (slot === 'PM')       return 'Afternoon (PM)';
   if (slot === 'evening')  return 'Evening';
@@ -55,13 +61,13 @@ function timeSlotShort(slot: TimeSlot): string {
 }
 
 /** AM and PM allow returning the equipment on the same borrow date. */
-function sameDayReturnAllowed(slot: TimeSlot | null): boolean {
+export function sameDayReturnAllowed(slot: TimeSlot | null): boolean {
   return slot === 'AM' || slot === 'PM';
 }
 
 /* ── Availability status logic ───────────────────────────────────────────────── */
 
-function computeDateStatus(
+export function computeDateStatus(
   dateStr: string,
   availability: AvailabilityEntry[],
   maxQty: number,
@@ -77,11 +83,11 @@ function computeDateStatus(
 
 /* ── Time slot definitions ───────────────────────────────────────────────────── */
 
-const TIME_SLOTS: { id: TimeSlot; label: string; sub: string; note: string; sameDayReturn: boolean }[] = [
+export const TIME_SLOTS: { id: TimeSlot; label: string; sub: string; note: string; sameDayReturn: boolean }[] = [
   { id: 'AM',        label: 'Morning',   sub: 'AM  ·  8:00 AM – 12:00 PM',  note: 'Same-day return allowed',        sameDayReturn: true  },
   { id: 'PM',        label: 'Afternoon', sub: 'PM  ·  1:00 PM – 5:00 PM',   note: 'Same-day return allowed',        sameDayReturn: true  },
-  { id: 'evening',   label: 'Evening',   sub: '5:00 PM – 9:00 PM',          note: 'Return date must be a later day', sameDayReturn: false },
-  { id: 'whole-day', label: 'Whole Day', sub: '8:00 AM – 5:00 PM',          note: 'Return date must be a later day', sameDayReturn: false },
+  { id: 'evening',   label: 'Evening',   sub: '5:00 PM – 7:00 PM',          note: 'Return date must be a later day', sameDayReturn: false },
+  { id: 'whole-day', label: 'Whole Day', sub: '8:00 AM – 7:00 PM',          note: 'Return date must be a later day', sameDayReturn: false },
 ];
 
 /* ── Page component ──────────────────────────────────────────────────────────── */
@@ -150,8 +156,10 @@ export default function BorrowReservation() {
 
   /* ── Date status helper ──────────────────────────────────────────────────── */
 
-  const getDateStatus = (dateStr: string): DateStatus =>
-    computeDateStatus(dateStr, availability, equipment?.max_quantity ?? 1);
+  const getDateStatus = (dateStr: string): DateStatus => {
+    if (dateStr > maxBookingDate()) return 'past'; // beyond 7-day window → greyed out
+    return computeDateStatus(dateStr, availability, equipment?.max_quantity ?? 1);
+  };
 
   /* ── Range conflict check ────────────────────────────────────────────────── */
 
@@ -170,6 +178,8 @@ export default function BorrowReservation() {
   /* ── Date selection handler ──────────────────────────────────────────────── */
 
   const handleDateSelect = (dateStr: string) => {
+    // Enforce 7-day booking window (calendar renders these as 'past' but guard anyway)
+    if (dateStr > maxBookingDate()) return;
     setSubmitError(null);
     // If no start yet, or both already set → start a fresh range
     if (!rangeStart || rangeEnd) {
@@ -200,10 +210,14 @@ export default function BorrowReservation() {
     setRangeEnd(dateStr);
   };
 
-  /* If the time slot changes to one that forbids same-day return, clear a same-day rangeEnd */
+  /* Sync rangeEnd with timeSlot changes:
+     - AM / PM selected with no return date yet → auto-set same-day return
+     - Evening / Whole Day selected with a same-day return → clear it (must pick a later date) */
   useEffect(() => {
     if (rangeStart && rangeEnd === rangeStart && !sameDayReturnAllowed(timeSlot)) {
       setRangeEnd(null);
+    } else if (rangeStart && !rangeEnd && sameDayReturnAllowed(timeSlot)) {
+      setRangeEnd(rangeStart);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeSlot]);
@@ -404,6 +418,7 @@ export default function BorrowReservation() {
           </div>
           <p className="br-equip-hint">
             Click a date to start your reservation. Then pick a time slot and return date.
+            Reservations can be made up to 7 days in advance.
           </p>
         </div>
       </div>

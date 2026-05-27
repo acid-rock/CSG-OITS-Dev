@@ -389,6 +389,84 @@
 }
 
 /* ════════════════════════════════════════════════════
+   PAGINATION
+   ════════════════════════════════════════════════════ */
+.bd-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-10);
+  flex-wrap: wrap;
+}
+
+.bd-page-btn {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+.bd-page-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.bd-page-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.bd-page-pills {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.bd-page-pill {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--transition-fast), color var(--transition-fast),
+              background var(--transition-fast);
+}
+.bd-page-pill:hover:not(.bd-page-pill-active) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.bd-page-pill-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.bd-page-ellipsis {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  user-select: none;
+}
+
+/* ════════════════════════════════════════════════════
    RESPONSIVE
    ════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {

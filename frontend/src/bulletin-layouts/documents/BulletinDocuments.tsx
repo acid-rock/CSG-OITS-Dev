@@ -1,5 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./bulletinDocument.css";
+
+const PAGE_SIZE = 12;
+
+function getPageRange(current: number, total: number): (number | '...')[] {
+  if (total <= 3) return Array.from({ length: total }, (_, i) => i + 1);
+  const delta = 1;
+  const core = new Set<number>([1, total]);
+  for (let i = current - delta; i <= current + delta; i++) {
+    if (i >= 1 && i <= total) core.add(i);
+  }
+  const sorted = [...core].sort((a, b) => a - b);
+  const result: (number | '...')[] = [];
+  let prev = 0;
+  for (const n of sorted) {
+    if (n - prev === 2) result.push(prev + 1);
+    else if (n - prev > 2) result.push('...');
+    result.push(n);
+    prev = n;
+  }
+  return result;
+}
 import DocumentModal from "../../components/document-modal/DocumentModal.tsx";
 import type {
   Document,
@@ -26,10 +47,9 @@ export default function BulletinDocument() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedTerm, setSelectedTerm] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
-    null,
-  );
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
   /* Derived category list — locked logic */
   const uniqueCategories = Array.from(
@@ -72,13 +92,18 @@ export default function BulletinDocument() {
     setIsModalOpen(true);
   };
 
+  // Reset to page 1 and close side panel whenever filters change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setPage(1); setSelectedDocument(null); }, [selectedCategory, selectedTerm, searchQuery]);
+
+  const totalPages      = Math.max(1, Math.ceil(filteredDocuments.length / PAGE_SIZE));
+  const paginatedDocuments = filteredDocuments.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   /* ── Category count helper (new — no binding change) ── */
   const catCount = (catId: string) =>
     catId === "all"
       ? documents.length
       : documents.filter((d) => d.category === catId).length;
-
-  console.log(documents);
 
   return (
     <section id="documents" className="bd-page">
@@ -168,8 +193,9 @@ export default function BulletinDocument() {
               </p>
             </div>
           ) : (
+            <>
             <div className="bd-grid">
-              {filteredDocuments.map((doc) => {
+              {paginatedDocuments.map((doc) => {
                 const tagClass = getDocTagClass(doc);
                 return (
                   <div
@@ -243,6 +269,42 @@ export default function BulletinDocument() {
                 );
               })}
             </div>
+
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="bd-pagination">
+                <button
+                  className="bd-page-btn"
+                  onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  disabled={page === 1}
+                >
+                  ← Prev
+                </button>
+
+                <div className="bd-page-pills">
+                  {getPageRange(page, totalPages).map((n, i) =>
+                    n === '...'
+                      ? <span key={`ellipsis-${i}`} className="bd-page-ellipsis">…</span>
+                      : <button
+                          key={n}
+                          className={`bd-page-pill${n === page ? ' bd-page-pill-active' : ''}`}
+                          onClick={() => { setPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        >
+                          {n}
+                        </button>
+                  )}
+                </div>
+
+                <button
+                  className="bd-page-btn"
+                  onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  disabled={page === totalPages}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+            </>
           )}
         </main>
       </div>

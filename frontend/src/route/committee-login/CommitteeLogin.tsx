@@ -48,10 +48,11 @@ const IconShield = () => (
 
 export default function CommitteeLogin() {
   const navigate = useNavigate();
-  const [pin, setPin] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const [pin, setPin]         = useState('');
   const [showPin, setShowPin] = useState(false);
+  const [error, setError]     = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +61,6 @@ export default function CommitteeLogin() {
     setLoading(true);
     try {
       const { data } = await axios.post(`${API}/committee-pins/verify`, { pin: pin.trim() });
-      // Store committee session in sessionStorage (expires when tab closes)
       sessionStorage.setItem('committee_role',    data.role);
       sessionStorage.setItem('committee_label',   ROLE_LABELS[data.role] ?? data.role);
       sessionStorage.setItem('committee_session', '1');
@@ -165,10 +165,7 @@ export default function CommitteeLogin() {
 
           <p className="cl-help">
             Forgot your PIN? Contact the{' '}
-            <a href="mailto:csg.imus@cvsu.edu.ph" className="cl-link">
-              CSG Admin
-            </a>{' '}
-            to reset it.
+            <a href="mailto:csg.imus@cvsu.edu.ph" className="cl-link">CSG Admin</a> to reset it.
           </p>
         </section>
       </main>

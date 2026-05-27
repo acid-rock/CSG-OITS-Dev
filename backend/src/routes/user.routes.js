@@ -140,7 +140,10 @@ router.post(
   "/forgot-password",
   asyncHandler(async (req, res) => {
     const { email } = req.body;
-    const FRONTEND_URL = process.env.FRONTEND_URL || "";
+    // FRONTEND_URL may be comma-separated (multi-origin); use only the first value
+    // so the redirectTo URL is valid (e.g. "https://csg-oits.vercel.app,http://localhost:5173"
+    // → "https://csg-oits.vercel.app")
+    const FRONTEND_URL = (process.env.FRONTEND_URL || "").split(",")[0].trim();
     // Always return 200 regardless of whether the email exists (avoids user enumeration)
     if (email) {
       await supabase.auth.resetPasswordForEmail(email, {
@@ -148,6 +151,23 @@ router.post(
       });
     }
     return res.sendStatus(200);
+  }),
+);
+
+/**
+ * Exchange a Supabase PKCE `code` for an access_token.
+ * Called by the frontend Reset page when Supabase redirects with ?code= instead
+ * of #access_token= (PKCE flow used in newer Supabase projects).
+ */
+router.post(
+  "/exchange-code",
+  asyncHandler(async (req, res) => {
+    const { code } = req.body;
+    if (!code) throw new ApiError(400, "code is required.");
+    const { data, error } = await anonSupabase.auth.exchangeCodeForSession(code);
+    if (error) throw new ApiError(400, error.message);
+    if (!data?.session?.access_token) throw new ApiError(400, "No session returned.");
+    return res.json({ access_token: data.session.access_token });
   }),
 );
 

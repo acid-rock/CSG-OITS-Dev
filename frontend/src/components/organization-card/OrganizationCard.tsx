@@ -107,18 +107,15 @@ export default function OrganizationCard({ organization, onClick, subOrgsCount =
       {/* Description */}
       <p className="org-card-desc">{organization.description ?? ''}</p>
 
-      {/* Sub-org badge — only shown when this org has children */}
-      {subOrgsCount > 0 && (
-        <div className="org-card-suborgs">
-          <SubOrgsIcon />
-          <span>{subOrgsCount} sub-organization{subOrgsCount !== 1 ? 's' : ''}</span>
-          <span className="org-card-suborgs-hint">· click to view</span>
-        </div>
-      )}
-
-      {/* Footer: Facebook CTA */}
+      {/* Footer: sub-org count (left) + Facebook CTA (right) */}
       <div className="org-card-foot">
-        {organization.facebook_link ? (
+        {subOrgsCount > 0 ? (
+          <span className="org-card-meta">
+            <SubOrgsIcon />
+            {subOrgsCount} sub-org{subOrgsCount !== 1 ? 's' : ''}
+          </span>
+        ) : <span />}
+        {organization.facebook_link && (
           <a
             className="org-card-cta"
             href={organization.facebook_link}
@@ -131,8 +128,6 @@ export default function OrganizationCard({ organization, onClick, subOrgsCount =
             <span>Visit page</span>
             <ArrowIcon />
           </a>
-        ) : (
-          <span />
         )}
       </div>
     </article>

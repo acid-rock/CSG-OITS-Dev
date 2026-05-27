@@ -7,6 +7,7 @@ export interface Committee {
   status: 'active' | 'archived';
   chair_name: string | null;
   vice_chair_name: string | null;
+  description: string | null;
   cover_image_path: string | null;
   cover_image_url: string | null;  // resolved by backend from committees bucket
   deleted_at: string | null;

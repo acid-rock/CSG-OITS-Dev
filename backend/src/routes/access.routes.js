@@ -12,8 +12,8 @@ import { randomUUID } from "crypto";
 
 const router = Router();
 
-const MAX_SLOTS    = 10;
-const TOKEN_TTL_MS = 60_000; // 60 s — client must heartbeat every ~20 s
+const MAX_SLOTS    = 35;       // 30–40 concurrent public viewers per deployment spec
+const TOKEN_TTL_MS = 60_000;  // 60 s — client must heartbeat every ~20 s
 
 // Map<token, lastSeenTimestamp>
 const slots = new Map();

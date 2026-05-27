@@ -76,12 +76,17 @@ router.get(
       document:     Object.fromEntries(dateRange.map((d) => [d, 0])),
       announcement: Object.fromEntries(dateRange.map((d) => [d, 0])),
       event:        Object.fromEntries(dateRange.map((d) => [d, 0])),
+      total:        Object.fromEntries(dateRange.map((d) => [d, 0])),
     };
 
     for (const row of data ?? []) {
       const date = row.viewed_at.slice(0, 10);
       if (buckets[row.entity_type]?.[date] !== undefined) {
         buckets[row.entity_type][date]++;
+      }
+      // total counts every view regardless of entity type
+      if (buckets.total[date] !== undefined) {
+        buckets.total[date]++;
       }
     }
 
@@ -90,6 +95,7 @@ router.get(
       document:     dateRange.map((d) => buckets.document[d]),
       announcement: dateRange.map((d) => buckets.announcement[d]),
       event:        dateRange.map((d) => buckets.event[d]),
+      total:        dateRange.map((d) => buckets.total[d]),
     };
 
     // Cache for 60 s — views chart doesn't need real-time accuracy

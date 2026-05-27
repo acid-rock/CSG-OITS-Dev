@@ -501,6 +501,19 @@
   font-weight: var(--font-weight-bold) !important;
 }
 
+.bl-page-ellipsis {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  user-select: none;
+  pointer-events: none;
+  letter-spacing: 0.05em;
+}
+
 /* ── Backward-compat: keep old class names in case they are referenced ── */
 .bulletin-content {
   max-width: var(--max-width-content);

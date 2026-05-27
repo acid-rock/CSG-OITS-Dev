@@ -140,6 +140,28 @@ const Officers = () => {
     ? executives.filter((o) => o !== president)
     : executives;
 
+  /* Canonical executive hierarchy (VP Internal → VP External → Secretary →
+     Treasurer → Auditor → PRO → anything else alphabetically) */
+  const EXEC_RANK: RegExp[] = [
+    /vice.{0,20}president.{0,20}internal/i,
+    /vice.{0,20}president.{0,20}external/i,
+    /\bsecretary\b/i,
+    /treasurer/i,
+    /auditor/i,
+    /public[\s-]*relation/i,
+  ];
+  const execRank = (o: Officer): number => {
+    const pos = (Array.isArray(o.position) ? o.position[0] : o.position) ?? '';
+    const idx = EXEC_RANK.findIndex((rx) => rx.test(pos));
+    return idx === -1 ? EXEC_RANK.length : idx;
+  };
+  const sortedExecs = [...otherExecs].sort((a, b) => {
+    const diff = execRank(a) - execRank(b);
+    if (diff !== 0) return diff;
+    // Stable: officers with the same rank keep their original order
+    return otherExecs.indexOf(a) - otherExecs.indexOf(b);
+  });
+
   return (
     <>
     <div className="op-page">
@@ -220,11 +242,11 @@ const Officers = () => {
         {/* ════════════════════════════════════
             EXECUTIVE OFFICERS
             ════════════════════════════════════ */}
-        {otherExecs.length > 0 && (
+        {sortedExecs.length > 0 && (
           <div className="op-group">
             <span className="section-label op-group-label">Executive Officers</span>
             <div className="op-exec-grid">
-              {otherExecs.map((o) => (
+              {sortedExecs.map((o) => (
                 <OCard key={o.id} officer={o} avatarSize={80} />
               ))}
             </div>
@@ -325,6 +347,9 @@ const Officers = () => {
 
                       <div className="cc-card-body">
                         <h3 className="cc-card-title">{c.name}</h3>
+                        {c.description && (
+                          <p className="cc-card-desc">{c.description}</p>
+                        )}
                         <div className="cc-chair">
                           {chairAvatar ? (
                             <img
@@ -389,6 +414,9 @@ const Officers = () => {
             aria-label="Close"
           >×</button>
           <h2 className="op-committee-modal-title">{selectedCommittee.name}</h2>
+          {selectedCommittee.description && (
+            <p className="op-cm-desc">{selectedCommittee.description}</p>
+          )}
 
           {/* Officials first */}
           {(() => {

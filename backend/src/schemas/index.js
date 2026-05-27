@@ -137,6 +137,7 @@ export const editCommitteeSchema = z.object({
   name: z.string().min(1).max(200),
   chair_name:      z.string().max(200).nullable().optional(),
   vice_chair_name: z.string().max(200).nullable().optional(),
+  description:     z.string().max(1000).nullable().optional(),
 });
 
 export const committeeIdSchema = z.object({

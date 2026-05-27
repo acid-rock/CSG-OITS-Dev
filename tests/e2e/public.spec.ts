@@ -94,16 +94,14 @@ test.describe("/borrow equipment page", () => {
     );
   });
 
-  test("Request to Borrow button opens form", async ({ page }) => {
+  test("Reserve Equipment button navigates to /borrow/:id", async ({
+    page,
+  }) => {
     await page.goto("/borrow");
-    const borrowBtn = page
-      .locator("button", { hasText: "Request to Borrow" })
-      .first();
-    if (await borrowBtn.isVisible()) {
-      await borrowBtn.click();
-      await expect(
-        page.locator('input[type="email"], [placeholder*="email"]'),
-      ).toBeVisible({ timeout: 3_000 });
+    const btn = page.locator("button", { hasText: "Reserve Equipment" }).first();
+    if (await btn.isVisible()) {
+      await btn.click();
+      await expect(page).toHaveURL(/\/borrow\/.+/);
     }
   });
 });

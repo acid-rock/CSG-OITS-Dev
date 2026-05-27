@@ -1,11 +1,7 @@
 /**
  * CommitteeAdminPage — the committee portal at /committee/admin
  *
- * Renders CommitteeSidebar alongside the existing admin panel component
- * for the active panel. The embedded admin Sidebar inside each panel
- * is hidden via CSS (.ca-panel-host .ad-sidebar { display: none }).
- *
- * Role → allowed panels mapping:
+ * Role → allowed panels:
  *   publication  → announcement, events
  *   secretariat  → documents
  *   finance      → borrowing, finance
@@ -44,11 +40,9 @@ export default function CommitteeAdminPage() {
   const role          = sessionStorage.getItem('committee_role') ?? '';
   const allowedPanels = ROLE_PANELS[role] ?? [];
 
-  /* Clamp the requested panel to allowed panels for this role */
+  /* Clamp the requested panel to what this session allows */
   const rawPanel = searchParams.get('panel') ?? '';
-  const panel    = allowedPanels.includes(rawPanel)
-    ? rawPanel
-    : allowedPanels[0] ?? '';
+  const panel    = allowedPanels.includes(rawPanel) ? rawPanel : (allowedPanels[0] ?? '');
 
   const PanelComponent = PANEL_MAP[panel as PanelId] ?? null;
 

@@ -1,7 +1,7 @@
 /**
  * CommitteeSidebar — restricted sidebar for committee admin portal.
  * Shows only the panels the current committee role is allowed to access.
- * Uses the same .ad-sb-* CSS classes as the admin Sidebar for visual consistency.
+ * Uses the same .ad-sb-* CSS classes as the main admin Sidebar.
  */
 import { useNavigate } from 'react-router-dom';
 import '../../admin/panel/_shared/admin-list.css';
@@ -41,10 +41,9 @@ export default function CommitteeSidebar({
   onLogout,
 }: CommitteeSidebarProps) {
   const navigate = useNavigate();
-  const roleLabel = ROLE_LABEL[role] ?? 'Committee';
 
-  // Derive initials from role label
-  const initials = roleLabel
+  const roleLabel = ROLE_LABEL[role] ?? 'Committee';
+  const initials  = roleLabel
     .split(' ')
     .map((w) => w[0])
     .slice(0, 2)

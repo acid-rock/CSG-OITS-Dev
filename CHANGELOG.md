@@ -5,6 +5,52 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-05-27
+### Added
+- **Committee Office Duty system** — committees can file which dates they will be in the CSG office
+  - New `office_duties` table (`committee_id`, `duty_date`, `notes`, unique per committee+date)
+  - Backend `GET /api/v1/office-duties/` — public; supports `?date=YYYY-MM-DD` and `?month=YYYY-MM` filters
+  - Backend `POST /api/v1/office-duties/checkin` — PIN-verified duty filing; returns 409 on duplicate
+  - Backend `DELETE /api/v1/office-duties/checkout` — PIN-verified duty removal
+  - Backend `POST /api/v1/office-duties/admin/add` — admin bypass (no PIN required)
+  - Backend `DELETE /api/v1/office-duties/admin/delete` — admin hard-delete by id
+  - Backend `GET /api/v1/office-duties/admin` — paginated admin view with optional `?month=YYYY-MM`
+  - Backend `POST /api/v1/committee-pins/verify-duty` — verifies a committee's duty PIN
+  - `committees.duty_pin` column — set per-committee by admins; excluded from all public API responses
+  - `CommitteeOfficeDuty` panel — committee portal panel for filing/removing duty dates with a calendar grid and notes
+  - `OfficePage` (`/office`) — public page showing which committees are on duty per day; calendar + committee cards
+  - `office.css` — styles for the public office hours page (`od-` prefix)
+  - Admin panel "Office Duty" entry in Operations sidebar — `AdminOfficeDuty` panel for full admins
+  - Committee portal extended: all three content roles (publication, secretariat, finance) can also access the Office Duty panel
+  - Committee login dual-mode: **"Content Portal"** (existing 3 roles) and **"Office Duty"** (any active committee with a duty PIN)
+  - `CommitteeProtectedRoute` now accepts both content and duty sessions
+  - "Office Hours" added to Navigation Resources dropdown
+- **Settings — Committee Duty PINs section** — admins can set or rotate duty PINs for all 10 committees directly from the Settings panel; write-only inputs (current PIN never displayed)
+- **Borrow page — date-aware availability overlay**
+  - Date picker defaults to today; capped at today +7 days (1-week reservation window)
+  - Per-item availability fetched in parallel on date change; shows "X available", "X of Y free" (amber), or "Fully Booked" (red) badges
+  - Fully-booked cards dim with reduced opacity; button changes to "Fully Booked"
+  - Removed misleading static "● AVAILABLE / OUT" badge — replaced by date-specific status
+  - Removed All/Available/Unavailable filter pills (redundant with date-aware display)
+- **BorrowReservation — 7-day cap enforced on calendar** — dates beyond today +7 render as greyed/non-clickable via `DateStatus 'past'`; `handleDateSelect` also guards against out-of-window clicks
+- **Office Hours page — 7-day window** — past dates and dates beyond today +7 are greyed and non-clickable; prev/next month nav disabled when navigating outside the window
+- `supabase/migrations/010_committees_full_schema.sql` — idempotent backfill migration that adds all missing committees columns (`status`, `deleted_at`, `description`, `duty_pin`, `cover_image_path`, `chair_name`, `vice_chair_name`), patches NULL status rows, adds a check constraint, re-seeds the 10 committees, and sets all committee descriptions
+
+### Changed
+- Committee login tabs renamed: **"Content Access" → "Content Portal"**, **"File Office Duty" → "Office Duty"**; duty submit button renamed to "Sign In"
+- Concurrent access limit raised from 10 → **35** slots (covers 30–40 concurrent deployment spec)
+- `BorrowReservation` — AM/PM time slots now auto-set same-day return date when no return date has been selected yet
+- Documents page (`/documents`) — pagination added (12 per page) matching the announcements page style; `getPageRange` threshold lowered to ≤3 so 5 pages renders as `1 2 … 5` instead of `1 2 3 4 5`
+- Organizations grid — changed from 4-column centered to **3-column left-aligned** on both the `/organizations` page and the homepage section; prevents lone orphan card at the bottom
+- Sub-organization indicator moved from floating card badge to **footer meta slot** on `OrganizationCard`; card height is now uniform regardless of sub-org status
+- Sub-org cards in the wide org modal are now **clickable** — open a stacked detail modal (z-index 1010) with name, description, and Facebook link; Escape key closes sub-org modal first, then outer modal
+- Hero section — `align-items` changed back to `center` with symmetric `var(--space-16)` padding so content is vertically centred with equal top and bottom space
+- `committees` route public SELECT — removed `created_at` (column does not exist on the table); fixes persistent 500 error in the overhaul branch
+
+### Fixed
+- `/api/v1/committees` returning 500 — caused by `created_at` being selected from a table that has no such column
+- `CLAUDE.md` schema entry for `committees` corrected: `id` is `uuid` (not INTEGER), `officers.committee` FK is `uuid`; full column list now documented
+
 ## [1.4.0] - 2026-05-26
 ### Added
 - Committee admin portal at `/committee/admin` — role-based panel access via PIN login at `/committee/login`

@@ -10,14 +10,14 @@
     var(--color-background-hero),       /* #7B8FD4 */
     var(--color-background-hero-end)    /* #B8C4E8 */
   );
-  min-height: 100vh;
+  min-height: calc(100svh - 70px);     /* fill below-nav area */
   width: 100%;
-  padding: var(--section-padding-y) var(--section-padding-x);
+  padding: var(--space-16) var(--section-padding-x);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
   display: flex;
-  align-items: center;
+  align-items: center;                 /* vertically center content in the viewport */
 }
 
 /* Remove old radial-glow and dot-pattern overlays */

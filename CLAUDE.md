@@ -89,15 +89,24 @@ events: id(uuid), name, description, date_happened, created_at,
 
 officers: id(uuid), full_name, position, type(text), avatar, socials,
           year_serving, student_number,
-          committee(INTEGER FK → committees.id),
+          committee(uuid FK → committees.id),
           is_committee_official(bool),
           status('active'|'archived' DEFAULT 'active'),
           term_year(text),
           deleted_at(timestamptz)
 
-committees: id(INTEGER — NOT uuid), name,
+committees: id(uuid), name,
             status('active'|'archived' DEFAULT 'active'),
-            deleted_at(timestamptz)
+            deleted_at(timestamptz),
+            is_archived(bool DEFAULT false),
+            archived_at(timestamptz),
+            cover_image_url(text),
+            cover_image_path(text),
+            chair_name(text),
+            vice_chair_name(text),
+            duty_pin(text),
+            description(text)
+            — NO created_at column
 
 profiles: owner_id(uuid PRIMARY KEY — NO id column), role
 

@@ -17,20 +17,20 @@ const NAV_GROUPS = [
   {
     label: "Resources",
     items: [
-      { label: "Documents", href: "/documents" },
-      { label: "Borrow Equipment", href: "/borrow" },
+      { label: "Documents",        href: "/documents" },
+      { label: "Borrow Equipment", href: "/borrow"    },
     ],
   },
   {
     label: "About",
     items: [
-      { label: "About", href: "/about" },
-      { label: "Officers", href: "/officers" },
+      { label: "About",         href: "/about"         },
+      { label: "Officers",      href: "/officers"      },
       { label: "Organizations", href: "/organizations" },
-      { label: "Contributors", href: "/contributors" },
+      { label: "Contributors",  href: "/contributors"  },
     ],
   },
-] as const;
+];
 
 export default function Navigation() {
   const navigate = useNavigate();

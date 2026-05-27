@@ -204,16 +204,16 @@
 }
 
 /* ── ORG CARD GRID ────────────────────────────────────────── */
-/* Flex so that a partial last row (e.g. 2 of 4) centers itself */
+/* 3 per row; left-aligned so orphan cards fall to the left naturally */
 .po-grid{
   display:flex;
   flex-wrap:wrap;
-  justify-content:center;
+  justify-content:flex-start;
   gap:18px;
 }
 .po-grid > *{
-  /* 4 per row: (100% - 3×18px) / 4 */
-  flex:0 0 calc(25% - 13.5px);
+  /* 3 per row: (100% - 2×18px) / 3 */
+  flex:0 0 calc(33.333% - 12px);
   min-width:0;
 }
 
@@ -325,8 +325,6 @@
 
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  /* 3 per row: (100% - 2×18px) / 3 */
-  .po-grid > *{ flex:0 0 calc(33.333% - 12px); }
   .po-nav-inner, .po-toolbar-inner, .po-main,
   .po-footer-inner, .po-footer-bottom{ padding-left:24px; padding-right:24px; }
 }

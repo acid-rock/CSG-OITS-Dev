@@ -19,6 +19,7 @@ interface CommitteeEntry {
   archived_at?: string;
   chair_name?: string | null;
   vice_chair_name?: string | null;
+  description?: string | null;
   cover_image_path?: string | null;
   cover_image_url?: string | null;
 }
@@ -262,7 +263,8 @@ function EditDetailsModal({ committee, allOfficers, onClose, onSaved, onRefresh 
   const [name,         setName]       = useState(committee.name);
   const [chairName,    setChairName]  = useState(committee.chair_name ?? '');
   const [viceChair,    setViceChair]  = useState(committee.vice_chair_name ?? '');
-  const [coverFile,    setCoverFile]  = useState<File | null>(null);
+  const [description,  setDescription] = useState(committee.description ?? '');
+const [coverFile,    setCoverFile]  = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(committee.cover_image_url ?? null);
   const [pendingAdd,   setPendingAdd]   = useState<string[]>([]);
   const [pendingRemove, setPendingRemove] = useState<string[]>([]);
@@ -304,9 +306,10 @@ function EditDetailsModal({ committee, allOfficers, onClose, onSaved, onRefresh 
       await axios.post(`${API_URL}/committees/edit`, {
         id: committee.id,
         name: name.trim(),
-        chair_name:      chairName.trim()  || null,
-        vice_chair_name: viceChair.trim()  || null,
-      }, { withCredentials: true });
+        chair_name:      chairName.trim()   || null,
+        vice_chair_name: viceChair.trim()   || null,
+        description:     description.trim() || null,
+}, { withCredentials: true });
 
       let newCoverUrl = committee.cover_image_url;
       if (coverFile) {
@@ -329,7 +332,7 @@ function EditDetailsModal({ committee, allOfficers, onClose, onSaved, onRefresh 
         }, { withCredentials: true });
       }
 
-      onSaved({ name: name.trim(), chair_name: chairName.trim()||null, vice_chair_name: viceChair.trim()||null, cover_image_url: newCoverUrl });
+      onSaved({ name: name.trim(), chair_name: chairName.trim()||null, vice_chair_name: viceChair.trim()||null, description: description.trim()||null, cover_image_url: newCoverUrl });
       if (pendingAdd.length || pendingRemove.length) onRefresh();
       onClose();
     } catch (err: unknown) {
@@ -381,6 +384,19 @@ function EditDetailsModal({ committee, allOfficers, onClose, onSaved, onRefresh 
           <OfficerField label="Chairperson" value={chairName} onChange={setChairName} suggestions={suggestions} />
           <OfficerField label="Vice Chairperson" value={viceChair} onChange={setViceChair} suggestions={suggestions} />
 
+          {/* Description */}
+          <label className="ad-field">
+            About this Committee
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Briefly describe the committee's purpose and responsibilities…"
+              rows={3}
+              maxLength={1000}
+              style={{ resize: 'vertical', minHeight: 72 }}
+            />
+          </label>
+
           {/* Members */}
           <MembersSection
             allOfficers={allOfficers}
@@ -416,6 +432,7 @@ function AddCommitteeModal({ onClose, onAdded, allOfficers, onRefresh }: AddComm
   const [name,         setName]       = useState('');
   const [chairName,    setChairName]  = useState('');
   const [viceChair,    setViceChair]  = useState('');
+  const [description,  setDescription] = useState('');
   const [coverFile,    setCoverFile]  = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [pendingAdd,   setPendingAdd]   = useState<string[]>([]);
@@ -455,11 +472,12 @@ function AddCommitteeModal({ onClose, onAdded, allOfficers, onRefresh }: AddComm
         newCoverUrl = cv.cover_image_url;
       }
 
-      if (chairName.trim() || viceChair.trim()) {
+      if (chairName.trim() || viceChair.trim() || description.trim()) {
         await axios.post(`${API_URL}/committees/edit`, {
           id: created.id, name: name.trim(),
-          chair_name: chairName.trim() || null,
-          vice_chair_name: viceChair.trim() || null,
+          chair_name:      chairName.trim()   || null,
+          vice_chair_name: viceChair.trim()   || null,
+          description:     description.trim() || null,
         }, { withCredentials: true });
       }
 
@@ -470,7 +488,7 @@ function AddCommitteeModal({ onClose, onAdded, allOfficers, onRefresh }: AddComm
         onRefresh();
       }
 
-      onAdded({ ...created, cover_image_url: newCoverUrl, chair_name: chairName.trim()||null, vice_chair_name: viceChair.trim()||null });
+      onAdded({ ...created, cover_image_url: newCoverUrl, chair_name: chairName.trim()||null, vice_chair_name: viceChair.trim()||null, description: description.trim()||null });
       onClose();
     } catch (err: unknown) { setError(apiErr(err, 'Failed to add.')); }
     finally { setAdding(false); }
@@ -519,6 +537,19 @@ function AddCommitteeModal({ onClose, onAdded, allOfficers, onRefresh }: AddComm
 
           <OfficerField label="Chairperson" value={chairName} onChange={setChairName} suggestions={allNames} />
           <OfficerField label="Vice Chairperson" value={viceChair} onChange={setViceChair} suggestions={allNames} />
+
+          {/* Description */}
+          <label className="ad-field">
+            About this Committee
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Briefly describe the committee's purpose and responsibilities…"
+              rows={3}
+              maxLength={1000}
+              style={{ resize: 'vertical', minHeight: 72 }}
+            />
+          </label>
 
           {/* Members for new committee */}
           <div className="ad-field">

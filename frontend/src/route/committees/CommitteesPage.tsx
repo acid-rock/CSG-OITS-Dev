@@ -74,6 +74,9 @@ export default function CommitteesPage() {
               <Photo src={c.cover_image_url} initials={chairInitials} />
               <div className="cc-card-body">
                 <h3 className="cc-card-title">{c.name}</h3>
+                {c.description && (
+                  <p className="cc-card-desc">{c.description}</p>
+                )}
                 <div className="cc-chair">
                   <Avatar initials={chairInitials} size={28} />
                   <div className="cc-chair-text">

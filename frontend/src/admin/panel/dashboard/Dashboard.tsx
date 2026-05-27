@@ -233,25 +233,35 @@ function Sparkline({ data, width = 80, height = 28 }: { data: number[]; width?: 
 }
 
 /* ── Multi-line views chart ──────────────────────────────── */
-const VIEW_LINES = [
-  { key: 'document',     color: '#4f6fd1', label: 'Documents'     },
-  { key: 'announcement', color: '#10b981', label: 'Announcements' },
-  { key: 'event',        color: '#f59e0b', label: 'Events'        },
-] as const;
+type LineKey = 'total' | 'document' | 'announcement' | 'event';
+
+const VIEW_LINES: { key: LineKey; color: string; label: string; dashed?: boolean }[] = [
+  { key: 'total',        color: '#374151', label: 'Total Views',   dashed: true  },
+  { key: 'document',     color: '#4f6fd1', label: 'Documents'                    },
+  { key: 'announcement', color: '#10b981', label: 'Announcements'                },
+  { key: 'event',        color: '#f59e0b', label: 'Events'                       },
+];
 
 interface ViewStats {
   dates: string[];
   document: number[];
   announcement: number[];
   event: number[];
+  total?: number[];
 }
 
-function ViewsLineChart({ stats, height = 170 }: { stats: ViewStats; height?: number }) {
-  const W = 340, padL = 28, padR = 8, padT = 12, padB = 26;
+function ViewsLineChart({ stats, height = 220 }: { stats: ViewStats; height?: number }) {
+  const W = 340, padL = 32, padR = 8, padT = 12, padB = 26;
   const innerW = W - padL - padR;
   const innerH = height - padT - padB;
 
-  const allVals = [...stats.document, ...stats.announcement, ...stats.event];
+  // Only include lines that have data in this stats object
+  const activeLines = VIEW_LINES.filter(l => {
+    const vals = stats[l.key];
+    return Array.isArray(vals) && vals.length > 0;
+  });
+
+  const allVals = activeLines.flatMap(l => stats[l.key] as number[]);
   const max     = Math.max(...allVals, 1);
   const n       = stats.dates.length;
 
@@ -261,20 +271,22 @@ function ViewsLineChart({ stats, height = 170 }: { stats: ViewStats; height?: nu
   const pointStr = (vals: number[]) =>
     vals.map((v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
 
-  // Show a label every ~5 days to avoid crowding
   const labelStep = n <= 7 ? 1 : Math.ceil(n / 6);
-
   const yMarks = [0.25, 0.5, 0.75, 1.0];
-
   const isEmpty = allVals.every((v) => v === 0);
 
   return (
     <div>
       {/* Legend */}
-      <div style={{ display:'flex', gap:12, marginBottom:8, flexWrap:'wrap' }}>
-        {VIEW_LINES.map(l => (
-          <span key={l.key} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-text-muted)', fontWeight:600 }}>
-            <span style={{ width:12, height:3, borderRadius:2, background:l.color, display:'inline-block' }} />
+      <div style={{ display:'flex', gap:10, marginBottom:10, flexWrap:'wrap' }}>
+        {activeLines.map(l => (
+          <span key={l.key} style={{ display:'flex', alignItems:'center', gap:4, fontSize:10.5, color:'var(--color-text-muted)', fontWeight:600 }}>
+            <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true">
+              {l.dashed
+                ? <line x1="0" y1="4" x2="16" y2="4" stroke={l.color} strokeWidth="2" strokeDasharray="3 2" strokeLinecap="round" />
+                : <line x1="0" y1="4" x2="16" y2="4" stroke={l.color} strokeWidth="2.5" strokeLinecap="round" />
+              }
+            </svg>
             {l.label}
           </span>
         ))}
@@ -304,13 +316,14 @@ function ViewsLineChart({ stats, height = 170 }: { stats: ViewStats; height?: nu
           })}
 
           {/* Lines */}
-          {VIEW_LINES.map(l => (
+          {activeLines.map(l => (
             <polyline
               key={l.key}
-              points={pointStr(stats[l.key])}
+              points={pointStr(stats[l.key] as number[])}
               fill="none"
               stroke={l.color}
-              strokeWidth="2"
+              strokeWidth={l.key === 'total' ? 1.5 : 2}
+              strokeDasharray={l.dashed ? '4 3' : undefined}
               strokeLinecap="round"
               strokeLinejoin="round"
               opacity="0.9"
@@ -318,10 +331,11 @@ function ViewsLineChart({ stats, height = 170 }: { stats: ViewStats; height?: nu
           ))}
 
           {/* End-point dots */}
-          {VIEW_LINES.map(l => {
-            const last = stats[l.key][n - 1] ?? 0;
+          {activeLines.map(l => {
+            const vals = stats[l.key] as number[];
+            const last = vals[n - 1] ?? 0;
             return (
-              <circle key={l.key + '-dot'} cx={toX(n - 1)} cy={toY(last)} r="3.5"
+              <circle key={l.key + '-dot'} cx={toX(n - 1)} cy={toY(last)} r="3"
                 fill={l.color} />
             );
           })}
@@ -356,10 +370,8 @@ const Dashboard = () => {
   const [logsError, setLogsError] = useState(false);
 
   const [weeklyUploads, setWeeklyUploads] = useState<{ label: string; count: number }[]>([]);
-  const [monthlyUploads, setMonthlyUploads] = useState<{ label: string; count: number }[]>([]);
   const [weeklyDataFallback, setWeeklyDataFallback] = useState(false);
   const [documentsThisWeek, setDocumentsThisWeek] = useState<number | null>(null);
-  const [uploadView, setUploadView] = useState<'weekly' | 'monthly'>('weekly');
 
   const [storageData, setStorageData] = useState<StorageBucket[]>([]);
   // All pending + approved requests used by the calendar widget
@@ -371,6 +383,8 @@ const Dashboard = () => {
   const [viewStats7, setViewStats7]   = useState<ViewStats | null>(null);
   const [viewStats30, setViewStats30] = useState<ViewStats | null>(null);
   const [viewRange, setViewRange]     = useState<7 | 30>(7);
+  /* Content Views card tab: 'views' = line chart, 'documents' = uploads bar chart */
+  const [contentTab, setContentTab]   = useState<'views' | 'documents'>('views');
   // Read cached admin name (set by Sidebar) — no extra API call needed
   const [adminFirstName] = useState<string>(() => {
     const cached = localStorage.getItem('csg_admin_name') ?? 'Admin';
@@ -442,31 +456,6 @@ const Dashboard = () => {
     }
   }, []);
 
-  const fetchMonthlyUploads = useCallback(async () => {
-    try {
-      const { data } = await axios.get<{ createdAt: string }[]>(`${API_URL}/documents/`, {
-        withCredentials: true,
-      });
-      const now = new Date();
-      const months: { label: string; count: number; year: number; month: number }[] = [];
-      for (let i = 5; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        months.push({
-          label: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
-          count: 0,
-          year: d.getFullYear(),
-          month: d.getMonth(),
-        });
-      }
-      data.forEach((doc) => {
-        const created = new Date(doc.createdAt);
-        const match = months.find(m => m.year === created.getFullYear() && m.month === created.getMonth());
-        if (match) match.count++;
-      });
-      setMonthlyUploads(months.map(m => ({ label: m.label, count: m.count })));
-    } catch { /* silent */ }
-  }, []);
-
   const fetchStorage = useCallback(async () => {
     try {
       const { data } = await axios.get<StorageBucket[] | { error: string }>(
@@ -513,11 +502,10 @@ const Dashboard = () => {
     fetchSummary();
     fetchRecentLogs();
     fetchWeeklyUploads();
-    fetchMonthlyUploads();
     fetchStorage();
     fetchPendingBorrows();
     fetchViewStats();
-  }, [fetchSummary, fetchRecentLogs, fetchWeeklyUploads, fetchMonthlyUploads, fetchStorage, fetchPendingBorrows, fetchViewStats]);
+  }, [fetchSummary, fetchRecentLogs, fetchWeeklyUploads, fetchStorage, fetchPendingBorrows, fetchViewStats]);
 
   /* Computed values */
   const totalUsedMB = storageData.reduce((s, b) => s + b.size, 0) / (1024 * 1024);
@@ -603,36 +591,71 @@ const Dashboard = () => {
       <section className="dh-workspace">
         {/* Left column */}
         <div className="dh-ws-main">
-          {/* Document Uploads card */}
-          <div className="dh-card">
-            <div className="dh-card-head">
-              <div>
-                <span className="dh-card-eyebrow">Last 8 weeks</span>
-                <h3>Document Uploads</h3>
+          {/* Content Views / Document Uploads card */}
+          {(() => {
+            const rawStats = viewRange === 7 ? viewStats7 : viewStats30;
+            return (
+              <div className="dh-card dh-views">
+                <div className="dh-card-head">
+                  <div>
+                    <span className="dh-card-eyebrow">
+                      {contentTab === 'views'
+                        ? (viewRange === 7 ? 'Last 7 days' : 'Last 30 days')
+                        : 'Last 8 weeks'}
+                    </span>
+                    <h3>{contentTab === 'views' ? 'Content Views' : 'Document Uploads'}</h3>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    {/* Content tab switcher */}
+                    <div className="dh-tabs">
+                      <button
+                        className={`dh-tab${contentTab === 'views' ? ' is-active' : ''}`}
+                        onClick={() => setContentTab('views')}
+                      >Views</button>
+                      <button
+                        className={`dh-tab${contentTab === 'documents' ? ' is-active' : ''}`}
+                        onClick={() => setContentTab('documents')}
+                      >Documents</button>
+                    </div>
+                    {/* Time range selector — only relevant for Views */}
+                    {contentTab === 'views' && (
+                      <div className="dh-tabs">
+                        <button
+                          className={`dh-tab${viewRange === 7 ? ' is-active' : ''}`}
+                          onClick={() => setViewRange(7)}
+                        >7d</button>
+                        <button
+                          className={`dh-tab${viewRange === 30 ? ' is-active' : ''}`}
+                          onClick={() => setViewRange(30)}
+                        >30d</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {contentTab === 'views' ? (
+                  rawStats ? (
+                    <ViewsLineChart stats={rawStats} height={220} />
+                  ) : (
+                    <div style={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <p style={{ fontSize: 12, color: 'var(--color-text-hint)', margin: 0 }}>Loading…</p>
+                    </div>
+                  )
+                ) : (
+                  weeklyDataFallback ? (
+                    <div style={{ height: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      <IUpload width="20" height="20" style={{ opacity: 0.2 }} />
+                      <p style={{ fontSize: 12, color: 'var(--color-text-hint)', margin: 0, textAlign: 'center', maxWidth: 200 }}>
+                        Could not load upload data.
+                      </p>
+                    </div>
+                  ) : (
+                    <BarChart data={weeklyUploads} height={220} />
+                  )
+                )}
               </div>
-              <div className="dh-tabs">
-                <button
-                  className={`dh-tab${uploadView === 'weekly' ? ' is-active' : ''}`}
-                  onClick={() => setUploadView('weekly')}
-                >Weekly</button>
-                <button
-                  className={`dh-tab${uploadView === 'monthly' ? ' is-active' : ''}`}
-                  onClick={() => setUploadView('monthly')}
-                >Monthly</button>
-              </div>
-            </div>
-            {loading ? (
-              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Loading…</p>
-            ) : weeklyDataFallback ? (
-              <p style={{ fontSize: '12.5px', color: 'var(--color-warning-text)', textAlign: 'center', padding: '1rem 0' }}>
-                Could not load upload data.
-              </p>
-            ) : uploadView === 'monthly' ? (
-              <BarChart data={monthlyUploads.length ? monthlyUploads : [{ label: '-', count: 0 }]} height={260} />
-            ) : (
-              <BarChart data={weeklyUploads.length ? weeklyUploads : [{ label: '-', count: 0 }]} height={260} />
-            )}
-          </div>
+            );
+          })()}
 
           {/* Recent Activity card */}
           <div className="dh-card">
@@ -828,37 +851,6 @@ const Dashboard = () => {
             );
           })()}
 
-          {/* Content Views line chart */}
-          <div className="dh-card dh-views">
-            <div className="dh-card-head">
-              <div>
-                <span className="dh-card-eyebrow">
-                  {viewRange === 7 ? 'Last 7 days' : 'Last 30 days'}
-                </span>
-                <h3>Content Views</h3>
-              </div>
-              <div className="dh-tabs">
-                <button
-                  className={`dh-tab${viewRange === 7 ? ' is-active' : ''}`}
-                  onClick={() => setViewRange(7)}
-                >7d</button>
-                <button
-                  className={`dh-tab${viewRange === 30 ? ' is-active' : ''}`}
-                  onClick={() => setViewRange(30)}
-                >30d</button>
-              </div>
-            </div>
-            {(viewRange === 7 ? viewStats7 : viewStats30) ? (
-              <ViewsLineChart
-                stats={(viewRange === 7 ? viewStats7 : viewStats30)!}
-                height={170}
-              />
-            ) : (
-              <div style={{ height: 170, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <p style={{ fontSize: 12, color: 'var(--color-text-hint)', margin: 0 }}>Loading…</p>
-              </div>
-            )}
-          </div>
         </aside>
       </section>
     </main>

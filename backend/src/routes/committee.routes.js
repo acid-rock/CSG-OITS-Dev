@@ -73,9 +73,10 @@ router.get(
     const cached = getCached(cacheKey);
     if (cached) return res.status(200).json(cached);
 
+    // Explicitly exclude duty_pin from public responses
     const { data, error } = await anonSupabase
       .from("committees")
-      .select("*")
+      .select("id, name, status, chair_name, vice_chair_name, description, cover_image_path, deleted_at")
       .eq("status", status)
       .is("deleted_at", null)  // exclude bin items
       .order("id", { ascending: true });
@@ -114,14 +115,15 @@ router.post(
   requireAuth,
   validate(editCommitteeSchema),
   asyncHandler(async (req, res) => {
-    const { id, name, chair_name, vice_chair_name } = req.body;
+    const { id, name, chair_name, vice_chair_name, description } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
 
     const updatePayload = { name: name.trim() };
-    // Only include chair/vice fields if they were explicitly sent
+    // Only include optional fields if they were explicitly sent
     if (chair_name !== undefined)      updatePayload.chair_name      = chair_name?.trim()      || null;
     if (vice_chair_name !== undefined) updatePayload.vice_chair_name = vice_chair_name?.trim() || null;
+    if (description !== undefined)     updatePayload.description     = description?.trim()     || null;
 
     const { error } = await supabase
       .from("committees")

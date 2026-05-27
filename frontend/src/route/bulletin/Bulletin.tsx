@@ -10,6 +10,37 @@ import "./bulletin.css";
 
 const PAGE_SIZE = 9;
 
+/**
+ * Returns the page numbers (and '...' ellipsis markers) to render.
+ * Shows all pages when total ≤ 7; otherwise always shows first, last,
+ * and `delta` neighbours around the current page.
+ *
+ * Examples (total=10):
+ *   current=1  → [1, 2, '...', 10]
+ *   current=5  → [1, '...', 4, 5, 6, '...', 10]
+ *   current=10 → [1, '...', 9, 10]
+ */
+function getPageRange(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+  const delta = 1;
+  const core = new Set<number>([1, total]);
+  for (let i = current - delta; i <= current + delta; i++) {
+    if (i >= 1 && i <= total) core.add(i);
+  }
+
+  const sorted = [...core].sort((a, b) => a - b);
+  const result: (number | '...')[] = [];
+  let prev = 0;
+  for (const n of sorted) {
+    if (n - prev === 2) result.push(prev + 1); // single skipped page — show it directly
+    else if (n - prev > 2) result.push('...');  // larger gap — ellipsis
+    result.push(n);
+    prev = n;
+  }
+  return result;
+}
+
 function getTagClass(type?: string): string {
   if (!type) return "tag-notice";
   const t = type.toLowerCase();
@@ -245,15 +276,17 @@ const Bulletin = () => {
             </button>
 
             <div className="bl-page-pills">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  className={`bl-page-pill${n === page ? ' bl-page-pill-active' : ''}`}
-                  onClick={() => { setPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                >
-                  {n}
-                </button>
-              ))}
+              {getPageRange(page, totalPages).map((n, i) =>
+                n === '...'
+                  ? <span key={`ellipsis-${i}`} className="bl-page-ellipsis">…</span>
+                  : <button
+                      key={n}
+                      className={`bl-page-pill${n === page ? ' bl-page-pill-active' : ''}`}
+                      onClick={() => { setPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    >
+                      {n}
+                    </button>
+              )}
             </div>
 
             <button
