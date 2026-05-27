@@ -17,6 +17,7 @@ import membershipRoutes from "./routes/committee-memberships.routes.js";
 import viewsRoutes from "./routes/views.routes.js";
 import committeePinsRoutes from "./routes/committee-pins.routes.js";
 import accessRoutes from "./routes/access.routes.js";
+import logbookRoutes from "./routes/logbook.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -124,6 +125,7 @@ app.use("/api/v1/auditlog",      adminLimiter,  auditlogRoutes);
 app.use("/api/v1/borrowing",     adminLimiter,  borrowingRoutes);
 app.use("/api/v1/committee-pins", adminLimiter, committeePinsRoutes);
 app.use("/api/v1/access",        publicLimiter, accessRoutes);
+app.use("/api/v1/logbook",       adminLimiter,  logbookRoutes);
 
 // Health route
 app.get("/health", (req, res) => {

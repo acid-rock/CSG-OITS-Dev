@@ -20,7 +20,7 @@ const CONTRIBUTORS = [
   },
   {
     name: 'John Harold R. Magma',
-    role: 'GAD Representative / Project Coordinator',
+    role: 'Quality Assurance Officer',
     description: 'Coordinates overall project delivery and serves as the primary liaison between the CSG and the development team.',
     initials: 'JM',
     github:    'https://github.com/Hexizen',

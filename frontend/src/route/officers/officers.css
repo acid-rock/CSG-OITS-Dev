@@ -443,6 +443,22 @@
   box-shadow: var(--shadow-modal, 0 10px 40px rgba(0, 0, 0, 0.2));
 }
 
+/* Committee cover image — full-width at top of modal, rounds top corners to match modal */
+.op-cm-cover {
+  margin: calc(-1 * var(--space-8)) calc(-1 * var(--space-8)) var(--space-5);
+  border-radius: var(--radius-xl, 12px) var(--radius-xl, 12px) 0 0;
+  overflow: hidden;
+  height: 160px;
+  background: var(--color-surface-deep, #eef1fb);
+}
+
+.op-cm-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .op-committee-modal-close {
   position: absolute;
   top: var(--space-4, 1rem);

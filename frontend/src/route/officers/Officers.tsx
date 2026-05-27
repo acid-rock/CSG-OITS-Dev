@@ -413,12 +413,24 @@ const Officers = () => {
             onClick={() => setSelectedCommittee(null)}
             aria-label="Close"
           >×</button>
+
+          {/* Committee cover image */}
+          {selectedCommittee.cover_image_url && (
+            <div className="op-cm-cover">
+              <img
+                src={selectedCommittee.cover_image_url}
+                alt={selectedCommittee.name}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              />
+            </div>
+          )}
+
           <h2 className="op-committee-modal-title">{selectedCommittee.name}</h2>
           {selectedCommittee.description && (
             <p className="op-cm-desc">{selectedCommittee.description}</p>
           )}
 
-          {/* Officials first */}
+          {/* Members — ordered: Chairperson → Vice-Chairperson → Others → Plain members */}
           {(() => {
             const committeeId = selectedCommittee.id;
 
@@ -429,15 +441,9 @@ const Officers = () => {
                 : o.committee === committeeId,
             );
 
-            const isOfficial = (o: Officer) =>
-              o.committee_memberships && o.committee_memberships.length > 0
-                ? o.committee_memberships.some((m: CommitteeMembership) => m.committee_id === committeeId && m.is_official)
-                : o.is_committee_official;
-
             // Role title resolution — priority order:
-            // 1. chair_name / vice_chair_name match (set via Committees admin panel — authoritative)
-            //    Checked FIRST so it always overrides any junction table seed data.
-            // 2. Junction table role_title (custom roles added via OfficerForm memberships)
+            // 1. chair_name / vice_chair_name match (authoritative, set in Committees admin panel)
+            // 2. Junction table role_title (custom roles via OfficerForm memberships)
             // 3. Fallback: "Committee Official" or "Member"
             const roleTitle = (o: Officer) => {
               if (selectedCommittee.chair_name && o.full_name === selectedCommittee.chair_name) {
@@ -453,41 +459,25 @@ const Officers = () => {
               return o.is_committee_official ? "Committee Official" : "Member";
             };
 
-            const officials = members.filter(isOfficial);
-            const nonOfficials = members.filter((o) => !isOfficial(o));
+            // Sort: Chairperson first, Vice-Chairperson second, other officials/custom roles
+            // third, plain "Member" entries last.
+            const rankRole = (role: string) => {
+              if (role === "Chairperson")      return 0;
+              if (role === "Vice-Chairperson") return 1;
+              if (role === "Member")           return 3;
+              return 2; // custom roles / "Committee Official"
+            };
 
-            // Split non-officials: officers with a custom role (anything other than
-            // plain "Member") come above those with no special role.
-            // Hierarchy: Chairperson → Vice-Chairperson → (Other roles) → Member
-            const withCustomRole = nonOfficials.filter((o) => roleTitle(o) !== "Member");
-            const plainMembers   = nonOfficials.filter((o) => roleTitle(o) === "Member");
+            const sorted = [...members].sort((a, b) =>
+              rankRole(roleTitle(a)) - rankRole(roleTitle(b))
+            );
 
             return (
               <>
-                {officials.length > 0 && (
+                {sorted.length > 0 && (
                   <div className="op-cm-section">
-                    <p className="op-cm-section-label">Officials</p>
-                    {officials.map((o) => (
-                      <div key={o.id} className="op-cm-row">
-                        <img
-                          src={o.avatar || "/CSG_logo.svg"}
-                          alt={o.full_name}
-                          className="op-cm-avatar"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/CSG_logo.svg"; }}
-                        />
-                        <div>
-                          <p className="op-cm-name">{o.full_name}</p>
-                          <p className="op-cm-pos">{roleTitle(o)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {(withCustomRole.length > 0 || plainMembers.length > 0) && (
-                  <div className="op-cm-section">
-                    <p className="op-cm-section-label">Members</p>
-                    {/* Custom-role officers appear first, plain "Member" entries at the bottom */}
-                    {[...withCustomRole, ...plainMembers].map((o) => (
+                    <p className="op-cm-section-label">Committee Members</p>
+                    {sorted.map((o) => (
                       <div key={o.id} className="op-cm-row">
                         <img
                           src={o.avatar || "/CSG_logo.svg"}

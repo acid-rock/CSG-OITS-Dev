@@ -1,3 +1,50 @@
+/* ── BorrowReservation + BorrowCheckout shared styles ────────────────────── */
+
+/* Multi-item equipment table (BorrowCheckout Section 3) */
+.bc-equip-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.bc-equip-table th {
+  text-align: left;
+  padding: 9px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.bc-equip-table td {
+  padding: 9px 14px;
+  border: 1px solid var(--color-border-soft);
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+.bc-equip-table tbody tr:nth-child(even) td {
+  background: var(--color-surface);
+}
+.bc-qty-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input, 8px);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  color: var(--color-text-primary);
+  background: #fff;
+}
+.bc-qty-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(79, 111, 209, 0.10);
+}
+
 /* ── BorrowReservation page ───────────────────────────────────────────────── */
 
 .br-page {
@@ -645,3 +692,4 @@
     max-width: 100%;
   }
 }
+

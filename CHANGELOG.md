@@ -5,6 +5,59 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-05-28
+
+### Added
+- **Digital Office Logbook — batch Excel export** — the Export button in the admin Office Duty panel now opens a date-range modal; the selected range is fetched in a single API call and exported as a formatted `.xlsx` file; columns: No., Officer Name, Position, Date, Check-in, Check-out, Duration, Status, Location Verified; multi-day exports include a per-day group header row and a **Daily Summary** table (sessions, checked-out count, auto-closed count, total hours per day)
+- **Export modal — custom date-range calendar picker** — two-month side-by-side calendar; only dates that have recorded logbook sessions are selectable (shown as solid chips); all other dates are grayed out and cannot be clicked; live hover preview draws the range as the user mouses over candidate end-dates; click once to set the start, click again to confirm the end
+- `GET /api/v1/logbook/admin/dates` — returns `{ dates: string[] }` of all distinct session dates; used by the calendar picker to constrain which days are selectable
+- `GET /api/v1/logbook/admin/earliest` — returns `{ earliest: string | null }` of the very first session date ever recorded
+- `?from=YYYY-MM-DD&to=YYYY-MM-DD` query support on `GET /api/v1/logbook/admin` — enables batch fetching across an arbitrary date range for the export flow
+- **Officers — Excel export** — "Export CSV" in the Officers admin panel replaced by "Export Excel"; generates a formatted `.xlsx` with a blue title block, bold column headers, and alternating row shading; file is named `officers-{tab}-{date}.xlsx`
+
+### Changed
+- **Changelog viewer — environment-aware `[Unreleased]` section** — in production the `[Unreleased]` heading and its contents are hidden so the latest released version is the first thing visible; in development (localhost) the section is shown with a `DEV` badge so in-progress notes remain visible to the team
+- **Admin Office Duty — Export button** — now opens a modal instead of immediately downloading a single-day CSV; exports Excel (`.xlsx`) instead of CSV
+- **Officers panel — Export CSV → Export Excel** — button label and file format updated
+
+### Fixed
+- Officer name combobox on `/logbook?action=checkout` showed "No matches found" for all input — `Promise.all` was silently swallowing the entire fetch when the committees endpoint failed; changed to `Promise.allSettled` so officers always load even if the committees request errors
+- Organizations wide modal on mobile (≤700px) — the full parent `OrganizationCard` was too tall and pushed all sub-organization cards below the fold; replaced with a compact parent header row (44 px logo + org name + type tag + Facebook icon) on mobile; the full card is preserved on desktop; sub-org grid remains 2-column (≥380 px) and collapses to 1-column below 380 px
+
+## [1.6.0] - 2026-05-28
+### Added
+- **Digital Office Logbook** — individual officers record physical presence in the CSG office in real time
+  - TOTP-style rotating QR code (HMAC-SHA256, refreshes every 5 minutes) displayed on the office TV screen
+  - `/logbook` — mobile check-in/out page (standalone, no nav header); reads `?token=` from URL, requests geolocation, validates student number identity
+  - `/logbook/display` — kiosk display page (standalone); shows live QR + roster of officers currently on duty; now scales to any viewport via JS `transform: scale()` — no longer locked to 1920×1080
+  - IP-gated QR token endpoint — `GET /api/v1/logbook/qr-token` returns 403 when request comes from outside the configured campus CIDR
+  - Geofence validation — server rejects check-ins beyond a configurable radius (meters) from the saved office coordinates; gracefully disabled when `logbook_lat`/`logbook_lng` are not set
+  - Student number identity verification — checked server-side only; `student_number` is never sent back to the client
+  - Auto-checkout safeguard — `GET /api/v1/logbook/today` auto-closes any sessions still open from a previous calendar day (`auto_checkout = true`)
+  - `/api/v1/logbook` route with 8 endpoints: `GET /qr-token`, `GET /today`, `GET /status/:officer_id`, `POST /checkin`, `POST /checkout`, `GET /admin`, `POST /admin/checkout`, `DELETE /admin/delete`
+  - `logbook_sessions` table with indexes (`idx_logbook_officer`, `idx_logbook_date`, `idx_logbook_open`)
+  - Settings keys `logbook_lat`, `logbook_lng`, `logbook_radius_m` — writable by admins in the Settings panel (Office location section)
+- **Admin "Office Duty" panel** — browse logbook sessions by date; shows currently on-duty officers at top; force-checkout and hard-delete per session; registered in sidebar under Operations
+- **Office Hours page — functional Google Maps** — `/office` now embeds a real Google Maps iframe pinned to the admin-configured `logbook_lat`/`logbook_lng` coordinates; falls back to campus address search when no coords are set; "Open in Google Maps ↗" link added below map
+
+### Changed
+- **Settings panel redesigned** — two-pane layout with nav rail (228 px) and content pane; CSS prefix `.st-*`; nav groups: Account, Modules, System; replaces the previous flat card-stack layout
+- **Committee PINs** — inputs now default to `type="password"` (masked); per-field eye icon toggles visibility; copy button retained alongside the toggle; pins are write-only from the admin perspective
+- **Password change form** — redesigned to match new `.st-*` settings style: "Current password" row (label + desc left, field right), "New password" row (label + desc left, two side-by-side New + Confirm fields right), save bar at bottom ("You'll stay signed in after saving." + Cancel + Change password); replaces the old inline-styled `PasswordForm` component
+- **About section** — version updated to v1.6.0, last update date updated to May 28, 2026
+- **Borrow equipment** — catalog uses VariantHybrid design (`.eq-*` CSS prefix); checkout uses BorrowCheckout design (`.chk-*` CSS prefix); 7-day availability strip per item with date-aware "X available / Fully Booked" badges
+- **Office Hours page** — now derives live attendance data entirely from open logbook sessions (replaces the manual committee duty filing system); auto-polls every 60 s; office address corrected to "Old Building, 2nd Floor"
+- **Organizations modal** — wide parent+sub-org modal now has `max-height: calc(100dvh - 40px)` and `overflow-y: auto`; overlay uses `align-items: flex-start` with vertical scroll so the modal is fully accessible on narrow viewports
+
+### Removed
+- **Committee office duty manual filing system** — removed `office_duties` table, `GET/POST /api/v1/office-duties/` endpoints, `CommitteeOfficeDuty` portal panel, `AdminOfficeDuty` admin panel, and all related committee duty PIN verification logic; replaced by the Digital Office Logbook
+- **`student_number` from public officer API** — `GET /api/v1/officers/` no longer returns `student_number`; the field is used only server-side in `logbook.routes.js` for identity verification and never sent to the client
+- **`PasswordForm` component** — password change UI inlined directly into Settings.tsx; standalone `PasswordForm.tsx` is no longer imported
+
+### Fixed
+- Organizations wide modal extends beyond viewport on screens narrower than 860 px — resolved by adding scroll and max-height constraints
+- Logbook display page (`/logbook/display`) was fixed at 1920×1080 and cut off on smaller browser windows — resolved with JS viewport scaling via `transform: scale()`
+
 ## [1.5.0] - 2026-05-27
 ### Added
 - **Committee Office Duty system** — committees can file which dates they will be in the CSG office

@@ -1,15 +1,67 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const API = import.meta.env.VITE_API_URL as string;
 
 /**
- * Protects /committee/admin — checks sessionStorage for a valid committee session.
- * The real security boundary is the backend requireAuth on every admin mutation;
- * this is purely a UX gate so the committee login page is shown when no session exists.
+ * Protects /committee/admin.
+ *
+ * Checks sessionStorage for a valid committee session AND validates the
+ * stored nonce against the server. A new sign-in on any browser/device
+ * generates a fresh nonce, invalidating all prior sessions for that role.
  */
 const CommitteeProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
-  const isAuthenticated = sessionStorage.getItem('committee_session') === '1';
 
-  if (!isAuthenticated) {
+  const session = sessionStorage.getItem('committee_session') === '1';
+  const role    = sessionStorage.getItem('committee_role');
+  const nonce   = sessionStorage.getItem('committee_nonce');
+
+  // null = still checking, true = valid, false = invalid
+  const [valid, setValid] = useState<boolean | null>(session ? null : false);
+
+  useEffect(() => {
+    if (!session || !role || !nonce) {
+      setValid(false);
+      return;
+    }
+
+    axios
+      .post(`${API}/committee-pins/validate-session`, { role, nonce })
+      .then(() => setValid(true))
+      .catch(() => {
+        // Nonce mismatch — another device has signed in; clear local session
+        sessionStorage.removeItem('committee_session');
+        sessionStorage.removeItem('committee_role');
+        sessionStorage.removeItem('committee_label');
+        sessionStorage.removeItem('committee_nonce');
+        setValid(false);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (valid === null) {
+    // Brief loading state while the nonce is being validated
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#f4f6fd',
+          fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+          color: '#6b7280',
+          fontSize: '0.9rem',
+        }}
+      >
+        Verifying session…
+      </div>
+    );
+  }
+
+  if (!valid) {
     return (
       <div
         style={{

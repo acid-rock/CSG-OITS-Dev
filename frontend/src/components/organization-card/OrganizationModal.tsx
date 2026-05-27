@@ -30,6 +30,12 @@ function getInitials(name: string): string {
   if (words.length === 2) return (words[0][0] + words[1][0]).toUpperCase();
   return (words[0][0] + words[1][0] + words[2][0]).toUpperCase();
 }
+const TYPE_CONFIG: Record<string, { tone: string; label: string }> = {
+  academic:       { tone: 'primary', label: 'Academic' },
+  'non-academic': { tone: 'warning', label: 'Non-academic' },
+  spu:            { tone: 'success', label: 'Publication' },
+  rotc:           { tone: 'rotc',    label: 'ROTC Unit' },
+};
 const FbIcon = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
     <path d="M22 12a10 10 0 1 0-11.56 9.88V14.9H7.9V12h2.54V9.8c0-2.51 1.49-3.9
@@ -66,11 +72,48 @@ export default function OrganizationModal({
   if (subOrgs.length > 0) {
     const [sa, sb] = selectedSub ? getPalette(selectedSub.name) : ['', ''];
     const subInitials = selectedSub ? getInitials(selectedSub.name) : '';
+    const [pa, pb] = getPalette(organization.name);
+    const parentInitials = getInitials(organization.name);
+    const parentTypeConf = organization.org_type ? TYPE_CONFIG[organization.org_type] : null;
 
     return (
       <div className="org-modal-overlay" onClick={onClose}>
         <div className="org-modal org-modal--wide" onClick={e => e.stopPropagation()}>
           <button className="org-modal-close" onClick={onClose} aria-label="Close">×</button>
+
+          {/* Mobile-only compact parent header — replaces the full card on small screens */}
+          <div className="org-modal-compact-parent">
+            <div
+              className="org-modal-compact-logo"
+              style={{ background: `linear-gradient(135deg, ${pa}, ${pb})` }}
+            >
+              {organization.logo_url
+                ? <img src={organization.logo_url} alt={organization.name} className="org-modal-img" />
+                : <span className="org-initials org-initials--sm">{parentInitials}</span>
+              }
+            </div>
+            <div className="org-modal-compact-info">
+              <span className="org-modal-compact-name">{organization.name}</span>
+              {parentTypeConf && (
+                <span className={`org-tag tone-${parentTypeConf.tone}`}>{parentTypeConf.label}</span>
+              )}
+            </div>
+            {organization.facebook_link && (
+              <a
+                href={organization.facebook_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="org-modal-compact-fb"
+                aria-label={`Visit ${organization.name} on Facebook`}
+                onClick={e => e.stopPropagation()}
+              >
+                <FbIcon />
+              </a>
+            )}
+          </div>
+
+          {/* Mobile-only sub-org section label */}
+          <p className="org-modal-sub-head">Sub-organizations</p>
 
           {/* Left — parent org card (same size as grid cards) */}
           <div className="org-modal-parent">

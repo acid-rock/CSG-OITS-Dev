@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
+import { type AvailabilityEntry, computeDateStatus } from "./BorrowReservation";
 import "./borrow.css";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
+const CART_STORAGE_KEY = "csg-borrow-cart";
+
+/* ── Interfaces ─────────────────────────────────────────────────────────────── */
 
 interface InventoryItem {
   id: string;
@@ -15,273 +18,452 @@ interface InventoryItem {
   image?: string | null;
 }
 
-interface AvailabilityEntry {
-  borrow_date: string;
-  return_date: string;
-  status: 'pending' | 'approved';
-  quantity_requested: number;
+export interface CartItem {
+  item: InventoryItem;
+  qty: number;
 }
 
-const todayStr = () => new Date().toISOString().split('T')[0];
+/* ── Helpers ─────────────────────────────────────────────────────────────────── */
 
-const maxDateStr = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 7);
-  return d.toISOString().split('T')[0];
-};
+const FALLBACK_INVENTORY: InventoryItem[] = [
+  { id: "9091ce6a-871d-4de2-9008-0cd84ae4fa54", name: "Basketball",              quantity: 1, max_quantity: 1, is_available: true },
+  { id: "dfa76261-a0f4-4436-959a-41f337cc4ded", name: "HDMI Cable",              quantity: 1, max_quantity: 1, is_available: true },
+  { id: "e6563dec-bfdb-446e-89d9-7f6f85ce2cee", name: "Iwata Fan",               quantity: 1, max_quantity: 1, is_available: true },
+  { id: "49cfe9bc-3a74-4aa1-89fd-a9ee316e2f6e", name: "Long Table",              quantity: 2, max_quantity: 2, is_available: true },
+  { id: "d97a2657-81d1-4b17-83c3-b0361f79e748", name: "Microphone",              quantity: 1, max_quantity: 1, is_available: true },
+  { id: "44684f16-073d-4ab5-8ad2-8ef119f07fb4", name: "Mixer",                   quantity: 1, max_quantity: 1, is_available: true },
+  { id: "1c49efaf-e579-40ab-ba8f-e489515761b3", name: "Orange Cones (training)", quantity: 4, max_quantity: 4, is_available: true },
+  { id: "15061230-b28f-49f1-873b-d3a84fd4aa41", name: "Projector",               quantity: 1, max_quantity: 1, is_available: true },
+  { id: "78a6c8ba-00ad-48a3-8f73-6e41763c43f0", name: "Projector Screen",        quantity: 2, max_quantity: 2, is_available: true },
+  { id: "ab83f5a8-9c30-46d8-9c88-8aae90e76928", name: "Soccer Ball",             quantity: 1, max_quantity: 1, is_available: true },
+  { id: "90c3cb8c-9c0f-4898-8835-21a17c0632b8", name: "Speaker",                 quantity: 1, max_quantity: 1, is_available: true },
+];
 
-function formatCheckDate(dateStr: string): string {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
-  });
+const ITEM_GRADIENTS: [string, string][] = [
+  ["#1e3a8a", "#4f6fd1"], ["#7c2d12", "#dc2626"], ["#0f766e", "#5eb5af"],
+  ["#475569", "#94a3b8"], ["#92400e", "#a87c2d"], ["#3b5fbc", "#8aaae0"],
+  ["#1e3a8a", "#3b5fbc"], ["#7c2d12", "#ea580c"],
+];
+
+function itemGradient(id: string): [string, string] {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return ITEM_GRADIENTS[Math.abs(h) % ITEM_GRADIENTS.length];
 }
 
-const CalendarIcon = () => (
-  <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-    <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-    <line x1="3" y1="10" x2="21" y2="10"/>
+function get7Days(): { dateStr: string; name: string; num: number }[] {
+  const result: { dateStr: string; name: string; num: number }[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    result.push({
+      dateStr: d.toISOString().split("T")[0],
+      name: d.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase().slice(0, 3),
+      num: d.getDate(),
+    });
+  }
+  return result;
+}
+
+/** Maps computeDateStatus return values to the CSS strip class names */
+function stripStatus(
+  entries: AvailabilityEntry[],
+  dateStr: string,
+  maxQty: number,
+): "full" | "some" | "none" {
+  const s = computeDateStatus(dateStr, entries, maxQty);
+  if (s === "full")    return "none"; // fully booked → red
+  if (s === "partial") return "some"; // partially    → amber
+  return "full";                      // available    → green
+}
+
+/* ── Icons ───────────────────────────────────────────────────────────────────── */
+
+const SearchIcon = () => (
+  <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
   </svg>
 );
 
-const FALLBACK_INVENTORY: InventoryItem[] = [
-  { id: "9091ce6a-871d-4de2-9008-0cd84ae4fa54", name: "Basketball",               quantity: 1, max_quantity: 1, is_available: true },
-  { id: "dfa76261-a0f4-4436-959a-41f337cc4ded", name: "HDMI Cable",               quantity: 1, max_quantity: 1, is_available: true },
-  { id: "e6563dec-bfdb-446e-89d9-7f6f85ce2cee", name: "Iwata Fan",                quantity: 1, max_quantity: 1, is_available: true },
-  { id: "49cfe9bc-3a74-4aa1-89fd-a9ee316e2f6e", name: "Long Table",               quantity: 2, max_quantity: 2, is_available: true },
-  { id: "d97a2657-81d1-4b17-83c3-b0361f79e748", name: "Microphone",               quantity: 1, max_quantity: 1, is_available: true },
-  { id: "44684f16-073d-4ab5-8ad2-8ef119f07fb4", name: "Mixer",                    quantity: 1, max_quantity: 1, is_available: true },
-  { id: "1c49efaf-e579-40ab-ba8f-e489515761b3", name: "Orange Cones (training)",  quantity: 4, max_quantity: 4, is_available: true },
-  { id: "15061230-b28f-49f1-873b-d3a84fd4aa41", name: "Projector",                quantity: 1, max_quantity: 1, is_available: true },
-  { id: "78a6c8ba-00ad-48a3-8f73-6e41763c43f0", name: "Projector Screen",         quantity: 2, max_quantity: 2, is_available: true },
-  { id: "ab83f5a8-9c30-46d8-9c88-8aae90e76928", name: "Soccer Ball",              quantity: 1, max_quantity: 1, is_available: true },
-  { id: "90c3cb8c-9c0f-4898-8835-21a17c0632b8", name: "Speaker",                  quantity: 1, max_quantity: 1, is_available: true },
-];
+const PlusIcon = () => (
+  <svg viewBox="0 0 24 24" width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+    <path d="M12 5v14M5 12h14"/>
+  </svg>
+);
+
+const ArrowIcon = () => (
+  <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14M13 6l6 6-6 6"/>
+  </svg>
+);
+
+/* ── Component ───────────────────────────────────────────────────────────────── */
 
 export default function Borrow() {
   const navigate = useNavigate();
 
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [loadingInventory, setLoadingInventory] = useState(true);
-  const [inventoryError, setInventoryError] = useState<string | null>(null);
-  const [equipSearch, setEquipSearch] = useState("");
+  const [inventory, setInventory]         = useState<InventoryItem[]>([]);
+  const [loadingInventory, setLoading]    = useState(true);
+  const [equipSearch, setEquipSearch]     = useState("");
 
-  // Date-availability overlay — defaults to today, capped at +7 days
-  const [checkDate, setCheckDate] = useState<string>(todayStr);
-  const [dateAvailability, setDateAvailability] = useState<Map<string, number>>(new Map());
-  const [dateLoading, setDateLoading] = useState(false);
+  // Raw availability entries per item (for 7-day strip)
+  const [itemAvail, setItemAvail]         = useState<Map<string, AvailabilityEntry[]>>(new Map());
+  const [availLoading, setAvailLoading]   = useState(false);
 
-  const fetchInventory = async () => {
-    setLoadingInventory(true);
-    setInventoryError(null);
-    try {
-      const { data } = await axios.get(`${API_URL}/equipment/`);
-      setInventory(data);
-    } catch {
-      setInventory(FALLBACK_INVENTORY);
-      setInventoryError(null);
-    } finally {
-      setLoadingInventory(false);
-    }
-  };
+  // Cart: item id → { item, qty }
+  const [cart, setCart]                   = useState<Map<string, CartItem>>(new Map());
 
-  useEffect(() => { fetchInventory(); }, []);
+  // Pre-compute today's 7-day dates once per render
+  const days7 = useMemo(() => get7Days(), []);
 
-  // When the date or inventory changes, fetch availability for every item in parallel
+  /* ── Inventory fetch ──────────────────────────────────────────────────────── */
+
   useEffect(() => {
-    if (inventory.length === 0) {
-      setDateAvailability(new Map());
-      return;
-    }
+    setLoading(true);
+    axios.get<InventoryItem[]>(`${API_URL}/equipment/`)
+      .then(({ data }) => setInventory(data))
+      .catch(() => setInventory(FALLBACK_INVENTORY))
+      .finally(() => setLoading(false));
+  }, []);
+
+  /* ── 7-day availability fetch (after inventory loads) ──────────────────────── */
+
+  useEffect(() => {
+    if (inventory.length === 0) return;
     let cancelled = false;
-    setDateLoading(true);
+    setAvailLoading(true);
     Promise.all(
       inventory.map(async (item) => {
         try {
           const { data } = await axios.get<AvailabilityEntry[]>(
             `${API_URL}/borrowing/availability/${item.id}`
           );
-          // Sum up quantity already reserved that overlaps checkDate
-          const reserved = data
-            .filter(
-              (e) =>
-                (e.status === "pending" || e.status === "approved") &&
-                e.borrow_date <= checkDate &&
-                e.return_date >= checkDate
-            )
-            .reduce((sum, e) => sum + (e.quantity_requested ?? 1), 0);
-          return [item.id, Math.max(0, item.max_quantity - reserved)] as [string, number];
+          return [item.id, data] as [string, AvailabilityEntry[]];
         } catch {
-          // Fallback: assume full quantity available
-          return [item.id, item.quantity] as [string, number];
+          return [item.id, []] as [string, AvailabilityEntry[]];
         }
       })
     ).then((results) => {
       if (!cancelled) {
-        setDateAvailability(new Map(results));
-        setDateLoading(false);
+        setItemAvail(new Map(results));
+        setAvailLoading(false);
       }
     });
     return () => { cancelled = true; };
-  }, [checkDate, inventory]);
+  }, [inventory]);
 
-  // Effective available qty for a given item on the selected date
-  const effectiveQty = (item: InventoryItem): number =>
-    dateAvailability.get(item.id) ?? item.quantity;
+  /* ── LocalStorage cart persistence ──────────────────────────────────────────── */
 
-  const visibleInventory = inventory.filter((item) => {
-    if (equipSearch.trim() && !item.name.toLowerCase().includes(equipSearch.toLowerCase()))
-      return false;
-    return true;
-  });
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CART_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as CartItem[];
+        if (Array.isArray(parsed)) {
+          setCart(new Map(parsed.map((c) => [c.item.id, c])));
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([...cart.values()]));
+    } catch { /* ignore */ }
+  }, [cart]);
+
+  /* ── Cart helpers ─────────────────────────────────────────────────────────── */
+
+  const addToCart = (item: InventoryItem) => {
+    setCart((prev) => {
+      const next = new Map(prev);
+      if (!next.has(item.id)) next.set(item.id, { item, qty: 1 });
+      return next;
+    });
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart((prev) => { const next = new Map(prev); next.delete(id); return next; });
+  };
+
+  const setCartQty = (id: string, qty: number, max: number) => {
+    setCart((prev) => {
+      const next = new Map(prev);
+      const existing = next.get(id);
+      if (existing) next.set(id, { ...existing, qty: Math.max(1, Math.min(qty, max)) });
+      return next;
+    });
+  };
+
+  /* ── Derived ──────────────────────────────────────────────────────────────── */
+
+  const visibleInventory = inventory.filter((item) =>
+    !equipSearch.trim() || item.name.toLowerCase().includes(equipSearch.toLowerCase())
+  );
+
+  const today = days7[0]?.dateStr ?? "";
+
+  const availableTodayCount = useMemo(() => {
+    if (itemAvail.size === 0) return inventory.filter((i) => i.is_available && i.max_quantity > 0).length;
+    return inventory.filter((item) => {
+      if (!item.is_available || item.max_quantity === 0) return false;
+      const entries = itemAvail.get(item.id) ?? [];
+      return stripStatus(entries, today, item.max_quantity) !== "none";
+    }).length;
+  }, [inventory, itemAvail, today]);
+
+  const cartItems    = [...cart.values()];
+  const cartCount    = cartItems.length;
+  const cartTotalQty = cartItems.reduce((s, c) => s + c.qty, 0);
+
+  /* ── Render ───────────────────────────────────────────────────────────────── */
 
   return (
-    <div className="eq-page">
-      {/* Hero */}
-      <div className="eq-hero">
+    <div className="eq-root">
+      {/* ── Hero ── */}
+      <section className="eq-hero">
+        <div className="eq-hero-bg" />
         <div className="eq-hero-inner">
-          <span
-            className="section-label"
-            style={{ display: "block", textAlign: "center", marginBottom: "var(--space-3)" }}
-          >
-            CSG Resources
-          </span>
-          <h1 className="eq-hero-heading">
-            <em className="italic-accent">Reserve</em> equipment
-          </h1>
-          <p className="eq-hero-sub">
-            Reserve CSG-managed equipment for your org events, classes, or campus activities.
-            Pick a date on the availability calendar and submit your request — we'll confirm
-            within 24 hours.
-          </p>
+          <div className="eq-hero-text">
+            <h1>Borrow <em>equipment</em></h1>
+            <p>
+              Reserve items for events and activities. Browse the catalogue, check the 7-day
+              availability strips, then build your request and submit — we'll confirm within 24 hours.
+            </p>
+          </div>
+          <div className="eq-hero-stats">
+            <div className="eq-hero-stat">
+              <span className="eq-hero-stat-num">{loadingInventory ? "—" : inventory.length}</span>
+              <span className="eq-hero-stat-lbl">Items in catalog</span>
+            </div>
+            <div className="eq-hero-stat">
+              <span className="eq-hero-stat-num">{availLoading ? "—" : availableTodayCount}</span>
+              <span className="eq-hero-stat-lbl">Available today</span>
+            </div>
+            <div className="eq-hero-stat">
+              <span className="eq-hero-stat-num">7d</span>
+              <span className="eq-hero-stat-lbl">Booking window</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Search bar */}
-      <div className="bl-toolbar-wrap">
-        <div style={{ maxWidth: 600, margin: "0 auto", width: "100%", padding: "0 var(--section-padding-x)" }}>
-          <SearchFilterBar
-            searchValue={equipSearch}
-            onSearchChange={setEquipSearch}
-            showTermFilter={false}
-            searchPlaceholder="Search equipment..."
-          />
-        </div>
-      </div>
-
-      {/* Inventory */}
-      <div className="eq-content">
-        <div className="eq-inventory-header">
-          <h2 className="eq-inventory-title">Equipment inventory</h2>
-          <div className="eq-date-filter">
-            <CalendarIcon />
+      {/* ── Catalog ── */}
+      <div className="eq-page">
+        {/* Controls */}
+        <div className="eq-controls">
+          <div className="eq-search">
+            <SearchIcon />
             <input
-              type="date"
-              className="eq-date-input"
-              value={checkDate}
-              min={todayStr()}
-              max={maxDateStr()}
-              onChange={(e) => setCheckDate(e.target.value)}
-              aria-label="Check availability for date"
+              value={equipSearch}
+              onChange={(e) => setEquipSearch(e.target.value)}
+              placeholder="Search equipment by name…"
             />
-            {dateLoading && <span className="eq-date-checking">Checking…</span>}
+          </div>
+          <span className="eq-result-count">
+            Showing <strong>{visibleInventory.length}</strong>{" "}
+            item{visibleInventory.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {/* Section head */}
+        <div className="eq-section-head">
+          <div>
+            <h2>Catalog <em>at a glance</em></h2>
+            <p>Each card shows the next 7 days of availability — pick a window before you build your request.</p>
+          </div>
+          <div className="eq-legend">
+            <span><i style={{ background: "var(--color-success-bg)" }} />Free</span>
+            <span><i style={{ background: "#fef3c7" }} />Partial</span>
+            <span><i style={{ background: "var(--color-danger-bg)" }} />Booked</span>
           </div>
         </div>
 
-        {!dateLoading && (
-          <p className="eq-date-caption">
-            Showing availability for <strong>{formatCheckDate(checkDate)}</strong>
-            <span className="eq-date-limit"> · Reservations open up to 7 days in advance</span>
-          </p>
-        )}
-
-        {loadingInventory && <p className="borrow-loading">Loading equipment...</p>}
-        {inventoryError  && <p className="borrow-error">{inventoryError}</p>}
-
-        {!loadingInventory && !inventoryError && (
+        {/* Grid */}
+        {loadingInventory ? (
+          <div className="eq-loading-state">Loading equipment…</div>
+        ) : (
           <div className="eq-grid">
             {visibleInventory.map((item) => {
-              const qty          = effectiveQty(item);
-              const stockOut     = !item.is_available || item.max_quantity === 0;
-              const dateBooked   = checkDate && qty === 0;
-              const datePartial  = checkDate && qty > 0 && qty < item.max_quantity;
-              const canReserve   = !stockOut && !dateBooked;
+              const stockOut   = !item.is_available || item.max_quantity === 0;
+              const cartEntry  = cart.get(item.id);
+              const entries    = itemAvail.get(item.id) ?? [];
+              const todayStrip = stripStatus(entries, today, item.max_quantity);
+              const isLow      = !stockOut && item.quantity === 1;
+              const [g1, g2]   = itemGradient(item.id);
+              // Max qty the user can request = today's available quantity
+              const todayAvail = (() => {
+                if (stockOut) return 0;
+                const reserved = entries
+                  .filter((e) =>
+                    (e.status === "pending" || e.status === "approved") &&
+                    e.borrow_date <= today && e.return_date >= today
+                  )
+                  .reduce((s, e) => s + (e.quantity_requested ?? 1), 0);
+                return Math.max(0, item.max_quantity - reserved);
+              })();
+              const canAdd = !stockOut && todayAvail > 0;
 
               return (
-                <div
+                <article
                   key={item.id}
-                  className={`eq-card card${dateBooked ? " eq-card--booked" : ""}`}
+                  className={[
+                    "eq-card",
+                    cartEntry ? "is-added" : "",
+                    stockOut  ? "is-out"   : "",
+                  ].filter(Boolean).join(" ")}
                 >
-                  {/* Date-aware status badge (only shown when date is selected) */}
-                  {checkDate && !stockOut && (
-                    <span
-                      className={`eq-status ${
-                        dateBooked   ? "eq-status-booked"  :
-                        datePartial  ? "eq-status-partial" :
-                        "eq-status-ok"
-                      }`}
-                    >
-                      {dateBooked
-                        ? "● FULLY BOOKED"
-                        : datePartial
-                          ? `● ${qty} of ${item.max_quantity} free`
-                          : `● ${qty} available`}
-                    </span>
-                  )}
-                  {/* Stock-out badge (always shown when item is flagged unavailable) */}
-                  {stockOut && (
-                    <span className="eq-status eq-status-out">● OUT OF STOCK</span>
+                  {/* Added flag */}
+                  {cartEntry && (
+                    <span className="eq-added-flag">Added · {cartEntry.qty}</span>
                   )}
 
-                  <div className="eq-thumb">
+                  {/* Image / placeholder */}
+                  <div className="eq-card-img">
                     {item.image ? (
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="eq-thumb-img"
+                        className="eq-card-img-real"
                         onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = "none";
-                          (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute("style");
+                          const el = e.currentTarget as HTMLImageElement;
+                          el.style.display = "none";
+                          const next = el.nextElementSibling as HTMLElement | null;
+                          if (next) next.style.display = "flex";
                         }}
                       />
                     ) : null}
-                    <img
-                      src="/CSG_logo.svg"
-                      alt="CSG"
-                      className="eq-thumb-logo"
-                      style={item.image ? { display: "none" } : undefined}
-                    />
+                    <div
+                      className="eq-card-img-fallback"
+                      style={{
+                        background: `linear-gradient(135deg, ${g1}, ${g2})`,
+                        display: item.image ? "none" : "flex",
+                      }}
+                    >
+                      <img src="/CSG_logo.svg" alt="CSG" />
+                    </div>
                   </div>
 
+                  {/* Stock pill */}
+                  <span className={`eq-stock-pill${stockOut ? " is-out" : isLow ? " is-low" : ""}`}>
+                    {stockOut
+                      ? "Out of stock"
+                      : availLoading
+                        ? `${item.quantity} available`
+                        : todayStrip === "none"
+                          ? "Fully booked today"
+                          : `${item.quantity} available`}
+                  </span>
+
+                  {/* Card body */}
                   <div className="eq-card-body">
-                    <div className="eq-item-name">{item.name}</div>
-                    <div className="eq-item-stock">
-                      {item.max_quantity} in stock
+                    <h3 className="eq-card-name">{item.name}</h3>
+                    <div className="eq-card-meta">
+                      <span>{item.max_quantity} in stock total</span>
                     </div>
-                    <button
-                      className={`btn ${canReserve ? "btn-primary" : ""} eq-req-btn`}
-                      disabled={!canReserve}
-                      onClick={() => canReserve && navigate(`/borrow/${item.id}`)}
-                      style={
-                        !canReserve
-                          ? { background: "var(--color-border)", color: "var(--color-text-muted)", cursor: "not-allowed" }
-                          : undefined
-                      }
-                    >
-                      {stockOut
-                        ? "Out of Stock"
-                        : dateBooked
-                          ? "Fully Booked"
-                          : "Reserve Equipment"}
-                    </button>
+
+                    {/* 7-day availability strip */}
+                    {!stockOut && (
+                      <div className="eq-avail-strip" title="Availability over the next 7 days">
+                        {days7.map((day, i) => {
+                          const s = availLoading ? "full" : stripStatus(entries, day.dateStr, item.max_quantity);
+                          return (
+                            <div
+                              key={day.dateStr}
+                              className={`eq-avail-day is-${s}${i === 0 ? " is-today" : ""}`}
+                            >
+                              <span className="eq-avail-day-name">{day.name}</span>
+                              <span className="eq-avail-day-num">{day.num}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Card action */}
+                    <div className="eq-card-action" style={{ marginTop: 12 }}>
+                      {cartEntry ? (
+                        <div className="eq-qty">
+                          <button
+                            type="button"
+                            className="eq-qty-btn"
+                            aria-label="Decrease quantity"
+                            onClick={() =>
+                              cartEntry.qty <= 1
+                                ? removeFromCart(item.id)
+                                : setCartQty(item.id, cartEntry.qty - 1, todayAvail || item.max_quantity)
+                            }
+                          >−</button>
+                          <div className="eq-qty-center">
+                            <span className="eq-qty-val">{cartEntry.qty}</span>
+                            <span className="eq-qty-val-lbl">In request</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="eq-qty-btn"
+                            aria-label="Increase quantity"
+                            disabled={cartEntry.qty >= (todayAvail || item.max_quantity)}
+                            onClick={() =>
+                              setCartQty(item.id, cartEntry.qty + 1, todayAvail || item.max_quantity)
+                            }
+                          >+</button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="eq-btn-add"
+                          disabled={!canAdd}
+                          onClick={() => canAdd && addToCart(item)}
+                        >
+                          <PlusIcon />
+                          {stockOut ? "Unavailable" : todayStrip === "none" ? "Fully booked" : "Add to request"}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
         )}
+
+        <div className="eq-sticky-spacer" />
       </div>
+
+      {/* ── Sticky cart bar ── */}
+      {cartCount > 0 && (
+        <div className="eq-sticky-bar">
+          <div className="eq-sticky-bar-inner">
+            <div className="eq-sticky-bar-text">
+              <span className="eq-sticky-bar-count">{cartTotalQty}</span>
+              <div className="eq-sticky-bar-meta">
+                <span className="eq-sticky-bar-lbl">In your request</span>
+                <span className="eq-sticky-bar-val">
+                  {cartItems.map((c) => `${c.qty}× ${c.item.name}`).join(" · ")}
+                </span>
+              </div>
+            </div>
+            <div className="eq-sticky-bar-actions">
+              <button
+                type="button"
+                className="eq-sticky-bar-clear"
+                onClick={() => setCart(new Map())}
+              >
+                Clear all
+              </button>
+              <button
+                type="button"
+                className="eq-sticky-bar-cta"
+                onClick={() =>
+                  navigate("/borrow/checkout", { state: { cartItems } })
+                }
+              >
+                Review request <ArrowIcon />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

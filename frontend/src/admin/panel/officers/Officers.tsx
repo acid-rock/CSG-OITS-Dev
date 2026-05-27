@@ -6,7 +6,8 @@ import Sidebar from "../_shared/Sidebar";
 import { PageHead, Tabs, Toolbar, BulkBar } from "../_shared/chrome";
 import { Tag, MiniAvatar } from "../_shared/atoms";
 import { I } from "../_shared/icons";
-import { downloadCSV, academicYear } from "../_shared/utils";
+import ExcelJS from 'exceljs';
+import { academicYear } from "../_shared/utils";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -228,13 +229,98 @@ const OfficersPanel = () => {
       return 0;
     });
 
-  const handleExportCSV = () => downloadCSV(
-    filteredData.map(o => ({
-      Name: o.full_name, Position: displayPosition(o.position),
-      Type: o.type ?? '—', Committee: committeeName(o.committee),
-      Term: o.year_serving ?? '—', 'Student No.': o.student_number ?? '—',
-    })), 'officers'
-  );
+  const handleExportXLSX = async () => {
+    const P   = 'FF4F6FD1';
+    const PL  = 'FFD6DEF5';
+    const WHT = 'FFFFFFFF';
+    const GRY = 'FFF1F5F9';
+    const fill = (argb: string): ExcelJS.Fill =>
+      ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+    const border = (): Partial<ExcelJS.Borders> => {
+      const s: Partial<ExcelJS.Border> = { style: 'thin', color: { argb: 'FFE2E8F0' } };
+      return { top: s, bottom: s, left: s, right: s };
+    };
+
+    const tabLabel = tab === 'active' ? 'Active Officers'
+                   : tab === 'archived' ? 'Archived Officers'
+                   : 'Officers (Bin)';
+    const generated = new Date().toLocaleString('en-PH', {
+      month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'CSG-OITS';
+    wb.created = new Date();
+    const ws = wb.addWorksheet('Officers');
+
+    const COLS = 6;
+    ws.columns = [
+      { key: 'no',        width: 6  },
+      { key: 'name',      width: 30 },
+      { key: 'position',  width: 28 },
+      { key: 'type',      width: 14 },
+      { key: 'committee', width: 26 },
+      { key: 'term',      width: 14 },
+    ];
+
+    // Title
+    const r1 = ws.addRow([`CSG-OITS — Officers Directory`]);
+    ws.mergeCells(1, 1, 1, COLS);
+    r1.getCell(1).font = { bold: true, size: 14, color: { argb: WHT } };
+    r1.getCell(1).fill = fill(P);
+    r1.getCell(1).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+    r1.height = 26;
+
+    const r2 = ws.addRow([`${tabLabel}   ·   Generated: ${generated}   ·   Total: ${filteredData.length}`]);
+    ws.mergeCells(2, 1, 2, COLS);
+    r2.getCell(1).font = { italic: true, size: 10.5, color: { argb: '001E3A8A' } };
+    r2.getCell(1).fill = fill(PL);
+    r2.getCell(1).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+    r2.height = 18;
+
+    ws.addRow([]); // spacer
+
+    // Headers
+    const hdr = ws.addRow(['No.', 'Full Name', 'Position', 'Type', 'Committee', 'Term']);
+    hdr.height = 20;
+    hdr.eachCell((cell) => {
+      cell.font      = { bold: true, size: 11, color: { argb: WHT } };
+      cell.fill      = fill(P);
+      cell.border    = border();
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    // Data rows
+    filteredData.forEach((o, i) => {
+      const dr = ws.addRow([
+        i + 1,
+        o.full_name,
+        displayPosition(o.position),
+        o.type ?? '—',
+        committeeName(o.committee),
+        o.year_serving ?? '—',
+      ]);
+      dr.height = 18;
+      const bg = i % 2 === 0 ? WHT : GRY;
+      dr.eachCell((cell, col) => {
+        cell.fill      = fill(bg);
+        cell.border    = border();
+        cell.alignment = { horizontal: col === 1 ? 'center' : 'left', vertical: 'middle' };
+        cell.font      = { size: 10.5 };
+      });
+    });
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob   = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url    = URL.createObjectURL(blob);
+    const a      = document.createElement('a');
+    a.href       = url;
+    a.download   = `officers-${tab}-${new Date().toLocaleDateString('en-CA')}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const ORow = ({ o }: { o: OfficerEntry }) => {
     const tone = TYPE_TONE[o.type?.toLowerCase()] ?? 'neutral';
@@ -341,7 +427,7 @@ const OfficersPanel = () => {
             subtitle="Manage the executive board, board members, advisers, and former officers."
             actions={<>
               <button className="ad-btn-ghost" onClick={() => window.print()}><I.print width="14" height="14" />Print</button>
-              <button className="ad-btn-ghost" onClick={handleExportCSV}><I.download width="14" height="14" />Export CSV</button>
+              <button className="ad-btn-ghost" onClick={handleExportXLSX}><I.download width="14" height="14" />Export Excel</button>
               {tab === 'active' && <button className="ad-btn-primary" onClick={() => { setEditId(null); setEditData(undefined); setOpen(true); }}><I.plus width="14" height="14" />Add officer</button>}
             </>}
           />

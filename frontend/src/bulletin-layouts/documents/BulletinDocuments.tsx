@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./bulletinDocument.css";
 
 const PAGE_SIZE = 12;
@@ -50,6 +50,7 @@ export default function BulletinDocument() {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const gridRef = useRef<HTMLElement>(null);
 
   /* Derived category list — locked logic */
   const uniqueCategories = Array.from(
@@ -80,6 +81,11 @@ export default function BulletinDocument() {
         doc.name.toLowerCase().includes(q) ||
         doc.description.toLowerCase().includes(q)
       );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at ?? a.date ?? 0).getTime();
+      const dateB = new Date(b.created_at ?? b.date ?? 0).getTime();
+      return dateB - dateA;
     });
 
   /* Locked handlers */
@@ -184,7 +190,7 @@ export default function BulletinDocument() {
         </aside>
 
         {/* ── RIGHT DOCUMENT GRID ── */}
-        <main className="bd-grid-area">
+        <main className="bd-grid-area" ref={gridRef}>
           {filteredDocuments.length === 0 ? (
             <div className="bd-empty">
               <p className="bd-empty-title">No documents found</p>
@@ -275,7 +281,7 @@ export default function BulletinDocument() {
               <div className="bd-pagination">
                 <button
                   className="bd-page-btn"
-                  onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => { setPage((p) => Math.max(1, p - 1)); }}
                   disabled={page === 1}
                 >
                   ← Prev
@@ -288,7 +294,7 @@ export default function BulletinDocument() {
                       : <button
                           key={n}
                           className={`bd-page-pill${n === page ? ' bd-page-pill-active' : ''}`}
-                          onClick={() => { setPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          onClick={() => { setPage(n); }}
                         >
                           {n}
                         </button>
@@ -297,7 +303,7 @@ export default function BulletinDocument() {
 
                 <button
                   className="bd-page-btn"
-                  onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); }}
                   disabled={page === totalPages}
                 >
                   Next →
