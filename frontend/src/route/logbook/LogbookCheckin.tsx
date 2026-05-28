@@ -58,7 +58,8 @@ type Phase =
   | 'token-expired'
   | 'success'
   | 'checkout-form'
-  | 'checkout-success';
+  | 'checkout-success'
+  | 'already-in';   // officer already has an open session — offer remote checkout
 
 /* ── Helpers ── */
 function fmtTime(iso: string): string {
@@ -377,16 +378,30 @@ export default function LogbookCheckin() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ── Fetch open session when officer selected in checkout ── */
+  /* ── Fetch open session whenever officer is selected ──────────────────────
+     Runs in BOTH check-in ('form') and checkout ('checkout-form') modes.
+     In check-in mode: if the officer already has an open session today, we
+     transition to 'already-in' so they can close it remotely without needing
+     to re-verify their location (the original check-in was already geo-gated).
+  ── */
   useEffect(() => {
-    if (phase !== 'checkout-form' || !officerId) {
+    if (!officerId || !['form', 'checkout-form', 'already-in'].includes(phase)) {
       setOpenSession(null);
       return;
     }
+    let cancelled = false;
     axios
       .get<{ open_session: OpenSession | null }>(`${API}/logbook/status/${officerId}`)
-      .then(({ data }) => setOpenSession(data.open_session))
-      .catch(() => setOpenSession(null));
+      .then(({ data }) => {
+        if (cancelled) return;
+        setOpenSession(data.open_session);
+        // In check-in mode: if session already exists, offer remote checkout instead
+        if (phase === 'form' && data.open_session) {
+          setPhase('already-in');
+        }
+      })
+      .catch(() => { if (!cancelled) setOpenSession(null); });
+    return () => { cancelled = true; };
   }, [officerId, phase]);
 
   /* ── Handlers ── */
@@ -535,7 +550,12 @@ export default function LogbookCheckin() {
             <OfficerCombobox
               officers={officers}
               value={officerId}
-              onChange={(id) => { setOfficerId(id); setError(''); }}
+              onChange={(id) => {
+                setOfficerId(id);
+                setError('');
+                // If user changes selection while already-in, fall back to form
+                if (phase === 'already-in') setPhase('form');
+              }}
               disabled={officersLoading}
             />
           </div>
@@ -701,6 +721,62 @@ export default function LogbookCheckin() {
             <a href="/office" className="kk-btn kk-btn--ghost" style={{ flex: 1, textDecoration: 'none' }}>
               Done
             </a>
+            <button
+              className="kk-btn kk-btn--primary"
+              style={{ flex: 1.4 }}
+              disabled={submitting}
+              onClick={handleCheckout}
+            >
+              <IcoOut width={14} height={14}/>
+              {submitting ? 'Checking out…' : 'Check out'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    /* ── Already checked in — offer remote checkout ── */
+    if (phase === 'already-in' && openSession) {
+      return (
+        <div className="kk-card">
+          <div className="kk-error-ico" style={{ background: 'rgba(234,179,8,0.12)', color: '#ca8a04' }}>
+            <IcoWarn width={34} height={34}/>
+          </div>
+          <h1 className="kk-error-h">
+            Still <em>checked in</em>
+          </h1>
+          <p className="kk-error-p">
+            You have an open session from today. Since you originally checked in
+            within the office, you can check out from wherever you are now.
+          </p>
+
+          <div className="kk-summary">
+            <div className="kk-summary-row">
+              <span className="lbl">Checked in at</span>
+              <span className="val">{fmtTime(openSession.check_in_at)}</span>
+            </div>
+            <div className="kk-summary-row">
+              <span className="lbl">Time on duty</span>
+              <span className="val duration">{durStr(openSession.check_in_at)}</span>
+            </div>
+            <div className="kk-summary-row">
+              <span className="lbl">Location check</span>
+              <span className="val" style={{ color: 'var(--color-success-text)' }}>
+                Verified on check-in ✓
+              </span>
+            </div>
+          </div>
+
+          {error && <span className="kk-field-err">{error}</span>}
+
+          <div className="kk-btn-row">
+            <button
+              className="kk-btn kk-btn--ghost"
+              style={{ flex: 1 }}
+              onClick={() => { setPhase('form'); setOfficerId(''); setError(''); }}
+            >
+              Not me
+            </button>
             <button
               className="kk-btn kk-btn--primary"
               style={{ flex: 1.4 }}

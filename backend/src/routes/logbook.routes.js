@@ -88,13 +88,57 @@ function todayPH() {
   });
 }
 
+// ── Office-hours cache ────────────────────────────────────────────────────────
+// Reads the `office_hours` setting from the DB to determine today's closing
+// hour. Cached for 5 minutes so every GET /today call is not a DB round-trip.
+// Automatically expires — changes from the admin Settings panel take effect
+// within one cache window (≤ 5 minutes).
+
+let _ohCache = null;    // parsed DayHours[] or null
+let _ohCacheExpiry = 0; // unix ms
+
+async function getOfficeCloseHour() {
+  const now = Date.now();
+  if (!_ohCache || now >= _ohCacheExpiry) {
+    const { data } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "office_hours")
+      .maybeSingle();
+    _ohCache = null;
+    if (data?.value) {
+      try { _ohCache = JSON.parse(data.value); } catch { /* keep null */ }
+    }
+    _ohCacheExpiry = now + 5 * 60 * 1000; // 5-minute TTL
+  }
+
+  // Map today's PH weekday name → closing hour
+  const todayName = new Date().toLocaleDateString("en-US", {
+    timeZone: "Asia/Manila",
+    weekday:  "long",
+  });
+
+  if (Array.isArray(_ohCache)) {
+    const entry = _ohCache.find((d) => d.day === todayName);
+    if (entry?.close) {
+      const h = parseInt(entry.close.split(":")[0], 10);
+      if (!isNaN(h)) return h;
+    }
+    // If today's entry has open:null (closed day), return a sentinel that
+    // never triggers auto-checkout (25 > any real hour)
+    const dayEntry = _ohCache.find((d) => d.day === todayName);
+    if (dayEntry && dayEntry.open === null) return 25;
+  }
+
+  return 19; // Fallback: 7:00 PM
+}
+
 // ── Auto-close stale open sessions ───────────────────────────────────────────
 // 1. Always closes sessions from previous calendar days (forgot to check out).
-// 2. Also closes today's sessions once the office closing hour has passed
-//    (18:00 Asia/Manila = 6 PM), so attendance history is saved even when
-//    officers forget to scan the exit QR.
-
-const OFFICE_CLOSE_HOUR_PH = 19; // 7:00 PM
+// 2. Also closes today's sessions once the office closing hour has passed.
+//    The closing hour is read from the `office_hours` setting (with a 5-minute
+//    cache) so it can be adjusted from the admin Settings panel without a
+//    server restart.
 
 function currentPhHour() {
   const s = new Date().toLocaleTimeString("en-PH", {
@@ -116,7 +160,8 @@ async function autoCloseStale(today) {
     .is("check_out_at", null);
 
   // 2. Today's sessions — close if past the office closing hour
-  if (currentPhHour() >= OFFICE_CLOSE_HOUR_PH) {
+  const closeHour = await getOfficeCloseHour();
+  if (currentPhHour() >= closeHour) {
     await supabase
       .from("logbook_sessions")
       .update({ check_out_at: now, auto_checkout: true })

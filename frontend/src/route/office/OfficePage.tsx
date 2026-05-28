@@ -30,6 +30,34 @@ interface LogbookEntry {
   officer:       OfficerInfo | null;
 }
 
+interface DayHours {
+  day:   string;
+  open:  string | null;
+  close: string | null;
+}
+
+const DEFAULT_OFFICE_HOURS: DayHours[] = [
+  { day: 'Monday',    open: '08:00', close: '19:00' },
+  { day: 'Tuesday',   open: '08:00', close: '19:00' },
+  { day: 'Wednesday', open: '08:00', close: '19:00' },
+  { day: 'Thursday',  open: '08:00', close: '19:00' },
+  { day: 'Friday',    open: '08:00', close: '19:00' },
+  { day: 'Saturday',  open: '08:00', close: '19:00' },
+  { day: 'Sunday',    open: null,    close: null     },
+];
+
+function fmt24to12(time: string | null): string {
+  if (!time) return '';
+  const [hStr, mStr] = time.split(':');
+  const h = parseInt(hStr, 10);
+  const m = parseInt(mStr, 10);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return m === 0
+    ? `${h12}:00 ${period}`
+    : `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
 /* ─── Helpers ────────────────────────────────────────────── */
 const fmtTime = (iso: string) =>
   new Date(iso).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
@@ -165,6 +193,7 @@ export default function OfficePage() {
   const [tick,         setTick]         = useState(0); // forces duration re-render
   const [officeLat,    setOfficeLat]    = useState<string | null>(null);
   const [officeLng,    setOfficeLng]    = useState<string | null>(null);
+  const [officeHours,  setOfficeHours]  = useState<DayHours[]>(DEFAULT_OFFICE_HOURS);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchToday = useCallback(async () => {
@@ -186,14 +215,21 @@ export default function OfficePage() {
     return () => clearInterval(pollId);
   }, [fetchToday]);
 
-  /* Fetch office coords from settings */
+  /* Fetch office coords + hours from settings */
   useEffect(() => {
     Promise.allSettled([
       axios.get(`${API}/settings/logbook_lat`),
       axios.get(`${API}/settings/logbook_lng`),
-    ]).then(([latR, lngR]) => {
+      axios.get(`${API}/settings/office_hours`),
+    ]).then(([latR, lngR, ohR]) => {
       if (latR.status === 'fulfilled') setOfficeLat(latR.value.data.value ?? null);
       if (lngR.status === 'fulfilled') setOfficeLng(lngR.value.data.value ?? null);
+      if (ohR.status === 'fulfilled' && ohR.value.data.value) {
+        try {
+          const parsed = JSON.parse(ohR.value.data.value);
+          if (Array.isArray(parsed) && parsed.length > 0) setOfficeHours(parsed);
+        } catch { /* keep defaults */ }
+      }
     });
   }, []);
 
@@ -203,9 +239,6 @@ export default function OfficePage() {
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, []);
   void tick; // suppress unused-var warning
-
-  const present = sessions.filter((s) => !s.check_out_at);
-  const earlier = sessions.filter((s) => !!s.check_out_at);
 
   /* Deduplicate by officer name — an officer can hold multiple roles
      (e.g. VP of Internal Affairs + RIAC Chairperson). Show only one card
@@ -226,7 +259,19 @@ export default function OfficePage() {
     return [...seen.values()];
   };
 
+  const present = sessions.filter((s) => !s.check_out_at);
   const dedupPresent = dedup(present);
+
+  /* Exclude from "Earlier Today" any officer who is currently checked in.
+     An officer may have accidentally checked out and then re-checked in —
+     showing them in both sections would be redundant. Their latest open
+     session is the authoritative one; the accidental checkout is hidden. */
+  const presentNames = new Set(
+    dedupPresent.map((s) => s.officer?.full_name).filter((n): n is string => Boolean(n)),
+  );
+  const earlier = sessions.filter(
+    (s) => !!s.check_out_at && !presentNames.has(s.officer?.full_name ?? ''),
+  );
   const dedupEarlier = dedup(earlier);
   const isClosed = !loading && dedupPresent.length === 0;
   const count = dedupPresent.length;
@@ -271,7 +316,7 @@ export default function OfficePage() {
             </h1>
             <p>
               {isClosed
-                ? 'No officers are currently checked in. The office is staffed Monday through Friday — see our usual hours below, or reach us by email or Facebook in the meantime.'
+                ? 'No officers are currently checked in. The office is staffed Monday through Saturday — see our usual hours below, or reach us by email or Facebook in the meantime.'
                 : "Officers check in and out using the QR code at our office door. This page updates live so you can tell who's around before you make the trip."
               }
             </p>
@@ -334,10 +379,10 @@ export default function OfficePage() {
           <div className="oh-empty">
             <span className="oh-empty-ico"><MoonIcon /></span>
             <h3>The office is <em>quiet</em> right now</h3>
-            <p>Officers typically check in between 8 AM and 5 PM on weekdays. If something can&rsquo;t wait, you can still reach us using the contact methods below.</p>
+            <p>Officers typically check in between 8 AM and 7 PM on weekdays and Saturdays. If something can&rsquo;t wait, you can still reach us using the contact methods below.</p>
             <span className="oh-empty-hint">
               <ClockIcon />
-              Office <strong>hours: Mon–Fri, 8 AM – 5 PM</strong>
+              Office <strong>hours: Mon–Sat, 8 AM – 7 PM</strong>
             </span>
           </div>
         </section>
@@ -439,24 +484,19 @@ export default function OfficePage() {
               These are when officers typically staff the office. Actual presence shown live above.
             </p>
             <ul className="oh-hours-list">
-              {[
-                { day: 'Monday',    time: '8:00 AM — 5:00 PM' },
-                { day: 'Tuesday',   time: '8:00 AM — 5:00 PM' },
-                { day: 'Wednesday', time: '8:00 AM — 5:00 PM' },
-                { day: 'Thursday',  time: '8:00 AM — 5:00 PM' },
-                { day: 'Friday',    time: '8:00 AM — 6:00 PM' },
-                { day: 'Saturday',  time: null },
-                { day: 'Sunday',    time: null },
-              ].map(({ day, time }) => {
+              {officeHours.map(({ day, open, close }) => {
                 const isToday = DOW_LABELS[todayDow] === day;
+                const timeStr = open && close
+                  ? `${fmt24to12(open)} — ${fmt24to12(close)}`
+                  : null;
                 return (
                   <li key={day}>
                     <span className="day">
                       {day}
                       {isToday && <span className="oh-hours-now">Today</span>}
                     </span>
-                    {time
-                      ? <span className="time">{time}</span>
+                    {timeStr
+                      ? <span className="time">{timeStr}</span>
                       : <span className="closed">Closed</span>
                     }
                   </li>

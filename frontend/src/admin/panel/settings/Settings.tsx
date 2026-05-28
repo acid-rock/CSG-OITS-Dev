@@ -23,6 +23,7 @@ const CopyIcon   = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="cur
 const DocIcon    = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>;
 const EyeIcon    = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
 const EyeOffIcon = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
+const ClockIcon  = (p: SvgP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
 
 // ── Card wrapper ─────────────────────────────────────────────────────────────
 interface StCardProps {
@@ -69,6 +70,12 @@ interface CommitteePins {
   finance: string;
 }
 
+interface DayHours {
+  day:   string;
+  open:  string | null;
+  close: string | null;
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function initials(name: string | null | undefined): string {
   return (name ?? 'A')
@@ -111,6 +118,17 @@ function buildGeofenceMap(lat: number, lng: number, radiusM: number): string {
 </html>`;
 }
 
+// ── Office hours default ──────────────────────────────────────────────────────
+const DEFAULT_OFFICE_HOURS: DayHours[] = [
+  { day: 'Monday',    open: '08:00', close: '19:00' },
+  { day: 'Tuesday',   open: '08:00', close: '19:00' },
+  { day: 'Wednesday', open: '08:00', close: '19:00' },
+  { day: 'Thursday',  open: '08:00', close: '19:00' },
+  { day: 'Friday',    open: '08:00', close: '19:00' },
+  { day: 'Saturday',  open: '08:00', close: '19:00' },
+  { day: 'Sunday',    open: null,    close: null     },
+];
+
 // ── Component ────────────────────────────────────────────────────────────────
 const Settings = () => {
   const [activeSection, setActiveSection] = useState('general');
@@ -149,6 +167,12 @@ const Settings = () => {
   const [savedGeoLat,    setSavedGeoLat]    = useState('');
   const [savedGeoLng,    setSavedGeoLng]    = useState('');
   const [savedGeoRadius, setSavedGeoRadius] = useState('');
+
+  // Office hours
+  const [officeHours, setOfficeHours] = useState<DayHours[]>(DEFAULT_OFFICE_HOURS);
+  const [ohSaving,    setOhSaving]    = useState(false);
+  const [ohSaved,     setOhSaved]     = useState(false);
+  const [ohError,     setOhError]     = useState('');
 
   // Committee PINs
   const [pins,       setPins]       = useState<CommitteePins>({ publication: '', secretariat: '', finance: '' });
@@ -207,6 +231,19 @@ const Settings = () => {
         setSavedGeoRadius(r);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    axios.get(`${API_URL}/settings/office_hours`, { withCredentials: true })
+      .then(({ data }) => {
+        if (data.value) {
+          try {
+            const parsed = JSON.parse(data.value);
+            if (Array.isArray(parsed) && parsed.length > 0) setOfficeHours(parsed);
+          } catch { /* keep defaults */ }
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -272,6 +309,37 @@ const Settings = () => {
       setTimeout(() => setGeoSaved(false), 2500);
     } catch { setGeoError('Failed to save. Please try again.'); }
     finally { setGeoSaving(false); }
+  };
+
+  const handleSaveOfficeHours = async () => {
+    setOhSaving(true); setOhSaved(false); setOhError('');
+    try {
+      await axios.post(
+        `${API_URL}/settings/office_hours`,
+        { value: JSON.stringify(officeHours) },
+        { withCredentials: true },
+      );
+      setOhSaved(true);
+      setTimeout(() => setOhSaved(false), 2500);
+    } catch { setOhError('Failed to save. Please try again.'); }
+    finally { setOhSaving(false); }
+  };
+
+  const toggleOhDay = (idx: number) => {
+    setOfficeHours((prev) =>
+      prev.map((row, i) => {
+        if (i !== idx) return row;
+        return row.open === null
+          ? { ...row, open: '08:00', close: '19:00' }
+          : { ...row, open: null, close: null };
+      }),
+    );
+  };
+
+  const updateOhDay = (idx: number, field: 'open' | 'close', value: string) => {
+    setOfficeHours((prev) =>
+      prev.map((row, i) => (i === idx ? { ...row, [field]: value } : row)),
+    );
   };
 
   const handleSavePin = async (role: 'publication' | 'secretariat' | 'finance') => {
@@ -344,8 +412,9 @@ const Settings = () => {
     {
       group: 'Modules',
       items: [
-        { id: 'logbook', label: 'Office location', icon: <PinIcon width="15" height="15" /> },
-        { id: 'pins',    label: 'Committee PINs',  icon: <KeyIcon width="15" height="15" />, hint: '3' },
+        { id: 'logbook',      label: 'Office location', icon: <PinIcon   width="15" height="15" /> },
+        { id: 'office_hours', label: 'Office hours',    icon: <ClockIcon width="15" height="15" /> },
+        { id: 'pins',         label: 'Committee PINs',  icon: <KeyIcon   width="15" height="15" />, hint: '3' },
       ],
     },
     {
@@ -842,6 +911,93 @@ const Settings = () => {
                 </StCard>
               )}
 
+              {/* ── OFFICE HOURS ── */}
+              {activeSection === 'office_hours' && (
+                <StCard
+                  glyph={<ClockIcon width="16" height="16" />}
+                  title="Office hours"
+                  sub="When the CSG office is staffed — drives auto-checkout and the public Office page"
+                >
+                  <div className="st-stack">
+                    {officeHours.map((row, idx) => {
+                      const isClosed = row.open === null;
+                      const isToday  = new Date().toLocaleDateString('en-US', { weekday: 'long' }) === row.day;
+                      return (
+                        <div key={row.day} className="st-field-row">
+                          <div className="st-field-row-label">
+                            <strong>
+                              {row.day}
+                              {isToday && <span className="st-self-tag">Today</span>}
+                            </strong>
+                          </div>
+                          <div className="st-field" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <button
+                              className={`st-toggle${!isClosed ? ' is-on' : ''}`}
+                              onClick={() => toggleOhDay(idx)}
+                              aria-pressed={!isClosed}
+                              title={isClosed ? 'Mark as open' : 'Mark as closed'}
+                            />
+                            <span style={{ fontSize: 12, color: 'var(--color-text-muted)', minWidth: 44 }}>
+                              {isClosed ? 'Closed' : 'Open'}
+                            </span>
+                            {!isClosed && (
+                              <>
+                                <input
+                                  className="st-input is-mono"
+                                  type="time"
+                                  value={row.open ?? '08:00'}
+                                  onChange={(e) => updateOhDay(idx, 'open', e.target.value)}
+                                  style={{ width: 130 }}
+                                />
+                                <span style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>—</span>
+                                <input
+                                  className="st-input is-mono"
+                                  type="time"
+                                  value={row.close ?? '19:00'}
+                                  onChange={(e) => updateOhDay(idx, 'close', e.target.value)}
+                                  style={{ width: 130 }}
+                                />
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="st-callout">
+                    <AlertIcon width="14" height="14" className="st-callout-icon" />
+                    <div>
+                      The closing time determines when the logbook <strong>auto-checks out</strong> officers who forget to scan the exit QR.
+                      Changes take effect within 5 minutes (cache refresh). The public <em>/office</em> page reflects these hours immediately on save.
+                    </div>
+                  </div>
+
+                  {ohError && (
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--color-danger-text)' }}>{ohError}</p>
+                  )}
+
+                  <div className="st-save-bar" style={{ margin: '4px -18px -18px' }}>
+                    <div className="st-save-bar-status">
+                      <ClockIcon width="14" height="14" />
+                      Auto-checkout uses today&rsquo;s closing time from this schedule.
+                    </div>
+                    <div className="st-save-bar-actions">
+                      <button
+                        className="st-btn st-btn-primary"
+                        onClick={handleSaveOfficeHours}
+                        disabled={ohSaving}
+                      >
+                        {ohSaving ? 'Saving…' : 'Save hours'}
+                      </button>
+                      {ohSaved && (
+                        <span style={{ fontSize: 12, color: 'var(--color-success-text)' }}>✓ Saved</span>
+                      )}
+                    </div>
+                  </div>
+                </StCard>
+              )}
+
               {/* ── COMMITTEE PINs ── */}
               {activeSection === 'pins' && (
                 <StCard
@@ -916,7 +1072,7 @@ const Settings = () => {
                 <div className="st-about">
                   <div className="st-about-stat">
                     <span className="st-about-stat-lbl">Version</span>
-                    <span className="st-about-stat-val">v1.7.0 <small>Stable</small></span>
+                    <span className="st-about-stat-val">v1.8.0 <small>Stable</small></span>
                   </div>
                   <div className="st-about-stat">
                     <span className="st-about-stat-lbl">Last update</span>
