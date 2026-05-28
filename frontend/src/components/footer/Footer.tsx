@@ -1,13 +1,16 @@
 import { useState } from "react";
+import axios from "axios";
 import logo from "../../assets/CSG_logo.svg";
 import "./footer.css";
 import { FaFacebook } from "react-icons/fa";
 
-/* ─── Google Form (Send Feedback) URL — preserve exactly ─── */
-const GOOGLE_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSdpXwlDybMgEV8rrfazdYuQoHz8G5UCKTZg1zErSKZMK6Nnjg/viewform?usp=header";
+const API = import.meta.env.VITE_API_URL as string;
 
 type PolicyType = "privacy" | "terms" | "cookies" | null;
+
+/* ─── Feedback types ─────────────────────────────────────── */
+type FeedbackType = "Bug Report" | "Suggestion" | "Compliment" | "Other";
+const FEEDBACK_TYPES: FeedbackType[] = ["Bug Report", "Suggestion", "Compliment", "Other"];
 
 const POLICY_CONTENT: Record<
   NonNullable<PolicyType>,
@@ -116,6 +119,170 @@ const POLICY_CONTENT: Record<
   },
 };
 
+/* ─── In-app Feedback Modal ──────────────────────────────── */
+function FeedbackModal({ onClose }: { onClose: () => void }) {
+  const [feedbackType, setFeedbackType] = useState<FeedbackType>("Suggestion");
+  const [message,      setMessage]      = useState("");
+  const [name,         setName]         = useState("");
+  const [email,        setEmail]        = useState("");
+  const [submitting,   setSubmitting]   = useState(false);
+  const [done,         setDone]         = useState(false);
+  const [submitError,  setSubmitError]  = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (message.trim().length < 10) {
+      setSubmitError("Message must be at least 10 characters.");
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await axios.post(`${API}/feedback`, {
+        type:    feedbackType,
+        message: message.trim(),
+        name:    name.trim()  || undefined,
+        email:   email.trim() || undefined,
+      });
+      setDone(true);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })
+          ?.response?.data?.error ?? "Failed to submit. Please try again.";
+      setSubmitError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      className="footer-modal-overlay"
+      onClick={onClose}
+      aria-modal="true"
+      role="dialog"
+      aria-label="Send feedback"
+    >
+      <div
+        className="footer-modal-card"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="footer-modal-header">
+          <h2 className="footer-modal-title">Send Feedback</h2>
+          <button
+            type="button"
+            className="footer-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        {done ? (
+          /* ── Success state ── */
+          <div className="footer-modal-body footer-modal-success">
+            <div className="footer-modal-success-icon">✓</div>
+            <p className="footer-modal-success-title">Thank you!</p>
+            <p className="footer-modal-success-sub">
+              Your feedback has been received and will be reviewed by the CSG team.
+            </p>
+            <button type="button" className="footer-modal-btn" onClick={onClose}>
+              Close
+            </button>
+          </div>
+        ) : (
+          /* ── Form ── */
+          <form className="footer-modal-body" onSubmit={handleSubmit} noValidate>
+            {/* Type */}
+            <div className="footer-modal-field">
+              <label className="footer-modal-label" htmlFor="fb-type">
+                Type <span aria-hidden="true" style={{ color: "var(--color-danger, #b91c1c)" }}>*</span>
+              </label>
+              <select
+                id="fb-type"
+                className="footer-modal-select"
+                value={feedbackType}
+                onChange={(e) => setFeedbackType(e.target.value as FeedbackType)}
+                required
+              >
+                {FEEDBACK_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Message */}
+            <div className="footer-modal-field">
+              <label className="footer-modal-label" htmlFor="fb-message">
+                Message <span aria-hidden="true" style={{ color: "var(--color-danger, #b91c1c)" }}>*</span>
+              </label>
+              <textarea
+                id="fb-message"
+                className="footer-modal-textarea"
+                placeholder="Describe your feedback (minimum 10 characters)…"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={4}
+                maxLength={2000}
+                required
+              />
+              <span className="footer-modal-count">
+                {message.length} / 2000
+              </span>
+            </div>
+
+            {/* Optional Name */}
+            <div className="footer-modal-field">
+              <label className="footer-modal-label" htmlFor="fb-name">
+                Name <span className="footer-modal-optional">(optional)</span>
+              </label>
+              <input
+                id="fb-name"
+                type="text"
+                className="footer-modal-input"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={100}
+              />
+            </div>
+
+            {/* Optional Email */}
+            <div className="footer-modal-field">
+              <label className="footer-modal-label" htmlFor="fb-email">
+                Email <span className="footer-modal-optional">(optional — for follow-up)</span>
+              </label>
+              <input
+                id="fb-email"
+                type="email"
+                className="footer-modal-input"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                maxLength={200}
+              />
+            </div>
+
+            {submitError && (
+              <p className="footer-modal-error" role="alert">{submitError}</p>
+            )}
+
+            <button
+              type="submit"
+              className="footer-modal-btn"
+              disabled={submitting}
+            >
+              {submitting ? "Submitting…" : "Submit Feedback"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function FooterModal({
   type,
   onClose,
@@ -190,7 +357,8 @@ function FooterModal({
 }
 
 export default function Footer() {
-  const [openPolicy, setOpenPolicy] = useState<PolicyType>(null);
+  const [openPolicy,    setOpenPolicy]    = useState<PolicyType>(null);
+  const [feedbackOpen,  setFeedbackOpen]  = useState(false);
 
   return (
     <>
@@ -270,17 +438,15 @@ export default function Footer() {
         {/* ── Bottom divider line ── */}
         <div className="footer-divider" />
 
-        {/* ── Send Feedback text link ── */}
+        {/* ── Send Feedback button ── */}
         <div className="footer-feedback-row">
-          <a
-            href={GOOGLE_FORM_URL || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="footer-feedback-link"
-            onClick={GOOGLE_FORM_URL ? undefined : (e) => e.preventDefault()}
+          <button
+            type="button"
+            className="footer-feedback-btn"
+            onClick={() => setFeedbackOpen(true)}
           >
-            Send Feedback →
-          </a>
+            Send Feedback
+          </button>
 
           {/* Cookie settings — preserves modal handler */}
           <button
@@ -294,8 +460,11 @@ export default function Footer() {
         </div>
       </footer>
 
-      {/* Policy modals — preserve all handlers */}
+      {/* Policy modals */}
       <FooterModal type={openPolicy} onClose={() => setOpenPolicy(null)} />
+
+      {/* In-app feedback modal */}
+      {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
     </>
   );
 }

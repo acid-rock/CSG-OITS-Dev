@@ -254,3 +254,21 @@ export const logbookAdminCheckoutSchema = z.object({
 export const logbookAdminDeleteSchema = z.object({
   session_id: uuidField,
 });
+
+// ─── Site Feedback ────────────────────────────────────────────────────────────
+
+export const feedbackSubmitSchema = z.object({
+  type: z.enum(['Bug Report', 'Suggestion', 'Compliment', 'Other']),
+  message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message too long'),
+  name: z.string().max(100).optional(),
+  email: z.string().email('Invalid email address').max(200).optional().or(z.literal('')),
+});
+
+export const feedbackUpdateSchema = z.object({
+  id: uuidField,
+  status: z.enum(['new', 'read', 'resolved']),
+});
+
+export const feedbackDeleteSchema = z.object({
+  ids: z.array(uuidField).min(1, 'At least one ID required'),
+});

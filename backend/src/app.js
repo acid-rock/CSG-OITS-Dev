@@ -18,6 +18,7 @@ import viewsRoutes from "./routes/views.routes.js";
 import committeePinsRoutes from "./routes/committee-pins.routes.js";
 import accessRoutes from "./routes/access.routes.js";
 import logbookRoutes from "./routes/logbook.routes.js";
+import feedbackRoutes from "./routes/feedback.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -132,6 +133,9 @@ app.use("/api/v1/committee-pins", adminLimiter, committeePinsRoutes);
 // and would exhaust 100 req/15min in ~36s when all users share a campus IP.
 app.use("/api/v1/access",        accessRoutes);
 app.use("/api/v1/logbook",       adminLimiter,  logbookRoutes);
+// POST /feedback is public; GET/PATCH/DELETE are auth-gated inside the router.
+// publicLimiter (100/15 min) is intentionally strict here to prevent spam submissions.
+app.use("/api/v1/feedback",      publicLimiter, feedbackRoutes);
 
 // Health route
 app.get("/health", (req, res) => {

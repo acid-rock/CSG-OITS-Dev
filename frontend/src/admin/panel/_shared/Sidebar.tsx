@@ -48,6 +48,7 @@ const GROUPS = [
     { id: 'finance',       label: 'Finance',       Icon: I.trend,    preview: false },
     { id: 'auditlog',      label: 'Audit Log',     Icon: I.log,      preview: false },
     { id: 'contributors',  label: 'Contributors',  Icon: I.users,    preview: false },
+    { id: 'feedback',      label: 'Feedback',      Icon: I.message,  preview: false },
     { id: 'settings',      label: 'Settings',      Icon: I.settings, preview: false },
     { id: 'bin',           label: 'Bin',           Icon: I.bin,      preview: false },
   ]},
