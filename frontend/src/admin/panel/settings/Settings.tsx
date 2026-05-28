@@ -173,6 +173,13 @@ const Settings = () => {
   const [ohSaving,    setOhSaving]    = useState(false);
   const [ohSaved,     setOhSaved]     = useState(false);
   const [ohError,     setOhError]     = useState('');
+  // Tick every 60s while the office_hours section is open — keeps the countdown fresh
+  const [nowMs,       setNowMs]       = useState(() => Date.now());
+  useEffect(() => {
+    if (activeSection !== 'office_hours') return;
+    const id = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, [activeSection]);
 
   // Committee PINs
   const [pins,       setPins]       = useState<CommitteePins>({ publication: '', secretariat: '', finance: '' });
@@ -918,12 +925,23 @@ const Settings = () => {
                   title="Office hours"
                   sub="When the CSG office is staffed — drives auto-checkout and the public Office page"
                 >
+                  {/* Column headers */}
                   <div className="st-oh-grid">
+                    <div className="st-oh-header">
+                      <span>Day</span>
+                      <span />
+                      <div className="st-oh-times-header">
+                        <span>Opens</span>
+                        <span className="st-oh-sep">→</span>
+                        <span className="st-oh-header-auto">Auto-checkout</span>
+                      </div>
+                    </div>
+
                     {officeHours.map((row, idx) => {
                       const isClosed = row.open === null;
                       const isToday  = new Date().toLocaleDateString('en-US', { weekday: 'long' }) === row.day;
                       return (
-                        <div key={row.day} className={`st-oh-row${isClosed ? ' is-closed' : ''}`}>
+                        <div key={row.day} className={`st-oh-row${isClosed ? ' is-closed' : ''}${isToday ? ' is-today' : ''}`}>
                           {/* Day name */}
                           <div className="st-oh-day">
                             <span className="st-oh-day-name">{row.day}</span>
@@ -941,7 +959,7 @@ const Settings = () => {
                           {/* Time range or closed label */}
                           <div className="st-oh-times">
                             {isClosed ? (
-                              <span className="st-oh-closed-lbl">Closed</span>
+                              <span className="st-oh-closed-lbl">Closed — no auto-checkout</span>
                             ) : (
                               <>
                                 <input
@@ -951,12 +969,14 @@ const Settings = () => {
                                   onChange={(e) => updateOhDay(idx, 'open', e.target.value)}
                                 />
                                 <span className="st-oh-sep">→</span>
-                                <input
-                                  className="st-input is-mono st-oh-time-input"
-                                  type="time"
-                                  value={row.close ?? '19:00'}
-                                  onChange={(e) => updateOhDay(idx, 'close', e.target.value)}
-                                />
+                                <div className="st-oh-auto-wrap">
+                                  <input
+                                    className="st-input is-mono st-oh-time-input st-oh-time-input--auto"
+                                    type="time"
+                                    value={row.close ?? '19:00'}
+                                    onChange={(e) => updateOhDay(idx, 'close', e.target.value)}
+                                  />
+                                </div>
                               </>
                             )}
                           </div>
@@ -965,11 +985,71 @@ const Settings = () => {
                     })}
                   </div>
 
+                  {/* Auto-checkout live status */}
+                  {(() => {
+                    const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+                    const todayRow  = officeHours.find((r) => r.day === todayName);
+                    const closeTime = todayRow?.open !== null ? (todayRow?.close ?? null) : null;
+
+                    if (!closeTime) {
+                      return (
+                        <div className="st-oh-auto-status is-closed">
+                          <ClockIcon width="14" height="14" />
+                          <div className="st-oh-auto-body">
+                            <span className="st-oh-auto-label">Today&rsquo;s auto-checkout</span>
+                            <span className="st-oh-auto-val is-muted">{todayName} is marked closed — no auto-checkout today</span>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Parse close time and compute PH countdown
+                    const [ch, cm] = closeTime.split(':').map(Number);
+                    const closeMin = ch * 60 + cm;
+                    const now      = new Date(nowMs);
+                    const utcMin   = now.getUTCHours() * 60 + now.getUTCMinutes();
+                    const curMin   = (utcMin + 8 * 60) % (24 * 60); // UTC+8
+                    const diffMin  = closeMin - curMin;
+
+                    const h12    = ch % 12 || 12;
+                    const ampm   = ch >= 12 ? 'PM' : 'AM';
+                    const fmtMin = cm === 0 ? '' : `:${String(cm).padStart(2, '0')}`;
+                    const fmtClose = `${h12}${fmtMin} ${ampm}`;
+
+                    let countdownStr: string;
+                    let isDone = false;
+                    if (diffMin <= 0) {
+                      countdownStr = 'Already ran today';
+                      isDone = true;
+                    } else {
+                      const hLeft = Math.floor(diffMin / 60);
+                      const mLeft = diffMin % 60;
+                      countdownStr = hLeft === 0
+                        ? `Triggers in ${mLeft}m`
+                        : mLeft === 0
+                        ? `Triggers in ${hLeft}h`
+                        : `Triggers in ${hLeft}h ${mLeft}m`;
+                    }
+
+                    return (
+                      <div className="st-oh-auto-status">
+                        <ClockIcon width="14" height="14" />
+                        <div className="st-oh-auto-body">
+                          <span className="st-oh-auto-label">Today&rsquo;s auto-checkout ({todayName})</span>
+                          <span className="st-oh-auto-val">{fmtClose}</span>
+                        </div>
+                        <span className={`st-oh-auto-countdown${isDone ? ' is-done' : ''}`}>
+                          {countdownStr}
+                        </span>
+                      </div>
+                    );
+                  })()}
+
                   <div className="st-callout">
                     <AlertIcon width="14" height="14" className="st-callout-icon" />
                     <div>
-                      The closing time determines when the logbook <strong>auto-checks out</strong> officers who forget to scan the exit QR.
-                      Changes take effect within 5 minutes (cache refresh). The public <em>/office</em> page reflects these hours immediately on save.
+                      The <strong>Auto-checkout</strong> time is when the logbook automatically checks out officers who forget to scan the exit QR.
+                      Edit it by changing the closing time for each day above. Changes take effect within 5 minutes.
                     </div>
                   </div>
 
@@ -980,7 +1060,7 @@ const Settings = () => {
                   <div className="st-save-bar" style={{ margin: '4px -18px -18px' }}>
                     <div className="st-save-bar-status">
                       <ClockIcon width="14" height="14" />
-                      Auto-checkout uses today&rsquo;s closing time from this schedule.
+                      Save to update the auto-checkout schedule immediately.
                     </div>
                     <div className="st-save-bar-actions">
                       <button

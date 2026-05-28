@@ -414,6 +414,30 @@
   border-radius:var(--radius-card);
   overflow:hidden;
 }
+
+/* Column header row */
+.st-oh-header{
+  display:grid;
+  grid-template-columns: 160px 46px 1fr;
+  align-items:center;
+  gap:16px;
+  padding:8px 16px;
+  background:#f8fafc;
+  border-bottom:1px solid var(--color-border-soft);
+  font-size:10px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase;
+  color:var(--color-text-hint);
+}
+.st-oh-times-header{
+  display:flex; align-items:center; gap:8px;
+}
+.st-oh-times-header > span:first-child{
+  width:116px; text-align:center;
+}
+.st-oh-header-auto{
+  color:var(--color-primary);
+}
+
+/* Day rows */
 .st-oh-row{
   display:grid;
   grid-template-columns: 160px 46px 1fr;
@@ -428,6 +452,9 @@
 .st-oh-row:hover{ background:#fafbff; }
 .st-oh-row.is-closed{ background:#fafbff; }
 .st-oh-row.is-closed:hover{ background:#f4f6fd; }
+/* Highlight today's row subtly */
+.st-oh-row.is-today{ background:rgba(79,111,209,0.03); }
+.st-oh-row.is-today:hover{ background:rgba(79,111,209,0.06); }
 
 .st-oh-day{
   display:flex; align-items:center; gap:8px;
@@ -449,6 +476,17 @@
   padding:7px 10px !important;
   font-size:12.5px !important;
 }
+/* Auto-checkout input gets a subtle blue tint */
+.st-oh-time-input--auto{
+  border-color:rgba(79,111,209,0.3) !important;
+  background:rgba(79,111,209,0.03) !important;
+}
+.st-oh-time-input--auto:focus{
+  border-color:var(--color-primary) !important;
+  background:#fff !important;
+}
+.st-oh-auto-wrap{ position:relative; }
+
 .st-oh-sep{
   font-size:11px; color:var(--color-text-muted);
   flex-shrink:0; font-weight:600;
@@ -456,6 +494,53 @@
 .st-oh-closed-lbl{
   font-size:12px; color:var(--color-text-hint);
   font-style:italic;
+}
+
+/* ── AUTO-CHECKOUT STATUS PANEL ─────────────────────────────── */
+.st-oh-auto-status{
+  display:flex; align-items:center; gap:12px;
+  padding:11px 14px;
+  background:rgba(79,111,209,0.05);
+  border:1px solid rgba(79,111,209,0.18);
+  border-radius:var(--radius-card);
+  margin-top:10px;
+  color:var(--color-primary-deep);
+  flex-shrink:0;
+}
+.st-oh-auto-status.is-closed{
+  background:#fafbff;
+  border-color:var(--color-border-soft);
+  color:var(--color-text-muted);
+}
+.st-oh-auto-body{
+  flex:1; min-width:0;
+  display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+}
+.st-oh-auto-label{
+  font-size:11.5px; font-weight:600;
+  color:var(--color-text-muted);
+  white-space:nowrap;
+}
+.st-oh-auto-val{
+  font-size:15px; font-weight:700;
+  color:var(--color-primary-deep);
+  letter-spacing:-0.01em;
+}
+.st-oh-auto-val.is-muted{
+  font-size:12px; font-weight:400; font-style:italic;
+  color:var(--color-text-hint);
+}
+.st-oh-auto-countdown{
+  font-size:11.5px; font-weight:700;
+  color:var(--color-primary);
+  background:rgba(79,111,209,0.10);
+  padding:4px 11px;
+  border-radius:var(--radius-pill);
+  white-space:nowrap; flex-shrink:0;
+}
+.st-oh-auto-countdown.is-done{
+  color:var(--color-text-muted);
+  background:var(--color-surface);
 }
 
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
