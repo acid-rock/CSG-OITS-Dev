@@ -96,7 +96,7 @@ function OfficerAvatar({ officer, size }: { officer: OfficerInfo; size: number }
       <span className="od-now-avatar" style={{ width: size, height: size }}>
         <img
           src={officer.avatar_url}
-          alt={officer.full_name}
+          alt={officer.full_name ?? ''}
           onError={() => setImgErr(true)}
         />
       </span>
@@ -107,7 +107,7 @@ function OfficerAvatar({ officer, size }: { officer: OfficerInfo; size: number }
       className="od-now-avatar"
       style={{ width: size, height: size, background: `linear-gradient(135deg, ${c1}, ${c2})`, fontSize }}
     >
-      {getInitials(officer.full_name)}
+      {getInitials(officer.full_name ?? '')}
     </span>
   );
 }
@@ -122,11 +122,11 @@ function MiniAvatar({ officer }: { officer: OfficerInfo }) {
       <span
         className="ad-mini-avatar"
         style={{ overflow: 'hidden' }}
-        title={officer.full_name}
+        title={officer.full_name ?? ''}
       >
         <img
           src={officer.avatar_url}
-          alt={officer.full_name}
+          alt={officer.full_name ?? ''}
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
           onError={() => setImgErr(true)}
         />
@@ -136,10 +136,10 @@ function MiniAvatar({ officer }: { officer: OfficerInfo }) {
   return (
     <span
       className="ad-mini-avatar"
-      title={officer.full_name}
+      title={officer.full_name ?? ''}
       style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
     >
-      {getInitials(officer.full_name)}
+      {getInitials(officer.full_name ?? '')}
     </span>
   );
 }
