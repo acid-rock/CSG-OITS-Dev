@@ -13,12 +13,13 @@ const API = import.meta.env.VITE_API_URL as string;
 
 /* ─── Types ──────────────────────────────────────────────── */
 interface OfficerInfo {
-  id:             string;
-  full_name:      string;
-  position:       string;
-  avatar_url:     string | null;
-  committee_id:   number | null;
-  committee_name: string | null;
+  id:                   string;
+  full_name:            string;
+  position:             string;
+  avatar_url:           string | null;
+  committee_id:         number | null;
+  committee_name:       string | null;
+  is_committee_official: boolean;
 }
 
 interface LogbookEntry {
@@ -205,8 +206,30 @@ export default function OfficePage() {
 
   const present = sessions.filter((s) => !s.check_out_at && !s.auto_checkout);
   const earlier = sessions.filter((s) => !!s.check_out_at && !s.auto_checkout);
-  const isClosed = !loading && present.length === 0;
-  const count = present.length;
+
+  /* Deduplicate by officer name — an officer can hold multiple roles
+     (e.g. VP of Internal Affairs + RIAC Chairperson). Show only one card
+     per person, preferring the CSG-wide role (is_committee_official = false)
+     over a committee role so the highest position is always displayed. */
+  const dedup = (list: typeof sessions) => {
+    const seen = new Map<string, typeof sessions[0]>();
+    for (const s of list) {
+      const name = s.officer?.full_name;
+      if (!name) continue;
+      const existing = seen.get(name);
+      if (!existing) { seen.set(name, s); continue; }
+      // Replace if existing is a committee role and incoming is a CSG-wide role
+      const existingIsCommittee = existing.officer?.is_committee_official ?? true;
+      const incomingIsCommittee = s.officer?.is_committee_official ?? true;
+      if (existingIsCommittee && !incomingIsCommittee) seen.set(name, s);
+    }
+    return [...seen.values()];
+  };
+
+  const dedupPresent = dedup(present);
+  const dedupEarlier = dedup(earlier);
+  const isClosed = !loading && dedupPresent.length === 0;
+  const count = dedupPresent.length;
 
   /* Google Maps — use saved coords if available, fall back to address search */
   const hasCoords = officeLat && officeLng
@@ -219,7 +242,7 @@ export default function OfficePage() {
     : `https://maps.google.com/maps?q=Cavite+State+University+Imus+Campus`;
 
   /* Mini-avatar strip for the counter foot */
-  const miniAvatars = present.slice(0, 4);
+  const miniAvatars = dedupPresent.slice(0, 4);
 
   /* "just now" vs time */
   const refreshLabel = (() => {
@@ -290,7 +313,7 @@ export default function OfficePage() {
                     );
                   })}
                 </span>
-                {present.slice(0, 2).map((s) => s.officer?.full_name.split(' ').slice(-1)[0]).filter(Boolean).join(', ')}
+                {dedupPresent.slice(0, 2).map((s) => s.officer?.full_name.split(' ').slice(-1)[0]).filter(Boolean).join(', ')}
                 {count > 2 ? ` and ${count - 2} other${count - 2 > 1 ? 's' : ''}` : ''}
               </div>
             )}
@@ -337,7 +360,7 @@ export default function OfficePage() {
           </div>
 
           <div className="oh-now-grid">
-            {present.map((s) => {
+            {dedupPresent.map((s) => {
               const officer = s.officer;
               if (!officer) return null;
               const dur = fmtDur(durMin(s.check_in_at, null));
@@ -362,7 +385,7 @@ export default function OfficePage() {
       )}
 
       {/* ── Earlier Today ── */}
-      {earlier.length > 0 && (
+      {dedupEarlier.length > 0 && (
         <section className="oh-section">
           <div className="oh-section-head">
             <div>
@@ -370,10 +393,10 @@ export default function OfficePage() {
               <h2>Was here today, has since <em>checked out</em></h2>
               <p>Sessions that already closed today. We keep the day&rsquo;s history visible so you can see typical traffic.</p>
             </div>
-            <span className="oh-section-meta">{earlier.length} closed session{earlier.length !== 1 ? 's' : ''}</span>
+            <span className="oh-section-meta">{dedupEarlier.length} closed session{dedupEarlier.length !== 1 ? 's' : ''}</span>
           </div>
           <div className="oh-earlier-card">
-            {earlier.map((s) => {
+            {dedupEarlier.map((s) => {
               const officer = s.officer;
               if (!officer) return null;
               const dur = fmtDur(durMin(s.check_in_at, s.check_out_at));
