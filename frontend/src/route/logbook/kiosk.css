@@ -625,26 +625,54 @@
 
 /* ── Clickable QR wrapper (display page) ─────────────────── */
 .kk-qr-link {
-  display:block;
-  cursor:pointer;
-  border-radius:12px;
-  transition:transform 150ms ease, box-shadow 150ms ease;
-  line-height:0; /* collapse inline whitespace */
+  display: block;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  line-height: 0; /* collapse inline whitespace */
+  /* Subtle persistent glow so the card reads as interactive even before hover */
+  box-shadow: 0 0 0 3px rgba(79,111,209,0.45);
 }
 .kk-qr-link:hover,
 .kk-qr-link:focus {
-  transform:scale(1.015);
-  box-shadow:0 0 0 6px rgba(255,255,255,0.35);
-  outline:none;
+  transform: scale(1.015);
+  box-shadow: 0 0 0 6px rgba(255,255,255,0.45);
+  outline: none;
 }
+
+/* Always-visible pill at the bottom of the QR — the primary tap affordance */
+.kk-qr-tap-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 18px;
+  padding: 10px 20px;
+  background: #0f1729;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border-radius: 999px;
+  font-family: var(--font-stack);
+  line-height: 1;
+  transition: background 150ms ease;
+}
+.kk-qr-link:hover .kk-qr-tap-badge,
+.kk-qr-link:focus .kk-qr-tap-badge {
+  background: var(--color-primary);
+}
+
+/* Hint text sits outside the white card on the dark blue background */
 .kk-qr-tap-hint {
-  font-size:13px;
-  color:rgba(255,255,255,0.5);
-  text-align:center;
-  margin-top:12px;
-  letter-spacing:0.02em;
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  margin-top: 14px;
+  margin-bottom: 0;
+  letter-spacing: 0.02em;
 }
-.kk-qr-tap-hint strong { color:rgba(255,255,255,0.8); }
+.kk-qr-tap-hint strong { color: rgba(255,255,255,0.85); }
 
 /* ── Accidental checkout banner (checkout-success phase) ─── */
 .kk-accident-banner {
