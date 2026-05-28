@@ -246,6 +246,12 @@ html {
   letter-spacing: -0.005em;
 }
 
+/* ── Dark mode: propagate color-scheme so native controls render dark ── */
+[data-theme="dark"],
+[data-theme="dark"] body {
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   padding: 0;

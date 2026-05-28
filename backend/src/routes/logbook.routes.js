@@ -436,7 +436,7 @@ router.post(
     const { officer_id } = req.body;
     const today = todayPH();
 
-    const { data: session } = await supabase
+    const { data: openSession } = await supabase
       .from("logbook_sessions")
       .select("id")
       .eq("officer_id", officer_id)
@@ -444,19 +444,110 @@ router.post(
       .is("check_out_at", null)
       .maybeSingle();
 
-    if (!session) {
+    if (!openSession) {
       throw new ApiError(404, "No open check-in session found for today.");
     }
 
-    const { error } = await supabase
+    const { data: closedSession, error } = await supabase
       .from("logbook_sessions")
       .update({ check_out_at: new Date().toISOString() })
-      .eq("id", session.id);
+      .eq("id", openSession.id)
+      .select()
+      .single();
 
     if (error) throw new ApiError(500, error.message);
 
-    return res.json({ message: "Checked out successfully." });
+    // Return officer name so the frontend can display it in the success screen
+    const { data: officerRow } = await supabase
+      .from("officers")
+      .select("full_name")
+      .eq("id", officer_id)
+      .single();
+
+    return res.json({
+      message:      "Checked out successfully.",
+      session:      closedSession,
+      officer_name: officerRow?.full_name ?? "",
+    });
   })
+);
+
+/**
+ * POST /api/v1/logbook/recheck-in
+ * Body: { officer_id }
+ *
+ * Re-opens a check-in session for an officer who accidentally checked out
+ * within a short window (< ACCIDENT_MAX_MIN minutes). The officer must call
+ * this within RECHECK_WINDOW_MIN minutes of the accidental checkout.
+ * No QR token or geolocation required — the original check-in was already
+ * geo-verified.
+ */
+router.post(
+  "/recheck-in",
+  validate(logbookCheckoutSchema), // reuses { officer_id } schema
+  asyncHandler(async (req, res) => {
+    const { officer_id } = req.body;
+    const today = todayPH();
+    const ACCIDENT_MAX_MIN   = 5;  // session must be shorter than this to qualify
+    const RECHECK_WINDOW_MIN = 10; // must call within this many minutes of checkout
+
+    // Block if already checked in
+    const { data: open } = await supabase
+      .from("logbook_sessions")
+      .select("id")
+      .eq("officer_id", officer_id)
+      .eq("date", today)
+      .is("check_out_at", null)
+      .maybeSingle();
+    if (open) throw new ApiError(409, "You are already checked in.");
+
+    // Find the most recent closed session today
+    const { data: recent } = await supabase
+      .from("logbook_sessions")
+      .select("id, check_in_at, check_out_at")
+      .eq("officer_id", officer_id)
+      .eq("date", today)
+      .not("check_out_at", "is", null)
+      .order("check_out_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!recent) throw new ApiError(404, "No session found for today.");
+
+    const msSinceCheckout   = Date.now() - new Date(recent.check_out_at).getTime();
+    const sessionDurationMs = new Date(recent.check_out_at).getTime() - new Date(recent.check_in_at).getTime();
+
+    if (msSinceCheckout > RECHECK_WINDOW_MIN * 60_000) {
+      throw new ApiError(
+        409,
+        `Re-check-in window has expired (${RECHECK_WINDOW_MIN} min). Please scan the QR code to check in again.`,
+      );
+    }
+    if (sessionDurationMs > ACCIDENT_MAX_MIN * 60_000) {
+      throw new ApiError(
+        409,
+        `Previous session was longer than ${ACCIDENT_MAX_MIN} minutes — not treated as accidental.`,
+      );
+    }
+
+    // Create new open session — no geo coords required
+    const { data: newSession, error } = await supabase
+      .from("logbook_sessions")
+      .insert({ officer_id, date: today, check_in_lat: null, check_in_lng: null })
+      .select()
+      .single();
+    if (error) throw new ApiError(500, error.message);
+
+    const { data: officerRow } = await supabase
+      .from("officers")
+      .select("full_name")
+      .eq("id", officer_id)
+      .single();
+
+    return res.status(201).json({
+      session:      newSession,
+      officer_name: officerRow?.full_name ?? "",
+    });
+  }),
 );
 
 // ─────────────────────────────────────────────────────────────────────────────

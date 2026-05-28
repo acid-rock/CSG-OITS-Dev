@@ -11,6 +11,14 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function(){
+        var k='csg-theme';
+        var t=localStorage.getItem(k);
+        if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
+        document.documentElement.setAttribute('data-theme',t);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

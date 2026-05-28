@@ -312,13 +312,26 @@ export default function LogbookDisplay() {
               confirm your name and student number.
             </p>
             <div className="kk-qr-card">
-              <QRCode
-                value={checkinUrl}
-                size={420}
-                className="kk-qr-img"
-                bgColor="#ffffff"
-                fgColor="#0f1729"
-              />
+              {/* Clicking the QR opens the check-in form in a new tab —
+                  useful when an officer is at the kiosk and can't scan. */}
+              <a
+                href={checkinUrl}
+                className="kk-qr-link"
+                title="Tap to open check-in form on this screen"
+                aria-label="Open check-in form"
+                onClick={(e) => { e.preventDefault(); window.open(checkinUrl, '_blank'); }}
+              >
+                <QRCode
+                  value={checkinUrl}
+                  size={420}
+                  className="kk-qr-img"
+                  bgColor="#ffffff"
+                  fgColor="#0f1729"
+                />
+              </a>
+              <p className="kk-qr-tap-hint">
+                Can&rsquo;t scan? <strong>Tap the QR</strong> to open on this screen.
+              </p>
             </div>
             <div
               className="kk-qr-refresh"

@@ -436,6 +436,31 @@ export default function LogbookCheckin() {
     }
   }, [token, officerId, studentNumber, lat, lng]);
 
+  /**
+   * Re-check-in after an accidental checkout (session < 5 min).
+   * No QR token required — server validates the recency of the short session.
+   */
+  const handleRecheck = useCallback(async () => {
+    if (!officerId) return;
+    setError('');
+    setSubmitting(true);
+    try {
+      const { data } = await axios.post(`${API}/logbook/recheck-in`, { officer_id: officerId });
+      setSuccessData({
+        officer_name: data.officer_name,
+        check_in_at:  data.session.check_in_at,
+      });
+      setPhase('success');
+    } catch (err) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })
+          ?.response?.data?.error ?? 'Could not re-check in. Please scan the QR code again.';
+      setError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [officerId]);
+
   const handleCheckout = useCallback(async () => {
     if (!officerId) return;
     setError('');
@@ -846,6 +871,14 @@ export default function LogbookCheckin() {
 
     /* ── Checkout success ── */
     if (phase === 'checkout-success' && checkoutSuccessData) {
+      // Detect accidental checkout: session lasted less than 5 minutes
+      const durationMs = checkoutSuccessData.check_in_at
+        ? new Date(checkoutSuccessData.check_out_at).getTime()
+          - new Date(checkoutSuccessData.check_in_at).getTime()
+        : Infinity;
+      const durationMin    = Math.floor(durationMs / 60_000);
+      const isShortSession = durationMin < 5;
+
       return (
         <div className="kk-card">
           <div
@@ -882,9 +915,33 @@ export default function LogbookCheckin() {
             </div>
           </div>
 
-          <p style={{ fontSize: 13, color: 'var(--color-text-muted)', textAlign: 'center', lineHeight: 1.55, marginBottom: 18 }}>
-            Your session has been logged. Thanks for serving.
-          </p>
+          {/* Accidental checkout banner — only when session was very short */}
+          {isShortSession ? (
+            <div className="kk-accident-banner">
+              <span className="kk-accident-msg">
+                That session was only{' '}
+                {durationMin === 0 ? 'under a minute' : `${durationMin} min`} —
+                accidental check-out?
+              </span>
+              {error && (
+                <p style={{ fontSize: 12, color: 'var(--color-danger-text)', textAlign: 'center', margin: 0 }}>
+                  {error}
+                </p>
+              )}
+              <button
+                className="kk-btn kk-btn--secondary"
+                style={{ width: '100%' }}
+                disabled={submitting}
+                onClick={handleRecheck}
+              >
+                {submitting ? 'Checking in…' : 'Re-check in'}
+              </button>
+            </div>
+          ) : (
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', textAlign: 'center', lineHeight: 1.55, marginBottom: 18 }}>
+              Your session has been logged. Thanks for serving.
+            </p>
+          )}
 
           <a href="/office" className="kk-btn kk-btn--ghost" style={{ textDecoration: 'none' }}>
             Done

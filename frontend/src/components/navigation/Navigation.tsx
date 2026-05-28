@@ -4,6 +4,19 @@ import { Menu, X, ChevronDown } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../../assets/CSG_logo.svg";
 import Typography from "../typography/Typography";
+import { useTheme } from "../../hooks/useTheme";
+
+const SunIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+  </svg>
+);
+const MoonIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+);
 
 /* ── Dropdown item icons ── */
 const DDIcons = {
@@ -96,6 +109,7 @@ const NAV_GROUPS = [
 
 export default function Navigation() {
   const navigate = useNavigate();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   /* openGroup is kept for aria-expanded and click-to-toggle on keyboard/click */
@@ -188,6 +202,17 @@ export default function Navigation() {
               </div>
             </div>
           ))}
+
+          {/* Theme toggle — desktop */}
+          <button
+            type="button"
+            className="nav-theme-btn"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          >
+            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          </button>
         </div>
 
         {/* ── Mobile hamburger ── */}
@@ -247,6 +272,17 @@ export default function Navigation() {
               )}
             </div>
           ))}
+
+          {/* Theme toggle — mobile */}
+          <button
+            type="button"
+            className="nav-theme-btn nav-theme-btn-mobile"
+            onClick={() => { toggleTheme(); closeMenu(); }}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+            <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+          </button>
         </div>
       </div>
     </nav>

@@ -139,6 +139,19 @@
   cursor:pointer; transition:var(--transition);
 }
 .ad-sb-logout:hover{ background:rgba(0,0,0,0.3); }
+.ad-sb-theme-btn{
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,0.10);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:var(--radius-btn);
+  color:#fff; font-size:12px; font-weight:600;
+  font-family:var(--font-stack);
+  padding:8px 14px; cursor:pointer;
+  margin:0 14px 6px;
+  transition:background 180ms ease;
+  width:calc(100% - 28px);
+}
+.ad-sb-theme-btn:hover{ background:rgba(255,255,255,0.18); }
 
 /* ── MAIN COLUMN ──────────────────────────────────────────── */
 .ad-main{
@@ -735,4 +748,28 @@
 .ad-modal-overlay::-webkit-scrollbar-thumb:hover,
 .ad-modal-overlay > *::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary-light);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DARK MODE — .ad-root token overrides
+   Keyed off [data-theme="dark"] on <html>, cascades into .ad-root
+   ══════════════════════════════════════════════════════════════ */
+[data-theme="dark"] .ad-root {
+  --color-surface:         #0e1219;
+  --color-surface-deep:    #111624;
+  --color-white:           #1d2438;
+  --color-border:          #2a3550;
+  --color-border-soft:     #1e2840;
+  --color-text-primary:    #eef2ff;
+  --color-text-secondary:  #b8c4e0;
+  --color-text-muted:      #7888a4;
+  --color-text-hint:       #4a5568;
+  --color-primary-light:   rgba(79,111,209,0.18);
+  --shadow-soft:           0 1px 2px rgba(0,0,0,0.3),0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-pop:            0 8px 28px -8px rgba(0,0,0,0.5),0 2px 6px -2px rgba(0,0,0,0.3);
+  background:              #0e1219;
+}
+[data-theme="dark"] .ad-root .ad-modal-overlay,
+[data-theme="dark"] .ad-root .ad-modal-backdrop {
+  background: rgba(0,0,0,0.75);
 }

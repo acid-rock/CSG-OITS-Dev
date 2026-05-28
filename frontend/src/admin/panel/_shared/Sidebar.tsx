@@ -9,6 +9,19 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { I } from './icons';
 import SidebarPreview from './SidebarPreview';
+import { useTheme } from '../../../hooks/useTheme';
+
+const SunIcon = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+  </svg>
+);
+const MoonIcon = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+);
 
 interface SidebarProps {
   active: string;
@@ -41,6 +54,7 @@ const ADMIN_NAME_CACHE_KEY = 'csg_admin_name';
 
 export default function Sidebar({ active }: SidebarProps) {
   const navigate = useNavigate();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [adminName, setAdminName] = useState<string>(
     () => localStorage.getItem(ADMIN_NAME_CACHE_KEY) ?? 'Admin'
   );
@@ -153,6 +167,12 @@ export default function Sidebar({ active }: SidebarProps) {
             </div>
           ))}
         </nav>
+
+        {/* Theme toggle */}
+        <button className="ad-sb-theme-btn" onClick={toggleTheme} aria-label="Toggle theme">
+          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+        </button>
 
         {/* Logout */}
         <button className="ad-sb-logout" onClick={handleLogout}>

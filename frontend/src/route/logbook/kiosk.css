@@ -622,3 +622,46 @@
   font-size:14px; font-weight:600; color:var(--color-text-primary);
 }
 .kk-phone-status-right{ display:flex; gap:6px; align-items:center; }
+
+/* ── Clickable QR wrapper (display page) ─────────────────── */
+.kk-qr-link {
+  display:block;
+  cursor:pointer;
+  border-radius:12px;
+  transition:transform 150ms ease, box-shadow 150ms ease;
+  line-height:0; /* collapse inline whitespace */
+}
+.kk-qr-link:hover,
+.kk-qr-link:focus {
+  transform:scale(1.015);
+  box-shadow:0 0 0 6px rgba(255,255,255,0.35);
+  outline:none;
+}
+.kk-qr-tap-hint {
+  font-size:13px;
+  color:rgba(255,255,255,0.5);
+  text-align:center;
+  margin-top:12px;
+  letter-spacing:0.02em;
+}
+.kk-qr-tap-hint strong { color:rgba(255,255,255,0.8); }
+
+/* ── Accidental checkout banner (checkout-success phase) ─── */
+.kk-accident-banner {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  background:var(--color-warning-bg);
+  border:1px solid rgba(217,119,6,0.4);
+  border-radius:var(--radius-card);
+  padding:14px 18px;
+  margin-bottom:14px;
+}
+.kk-accident-msg {
+  font-size:13px;
+  color:var(--color-warning-text);
+  text-align:center;
+  line-height:1.55;
+  font-weight:500;
+}
