@@ -62,6 +62,7 @@ const Documents = () => {
   const [adminMap, setAdminMap] = useState<Record<string, { full_name: string | null; email: string }>>({});
   const PAGE_SIZE = 25;
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -196,8 +197,10 @@ const Documents = () => {
   const filteredActive = data
     .filter(entry => !filter || filter === "All" || formatTypeLabel(entry.category ?? "") === filter)
     .filter(entry => !searchQuery || entry.name.toLowerCase().includes(searchQuery.toLowerCase()) || (entry.description ?? "").toLowerCase().includes(searchQuery.toLowerCase()))
-    // Default: newest first
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort((a, b) => {
+      const diff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return sort === 'newest' ? diff : -diff;
+    });
 
   // Active tab pagination
   const aTotalPages = Math.max(1, Math.ceil(filteredActive.length / PAGE_SIZE));
@@ -276,7 +279,8 @@ const Documents = () => {
           search={searchQuery}
           onSearch={setSearchQuery}
           onRefresh={handleRefresh}
-          showSort={false}
+          sortLabel={sort === 'newest' ? 'Newest first' : 'Oldest first'}
+          onSortToggle={() => setSort((s) => s === 'newest' ? 'oldest' : 'newest')}
         >
           <select
             value={filter}

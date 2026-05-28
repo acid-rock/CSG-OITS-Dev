@@ -90,6 +90,7 @@ const Events = () => {
   const [openTerms, setOpenTerms] = useState<Record<string, boolean>>({});
   const PAGE_SIZE = 25;
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -222,7 +223,11 @@ const Events = () => {
         !searchQuery ||
         entry.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (entry.description ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    )
+    .sort((a, b) => {
+      const diff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return sort === 'newest' ? diff : -diff;
+    });
 
   // Archived tab — grouped by term (accordion)
   const archivedGroups = tab === "archived" ? groupByTerm(data) : {};
@@ -302,7 +307,8 @@ const Events = () => {
           search={searchQuery}
           onSearch={setSearchQuery}
           onRefresh={handleRefresh}
-          showSort={false}
+          sortLabel={sort === 'newest' ? 'Newest first' : 'Oldest first'}
+          onSortToggle={() => setSort((s) => s === 'newest' ? 'oldest' : 'newest')}
         >
           <select
             value={filter}

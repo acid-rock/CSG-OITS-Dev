@@ -74,6 +74,7 @@ const Announcement = () => {
   const [adminMap, setAdminMap] = useState<Record<string, { full_name: string | null; email: string }>>({});
   const PAGE_SIZE = 25;
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -266,7 +267,14 @@ const Announcement = () => {
         !searchQuery ||
         entry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (entry.content ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    )
+    .sort((a, b) => {
+      // Pinned items always appear first regardless of sort direction
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+      const diff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      return sort === 'newest' ? diff : -diff;
+    });
 
   // Active tab pagination
   const aTotalPages = Math.max(1, Math.ceil(filteredActive.length / PAGE_SIZE));
@@ -345,7 +353,8 @@ const Announcement = () => {
           search={searchQuery}
           onSearch={setSearchQuery}
           onRefresh={handleRefresh}
-          showSort={false}
+          sortLabel={sort === 'newest' ? 'Newest first' : 'Oldest first'}
+          onSortToggle={() => setSort((s) => s === 'newest' ? 'oldest' : 'newest')}
         >
           <select
             value={filter}

@@ -60,6 +60,7 @@ interface ToolbarProps {
   filters?: FilterItem[];
   sortLabel?: string;
   showSort?: boolean;
+  onSortToggle?: () => void;
   onRefresh?: () => void;
   /** Inline custom filter elements rendered between search and end controls */
   children?: ReactNode;
@@ -71,6 +72,7 @@ export function Toolbar({
   filters = [],
   sortLabel = 'Newest first',
   showSort = true,
+  onSortToggle,
   onRefresh,
   children,
 }: ToolbarProps) {
@@ -105,7 +107,7 @@ export function Toolbar({
         {showSort && (
           <>
             <span className="ad-sort-label">Sort by</span>
-            <button className="ad-sort">{sortLabel} <I.chev width="11" height="11" /></button>
+            <button className="ad-sort" onClick={onSortToggle}>{sortLabel} <I.chev width="11" height="11" /></button>
           </>
         )}
         <button className="ad-icon-btn" title="Refresh" onClick={onRefresh}>
