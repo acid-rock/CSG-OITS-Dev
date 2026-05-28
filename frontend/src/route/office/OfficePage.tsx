@@ -204,8 +204,8 @@ export default function OfficePage() {
   }, []);
   void tick; // suppress unused-var warning
 
-  const present = sessions.filter((s) => !s.check_out_at && !s.auto_checkout);
-  const earlier = sessions.filter((s) => !!s.check_out_at && !s.auto_checkout);
+  const present = sessions.filter((s) => !s.check_out_at);
+  const earlier = sessions.filter((s) => !!s.check_out_at);
 
   /* Deduplicate by officer name — an officer can hold multiple roles
      (e.g. VP of Internal Affairs + RIAC Chairperson). Show only one card

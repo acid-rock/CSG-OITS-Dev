@@ -78,17 +78,41 @@ function todayPH() {
   });
 }
 
-// ── Auto-close stale open sessions (previous calendar days) ──────────────────
+// ── Auto-close stale open sessions ───────────────────────────────────────────
+// 1. Always closes sessions from previous calendar days (forgot to check out).
+// 2. Also closes today's sessions once the office closing hour has passed
+//    (18:00 Asia/Manila = 6 PM), so attendance history is saved even when
+//    officers forget to scan the exit QR.
+
+const OFFICE_CLOSE_HOUR_PH = 18; // 6:00 PM
+
+function currentPhHour() {
+  const s = new Date().toLocaleTimeString("en-PH", {
+    timeZone: "Asia/Manila",
+    hour:     "2-digit",
+    hour12:   false,
+  });
+  return parseInt(s.split(":")[0], 10);
+}
 
 async function autoCloseStale(today) {
+  const now = new Date().toISOString();
+
+  // 1. Previous-day sessions — always close
   await supabase
     .from("logbook_sessions")
-    .update({
-      check_out_at: new Date().toISOString(),
-      auto_checkout: true,
-    })
+    .update({ check_out_at: now, auto_checkout: true })
     .lt("date", today)
     .is("check_out_at", null);
+
+  // 2. Today's sessions — close if past the office closing hour
+  if (currentPhHour() >= OFFICE_CLOSE_HOUR_PH) {
+    await supabase
+      .from("logbook_sessions")
+      .update({ check_out_at: now, auto_checkout: true })
+      .eq("date", today)
+      .is("check_out_at", null);
+  }
 }
 
 // ── IP subnet check ───────────────────────────────────────────────────────────
@@ -159,7 +183,7 @@ router.get(
       .select(
         `
         id, date, check_in_at, check_out_at, check_in_lat, check_in_lng, auto_checkout,
-        officers ( id, full_name, position, avatar, committee )
+        officers ( id, full_name, position, avatar, committee, is_committee_official )
       `
       )
       .eq("date", today)
@@ -204,6 +228,7 @@ router.get(
               committee_name: officer.committee
                 ? (committeeMap[officer.committee] ?? null)
                 : null,
+              is_committee_official: officer.is_committee_official ?? false,
             }
           : null,
       };

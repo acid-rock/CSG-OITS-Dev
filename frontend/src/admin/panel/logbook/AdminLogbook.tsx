@@ -823,14 +823,16 @@ export default function AdminLogbook() {
 
   /* ── Derived data ── */
   const presentSessions = liveSessions.filter((s) => !s.check_out_at);
-  const checkedOutToday = liveSessions.filter((s) => !!s.check_out_at && !s.auto_checkout).length;
+  // Auto-checkout sessions count as checked out — they represent real attendance
+  // that was closed by the end-of-day sweep rather than a manual QR scan.
+  const checkedOutToday = liveSessions.filter((s) => !!s.check_out_at).length;
 
-  const totalOfficeMinutes = liveSessions.reduce((acc, s) => {
-    if (s.auto_checkout) return acc;
-    return acc + durMin(s.check_in_at, s.check_out_at);
-  }, 0);
+  const totalOfficeMinutes = liveSessions.reduce(
+    (acc, s) => acc + durMin(s.check_in_at, s.check_out_at),
+    0,
+  );
 
-  const completedSessions = liveSessions.filter((s) => !!s.check_out_at && !s.auto_checkout);
+  const completedSessions = liveSessions.filter((s) => !!s.check_out_at);
   const avgMin = completedSessions.length > 0
     ? Math.floor(completedSessions.reduce((acc, s) => acc + durMin(s.check_in_at, s.check_out_at), 0) / completedSessions.length)
     : null;
