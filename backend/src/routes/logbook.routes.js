@@ -94,7 +94,7 @@ function todayPH() {
 //    (18:00 Asia/Manila = 6 PM), so attendance history is saved even when
 //    officers forget to scan the exit QR.
 
-const OFFICE_CLOSE_HOUR_PH = 18; // 6:00 PM
+const OFFICE_CLOSE_HOUR_PH = 19; // 7:00 PM
 
 function currentPhHour() {
   const s = new Date().toLocaleTimeString("en-PH", {
