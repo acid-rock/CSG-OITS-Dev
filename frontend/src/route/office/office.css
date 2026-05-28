@@ -837,9 +837,7 @@
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   DARK MODE — .oh-root token overrides
-   ══════════════════════════════════════════════════════════════ */
+/* DARK MODE: .oh-root token overrides — re-enable when dark mode is ready
 [data-theme="dark"] .oh-root {
   --color-surface:        #161c2a;
   --color-surface-deep:   #111624;
@@ -856,3 +854,4 @@
   --shadow-soft:          0 1px 2px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04);
   --shadow-card-hover:    0 8px 28px -8px rgba(0,0,0,0.5), 0 2px 6px -2px rgba(0,0,0,0.3);
 }
+*/

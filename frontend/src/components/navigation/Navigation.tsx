@@ -4,8 +4,10 @@ import { Menu, X, ChevronDown } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../../assets/CSG_logo.svg";
 import Typography from "../typography/Typography";
-import { useTheme } from "../../hooks/useTheme";
+// DARK MODE: re-enable when dark mode is ready
+// import { useTheme } from "../../hooks/useTheme";
 
+/* DARK MODE: icon components — re-enable when dark mode is ready
 const SunIcon = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="4"/>
@@ -17,6 +19,7 @@ const MoonIcon = () => (
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
   </svg>
 );
+*/
 
 /* ── Dropdown item icons ── */
 const DDIcons = {
@@ -109,7 +112,8 @@ const NAV_GROUPS = [
 
 export default function Navigation() {
   const navigate = useNavigate();
-  const { theme, toggle: toggleTheme } = useTheme();
+  // DARK MODE: re-enable when dark mode is ready
+  // const { theme, toggle: toggleTheme } = useTheme();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   /* openGroup is kept for aria-expanded and click-to-toggle on keyboard/click */
@@ -203,7 +207,7 @@ export default function Navigation() {
             </div>
           ))}
 
-          {/* Theme toggle — desktop */}
+          {/* DARK MODE: theme toggle desktop — re-enable when dark mode is ready
           <button
             type="button"
             className="nav-theme-btn"
@@ -213,6 +217,7 @@ export default function Navigation() {
           >
             {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
           </button>
+          */}
         </div>
 
         {/* ── Mobile hamburger ── */}
@@ -273,7 +278,7 @@ export default function Navigation() {
             </div>
           ))}
 
-          {/* Theme toggle — mobile */}
+          {/* DARK MODE: theme toggle mobile — re-enable when dark mode is ready
           <button
             type="button"
             className="nav-theme-btn nav-theme-btn-mobile"
@@ -283,6 +288,7 @@ export default function Navigation() {
             {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
           </button>
+          */}
         </div>
       </div>
     </nav>

@@ -507,7 +507,7 @@
   }
 }
 
-/* ── Theme toggle button ─────────────────────────────────────── */
+/* DARK MODE: theme toggle + nav overrides — re-enable when dark mode is ready
 .nav-theme-btn {
   display: inline-flex;
   align-items: center;
@@ -526,7 +526,6 @@
   background: var(--color-primary-light);
   color: var(--color-primary);
 }
-/* Mobile variant: full-width row with label text */
 .nav-theme-btn-mobile {
   width: 100%;
   height: auto;
@@ -542,8 +541,6 @@
   background: var(--color-primary-light);
   color: var(--color-primary);
 }
-
-/* ── Dark mode nav overrides ─────────────────────────────────── */
 [data-theme="dark"] .navigation-container {
   background: var(--color-surface);
   border-bottom-color: var(--color-border);
@@ -556,3 +553,4 @@
   background: var(--color-surface);
   border-bottom-color: var(--color-border);
 }
+*/

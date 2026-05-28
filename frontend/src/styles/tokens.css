@@ -153,29 +153,20 @@
   --section-padding-y: clamp(3rem, 8vw, 6rem);
 }
 
-/* ── Dark mode token overrides ───────────────────────────────── */
+/* DARK MODE: token overrides — re-enable when dark mode is ready
 [data-theme="dark"] {
-  /* Surface & background */
   --color-background:        #0e1219;
   --color-surface:           #161c2a;
   --color-surface-elevated:  #1d2438;
   --color-surface-deep:      #111624;
-
-  /* Borders */
   --color-border:            #2a3550;
   --color-border-soft:       #1e2840;
-
-  /* Text */
   --color-text-primary:      #eef2ff;
   --color-text-secondary:    #b8c4e0;
   --color-text-muted:        #7888a4;
   --color-text-hint:         #4a5568;
   --color-text-on-hero:      #eef2ff;
-
-  /* Primary accent — primary blue palette stays unchanged */
   --color-primary-light:     rgba(79, 111, 209, 0.18);
-
-  /* Shadows — darker base, lighter highlight ring */
   --shadow-sm:        0 1px 2px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04);
   --shadow-md:        0 4px 14px -4px rgba(0,0,0,0.4);
   --shadow-lg:        0 8px 28px -8px rgba(0,0,0,0.5), 0 2px 6px -2px rgba(0,0,0,0.3);
@@ -183,7 +174,6 @@
   --shadow-card-hover:0 8px 28px -8px rgba(0,0,0,0.5), 0 2px 6px -2px rgba(0,0,0,0.3);
   --shadow-pop:       0 24px 60px -20px rgba(0,0,0,0.6), 0 8px 20px -10px rgba(0,0,0,0.4);
   --shadow-modal:     0 30px 80px -20px rgba(0,0,0,0.7);
-
-  /* Native browser controls (date pickers, scrollbars) */
   color-scheme: dark;
 }
+*/

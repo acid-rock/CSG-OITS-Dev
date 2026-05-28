@@ -9,8 +9,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { I } from './icons';
 import SidebarPreview from './SidebarPreview';
-import { useTheme } from '../../../hooks/useTheme';
+// DARK MODE: re-enable when dark mode is ready
+// import { useTheme } from '../../../hooks/useTheme';
 
+/* DARK MODE: icon components — re-enable when dark mode is ready
 const SunIcon = () => (
   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="4"/>
@@ -22,6 +24,7 @@ const MoonIcon = () => (
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
   </svg>
 );
+*/
 
 interface SidebarProps {
   active: string;
@@ -54,7 +57,8 @@ const ADMIN_NAME_CACHE_KEY = 'csg_admin_name';
 
 export default function Sidebar({ active }: SidebarProps) {
   const navigate = useNavigate();
-  const { theme, toggle: toggleTheme } = useTheme();
+  // DARK MODE: re-enable when dark mode is ready
+  // const { theme, toggle: toggleTheme } = useTheme();
   const [adminName, setAdminName] = useState<string>(
     () => localStorage.getItem(ADMIN_NAME_CACHE_KEY) ?? 'Admin'
   );
@@ -168,11 +172,12 @@ export default function Sidebar({ active }: SidebarProps) {
           ))}
         </nav>
 
-        {/* Theme toggle */}
+        {/* DARK MODE: theme toggle — re-enable when dark mode is ready
         <button className="ad-sb-theme-btn" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
           <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
         </button>
+        */}
 
         {/* Logout */}
         <button className="ad-sb-logout" onClick={handleLogout}>

@@ -139,6 +139,7 @@
   cursor:pointer; transition:var(--transition);
 }
 .ad-sb-logout:hover{ background:rgba(0,0,0,0.3); }
+/* DARK MODE: sidebar theme button — re-enable when dark mode is ready
 .ad-sb-theme-btn{
   display:flex; align-items:center; gap:8px;
   background:rgba(255,255,255,0.10);
@@ -152,6 +153,7 @@
   width:calc(100% - 28px);
 }
 .ad-sb-theme-btn:hover{ background:rgba(255,255,255,0.18); }
+*/
 
 /* ── MAIN COLUMN ──────────────────────────────────────────── */
 .ad-main{
@@ -750,10 +752,7 @@
   background: var(--color-primary-light);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   DARK MODE — .ad-root token overrides
-   Keyed off [data-theme="dark"] on <html>, cascades into .ad-root
-   ══════════════════════════════════════════════════════════════ */
+/* DARK MODE: .ad-root token overrides — re-enable when dark mode is ready
 [data-theme="dark"] .ad-root {
   --color-surface:         #0e1219;
   --color-surface-deep:    #111624;
@@ -773,3 +772,4 @@
 [data-theme="dark"] .ad-root .ad-modal-backdrop {
   background: rgba(0,0,0,0.75);
 }
+*/
