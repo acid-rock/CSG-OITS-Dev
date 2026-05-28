@@ -164,6 +164,7 @@
   box-shadow: 0 30px 80px -20px rgba(15,23,41,0.35);
   max-height: calc(100dvh - 40px);
   overflow-y: auto;
+  margin: auto;
 }
 
 .org-modal-close {
@@ -248,12 +249,13 @@
   max-width: 860px;
   width: 94%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 20px;
   padding: 24px;
   text-align: left;
   max-height: calc(100dvh - 40px);
   overflow-y: auto;
+  margin: auto;
 }
 
 /* Close button anchored top-right regardless of flex layout */

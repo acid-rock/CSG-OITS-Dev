@@ -717,5 +717,121 @@ KNOWN REMAINING ITEMS (OUT OF SCOPE — NOT IMPLEMENTED)
     should be moved to services/redact/ before production)
 
 =============================================================================
+BUG FIX SESSION — 2026-05-28
+=============================================================================
+
+--- FIX 1: Organization modal vertical centering ---
+
+MODIFIED  frontend/src/components/organization-card/OrganizationCard.css
+  - Added: margin: auto to .org-modal and .org-modal--wide
+    (flex children with margin: auto center themselves inside the overlay
+    while preserving scroll behavior for tall content)
+  - Changed: align-items on .org-modal--wide from flex-start → center
+    (the parent card was flushed to the top of the overlay)
+
+--- FIX 2: Document modal close button overlap ---
+
+MODIFIED  frontend/src/components/document-modal/DocumentModal.tsx
+  - Added: <div className="modal__header"> wrapping a <span className="modal__title">
+    (document filename) and the existing × close <button>
+  - The Google Docs Viewer iframe "Pop out" button cannot be removed (cross-origin);
+    moving the custom close button into a header row above the iframe eliminates
+    the collision
+
+MODIFIED  frontend/src/components/document-modal/documentmodal.css
+  - Added: .modal__header — flex row with space-between, border-bottom
+  - Added: .modal__title — truncated single-line text with flex: 1
+  - Changed: .modal__close — removed absolute positioning; now a flex item in header
+  - Changed: .modal__iframe — from height: 100% to flex: 1; min-height: 0
+    (required for flex child to fill remaining space after header)
+
+--- FIX 3: Borrow equipment checkboxes non-functional ---
+
+MODIFIED  frontend/src/route/borrow/BorrowCheckout.tsx
+  - Replaced: <label> wrapping hidden <input type="checkbox"> for each purpose type
+  - Added: <div role="checkbox" aria-checked={...} tabIndex={0}> with onClick and
+    onKeyDown (Enter key) handlers
+  - Root cause: native label→input click delegation caused the state toggle to fire
+    twice (once from the label, once forwarded to the input), leaving state unchanged
+
+--- FIX 4: Reset password "Auth Session Missing" ---
+
+MODIFIED  backend/src/routes/user.routes.js  (POST /user/reset-password)
+  - Removed: createUserClient(access_token).auth.updateUser({ password })
+    which fails with "Auth Session Missing" because Supabase checks for an
+    in-memory session, not just an Authorization header
+  - Added: supabase.auth.getUser(access_token) to verify the token and resolve
+    the user ID server-side
+  - Added: supabase.auth.admin.updateUserById(userId, { password: new_password })
+    to set the new password via the service key (no in-memory session required)
+
+--- FIX 5: Reset password focus loss on every keystroke ---
+
+MODIFIED  frontend/src/admin/admin-loginpage/reset/Reset.tsx
+  - Moved: Shell layout component from inside Reset (defined as a nested function)
+    to module level as a named function above Reset
+  - Root cause: a component defined inside another component gets a new reference
+    on every render, causing React to unmount and remount the entire subtree on
+    every state update — focus was lost after each keypress
+  - Removed: autoFocus from the New Password <input>
+    (autoFocus was re-applied on every remount, stealing focus from Confirm field)
+
+--- FIX 6: Settings geofence — narrow field, static tip, no map ---
+
+MODIFIED  frontend/src/admin/panel/_shared/admin-settings.css
+  - Changed: geofence grid column from 1fr 1fr 110px → 1fr 1fr 160px
+    (radius input was too narrow to read values > 3 digits)
+
+MODIFIED  frontend/src/admin/panel/settings/Settings.tsx
+  - Added: savedGeoRadius state; populated on fetch and after successful save
+  - Added: buildGeofenceMap(lat, lng, radiusM) helper at module level — generates
+    a self-contained HTML string with Leaflet 1.9.4 + OpenStreetMap tiles,
+    a marker at the office coordinates, and a blue circle at the configured radius
+  - Replaced: Google Maps embed iframe (cannot draw circles) with <iframe srcDoc>
+    using the Leaflet HTML; sandbox="allow-scripts" restricts the iframe
+  - Changed: tip text radius value from hardcoded "200 m" to dynamic
+    savedGeoRadius || geoRadius || '150' so it reflects the saved value
+
+--- FIX 7: Dashboard — Office Geofence map card ---
+
+MODIFIED  frontend/src/admin/panel/dashboard/Dashboard.tsx
+  - Added: geoLat, geoLng, geoRadius state
+  - Added: buildGeofenceMap() helper (same implementation as Settings.tsx)
+  - Added: fetchGeoConfig() — reads logbook_lat, logbook_lng, logbook_radius_m
+    from /api/v1/settings/:key in parallel; wired into the main useEffect
+  - Added: "Office Geofence" card below Recent Activity in the left column;
+    conditionally rendered only when valid coordinates are saved; contains the
+    Leaflet iframe (240 px height) and an Edit button linking to the settings panel
+
+--- FIX 8: Logbook combobox — "No matches found" for middle-initial names ---
+
+MODIFIED  frontend/src/route/logbook/LogbookCheckin.tsx  (OfficerCombobox)
+  - Changed: officer name filter from simple name.includes(search) to word-by-word
+    matching: search.trim().toLowerCase().split(/\s+/).every(w => name.includes(w))
+  - Root cause: "john harold magma" is not a continuous substring of
+    "john harold r. magma" due to the middle initial; word-based matching finds
+    each word independently regardless of what separates them
+
+--- FIX 9: Logbook combobox — officers not loading (silent crash) ---
+
+MODIFIED  frontend/src/route/logbook/LogbookCheckin.tsx  (parseFirstPosition)
+  - Added: typeof raw !== 'string' guard in the early-return condition
+  - Root cause: at least one officer record in the database has a non-string
+    position value; passing it to parseFirstPosition() caused
+    "TypeError: raw.split is not a function"; the error was thrown inside the
+    Promise.allSettled().then() callback with no .catch(), silently preventing
+    setOfficers() from being called — the officers array stayed empty
+
+--- FIX 10: Logbook check-in — misleading "Location verified" label ---
+
+MODIFIED  frontend/src/route/logbook/LogbookCheckin.tsx  (check-in form)
+  - Changed: "Location verified" → "Location acquired"
+  - Changed: "You're within the CSG office radius." →
+    "Coordinates captured — radius will be verified on check-in."
+  - Root cause: the geofence check runs server-side on POST /checkin; the
+    frontend status only indicates that navigator.geolocation returned coordinates,
+    not that the coordinates are within the configured radius
+
+=============================================================================
 END OF CHANGE LOG
 =============================================================================

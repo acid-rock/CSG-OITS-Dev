@@ -680,18 +680,21 @@ export default function BorrowCheckout() {
                 <label className="chk-label">Purpose of equipment use</label>
                 <div className="chk-check-grid">
                   {([ 'academic', 'event', 'organization', 'others' ] as PurposeType[]).map((pt) => (
-                    <label
+                    <div
                       key={pt}
                       className={`chk-check${purposeType === pt ? ' is-checked' : ''}`}
                       onClick={() => setPurposeType(purposeType === pt ? '' : pt)}
+                      role="checkbox"
+                      aria-checked={purposeType === pt}
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && setPurposeType(purposeType === pt ? '' : pt)}
                     >
-                      <input type="checkbox" checked={purposeType === pt} readOnly style={{ display: 'none' }} />
                       <span className="chk-check-box">{purposeType === pt && <CheckIcon />}</span>
                       {pt === 'academic'     && 'Academic / Class use'}
                       {pt === 'event'        && 'Event / Program'}
                       {pt === 'organization' && 'Organization activity'}
                       {pt === 'others'       && 'Other'}
-                    </label>
+                    </div>
                   ))}
                 </div>
                 {purposeType === 'others' && (

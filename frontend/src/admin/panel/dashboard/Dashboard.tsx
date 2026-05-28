@@ -357,6 +357,37 @@ function ViewsLineChart({ stats, height = 220 }: { stats: ViewStats; height?: nu
   );
 }
 
+/* ── Geofence map helper ─────────────────────────────────── */
+function buildGeofenceMap(lat: number, lng: number, radiusM: number): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>html,body,#map{height:100%;margin:0;padding:0;}</style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+  <script>
+    var map = L.map('map', { scrollWheelZoom: false, zoomControl: true }).setView([${lat}, ${lng}], 17);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    L.marker([${lat}, ${lng}]).addTo(map);
+    L.circle([${lat}, ${lng}], {
+      radius: ${radiusM},
+      color: '#4f6fd1',
+      fillColor: '#4f6fd1',
+      fillOpacity: 0.12,
+      weight: 2
+    }).addTo(map);
+  <\/script>
+</body>
+</html>`;
+}
+
 /* ── Dashboard component ─────────────────────────────────── */
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -385,6 +416,11 @@ const Dashboard = () => {
   const [viewRange, setViewRange]     = useState<7 | 30>(7);
   /* Content Views card tab: 'views' = line chart, 'documents' = uploads bar chart */
   const [contentTab, setContentTab]   = useState<'views' | 'documents'>('views');
+  // Geofence map
+  const [geoLat,    setGeoLat]    = useState('');
+  const [geoLng,    setGeoLng]    = useState('');
+  const [geoRadius, setGeoRadius] = useState('');
+
   // Read cached admin name (set by Sidebar) — no extra API call needed
   const [adminFirstName] = useState<string>(() => {
     const cached = localStorage.getItem('csg_admin_name') ?? 'Admin';
@@ -497,6 +533,16 @@ const Dashboard = () => {
     }
   }, []);
 
+  const fetchGeoConfig = useCallback(async () => {
+    const [latR, lngR, radR] = await Promise.allSettled([
+      axios.get(`${API_URL}/settings/logbook_lat`,      { withCredentials: true }),
+      axios.get(`${API_URL}/settings/logbook_lng`,      { withCredentials: true }),
+      axios.get(`${API_URL}/settings/logbook_radius_m`, { withCredentials: true }),
+    ]);
+    if (latR.status === 'fulfilled') setGeoLat(latR.value.data.value ?? '');
+    if (lngR.status === 'fulfilled') setGeoLng(lngR.value.data.value ?? '');
+    if (radR.status === 'fulfilled') setGeoRadius(radR.value.data.value ?? '150');
+  }, []);
 
   useEffect(() => {
     fetchSummary();
@@ -505,7 +551,8 @@ const Dashboard = () => {
     fetchStorage();
     fetchPendingBorrows();
     fetchViewStats();
-  }, [fetchSummary, fetchRecentLogs, fetchWeeklyUploads, fetchStorage, fetchPendingBorrows, fetchViewStats]);
+    fetchGeoConfig();
+  }, [fetchSummary, fetchRecentLogs, fetchWeeklyUploads, fetchStorage, fetchPendingBorrows, fetchViewStats, fetchGeoConfig]);
 
   /* Computed values */
   const totalUsedMB = storageData.reduce((s, b) => s + b.size, 0) / (1024 * 1024);
@@ -714,6 +761,32 @@ const Dashboard = () => {
               </table>
             )}
           </div>
+
+          {/* Geofence map card */}
+          {geoLat && geoLng && !isNaN(parseFloat(geoLat)) && !isNaN(parseFloat(geoLng)) && (
+            <div className="dh-card">
+              <div className="dh-card-head">
+                <div>
+                  <span className="dh-card-eyebrow">Logbook · QR check-in</span>
+                  <h3>Office Geofence</h3>
+                </div>
+                <button className="dh-btn-ghost" onClick={() => navigate('/admin?panel=settings&section=logbook')}>
+                  Edit <IArrow width="12" height="12" />
+                </button>
+              </div>
+              <div style={{ borderRadius: 10, overflow: 'hidden', height: 240, border: '1px solid var(--color-border-soft)' }}>
+                <iframe
+                  srcDoc={buildGeofenceMap(parseFloat(geoLat), parseFloat(geoLng), parseFloat(geoRadius || '150'))}
+                  title="Office geofence"
+                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                  sandbox="allow-scripts"
+                />
+              </div>
+              <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--color-text-muted)' }}>
+                Blue circle = {geoRadius || '150'} m allowed check-in radius · CvSU Imus — CSG Office
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Right rail */}

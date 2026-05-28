@@ -210,8 +210,16 @@ router.post(
       throw new ApiError(400, "Access token is required.");
     }
 
-    const userClient = createUserClient(access_token);
-    const { error } = await userClient.auth.updateUser({ password: new_password });
+    // Verify the recovery token and resolve the user ID.
+    // createUserClient().auth.updateUser() fails with "Auth session missing" because
+    // it checks the in-memory session object, not the Authorization header.
+    // The admin API bypasses that requirement entirely.
+    const { data: userData, error: getUserError } = await supabase.auth.getUser(access_token);
+    if (getUserError || !userData?.user) throw new ApiError(401, "Recovery link is invalid or has expired.");
+
+    const { error } = await supabase.auth.admin.updateUserById(userData.user.id, {
+      password: new_password,
+    });
     if (error) throw new ApiError(400, error.message);
 
     return res.sendStatus(200);

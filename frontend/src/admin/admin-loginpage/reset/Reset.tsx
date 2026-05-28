@@ -69,64 +69,8 @@ function readTokenFromUrl(): string | null {
   return null;
 }
 
-const Reset: React.FC = () => {
-  // Read the URL synchronously at mount — avoids any useEffect timing gap.
-  const [rawToken]        = useState<string | null>(() => readTokenFromUrl());
-  const [accessToken, setAccessToken] = useState<string | null>(
-    rawToken && !rawToken.startsWith('code:') ? rawToken : null,
-  );
-
-  const [newPassword, setNewPassword]         = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError]     = useState('');
-  const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  // PKCE code exchange — fires only when a `code:` prefix token was found.
-  const [exchanging, setExchanging]       = useState(false);
-  const [exchangeError, setExchangeError] = useState('');
-
-  useEffect(() => {
-    if (!rawToken?.startsWith('code:')) return;
-    const code = rawToken.slice(5); // strip "code:" prefix
-    setExchanging(true);
-    axios
-      .post(`${API_URL}/user/exchange-code`, { code })
-      .then(({ data }) => setAccessToken(data.access_token))
-      .catch(() =>
-        setExchangeError(
-          'This recovery link has expired or has already been used. Please request a new one.',
-        ),
-      )
-      .finally(() => setExchanging(false));
-  }, [rawToken]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-
-    if (newPassword.length < 8)          { setError('Password must be at least 8 characters.'); return; }
-    if (!/[A-Z]/.test(newPassword))       { setError('Password must contain at least one uppercase letter.'); return; }
-    if (!/[0-9]/.test(newPassword))       { setError('Password must contain at least one number.'); return; }
-    if (newPassword !== confirmPassword)  { setError('Passwords do not match.'); return; }
-
-    setLoading(true);
-    try {
-      await axios.post(`${API_URL}/user/reset-password`, {
-        access_token: accessToken,
-        new_password: newPassword,
-      });
-      setSuccess(true);
-    } catch (err: unknown) {
-      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
-      setError(d?.error ?? d?.message ?? 'Failed to reset password.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ── Shared chrome ── */
-  const Shell = ({ children }: { children: React.ReactNode }) => (
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
     <div className="lv-glass">
       <div className="lv-glass-photo" />
       <div className="lv-glass-veil" />
@@ -191,6 +135,63 @@ const Reset: React.FC = () => {
       </footer>
     </div>
   );
+}
+
+const Reset: React.FC = () => {
+  // Read the URL synchronously at mount — avoids any useEffect timing gap.
+  const [rawToken]        = useState<string | null>(() => readTokenFromUrl());
+  const [accessToken, setAccessToken] = useState<string | null>(
+    rawToken && !rawToken.startsWith('code:') ? rawToken : null,
+  );
+
+  const [newPassword, setNewPassword]         = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError]     = useState('');
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // PKCE code exchange — fires only when a `code:` prefix token was found.
+  const [exchanging, setExchanging]       = useState(false);
+  const [exchangeError, setExchangeError] = useState('');
+
+  useEffect(() => {
+    if (!rawToken?.startsWith('code:')) return;
+    const code = rawToken.slice(5); // strip "code:" prefix
+    setExchanging(true);
+    axios
+      .post(`${API_URL}/user/exchange-code`, { code })
+      .then(({ data }) => setAccessToken(data.access_token))
+      .catch(() =>
+        setExchangeError(
+          'This recovery link has expired or has already been used. Please request a new one.',
+        ),
+      )
+      .finally(() => setExchanging(false));
+  }, [rawToken]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+
+    if (newPassword.length < 8)          { setError('Password must be at least 8 characters.'); return; }
+    if (!/[A-Z]/.test(newPassword))       { setError('Password must contain at least one uppercase letter.'); return; }
+    if (!/[0-9]/.test(newPassword))       { setError('Password must contain at least one number.'); return; }
+    if (newPassword !== confirmPassword)  { setError('Passwords do not match.'); return; }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API_URL}/user/reset-password`, {
+        access_token: accessToken,
+        new_password: newPassword,
+      });
+      setSuccess(true);
+    } catch (err: unknown) {
+      const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      setError(d?.error ?? d?.message ?? 'Failed to reset password.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /* ── Loading: exchanging PKCE code ── */
   if (exchanging) {
@@ -274,7 +275,6 @@ const Reset: React.FC = () => {
               onChange={e => setNewPassword(e.target.value)}
               placeholder="Min. 8 characters"
               required
-              autoFocus
               minLength={8}
               autoComplete="new-password"
             />

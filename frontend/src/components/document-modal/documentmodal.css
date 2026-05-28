@@ -24,19 +24,35 @@
   box-shadow: var(--shadow-modal);
 }
 
-/* X button — floats over the top-right corner */
+/* Header bar — sits above the iframe, houses title + close */
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px 10px 18px;
+  border-bottom: 1px solid var(--color-border-soft, #eef0f5);
+  flex-shrink: 0;
+}
+
+.modal__title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #374151);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .modal__close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 10;
-  width: 36px;
-  height: 36px;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: none;
   background: var(--color-primary);
   color: var(--color-white);
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -48,12 +64,13 @@
   background: var(--color-primary-dark);
 }
 
-/* iframe fills the entire modal */
+/* iframe fills the remaining space */
 .modal__iframe {
   width: 100%;
-  height: 100%;
+  flex: 1;
   border: none;
   display: block;
+  min-height: 0;
 }
 
 @media (max-width: 767px) {

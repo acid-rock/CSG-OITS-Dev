@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- **Admin Dashboard — Office Geofence map** — new card in the left column shows a Leaflet/OpenStreetMap map with the configured office location marker and a blue circle overlay at the saved radius; only rendered when coordinates are saved; links to Settings → Logbook for editing
+
+### Changed
+- **Settings — Geofence radius field** — column width widened from 110 px to 160 px so larger values are fully visible in the input
+- **Settings — Geofence preview map** — replaced static Google Maps iframe (which cannot draw circles) with a self-contained Leaflet/OpenStreetMap iframe via `srcDoc`; shows a pin marker and a blue circle at the configured radius; tip text now reflects the saved radius value dynamically instead of the hardcoded "200 m"
+- **Logbook check-in — location status label** — "Location verified / You're within the CSG office radius." changed to "Location acquired / Coordinates captured — radius will be verified on check-in." to avoid the false implication that the geofence has already passed before the check-in request is submitted
+
+### Fixed
+- Organization card modal spawned at the top of the viewport instead of being vertically centered — added `margin: auto` to `.org-modal` and `.org-modal--wide`; changed `align-items` on `.org-modal--wide` from `flex-start` to `center`
+- Document modal — Google Docs Viewer native "Pop out" button overlapped the custom × close button — added a `.modal__header` bar (document title + close button) above the iframe; removed absolute positioning from the close button so it is a flex item in the header row
+- Borrow equipment — purpose-type checkboxes could not be toggled — native `<label>` wrapping a hidden `<input type="checkbox">` caused a double-fire (label click forwarded to input, toggling state twice back to its original value); replaced with `<div role="checkbox">` driven by `onClick` and `onKeyDown`
+- Reset password — "Auth Session Missing" error when submitting a new password via a recovery link — `createUserClient(token).auth.updateUser()` requires an in-memory Supabase session, not just an Authorization header; replaced with `supabase.auth.getUser(access_token)` to verify the token, then `supabase.auth.admin.updateUserById()` to set the new password
+- Reset password — typing in the Confirm Password field shifted focus back to New Password on every keystroke — `Shell` layout component was defined inside `Reset`, creating a new component reference on every state update and causing a full subtree remount; moved `Shell` to module level; also removed `autoFocus` from the New Password input
+- Logbook officer combobox — "No matches found" when typing a name that includes a middle initial (e.g. "John Harold Magma" vs "John Harold R. Magma") — simple `.includes()` fails when words are not a continuous substring; replaced with word-by-word matching using `.split(/\s+/)` and `.every()`
+- Logbook officer combobox — dropdown showed "No matches found" even with no text typed and the API returning valid officers — `parseFirstPosition()` threw `TypeError: raw.split is not a function` when an officer's `position` field was a non-string value in the database; the error inside `Promise.allSettled().then()` was silently swallowed, preventing `setOfficers()` from being called; fixed by adding a `typeof raw !== 'string'` guard in `parseFirstPosition()`
+
 ## [1.7.0] - 2026-05-28
 
 ### Added

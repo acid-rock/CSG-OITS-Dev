@@ -212,7 +212,7 @@
 
 .st-grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .st-grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-.st-grid-coords{ display:grid; grid-template-columns:1fr 1fr 110px; gap:12px; }
+.st-grid-coords{ display:grid; grid-template-columns:1fr 1fr 160px; gap:12px; }
 
 /* ── INLINE ROW LAYOUT (label LEFT, control RIGHT) ──────────── */
 .st-stack{ display:flex; flex-direction:column; gap:14px; }

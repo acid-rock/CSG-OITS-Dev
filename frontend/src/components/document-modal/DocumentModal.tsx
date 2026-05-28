@@ -31,9 +31,10 @@ export default function DocumentModal({
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal__close" onClick={onClose}>
-          ✕
-        </button>
+        <div className="modal__header">
+          <span className="modal__title">{selected.title}</span>
+          <button className="modal__close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
         {iframeError ? (
           <div
             style={{

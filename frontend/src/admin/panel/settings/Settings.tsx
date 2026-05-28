@@ -80,6 +80,37 @@ function initials(name: string | null | undefined): string {
     .toUpperCase() || 'A';
 }
 
+// ── Geofence map helper ──────────────────────────────────────────────────────
+function buildGeofenceMap(lat: number, lng: number, radiusM: number): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>html,body,#map{height:100%;margin:0;padding:0;}</style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+  <script>
+    var map = L.map('map', { scrollWheelZoom: false, zoomControl: true }).setView([${lat}, ${lng}], 17);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    L.marker([${lat}, ${lng}]).addTo(map);
+    L.circle([${lat}, ${lng}], {
+      radius: ${radiusM},
+      color: '#4f6fd1',
+      fillColor: '#4f6fd1',
+      fillOpacity: 0.12,
+      weight: 2
+    }).addTo(map);
+  <\/script>
+</body>
+</html>`;
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 const Settings = () => {
   const [activeSection, setActiveSection] = useState('general');
@@ -115,8 +146,9 @@ const Settings = () => {
   const [geoSaved,    setGeoSaved]    = useState(false);
   const [geoError,    setGeoError]    = useState('');
   // Saved coords — only update on successful save (drives the map preview)
-  const [savedGeoLat, setSavedGeoLat] = useState('');
-  const [savedGeoLng, setSavedGeoLng] = useState('');
+  const [savedGeoLat,    setSavedGeoLat]    = useState('');
+  const [savedGeoLng,    setSavedGeoLng]    = useState('');
+  const [savedGeoRadius, setSavedGeoRadius] = useState('');
 
   // Committee PINs
   const [pins,       setPins]       = useState<CommitteePins>({ publication: '', secretariat: '', finance: '' });
@@ -169,7 +201,11 @@ const Settings = () => {
       const lng = lngR.status === 'fulfilled' ? (lngR.value.data.value ?? '') : '';
       setGeoLat(lat); setSavedGeoLat(lat);
       setGeoLng(lng); setSavedGeoLng(lng);
-      if (radR.status === 'fulfilled') setGeoRadius(radR.value.data.value ?? '150');
+      if (radR.status === 'fulfilled') {
+        const r = radR.value.data.value ?? '150';
+        setGeoRadius(r);
+        setSavedGeoRadius(r);
+      }
     });
   }, []);
 
@@ -231,6 +267,7 @@ const Settings = () => {
       ]);
       setSavedGeoLat(geoLat.trim() || '0');
       setSavedGeoLng(geoLng.trim() || '0');
+      setSavedGeoRadius(geoRadius.trim() || '150');
       setGeoSaved(true);
       setTimeout(() => setGeoSaved(false), 2500);
     } catch { setGeoError('Failed to save. Please try again.'); }
@@ -747,26 +784,30 @@ const Settings = () => {
                     <AlertIcon width="14" height="14" className="st-callout-icon" />
                     <div>
                       <strong>Tip:</strong> open the office on Google Maps, right-click the building,
-                      and paste the coordinates here. 200 m covers the CSG office and adjacent rooms.
+                      and paste the coordinates here.{' '}
+                      <strong>{savedGeoRadius || geoRadius || '150'} m</strong> is the current geofence radius —
+                      the blue circle on the map shows the allowed check-in zone.
                       Leave lat/lng blank to disable geolocation enforcement.
                     </div>
                   </div>
 
-                  {/* Map preview — shows saved coordinates, not live input values */}
+                  {/* Map preview — Leaflet with geofence circle; updates only on save */}
                   {savedGeoLat && savedGeoLng
                     && !isNaN(parseFloat(savedGeoLat)) && !isNaN(parseFloat(savedGeoLng)) && (
                     <div style={{
-                      borderRadius: 12, overflow: 'hidden', height: 200,
+                      borderRadius: 12, overflow: 'hidden', height: 280,
                       border: '1px solid var(--color-border-soft)',
                       background: 'var(--color-surface-deep)',
                     }}>
                       <iframe
-                        src={`https://maps.google.com/maps?q=${savedGeoLat},${savedGeoLng}&z=18&output=embed&iwloc=&maptype=roadmap`}
-                        title="Office location preview"
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        allowFullScreen
+                        srcDoc={buildGeofenceMap(
+                          parseFloat(savedGeoLat),
+                          parseFloat(savedGeoLng),
+                          parseFloat(savedGeoRadius || '150'),
+                        )}
+                        title="Office geofence preview"
                         style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                        sandbox="allow-scripts"
                       />
                     </div>
                   )}

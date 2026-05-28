@@ -111,7 +111,7 @@ function classifyCheckinError(err: unknown): (
  *     (detected by lowercase→uppercase boundary)
  */
 function parseFirstPosition(raw: string): string {
-  if (!raw) return '';
+  if (!raw || typeof raw !== 'string') return '';
   const seg   = raw.split(/[,;/]/)[0];
   const first = seg.replace(/([a-z])([A-Z])/g, '$1|||$2').split('|||')[0].trim();
   return first || raw.trim();
@@ -152,9 +152,11 @@ function OfficerCombobox({
   }, [value]);
 
   const filtered = search.trim()
-    ? officers.filter((o) =>
-        o.full_name.toLowerCase().includes(search.toLowerCase()),
-      )
+    ? officers.filter((o) => {
+        const name  = o.full_name.toLowerCase();
+        const words = search.trim().toLowerCase().split(/\s+/);
+        return words.every((w) => name.includes(w));
+      })
     : officers;
 
   const handleSelect = (o: Officer) => {
@@ -568,11 +570,11 @@ export default function LogbookCheckin() {
             </span>
             <div className="kk-geo-body">
               <span className="kk-geo-lbl">
-                {geoState === 'granted' ? 'Location verified' : 'Acquiring location…'}
+                {geoState === 'granted' ? 'Location acquired' : 'Acquiring location…'}
               </span>
               <span className="kk-geo-sub">
                 {geoState === 'granted'
-                  ? "You're within the CSG office radius."
+                  ? 'Coordinates captured — radius will be verified on check-in.'
                   : 'Please allow location access when prompted.'}
               </span>
             </div>
