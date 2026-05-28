@@ -656,8 +656,10 @@ router.post(
 );
 
 // ── Public availability (no auth) ────────────────────────────────────────────
-// Returns all pending+approved borrow windows for a specific equipment item so
+// Returns only APPROVED borrow windows for a specific equipment item so
 // the frontend calendar can shade dates as available / partial / fully booked.
+// Pending requests do NOT block dates — students can continue submitting new
+// requests for the same dates, and the Equipment Manager decides who is approved.
 
 router.get(
   '/availability/:equipment_id',
@@ -667,7 +669,7 @@ router.get(
       .from('borrowing_requests')
       .select('borrow_date, return_date, status, quantity_requested')
       .eq('equipment_id', equipment_id)
-      .in('status', ['pending', 'approved']);
+      .in('status', ['approved']);
     if (error) throw new ApiError(500, error.message);
     return res.status(200).json(data);
   }),

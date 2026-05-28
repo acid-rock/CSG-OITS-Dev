@@ -20,7 +20,7 @@ interface InventoryItem {
 export interface AvailabilityEntry {
   borrow_date: string;
   return_date: string;
-  status: 'pending' | 'approved';
+  status: 'approved'; // only approved requests block calendar dates; pending ones do not
   quantity_requested: number;
 }
 

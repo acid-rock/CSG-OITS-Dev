@@ -291,12 +291,13 @@ export default function Borrow() {
               const todayStrip = stripStatus(entries, today, item.max_quantity);
               const isLow      = !stockOut && item.quantity === 1;
               const [g1, g2]   = itemGradient(item.id);
-              // Max qty the user can request = today's available quantity
+              // Max qty the user can request = today's available quantity.
+              // Only APPROVED requests consume stock; pending ones do not block dates.
               const todayAvail = (() => {
                 if (stockOut) return 0;
                 const reserved = entries
                   .filter((e) =>
-                    (e.status === "pending" || e.status === "approved") &&
+                    e.status === "approved" &&
                     e.borrow_date <= today && e.return_date >= today
                   )
                   .reduce((s, e) => s + (e.quantity_requested ?? 1), 0);
