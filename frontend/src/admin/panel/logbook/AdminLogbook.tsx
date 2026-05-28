@@ -18,8 +18,8 @@ const API = import.meta.env.VITE_API_URL as string;
 /* ─── Types ──────────────────────────────────────────────── */
 interface OfficerInfo {
   id:             string;
-  full_name:      string;
-  position:       string;
+  full_name:      string | null;
+  position:       string | null;
   avatar_url:     string | null;
   committee_id?:  number | null;
   committee_name?: string | null;
@@ -837,8 +837,8 @@ export default function AdminLogbook() {
 
   /* ── Filter sessions for table ── */
   const filteredSessions = sessions.filter((s) => {
-    const name = s.officer?.full_name?.toLowerCase() ?? '';
-    const pos  = s.officer?.position?.toLowerCase() ?? '';
+    const name = typeof s.officer?.full_name === 'string' ? s.officer.full_name.toLowerCase() : '';
+    const pos  = typeof s.officer?.position  === 'string' ? s.officer.position.toLowerCase()  : '';
     const q    = search.toLowerCase();
     if (q && !name.includes(q) && !pos.includes(q)) return false;
     if (statusFilter === 'open'   && s.check_out_at !== null) return false;
