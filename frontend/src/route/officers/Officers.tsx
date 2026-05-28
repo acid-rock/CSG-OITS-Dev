@@ -317,8 +317,12 @@ const Officers = () => {
                     ? chairName.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase()
                     : "??";
                   // Look up the chair's avatar from the officers list
+                  // Use case-insensitive trimmed match so minor name discrepancies
+                  // between committees.chair_name and officers.full_name still resolve.
+                  const chairNameNorm = chairName?.trim().toLowerCase() ?? '';
                   const chairOfficer = chairName
-                    ? officers.find((o) => o.full_name === chairName)
+                    ? (officers.find((o) => o.full_name === chairName) ??
+                       officers.find((o) => o.full_name.trim().toLowerCase() === chairNameNorm))
                     : null;
                   const chairAvatar = chairOfficer?.avatar ?? null;
 
@@ -446,10 +450,15 @@ const Officers = () => {
             // 2. Junction table role_title (custom roles via OfficerForm memberships)
             // 3. Fallback: "Committee Official" or "Member"
             const roleTitle = (o: Officer) => {
-              if (selectedCommittee.chair_name && o.full_name === selectedCommittee.chair_name) {
+              const norm = (s: string) => s.trim().toLowerCase();
+              if (selectedCommittee.chair_name &&
+                  (o.full_name === selectedCommittee.chair_name ||
+                   norm(o.full_name) === norm(selectedCommittee.chair_name))) {
                 return "Chairperson";
               }
-              if (selectedCommittee.vice_chair_name && o.full_name === selectedCommittee.vice_chair_name) {
+              if (selectedCommittee.vice_chair_name &&
+                  (o.full_name === selectedCommittee.vice_chair_name ||
+                   norm(o.full_name) === norm(selectedCommittee.vice_chair_name))) {
                 return "Vice-Chairperson";
               }
               if (o.committee_memberships && o.committee_memberships.length > 0) {
