@@ -110,8 +110,11 @@ app.use("/api/v1/announcements", adminLimiter,  announcementRoutes);
 app.use("/api/v1/documents",     adminLimiter,  documentRoutes);
 app.use("/api/v1/events",        adminLimiter,  eventRoutes);
 app.use("/api/v1/changelog",     publicLimiter, changelogRoutes);
-// POST /track is public (anon visits); GET /stats is admin-gated inside the router
-app.use("/api/v1/views",         publicLimiter, viewsRoutes);
+// POST /track fires at most 3× per user session (3 tracked routes); GET /stats is
+// admin-gated inside the router.  Both are safe under the 500/15min admin limiter.
+// publicLimiter (100/15min) was being exhausted by concurrent visitor tracking,
+// causing 429s on the admin stats chart.
+app.use("/api/v1/views",         adminLimiter,  viewsRoutes);
 app.use("/api/v1/officers",      adminLimiter,  officerRoutes);      // was publicLimiter
 app.use("/api/v1/committees",    adminLimiter,  committeeRoutes);    // was publicLimiter
 app.use("/api/v1/equipment",     adminLimiter,  equipmentRoutes);    // was publicLimiter
