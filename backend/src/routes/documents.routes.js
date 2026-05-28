@@ -19,6 +19,7 @@
 // Do NOT attempt to run this migration from backend code.
 
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import axios from "axios";
 import ApiError from "../lib/apiError.js";
 import { createUserClient, supabase } from "../lib/supabaseClient.js";
@@ -38,10 +39,20 @@ import asyncHandler from "express-async-handler";
 
 const REDACT_URL = process.env.PDF_REDACT_URL || "";
 
-// Signed URL expiry — 1 hour.  Cached API responses have a 60 s TTL so a
-// returned URL is always valid for at least ~59 minutes after it leaves the
-// server.  Users who copy a URL from DevTools can use it for up to 1 hour.
-const SIGNED_URL_TTL = 3600;
+// Signed URL expiry — 5 minutes.  Generated on-demand when a user clicks a
+// document (GET /:id/url), not baked into the list response.  Short TTL
+// limits the usefulness of any leaked URL.
+const SIGNED_URL_TTL = 300;
+
+// Strict limiter for the on-demand URL endpoint — slows down bots that loop
+// over document IDs to harvest download links.
+const urlLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many document URL requests. Please try again later." },
+});
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -55,21 +66,37 @@ const router = Router();
 // Then call supabase.rpc('increment_views', { row_id, table_name: 'documents' }) per item.
 
 /**
- * Build document URLs for a batch of DB rows.
- *
- * PDF files (sensitive):    createSignedUrls() — time-limited.
- *                           Requires 'documents' bucket set to PRIVATE.
- * Thumbnails (preview images): getPublicUrl() — permanent public URL.
- *                           Thumbnails are not sensitive; signing them
- *                           causes silent failures on public pages
- *                           (onError fires → CSG logo fallback).
+ * Shared shape builder for a single document row.
+ * Thumbnails use permanent public URLs (low-res preview images — not sensitive).
+ */
+const buildDocRow = (file, signedUrl = null) => ({
+  id:          file.id,
+  createdAt:   file.created_at,
+  name:        file.file_path,
+  description: file.description,
+  category:    file.file_path.split("/")[0],
+  url:         signedUrl,
+  thumbnail:   supabase.storage.from("thumbnails").getPublicUrl(`${file.id}.png`).data.publicUrl,
+  term:        file.term     ?? null,
+  owner_id:    file.owner_id,
+  is_archived: file.is_archived,
+  archived_at: file.archived_at,
+  deleted_at:  file.deleted_at,
+});
+
+/**
+ * Public list shape — NO signed PDF URLs.
+ * Download URLs are generated on-demand via GET /:id/url when a user clicks.
+ */
+const buildDocBatchPublic = (files) => files.map((f) => buildDocRow(f, null));
+
+/**
+ * Admin shape — includes signed PDF URLs (auth-gated routes only).
  */
 const signDocumentBatch = async (files) => {
   if (!files.length) return [];
 
   const docPaths = files.map((f) => f.file_path).filter(Boolean);
-
-  // Sign only the PDF files
   const signedDocs = await supabase.storage
     .from("documents")
     .createSignedUrls(docPaths, SIGNED_URL_TTL);
@@ -78,27 +105,7 @@ const signDocumentBatch = async (files) => {
     (signedDocs.data ?? []).map((item) => [item.path, item.signedUrl]),
   );
 
-  return files.map((file) => {
-    // Thumbnail: permanent public URL (no signing needed — not sensitive)
-    const thumbnailUrl = supabase.storage
-      .from("thumbnails")
-      .getPublicUrl(`${file.id}.png`).data.publicUrl;
-
-    return {
-      id:          file.id,
-      createdAt:   file.created_at,
-      name:        file.file_path,
-      description: file.description,
-      category:    file.file_path.split("/")[0],
-      url:         docMap[file.file_path] ?? null,
-      thumbnail:   thumbnailUrl,
-      term:        file.term              ?? null,
-      owner_id:    file.owner_id,
-      is_archived: file.is_archived,
-      archived_at: file.archived_at,
-      deleted_at:  file.deleted_at,
-    };
-  });
+  return files.map((file) => buildDocRow(file, docMap[file.file_path] ?? null));
 };
 
 // ── Public GET — active (non-deleted) documents only ─────────────────────────
@@ -125,7 +132,7 @@ router.get(
       if (error) throw new Error(error.message);
 
       return res.status(200).json({
-        data: await signDocumentBatch(files),
+        data: buildDocBatchPublic(files),
         total: count,
         page,
         limit,
@@ -140,7 +147,7 @@ router.get(
       .is("deleted_at", null);
     if (error) throw new Error(error.message);
 
-    return res.status(200).json(await signDocumentBatch(files));
+    return res.status(200).json(buildDocBatchPublic(files));
   }),
 );
 
@@ -305,6 +312,9 @@ router.delete(
         .update({ is_deleted: true, deleted_at: deletedAt })
         .eq("id", id);
       if (error) throw new Error(error.message);
+
+      // Remove thumbnail from storage so the permanent public URL stops working
+      await supabase.storage.from("thumbnails").remove([`${id}.png`]);
     }
 
     return res.sendStatus(200);
@@ -469,7 +479,48 @@ router.post(
       .update({ deleted_at: new Date().toISOString(), is_deleted: true })
       .in("id", ids);
     if (error) throw new ApiError(500, error.message);
+
+    // Remove thumbnails so permanent public URLs stop working
+    await Promise.allSettled(ids.map((id) => supabase.storage.from("thumbnails").remove([`${id}.png`])));
+
     return res.sendStatus(200);
+  }),
+);
+
+// ── On-demand signed URL ──────────────────────────────────────────────────────
+
+/**
+ * GET /api/v1/documents/:id/url
+ * Returns a fresh short-lived signed URL for one active document.
+ * Called by the frontend when a user clicks a document card.
+ * Rate-limited to 30 req/15min per IP to slow down bulk harvesting.
+ */
+router.get(
+  "/:id/url",
+  urlLimiter,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const { data: file, error } = await supabase
+      .from("documents")
+      .select("file_path")
+      .eq("id", id)
+      .eq("is_deleted", false)
+      .eq("is_archived", false)
+      .is("deleted_at", null)
+      .single();
+
+    if (error || !file) throw new ApiError(404, "Document not found.");
+
+    const { data: signed, error: signErr } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(file.file_path, SIGNED_URL_TTL);
+
+    if (signErr || !signed?.signedUrl) {
+      throw new ApiError(500, "Could not generate download URL.");
+    }
+
+    return res.json({ url: signed.signedUrl, expires_in: SIGNED_URL_TTL });
   }),
 );
 

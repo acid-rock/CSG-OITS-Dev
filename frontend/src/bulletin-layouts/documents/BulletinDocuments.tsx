@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import "./bulletinDocument.css";
+
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 const PAGE_SIZE = 12;
 
@@ -49,6 +52,8 @@ export default function BulletinDocument() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loadingUrlId, setLoadingUrlId] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const gridRef = useRef<HTMLElement>(null);
 
@@ -91,11 +96,22 @@ export default function BulletinDocument() {
   /* Locked handlers */
   const handleSelect = (doc: Document) => {
     setSelectedDocument(doc);
+    setUrlError(null);
   };
 
-  const handleView = (doc: Document) => {
-    setSelectedDocument(doc);
-    setIsModalOpen(true);
+  const handleView = async (doc: Document) => {
+    if (loadingUrlId === doc.id) return;
+    setUrlError(null);
+    setLoadingUrlId(doc.id);
+    try {
+      const { data } = await axios.get<{ url: string }>(`${API_URL}/documents/${doc.id}/url`);
+      setSelectedDocument({ ...doc, url: data.url });
+      setIsModalOpen(true);
+    } catch {
+      setUrlError("Could not load document. Please try again.");
+    } finally {
+      setLoadingUrlId(null);
+    }
   };
 
   // Reset to page 1 and close side panel whenever filters change
@@ -364,12 +380,16 @@ export default function BulletinDocument() {
               />
             )}
 
+            {urlError && (
+              <p className="bd-panel-url-error">{urlError}</p>
+            )}
             <button
               type="button"
               className="btn btn-primary bd-panel-view-btn"
+              disabled={loadingUrlId === selectedDocument.id}
               onClick={() => handleView(selectedDocument)}
             >
-              View Document
+              {loadingUrlId === selectedDocument.id ? "Loading…" : "View Document"}
             </button>
           </div>
         </>

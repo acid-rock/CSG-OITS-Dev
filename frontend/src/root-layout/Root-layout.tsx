@@ -44,7 +44,7 @@ export type Document = {
   name: string;
   description: string;
   category: string;
-  url: string;
+  url?: string | null;
   thumbnail?: string;
   date: string;
   created_at?: string;
