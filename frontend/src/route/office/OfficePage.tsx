@@ -444,7 +444,7 @@ export default function OfficePage() {
                 { day: 'Tuesday',   time: '8:00 AM — 5:00 PM' },
                 { day: 'Wednesday', time: '8:00 AM — 5:00 PM' },
                 { day: 'Thursday',  time: '8:00 AM — 5:00 PM' },
-                { day: 'Friday',    time: '8:00 AM — 4:00 PM' },
+                { day: 'Friday',    time: '8:00 AM — 6:00 PM' },
                 { day: 'Saturday',  time: null },
                 { day: 'Sunday',    time: null },
               ].map(({ day, time }) => {
