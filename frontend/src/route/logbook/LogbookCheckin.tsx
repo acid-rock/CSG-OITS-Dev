@@ -578,8 +578,6 @@ export default function LogbookCheckin() {
               onChange={(id) => {
                 setOfficerId(id);
                 setError('');
-                // If user changes selection while already-in, fall back to form
-                if (phase === 'already-in') setPhase('form');
               }}
               disabled={officersLoading}
             />
