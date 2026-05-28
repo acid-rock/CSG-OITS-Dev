@@ -70,6 +70,16 @@ function haversine(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+// officers.position is stored as a Postgres TEXT ARRAY in the DB.
+// Supabase returns it as a JS array. Normalize to a single string so that
+// JSX rendering never produces "Role ARoleB" (array concatenation without separator).
+function normalizePosition(pos) {
+  if (Array.isArray(pos)) return pos[0] ?? null;
+  return typeof pos === "string" ? pos : null;
+}
+
 // ── Today's date in PH time (YYYY-MM-DD) ─────────────────────────────────────
 
 function todayPH() {
@@ -222,7 +232,7 @@ router.get(
           ? {
               id: officer.id,
               full_name: officer.full_name,
-              position: officer.position,
+              position: normalizePosition(officer.position),
               avatar_url: avatarUrl,
               committee_id: officer.committee,
               committee_name: officer.committee
@@ -502,7 +512,7 @@ router.get(
       return {
         ...s,
         officer: officer
-          ? { ...officer, avatar_url: avatarUrl }
+          ? { ...officer, position: normalizePosition(officer.position), avatar_url: avatarUrl }
           : null,
         officers: undefined,
       };
