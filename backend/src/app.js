@@ -127,7 +127,10 @@ app.use("/api/v1/analytics",     adminLimiter,  analyticsRoutes);
 app.use("/api/v1/auditlog",      adminLimiter,  auditlogRoutes);
 app.use("/api/v1/borrowing",     adminLimiter,  borrowingRoutes);
 app.use("/api/v1/committee-pins", adminLimiter, committeePinsRoutes);
-app.use("/api/v1/access",        publicLimiter, accessRoutes);
+// /access has per-endpoint rate limits defined inside access.routes.js.
+// DO NOT apply publicLimiter here — heartbeats fire every 20s per active user
+// and would exhaust 100 req/15min in ~36s when all users share a campus IP.
+app.use("/api/v1/access",        accessRoutes);
 app.use("/api/v1/logbook",       adminLimiter,  logbookRoutes);
 
 // Health route

@@ -2,21 +2,59 @@
  * Concurrent-viewer slot manager
  *
  * Maintains an in-memory map of active visitor tokens.
- * Max 10 simultaneous public viewers; extras receive their queue position
- * and must poll /join until a slot opens.
+ * MAX_SLOTS simultaneous public viewers; extras receive their queue position
+ * and poll /join every 15 s until a slot opens.
  *
  * Tokens expire after TOKEN_TTL_MS of no heartbeat (browser closed / away).
+ *
+ * ── Rate limiting design ───────────────────────────────────────────────────
+ *
+ * The global publicLimiter (100 req/15 min per IP) MUST NOT be applied to
+ * this router. Here is why:
+ *
+ *   All CVSU students share a single public campus IP.
+ *   With MAX_SLOTS=35 active holders + 15 queued users from that IP:
+ *     heartbeats  = 35 × (900 s / 20 s) = 1,575 req / 15 min
+ *     queue polls = 15 × (900 s / 15 s) =   900 req / 15 min
+ *     total                              = 2,475 req / 15 min
+ *
+ *   100/15 min is exhausted in ~36 seconds.
+ *   Once 429s fire on /heartbeat, those slots expire (60 s TTL),
+ *   queued users get slots → their heartbeats also 429 → infinite churn
+ *   → the 35-slot cap is effectively bypassed.
+ *
+ * Per-endpoint strategy:
+ *
+ *   /join      — NO IP rate limit.
+ *                The slot cap (MAX_SLOTS) is the protection mechanism.
+ *                Every /join call either (a) refreshes an existing token O(1),
+ *                (b) grants a new slot O(1), or (c) returns a queue position O(1).
+ *                A bot spamming /join only ever gets queue-position responses —
+ *                it cannot create more than MAX_SLOTS total slots.
+ *                Real DDoS protection at this layer = Cloudflare WAF (see README).
+ *
+ *   /heartbeat — NO IP rate limit. The token itself is the authorization gate.
+ *                A bot without a valid slot token gets 410 instantly at O(1).
+ *                A legitimate holder heartbeats every 20 s ≈ 3 req/min.
+ *
+ *   /leave     — NO rate limit. Releasing a slot is beneficial.
+ *                A bot can only call this with tokens it legitimately holds.
  */
-import { Router } from "express";
+
+import { Router }     from "express";
 import { randomUUID } from "crypto";
 
 const router = Router();
 
-const MAX_SLOTS    = 35;       // 30–40 concurrent public viewers per deployment spec
+// ── Slot config ───────────────────────────────────────────────────────────────
+
+const MAX_SLOTS    = 35;       // concurrent public viewers
 const TOKEN_TTL_MS = 60_000;  // 60 s — client must heartbeat every ~20 s
 
 // Map<token, lastSeenTimestamp>
 const slots = new Map();
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 // Evict tokens that haven't sent a heartbeat within TTL
 function evictExpired() {
@@ -30,6 +68,10 @@ function evictExpired() {
    POST /api/v1/access/join
    Body (optional): { token }
    Returns: { allowed, token, position? }
+
+   No IP rate limit — the slot cap IS the protection.
+   Each call is O(n ≤ MAX_SLOTS) for eviction + O(1) for the response.
+   Bots cannot create more than MAX_SLOTS slots regardless of call frequency.
 ───────────────────────────────────────────────────────────────── */
 router.post("/join", (req, res) => {
   evictExpired();
@@ -57,6 +99,10 @@ router.post("/join", (req, res) => {
    POST /api/v1/access/heartbeat
    Body: { token }
    Returns: { ok }
+
+   No IP rate limit — the token is the authorization gate.
+   Invalid/missing tokens return 410 immediately at O(1) cost.
+   Legitimate holders heartbeat every 20 s ≈ 45 req / 15 min — negligible.
 ───────────────────────────────────────────────────────────────── */
 router.post("/heartbeat", (req, res) => {
   const { token } = req.body ?? {};
