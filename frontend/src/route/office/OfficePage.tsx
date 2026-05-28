@@ -286,9 +286,6 @@ export default function OfficePage() {
     ? `https://maps.google.com/maps?q=${officeLat},${officeLng}&z=18`
     : `https://maps.google.com/maps?q=Cavite+State+University+Imus+Campus`;
 
-  /* Mini-avatar strip for the counter foot */
-  const miniAvatars = dedupPresent.slice(0, 4);
-
   /* "just now" vs time */
   const refreshLabel = (() => {
     const diffSec = Math.floor((Date.now() - lastRefresh.getTime()) / 1000);
@@ -329,37 +326,45 @@ export default function OfficePage() {
           </div>
 
           <div className="oh-counter">
-            <span className={`oh-counter-status${isClosed ? ' is-closed' : ''}`}>
-              {isClosed ? '○ Closed' : '● Open'}
-            </span>
-            <div className="oh-counter-num">
-              <span className="oh-counter-num-big">{loading ? '…' : count}</span>
-              <span className="oh-counter-num-lbl">
-                officer{count === 1 ? '' : 's'}<br />on duty
+            <div className="oh-counter-head">
+              <span className={`oh-counter-status${isClosed ? ' is-closed' : ''}`}>
+                {isClosed ? '○ Closed' : '● Open'}
               </span>
+              <div className="oh-counter-num">
+                <span className="oh-counter-num-big">{loading ? '…' : count}</span>
+                <span className="oh-counter-num-lbl">
+                  officer{count === 1 ? '' : 's'}<br />on duty
+                </span>
+              </div>
             </div>
-            <div className="oh-counter-sub">
-              {isClosed
-                ? <><strong>No one</strong> is checked in right now.</>
-                : <>The office is <strong>open</strong> and staffed.</>
-              }
-            </div>
-            {!isClosed && miniAvatars.length > 0 && (
-              <div className="oh-counter-foot">
-                <span className="oh-counter-mini-avatars">
-                  {miniAvatars.map((s) => {
-                    if (!s.officer) return null;
-                    const [c1, c2] = getGradient(s.officer.id);
-                    return (
-                      <span key={s.id} style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
-                        title={s.officer.full_name}>
+
+            {isClosed ? (
+              <div className="oh-counter-sub">
+                <strong>No one</strong> is checked in right now.
+              </div>
+            ) : (
+              /* Inline roster — fills the whitespace with useful who's-here info */
+              <div className="oh-counter-roster">
+                {dedupPresent.map((s) => {
+                  if (!s.officer) return null;
+                  const [c1, c2] = getGradient(s.officer.id);
+                  const dur = fmtDur(durMin(s.check_in_at, null));
+                  return (
+                    <div key={s.id} className="oh-counter-roster-row">
+                      <span
+                        className="oh-counter-roster-av"
+                        style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
+                      >
                         {getInitials(s.officer.full_name)}
                       </span>
-                    );
-                  })}
-                </span>
-                {dedupPresent.slice(0, 2).map((s) => s.officer?.full_name.split(' ').slice(-1)[0]).filter(Boolean).join(', ')}
-                {count > 2 ? ` and ${count - 2} other${count - 2 > 1 ? 's' : ''}` : ''}
+                      <div className="oh-counter-roster-body">
+                        <span className="oh-counter-roster-name">{s.officer.full_name}</span>
+                        <span className="oh-counter-roster-pos">{s.officer.position}</span>
+                      </div>
+                      <span className="oh-counter-roster-dur">{dur}</span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

@@ -918,44 +918,44 @@ const Settings = () => {
                   title="Office hours"
                   sub="When the CSG office is staffed — drives auto-checkout and the public Office page"
                 >
-                  <div className="st-stack">
+                  <div className="st-oh-grid">
                     {officeHours.map((row, idx) => {
                       const isClosed = row.open === null;
                       const isToday  = new Date().toLocaleDateString('en-US', { weekday: 'long' }) === row.day;
                       return (
-                        <div key={row.day} className="st-field-row">
-                          <div className="st-field-row-label">
-                            <strong>
-                              {row.day}
-                              {isToday && <span className="st-self-tag">Today</span>}
-                            </strong>
+                        <div key={row.day} className={`st-oh-row${isClosed ? ' is-closed' : ''}`}>
+                          {/* Day name */}
+                          <div className="st-oh-day">
+                            <span className="st-oh-day-name">{row.day}</span>
+                            {isToday && <span className="st-self-tag">Today</span>}
                           </div>
-                          <div className="st-field" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                            <button
-                              className={`st-toggle${!isClosed ? ' is-on' : ''}`}
-                              onClick={() => toggleOhDay(idx)}
-                              aria-pressed={!isClosed}
-                              title={isClosed ? 'Mark as open' : 'Mark as closed'}
-                            />
-                            <span style={{ fontSize: 12, color: 'var(--color-text-muted)', minWidth: 44 }}>
-                              {isClosed ? 'Closed' : 'Open'}
-                            </span>
-                            {!isClosed && (
+
+                          {/* Toggle */}
+                          <button
+                            className={`st-toggle${!isClosed ? ' is-on' : ''}`}
+                            onClick={() => toggleOhDay(idx)}
+                            aria-pressed={!isClosed}
+                            title={isClosed ? 'Mark as open' : 'Mark as closed'}
+                          />
+
+                          {/* Time range or closed label */}
+                          <div className="st-oh-times">
+                            {isClosed ? (
+                              <span className="st-oh-closed-lbl">Closed</span>
+                            ) : (
                               <>
                                 <input
-                                  className="st-input is-mono"
+                                  className="st-input is-mono st-oh-time-input"
                                   type="time"
                                   value={row.open ?? '08:00'}
                                   onChange={(e) => updateOhDay(idx, 'open', e.target.value)}
-                                  style={{ width: 130 }}
                                 />
-                                <span style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>—</span>
+                                <span className="st-oh-sep">→</span>
                                 <input
-                                  className="st-input is-mono"
+                                  className="st-input is-mono st-oh-time-input"
                                   type="time"
                                   value={row.close ?? '19:00'}
                                   onChange={(e) => updateOhDay(idx, 'close', e.target.value)}
-                                  style={{ width: 130 }}
                                 />
                               </>
                             )}

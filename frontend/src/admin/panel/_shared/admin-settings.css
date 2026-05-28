@@ -407,6 +407,57 @@
 .st-callout-icon{ flex-shrink:0; color:#a16207; }
 .st-callout strong{ color:#78350f; font-weight:700; }
 
+/* ── OFFICE HOURS DAY GRID ──────────────────────────────────── */
+.st-oh-grid{
+  display:flex; flex-direction:column;
+  border:1px solid var(--color-border-soft);
+  border-radius:var(--radius-card);
+  overflow:hidden;
+}
+.st-oh-row{
+  display:grid;
+  grid-template-columns: 160px 46px 1fr;
+  align-items:center;
+  gap:16px;
+  padding:11px 16px;
+  border-bottom:1px solid var(--color-border-soft);
+  background:#fff;
+  transition:background 120ms ease;
+}
+.st-oh-row:last-child{ border-bottom:none; }
+.st-oh-row:hover{ background:#fafbff; }
+.st-oh-row.is-closed{ background:#fafbff; }
+.st-oh-row.is-closed:hover{ background:#f4f6fd; }
+
+.st-oh-day{
+  display:flex; align-items:center; gap:8px;
+}
+.st-oh-day-name{
+  font-size:13px; font-weight:600;
+  color:var(--color-text-primary);
+  letter-spacing:-0.005em;
+}
+.st-oh-row.is-closed .st-oh-day-name{
+  color:var(--color-text-muted);
+}
+
+.st-oh-times{
+  display:flex; align-items:center; gap:8px;
+}
+.st-oh-time-input{
+  width:116px !important;
+  padding:7px 10px !important;
+  font-size:12.5px !important;
+}
+.st-oh-sep{
+  font-size:11px; color:var(--color-text-muted);
+  flex-shrink:0; font-weight:600;
+}
+.st-oh-closed-lbl{
+  font-size:12px; color:var(--color-text-hint);
+  font-style:italic;
+}
+
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .st-twopane{ grid-template-columns:1fr; }
