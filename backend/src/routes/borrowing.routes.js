@@ -329,6 +329,23 @@ router.post(
           `Not enough units available for ${inv.name}. Only ${inv.quantity} unit(s) left.`,
         );
       }
+
+      // Option B: one active pending request per student per equipment.
+      // Prevents the same student from spamming multiple requests for the same
+      // item before the Equipment Manager has had a chance to review.
+      const { data: existingPending } = await anonSupabase
+        .from("borrowing_requests")
+        .select("id")
+        .eq("equipment_id", item.equipment_id)
+        .eq("borrower_id", borrower_id)
+        .eq("status", "pending")
+        .maybeSingle();
+      if (existingPending) {
+        throw new ApiError(
+          409,
+          `You already have a pending request for ${inv.name}. Please wait for it to be reviewed before submitting another.`,
+        );
+      }
     }
 
     // Use first item for the main (backward-compat) columns
