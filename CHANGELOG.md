@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-05-29
+
+### Added
+- **Logbook — kiosk checkout display** — new full-screen 1920×1080 kiosk page at `/logbook?action=checkout`; officers walk up to the screen, select their name in a large touch-friendly combobox, and tap "Check out now" — no QR scan needed; left column shows the checkout form with live session summary (check-in time + running duration); right column shows the live "On Duty Now" roster and a "Checking in?" hint card linking back to `/logbook/display`; after a successful checkout the screen shows a celebration state with the officer's name, session summary (in/out/duration), and a 10-second auto-reset countdown before returning to the form; supports the two-QR-code physical kiosk setup (one laminated QR for check-in → `/logbook/display`, one for check-out → `/logbook?action=checkout`)
+- **Logbook — `POST /recheck-in` endpoint** — allows re-check-in after an accidental checkout without a fresh QR scan; validates that the most recent session today was shorter than 5 minutes and the request is within 10 minutes of that checkout; creates a new open session; returns `{ session, officer_name }`
+- **Logbook check-in — accidental checkout detection** — on the `checkout-success` phase, if the closed session lasted less than 5 minutes an amber banner appears ("That session was only X min — accidental check-out?") with a "Re-check in" button that calls `POST /logbook/recheck-in`; on success transitions directly to the `success` phase with the new check-in time
+
+### Changed
+- **Settings — Office Hours — auto-checkout column** — the "Close" time column is now labelled "Auto-checkout" with a blue tint and column header in `var(--color-primary)`; a live countdown panel below the grid shows the current day's closing time in 12-h format and the time remaining until auto-checkout fires, ticking every minute; makes the connection between the schedule and the logbook's auto-checkout mechanism explicit for admins
+- **Settings — Office Hours — grid layout** — redesigned from a cramped flex row to a 3-column CSS grid (160 px day label · 46 px toggle · 1fr time inputs); each row has a "Today" pill badge when it matches the current day; closed days show a "Closed — no auto-checkout" label spanning the time area; the auto-checkout input has a distinct blue tinted background
+- **Office page — hero counter card** — replaced sparse "The office is open and staffed." + tiny avatar strip with a full inline officer roster; each row shows a colour-coded initials avatar, the officer's name and position, and their running session duration in serif italic; the counter number reduced from 100 px to 80 px font to leave room for the list
+- **Logbook display — QR tap affordance** — replaced the hover-only effect with an always-visible dark pill badge inside the QR card ("👆 Tap to check in"); pill turns primary-blue on hover; hint text ("Can't scan? Tap the QR to open on this screen.") moved outside the white card so it is legible on the dark blue background
+- **`POST /checkout` response** — now returns `{ message, session: closedSession, officer_name }` in addition to the previous `{ message }`; `LogbookCheckin` uses `data.session.check_in_at` to compute the accidental-checkout duration without a separate API call
+- **Logbook name dropdowns — adviser exclusion** — officers whose `position` field matches `/adviser|advisor/i` are filtered out of both the check-in and checkout name selectors; advisers are faculty-level roles and do not participate in student officer duty sessions
+- **Logbook name dropdowns — position deduplication fix** — officers who appear under multiple committee records (one with a real position, one with an empty `position` field) were previously deduplicated incorrectly; empty position strings now rank `-1` (below all real positions including "Member"), so the record with the most descriptive role always wins
+- **Logbook name dropdowns — conditional position rendering** — the position `<span>` in both the check-in combobox and the kiosk checkout combobox is now only rendered when `displayPosition` is non-empty; removes blank space beneath names with no position data
+- **Dark mode — temporarily disabled** — all dark mode UI (theme toggle buttons, `[data-theme="dark"]` token overrides, `useTheme` hook usage) commented out with `/* DARK MODE: re-enable when dark mode is ready */` markers pending design review; the `csg-theme` localStorage key, `useTheme` hook, and token overrides are fully preserved and can be re-enabled in one pass
+
+### Fixed
+- **Modal popups — no scroll on tall content** — announcement and event modals had `overflow: hidden` with no height cap on desktop, so long descriptions (e.g. multi-paragraph announcements) were silently clipped; modal container now has `max-height: 90vh` and `display: flex; flex-direction: column` at all viewport sizes; image section gets `flex-shrink: 0`; text section gets `flex: 1; overflow-y: auto` so only the description scrolls, not the image; a slim 5 px scrollbar appears when needed; mobile breakpoint simplified since flex handles the layout universally
+
 ## [1.8.0] - 2026-05-28
 
 ### Added

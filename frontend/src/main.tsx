@@ -29,7 +29,7 @@ import AdminPage from "./admin/AdminPage";
 import ProtectedRoute from "./admin/ProtectedRoute";
 
 // Logbook (standalone — no nav header)
-import LogbookCheckin from "./route/logbook/LogbookCheckin";
+import LogbookPage from "./route/logbook/LogbookPage";
 import LogbookDisplay from "./route/logbook/LogbookDisplay";
 
 // Public Office Hours (under RootLayout)
@@ -89,7 +89,7 @@ const router = createBrowserRouter([
     ],
   },
   // Logbook — standalone kiosk/mobile pages
-  { path: "/logbook",         element: <LogbookCheckin /> },
+  { path: "/logbook",         element: <LogbookPage /> },
   { path: "/logbook/display", element: <LogbookDisplay /> },
 
   // Committee Portal

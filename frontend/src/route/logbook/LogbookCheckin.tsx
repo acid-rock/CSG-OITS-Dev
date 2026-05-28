@@ -127,6 +127,7 @@ function parseFirstPosition(raw: string): string {
  *   0 = Member / Associate (lowest)
  */
 function rankPosition(pos: string): number {
+  if (!pos || !pos.trim()) return -1;  // empty beats nothing — always loses to a real position
   if (/president|secretary general|treasurer|auditor|public relations officer/i.test(pos)) return 3;
   if (/vice president|assistant secretary/i.test(pos)) return 3;
   if (/chairperson|chair\b|head\b|coordinator|adviser|director/i.test(pos)) return 2;
@@ -201,7 +202,9 @@ function OfficerCombobox({
                 onMouseDown={(e) => { e.preventDefault(); handleSelect(o); }}
               >
                 <span className="kk-combo-name">{o.full_name}</span>
-                <span className="kk-combo-pos">{o.displayPosition}</span>
+                {o.displayPosition && (
+                  <span className="kk-combo-pos">{o.displayPosition}</span>
+                )}
               </button>
             ))
           )}
@@ -330,22 +333,24 @@ export default function LogbookCheckin() {
         if (!prev || rank > prev.rank) best.set(raw.full_name, { raw, rank });
       }
 
-      /* Build display-ready officer list */
-      const processed: Officer[] = Array.from(best.values()).map(({ raw }) => {
-        const parsed     = parseFirstPosition(raw.position ?? '');
-        const commitName = raw.committee ? (committeeMap.get(String(raw.committee)) ?? null) : null;
-        const displayPosition =
-          /^member$|^associate$/i.test(parsed.trim()) && commitName
-            ? `Member · ${commitName}`
-            : parsed;
-        return {
-          id:             raw.id,
-          full_name:      raw.full_name,
-          position:       raw.position ?? '',
-          displayPosition,
-          committee_name: commitName,
-        };
-      });
+      /* Build display-ready officer list — advisers excluded (faculty, not duty officers) */
+      const processed: Officer[] = Array.from(best.values())
+        .filter(({ raw }) => !/adviser|advisor/i.test(raw.position ?? ''))
+        .map(({ raw }) => {
+          const parsed     = parseFirstPosition(raw.position ?? '');
+          const commitName = raw.committee ? (committeeMap.get(String(raw.committee)) ?? null) : null;
+          const displayPosition =
+            /^member$|^associate$/i.test(parsed.trim()) && commitName
+              ? `Member · ${commitName}`
+              : parsed;
+          return {
+            id:             raw.id,
+            full_name:      raw.full_name,
+            position:       raw.position ?? '',
+            displayPosition,
+            committee_name: commitName,
+          };
+        });
 
       /* Sort alphabetically */
       processed.sort((a, b) => a.full_name.localeCompare(b.full_name));
