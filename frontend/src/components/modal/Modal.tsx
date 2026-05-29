@@ -185,7 +185,18 @@ const Modal: React.FC<ModalProps> = ({
           <h2 className="modal-title">{title}</h2>
           <p className="modal-date">{date}</p>
           <div className="modal-divider" />
-          <p className="modal-description">{description}</p>
+          <div className="modal-description">
+            {description.split(/\n\n+/).map((para, i) => (
+              <p key={i}>
+                {para.split('\n').map((line, j, arr) => (
+                  <span key={j}>
+                    {line}
+                    {j < arr.length - 1 && <br />}
+                  </span>
+                ))}
+              </p>
+            ))}
+          </div>
         </div>
       </div>
     </div>

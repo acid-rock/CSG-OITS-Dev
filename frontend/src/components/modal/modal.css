@@ -141,6 +141,12 @@
   font-size:var(--font-size-base);color:var(--color-text-secondary);
   line-height:var(--line-height-relaxed);margin:0;
 }
+.modal-description p{
+  margin:0 0 0.85em;
+}
+.modal-description p:last-child{
+  margin-bottom:0;
+}
 
 /* ── Zoom / lightbox ── */
 .modal-image--zoomable{
