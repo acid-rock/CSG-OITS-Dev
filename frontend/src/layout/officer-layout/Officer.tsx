@@ -1,14 +1,17 @@
 import OfficerCard from "../../components/officer-card/Officer-card";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Button from "../../components/button/Button";
 import "./officer.css";
-import type { Officer, OutletContext } from "../../root-layout/Root-layout";
+import { useState, useEffect } from "react";
+import type { Officer } from "../../root-layout/Root-layout";
+import fetchOfficers from "../../config/officerConfig";
 
 export default function OfficerSection() {
-  /* ══════════════════════════════════════════
-     LOCKED DATA BINDINGS — do not modify
-     ══════════════════════════════════════════ */
-  const { officers } = useOutletContext<OutletContext>();
+  const [officers, setOfficers] = useState<Officer[]>([]);
+
+  useEffect(() => {
+    fetchOfficers(undefined, undefined, undefined, 'all').then((r) => setOfficers(r as Officer[])).catch(console.error);
+  }, []);
 
   /* Exclude archived officers and current-term former members from the homepage.
      Former members (type="former") stay status="active" but have their own

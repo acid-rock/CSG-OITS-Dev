@@ -3,6 +3,7 @@
 
 import { Router } from "express";
 import multer from "multer";
+import sharp from "sharp";
 import { anonSupabase, supabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
@@ -307,13 +308,17 @@ router.post(
     if (!id) throw new ApiError(400, "id is required.");
     if (!req.file) throw new ApiError(400, "cover image file is required.");
 
-    const ext = req.file.mimetype.split("/")[1]?.replace("jpeg", "jpg") || "jpg";
-    const coverPath = `${id}.${ext}`;
+    const coverPath = `${id}.webp`;
+    const compressed = await sharp(req.file.buffer)
+      .resize({ width: 1200, withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
 
     const { error: uploadError } = await supabase.storage
       .from("committees")
-      .upload(coverPath, req.file.buffer, {
-        contentType: req.file.mimetype,
+      .upload(coverPath, compressed, {
+        contentType: "image/webp",
+        cacheControl: "31536000",
         upsert: true,
       });
     if (uploadError) throw new ApiError(500, "Storage upload failed: " + uploadError.message);

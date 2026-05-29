@@ -1,10 +1,19 @@
 import "./about-page.css";
+import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import type { OutletContext } from "../../root-layout/Root-layout";
+import type { OutletContext, Officer } from "../../root-layout/Root-layout";
+import fetchOfficers from "../../config/officerConfig";
+import fetchCommittees from "../../config/committeeConfig";
 
 export default function AboutPage() {
-  /* Live counts from outlet context — no new API calls */
-  const { officers, documents, committees } = useOutletContext<OutletContext>();
+  const { documents } = useOutletContext<OutletContext>();
+  const [officerCount, setOfficerCount] = useState(0);
+  const [committeeCount, setCommitteeCount] = useState(0);
+
+  useEffect(() => {
+    fetchOfficers().then((data) => setOfficerCount((data as Officer[]).length)).catch(console.error);
+    fetchCommittees().then((data) => setCommitteeCount(data.length)).catch(console.error);
+  }, []);
 
   return (
     <div className="ap-page">
@@ -128,11 +137,11 @@ export default function AboutPage() {
       <section className="ap-section">
         <div className="ap-stats">
           <div className="ap-stat">
-            <div className="ap-stat-value">{officers.length}</div>
+            <div className="ap-stat-value">{officerCount}</div>
             <div className="ap-stat-label">Officers serving</div>
           </div>
           <div className="ap-stat">
-            <div className="ap-stat-value">{committees.length}</div>
+            <div className="ap-stat-value">{committeeCount}</div>
             <div className="ap-stat-label">Active committees</div>
           </div>
           <div className="ap-stat">

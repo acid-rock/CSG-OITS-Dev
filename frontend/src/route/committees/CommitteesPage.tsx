@@ -1,7 +1,9 @@
 import './committees.css';
-import { useOutletContext } from 'react-router-dom';
-import type { OutletContext } from '../../root-layout/Root-layout';
+import { useState, useEffect } from 'react';
 import type { Committee } from '../../config/committeeConfig';
+import type { Officer } from '../../root-layout/Root-layout';
+import fetchCommittees from '../../config/committeeConfig';
+import fetchOfficers from '../../config/officerConfig';
 
 const Arrow = () => (
   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
@@ -40,7 +42,13 @@ function Photo({ src, initials }: { src: string | null; initials: string }) {
 }
 
 export default function CommitteesPage() {
-  const { committees, officers } = useOutletContext<OutletContext>();
+  const [committees, setCommittees] = useState<Committee[]>([]);
+  const [officers, setOfficers] = useState<Officer[]>([]);
+
+  useEffect(() => {
+    fetchCommittees().then(setCommittees).catch(console.error);
+    fetchOfficers(undefined, undefined, undefined, 'all').then((r) => setOfficers(r as Officer[])).catch(console.error);
+  }, []);
 
   const activeCommittees = committees.filter(
     (c: Committee) => c.status === 'active' && !c.deleted_at,

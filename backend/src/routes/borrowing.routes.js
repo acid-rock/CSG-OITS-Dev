@@ -39,6 +39,7 @@
 
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
+import sharp from "sharp";
 import { anonSupabase, createUserClient, supabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
@@ -138,11 +139,14 @@ router.post(
     // Upload image if provided (non-fatal on failure)
     if (req.file) {
       try {
-        const ext = req.file.originalname?.split(".").pop() || req.file.mimetype.split("/")[1] || "jpg";
-        const imagePath = `${data.id}.${ext}`;
+        const imagePath = `${data.id}.webp`;
+        const compressed = await sharp(req.file.buffer)
+          .resize({ width: 800, withoutEnlargement: true })
+          .webp({ quality: 80 })
+          .toBuffer();
         const { error: uploadError } = await supabase.storage
           .from("equipment")
-          .upload(imagePath, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+          .upload(imagePath, compressed, { contentType: "image/webp", cacheControl: "31536000", upsert: true });
         if (!uploadError) {
           await supabase.from("inventory").update({ image: imagePath }).eq("id", data.id);
         }
@@ -191,11 +195,14 @@ router.post(
         if (existing?.image) {
           await supabase.storage.from("equipment").remove([existing.image]);
         }
-        const ext = req.file.originalname?.split(".").pop() || req.file.mimetype.split("/")[1] || "jpg";
-        const imagePath = `${id}.${ext}`;
+        const imagePath = `${id}.webp`;
+        const compressed = await sharp(req.file.buffer)
+          .resize({ width: 800, withoutEnlargement: true })
+          .webp({ quality: 80 })
+          .toBuffer();
         const { error: uploadError } = await supabase.storage
           .from("equipment")
-          .upload(imagePath, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+          .upload(imagePath, compressed, { contentType: "image/webp", cacheControl: "31536000", upsert: true });
         if (!uploadError) updates.image = imagePath;
       } catch (imgErr) {
         console.error("[INVENTORY EDIT] Image upload failed:", imgErr.message);
