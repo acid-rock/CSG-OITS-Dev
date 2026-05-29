@@ -833,5 +833,69 @@ MODIFIED  frontend/src/route/logbook/LogbookCheckin.tsx  (check-in form)
     not that the coordinates are within the configured radius
 
 =============================================================================
+BUG FIX SESSION — 2026-05-29
+=============================================================================
+
+--- FIX 1: TypeScript build error TS2367 in LogbookCheckin.tsx ---
+
+MODIFIED  frontend/src/route/logbook/LogbookCheckin.tsx  (check-in form onChange)
+  - Removed: if (phase === 'already-in') setPhase('form') from inside the
+    if (phase === 'form') render block
+  - Root cause: TypeScript narrows phase to 'form' inside the form branch,
+    making the 'already-in' comparison always false — flagged as TS2367
+  - The already-in → form reset is already handled by the "Not me" button
+    in the already-in render block (setPhase('form') + setOfficerId(''))
+
+--- FIX 2: Announcement category tag displaying "Notice" instead of actual category ---
+
+MODIFIED  frontend/src/route/bulletin/Bulletin.tsx
+  - Changed: getTagClass and getTagLabel call sites from (ann as any).type
+    → (ann as any).category (the .type field does not exist on bulletin records;
+    .category is the correct DB field)
+  - Changed: getTagLabel now returns the category string as-is instead of
+    mapping to hardcoded "Notice" / "Event" / "Update" — all category values
+    ("Examinations", "Class Advisories", "University Events", etc.) now display
+  - Changed: getTagClass parameter renamed type → category for clarity;
+    keyword-based CSS class mapping (event, update, notice) is unchanged
+
+--- FIX 3: Announcement category tag illegible on images ---
+
+MODIFIED  frontend/src/route/bulletin/bulletin.css  (.bl-card-tag)
+  - Added: background: rgba(0, 0, 0, 0.52) !important
+  - Added: color: #fff !important
+  - Added: backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px)
+  - Root cause: global .tag-notice background is rgba(79,111,209,0.08) — nearly
+    transparent; when overlaid on noisy or dark announcement images, the text
+    was unreadable; the override applies only to .bl-card-tag (image overlay)
+    and does not affect the pinned card tag which sits on a white panel
+
+--- FIX 4: Announcement and event modal content collapsing newlines ---
+
+MODIFIED  frontend/src/components/modal/Modal.tsx
+  - Replaced: <p className="modal-description">{description}</p>
+  - Added: <div className="modal-description"> with description.split(/\n\n+/)
+    mapped to individual <p> elements; within each paragraph, split('\n')
+    mapped to <span> + <br> for single line breaks
+  - Effect: double (or more) newlines become paragraph spacing; single newlines
+    become <br> within a paragraph; applies to all callers (announcements,
+    events, homepage announcement section, latest-updates section)
+
+MODIFIED  frontend/src/components/modal/modal.css
+  - Added: .modal-description p { margin: 0 0 0.85em; }
+  - Added: .modal-description p:last-child { margin-bottom: 0; }
+  - Required because existing margin: 0 on .modal-description zeroed out
+    default browser paragraph spacing inside the container
+
+--- FIX 5: Organizations hero stat cards orphaned layout ---
+
+MODIFIED  frontend/src/route/organizations/organizations.css
+  - Changed: .po-hero-stats default grid-template-columns from
+    repeat(3, auto) → repeat(4, auto)  (4×1 on wide screens)
+  - Changed: ≤768px breakpoint from 1fr 1fr 1fr → 1fr 1fr  (2×2)
+  - Changed: ≤480px breakpoint from repeat(3, 1fr) → 1fr 1fr  (2×2)
+  - Root cause: 3-column default caused the 4th card (ROTC) to orphan
+    on a second row with a wide empty gap beside it
+
+=============================================================================
 END OF CHANGE LOG
 =============================================================================

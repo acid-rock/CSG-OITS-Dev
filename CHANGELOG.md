@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-05-29
+
+### Changed
+- **Announcements — category tag label** — `getTagLabel` now returns the raw `category` string from the database (e.g. "Examinations", "Class Advisories") instead of mapping to a hardcoded set of three labels; all actual category values are now displayed correctly
+- **Announcements — category tag on card images** — tag overlay had a near-transparent background (`rgba(79,111,209,0.08)`) that was illegible on colourful images; `.bl-card-tag` now uses a dark frosted-glass override (`rgba(0,0,0,0.52)` + `backdrop-filter: blur(6px)`) with white text, readable on any image
+- **Announcement and event modals — paragraph breaks** — content was rendered in a single `<p>` tag, collapsing all newlines into spaces; replaced with a paragraph splitter that maps double newlines (`\n\n+`) to separate `<p>` elements and single newlines to `<br>` tags; applies to all callers of `<Modal>` (announcements, events, homepage sections)
+- **Organizations hero — stat cards layout** — grid was `repeat(3, auto)` causing ROTC to orphan on a second row; changed to `repeat(4, auto)` on wide screens (4×1), `1fr 1fr` on ≤768 px (2×2), and `1fr 1fr` on ≤480 px (2×2)
+
+### Fixed
+- TypeScript build error `TS2367` in `LogbookCheckin.tsx` — `phase === 'already-in'` comparison inside the `if (phase === 'form')` render block was always false (TypeScript narrows `phase` to `'form'` inside that branch); removed the dead check; the `already-in` → `form` reset is already handled by the "Not me" button in the `already-in` render block
+- **Announcements — category tag reading wrong field** — `getTagClass` and `getTagLabel` were reading `(ann as any).type` which does not exist on bulletin records; corrected to `(ann as any).category`
+
 ## [1.10.0] - 2026-05-29
 
 ### Added
