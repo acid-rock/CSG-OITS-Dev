@@ -258,7 +258,7 @@ export const logbookAdminDeleteSchema = z.object({
 // ─── Site Feedback ────────────────────────────────────────────────────────────
 
 export const feedbackSubmitSchema = z.object({
-  type: z.enum(['Bug Report', 'Suggestion', 'Compliment', 'Other']),
+  type: z.enum(['Bug Report', 'Suggestion', 'Other']),
   message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message too long'),
   name: z.string().max(100).optional(),
   email: z.string().email('Invalid email address').max(200).optional().or(z.literal('')),

@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-05-29
+
+### Added
+- **Admin Feedback panel** (`/admin?panel=feedback`) — new panel under Operations in the sidebar; lists all site feedback submissions with type tag, message preview, sender info, and status badge; filter by status (New / Read / Resolved) with live unread counts; click any row to expand the full message with a mailto reply link; mark individual entries as read or resolved; single and bulk delete
+- **In-app feedback form** — "Send Feedback" button in the public footer now opens an in-app modal instead of redirecting to Google Forms; collects feedback type (Bug Report, Suggestion, Other), message (10–2000 chars), and optional name and email; submissions stored in `site_feedback` Supabase table; success state confirms receipt
+- `POST /api/v1/feedback` — public endpoint to submit feedback; validated by `feedbackSubmitSchema`
+- `GET /api/v1/feedback` — admin endpoint to list all feedback entries (requireAuth)
+- `PATCH /api/v1/feedback/status` — admin endpoint to update entry status (requireAuth)
+- `DELETE /api/v1/feedback/delete` — admin endpoint to hard-delete one or more entries (requireAuth)
+- `feedbackSubmitSchema`, `feedbackUpdateSchema`, `feedbackDeleteSchema` Zod schemas added to `schemas/index.js`
+
+### Changed
+- **Admin sort filter — dropdown** — sort controls in Announcements, Events, and Documents panels changed from a cosmetic toggle button to a functional `<select>` dropdown ("Newest first" / "Oldest first"); all three panels now actually sort by the selected direction; Announcements sort respects pinned-first ordering
+- **Committees panel — avatar resolution** — chair and vice chair name lookups now use case-insensitive, whitespace-trimmed string comparison; `OfficialAvatar` component replaces inline `<img onError>` so a broken or expired image URL gracefully falls back to the `MiniAvatar` initials display instead of leaving a blank slot
+
+### Fixed
+- **Organizations hero — ROTC stat card missing** — ROTC count was tracked and shown in the filter bar but had no stat card in the hero section alongside Academic, Non-academic, and Publication; card now renders conditionally when `counts.rotc > 0`
+- **Committees panel — chair/vice chair photo not shown** — strict `===` comparison between `chair_name` stored on the committee and `full_name` in the officers list failed on any whitespace or casing difference, returning `avatar: null` and falling through to initials; fixed with normalized (trimmed + lowercased) comparison
+
 ## [1.9.0] - 2026-05-29
 
 ### Added

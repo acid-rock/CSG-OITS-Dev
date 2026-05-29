@@ -9,8 +9,8 @@ const API = import.meta.env.VITE_API_URL as string;
 type PolicyType = "privacy" | "terms" | "cookies" | null;
 
 /* ─── Feedback types ─────────────────────────────────────── */
-type FeedbackType = "Bug Report" | "Suggestion" | "Compliment" | "Other";
-const FEEDBACK_TYPES: FeedbackType[] = ["Bug Report", "Suggestion", "Compliment", "Other"];
+type FeedbackType = "Bug Report" | "Suggestion" | "Other";
+const FEEDBACK_TYPES: FeedbackType[] = ["Bug Report", "Suggestion", "Other"];
 
 const POLICY_CONTENT: Record<
   NonNullable<PolicyType>,

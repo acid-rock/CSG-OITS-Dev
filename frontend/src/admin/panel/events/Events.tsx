@@ -307,8 +307,8 @@ const Events = () => {
           search={searchQuery}
           onSearch={setSearchQuery}
           onRefresh={handleRefresh}
-          sortLabel={sort === 'newest' ? 'Newest first' : 'Oldest first'}
-          onSortToggle={() => setSort((s) => s === 'newest' ? 'oldest' : 'newest')}
+          sortValue={sort}
+          onSortChange={(v) => setSort(v as 'newest' | 'oldest')}
         >
           <select
             value={filter}

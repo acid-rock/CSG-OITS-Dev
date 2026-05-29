@@ -19,7 +19,7 @@ const API = import.meta.env.VITE_API_URL as string;
 
 /* ── Types ───────────────────────────────────────────────────── */
 type FeedbackStatus = 'new' | 'read' | 'resolved';
-type FeedbackType   = 'Bug Report' | 'Suggestion' | 'Compliment' | 'Other';
+type FeedbackType   = 'Bug Report' | 'Suggestion' | 'Other';
 
 interface FeedbackEntry {
   id:         string;
@@ -39,10 +39,9 @@ const STATUS_TONE: Record<FeedbackStatus, 'danger' | 'warning' | 'success'> = {
 };
 
 const TYPE_TONE: Record<FeedbackType, 'danger' | 'warning' | 'primary' | 'neutral'> = {
-  'Bug Report':  'danger',
-  'Suggestion':  'primary',
-  'Compliment':  'neutral',
-  'Other':       'neutral',
+  'Bug Report': 'danger',
+  'Suggestion': 'primary',
+  'Other':      'neutral',
 };
 
 function fmtDate(iso: string): string {
@@ -245,12 +244,12 @@ export default function FeedbackPanel() {
                         onChange={toggleAll}
                       />
                     </th>
-                    <th style={{ width: 110 }}>Type</th>
+                    <th style={{ width: 100 }}>Type</th>
                     <th>Message</th>
-                    <th style={{ width: 150 }}>From</th>
-                    <th style={{ width: 100 }}>Status</th>
-                    <th style={{ width: 150 }}>Submitted</th>
-                    <th style={{ width: 130 }}>Actions</th>
+                    <th style={{ width: 140 }}>From</th>
+                    <th style={{ width: 90 }}>Status</th>
+                    <th style={{ width: 140 }}>Submitted</th>
+                    <th style={{ width: 120 }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -55,6 +55,12 @@ function OrgHero({ counts }: { counts: HeroCounts }) {
             <span className="po-hero-stat-num">{counts.spu}</span>
             <span className="po-hero-stat-lbl">Publication</span>
           </div>
+          {counts.rotc > 0 && (
+            <div className="po-hero-stat">
+              <span className="po-hero-stat-num">{counts.rotc}</span>
+              <span className="po-hero-stat-lbl">ROTC</span>
+            </div>
+          )}
         </div>
       </div>
     </section>

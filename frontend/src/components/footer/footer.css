@@ -344,6 +344,7 @@
 }
 .footer-modal-btn.footer-modal-btn--ghost:hover { background: #e5e7eb; }
 
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .footer-container {

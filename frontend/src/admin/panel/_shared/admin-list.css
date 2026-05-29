@@ -321,6 +321,22 @@
 }
 .ad-sort:hover{ border-color:var(--color-primary-mid); }
 .ad-sort svg{ color:var(--color-text-muted); }
+.ad-sort-select{
+  font-family:inherit; font-size:12.5px; font-weight:600;
+  background:#fff; color:var(--color-text-primary);
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-input);
+  padding:7px 10px; cursor:pointer;
+  transition:var(--transition);
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><polyline points='0,0 5,5 10,0' fill='none' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 9px center;
+  padding-right:28px;
+}
+.ad-sort-select:hover,.ad-sort-select:focus{
+  border-color:var(--color-primary-mid); outline:none;
+}
 .ad-icon-btn{
   display:inline-flex; align-items:center; justify-content:center;
   width:34px; height:34px;

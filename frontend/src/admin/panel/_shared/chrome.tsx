@@ -58,21 +58,32 @@ interface ToolbarProps {
   search?: string;
   onSearch?: (v: string) => void;
   filters?: FilterItem[];
-  sortLabel?: string;
+  /** Current sort value — passed as the <select> value */
+  sortValue?: string;
+  /** Options for the sort dropdown. Defaults to Newest / Oldest first. */
+  sortOptions?: { value: string; label: string }[];
   showSort?: boolean;
+  onSortChange?: (value: string) => void;
+  /** @deprecated Use onSortChange instead */
   onSortToggle?: () => void;
   onRefresh?: () => void;
   /** Inline custom filter elements rendered between search and end controls */
   children?: ReactNode;
 }
+const DEFAULT_SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest first' },
+  { value: 'oldest', label: 'Oldest first' },
+];
+
 export function Toolbar({
   placeholder,
   search = '',
   onSearch,
   filters = [],
-  sortLabel = 'Newest first',
+  sortValue = 'newest',
+  sortOptions = DEFAULT_SORT_OPTIONS,
   showSort = true,
-  onSortToggle,
+  onSortChange,
   onRefresh,
   children,
 }: ToolbarProps) {
@@ -107,7 +118,15 @@ export function Toolbar({
         {showSort && (
           <>
             <span className="ad-sort-label">Sort by</span>
-            <button className="ad-sort" onClick={onSortToggle}>{sortLabel} <I.chev width="11" height="11" /></button>
+            <select
+              className="ad-sort-select"
+              value={sortValue}
+              onChange={(e) => onSortChange?.(e.target.value)}
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </>
         )}
         <button className="ad-icon-btn" title="Refresh" onClick={onRefresh}>

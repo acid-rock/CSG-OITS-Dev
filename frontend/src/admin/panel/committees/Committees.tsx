@@ -249,6 +249,21 @@ function MembersSection({ allOfficers, committeeId, pendingAdd, pendingRemove, o
   );
 }
 
+// ── OfficialAvatar — shows photo or falls back to MiniAvatar on error ────────
+
+function OfficialAvatar({ avatar, name }: { avatar?: string | null; name: string }) {
+  const [failed, setFailed] = useState(false);
+  if (!avatar || failed) return <MiniAvatar name={name} />;
+  return (
+    <img
+      src={avatar}
+      alt={name}
+      style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 // ── Edit Details Modal ────────────────────────────────────────────────────────
 
 interface EditModalProps {
@@ -650,9 +665,11 @@ const CommitteesPanel = () => {
   const toggleSelect = (id: string) => setSelectedIds(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const filtered = data.filter(c => !searchQuery || c.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
+  const normName = (s: string) => s.trim().toLowerCase();
+
   const resolveChair = (c: CommitteeEntry): { name: string; avatar?: string | null } | null => {
     if (c.chair_name) {
-      const matched = officers.find(o => o.full_name === c.chair_name);
+      const matched = officers.find(o => normName(o.full_name) === normName(c.chair_name!));
       return { name: c.chair_name, avatar: matched?.avatar ?? null };
     }
     const chair = officers.find(o => o.committee != null && String(o.committee) === c.id && o.is_committee_official);
@@ -661,7 +678,7 @@ const CommitteesPanel = () => {
 
   const resolveViceChair = (c: CommitteeEntry): { name: string; avatar?: string | null } | null => {
     if (!c.vice_chair_name?.trim()) return null;
-    const matched = officers.find(o => o.full_name === c.vice_chair_name);
+    const matched = officers.find(o => normName(o.full_name) === normName(c.vice_chair_name!));
     return { name: c.vice_chair_name, avatar: matched?.avatar ?? null };
   };
 
@@ -724,9 +741,7 @@ const CommitteesPanel = () => {
                           <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
                             {chair ? (
                               <div className="ad-author" style={{ gap:6 }}>
-                                {chair.avatar
-                                  ? <img src={chair.avatar} alt={chair.name} style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', flexShrink:0 }} onError={e => { (e.currentTarget as HTMLImageElement).style.display='none'; }} />
-                                  : <MiniAvatar name={chair.name} />}
+                                <OfficialAvatar avatar={chair.avatar} name={chair.name} />
                                 <div style={{ minWidth:0 }}>
                                   <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px', color:'var(--color-text-hint)' }}>Chair</div>
                                   <div style={{ fontSize:12.5, fontWeight:600, color:'var(--color-text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:160 }}>{chair.name}</div>
@@ -735,9 +750,7 @@ const CommitteesPanel = () => {
                             ) : <span className="ad-cell-muted" style={{ fontSize:12 }}>No chair assigned</span>}
                             {viceChar && (
                               <div className="ad-author" style={{ gap:6 }}>
-                                {viceChar.avatar
-                                  ? <img src={viceChar.avatar} alt={viceChar.name} style={{ width:26, height:26, borderRadius:'50%', objectFit:'cover', flexShrink:0 }} onError={e => { (e.currentTarget as HTMLImageElement).style.display='none'; }} />
-                                  : <MiniAvatar name={viceChar.name} />}
+                                <OfficialAvatar avatar={viceChar.avatar} name={viceChar.name} />
                                 <div style={{ minWidth:0 }}>
                                   <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px', color:'var(--color-text-hint)' }}>Vice Chair</div>
                                   <div style={{ fontSize:12.5, fontWeight:600, color:'var(--color-text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:160 }}>{viceChar.name}</div>
