@@ -41,20 +41,17 @@ function getPageRange(current: number, total: number): (number | '...')[] {
   return result;
 }
 
-function getTagClass(type?: string): string {
-  if (!type) return "tag-notice";
-  const t = type.toLowerCase();
-  if (t.includes("event")) return "tag-event";
-  if (t.includes("update")) return "tag-update";
+function getTagClass(category?: string): string {
+  if (!category) return "tag-notice";
+  const c = category.toLowerCase();
+  if (c.includes("event")) return "tag-event";
+  if (c.includes("update")) return "tag-update";
   return "tag-notice";
 }
 
-function getTagLabel(type?: string): string {
-  if (!type) return "Notice";
-  const t = type.toLowerCase();
-  if (t.includes("event")) return "Event";
-  if (t.includes("update")) return "Update";
-  return "Notice";
+function getTagLabel(category?: string): string {
+  if (!category) return "CSG Updates";
+  return category;
 }
 
 const Bulletin = () => {
@@ -201,9 +198,9 @@ const Bulletin = () => {
             {/* Content panel — Fix 6A: author row removed */}
             <div className="bl-pinned-body">
               <span
-                className={`tag ${getTagClass((pinned as any).type)} bl-pinned-tag`}
+                className={`tag ${getTagClass((pinned as any).category)} bl-pinned-tag`}
               >
-                {getTagLabel((pinned as any).type)}
+                {getTagLabel((pinned as any).category)}
               </span>
               <p className="bl-pinned-meta">
                 {formatDate(pinned.date)}&nbsp;&nbsp;·&nbsp;&nbsp;3 min read
@@ -247,9 +244,9 @@ const Bulletin = () => {
                     />
                   )}
                   <span
-                    className={`tag ${getTagClass((ann as any).type)} bl-card-tag`}
+                    className={`tag ${getTagClass((ann as any).category)} bl-card-tag`}
                   >
-                    {getTagLabel((ann as any).type)}
+                    {getTagLabel((ann as any).category)}
                   </span>
                 </div>
                 <div className="bl-card-body">

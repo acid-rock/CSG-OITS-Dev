@@ -371,6 +371,11 @@
   top: var(--space-3);
   left: var(--space-3);
   pointer-events: none;
+  /* Override the global semi-transparent tag colors — needs solid contrast on any image */
+  background: rgba(0, 0, 0, 0.52) !important;
+  color: #fff !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 /* Card body */
