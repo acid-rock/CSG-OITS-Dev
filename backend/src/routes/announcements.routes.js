@@ -61,6 +61,7 @@ router.get(
         created_at: row.created_at,
         is_pinned: row.is_pinned ?? false,
         category: row.category ?? 'CSG Updates',
+        owner_id: row.owner_id ?? null,
       };
     });
 
@@ -243,6 +244,7 @@ router.get(
         is_pinned: row.is_pinned ?? false,
         is_archived: true,
         archived_at: row.archived_at,
+        owner_id: row.owner_id ?? null,
       };
     });
 
@@ -273,6 +275,7 @@ router.get(
         content: row.content,
         date: row.created_at,
         deleted_at: row.deleted_at,
+        owner_id: row.owner_id ?? null,
       };
     });
 

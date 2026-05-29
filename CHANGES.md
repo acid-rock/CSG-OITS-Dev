@@ -896,6 +896,18 @@ MODIFIED  frontend/src/route/organizations/organizations.css
   - Root cause: 3-column default caused the 4th card (ROTC) to orphan
     on a second row with a wide empty gap beside it
 
+--- FIX 6: Announcements admin panel — author column showing "Admin" ---
+
+MODIFIED  backend/src/routes/announcements.routes.js  (GET /, GET /archived, GET /bin)
+  - Added: owner_id: row.owner_id ?? null to the response payload in all three
+    read handlers
+  - Root cause: the .map() in each handler built an explicit response object
+    that included id, title, content, date, category, is_pinned etc. but never
+    forwarded owner_id from the DB row; the field was therefore always undefined
+    in the frontend BulletinEntry; adminDisplayName() returns 'Admin' as its
+    first branch when ownerId is falsy, so the admin map lookup was never reached
+    even though /user/list was fetched and the map was populated correctly
+
 =============================================================================
 END OF CHANGE LOG
 =============================================================================

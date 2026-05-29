@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.10.2] - 2026-05-29
+
+### Fixed
+- **Announcements admin panel — author showing "Admin" instead of real name** — all three announcement API handlers (`GET /`, `GET /archived`, `GET /bin`) built their response payload via an explicit `.map()` but never forwarded `owner_id` from the database row; `entry.owner_id` was always `undefined` on the frontend, causing `adminDisplayName` to immediately return the `'Admin'` fallback without ever consulting the admin map; fixed by adding `owner_id: row.owner_id ?? null` to the returned object in all three handlers
+
 ## [1.10.1] - 2026-05-29
 
 ### Changed
