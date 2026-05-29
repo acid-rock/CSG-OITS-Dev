@@ -1,7 +1,7 @@
 import "./about-page.css";
 import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import type { OutletContext } from "../../root-layout/Root-layout";
+import type { OutletContext, Officer } from "../../root-layout/Root-layout";
 import fetchOfficers from "../../config/officerConfig";
 import fetchCommittees from "../../config/committeeConfig";
 
@@ -11,7 +11,7 @@ export default function AboutPage() {
   const [committeeCount, setCommitteeCount] = useState(0);
 
   useEffect(() => {
-    fetchOfficers().then((data) => setOfficerCount(data.length)).catch(console.error);
+    fetchOfficers().then((data) => setOfficerCount((data as Officer[]).length)).catch(console.error);
     fetchCommittees().then((data) => setCommitteeCount(data.length)).catch(console.error);
   }, []);
 

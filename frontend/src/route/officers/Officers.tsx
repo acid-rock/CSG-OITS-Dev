@@ -103,7 +103,7 @@ const Officers = () => {
   const [committees, setCommittees] = useState<Committee[]>([]);
 
   useEffect(() => {
-    fetchOfficers(undefined, undefined, undefined, 'all').then(setOfficers).catch(console.error);
+    fetchOfficers(undefined, undefined, undefined, 'all').then((r) => setOfficers(r as Officer[])).catch(console.error);
     fetchCommittees().then(setCommittees).catch(console.error);
   }, []);
 

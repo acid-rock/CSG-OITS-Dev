@@ -47,7 +47,7 @@ export default function CommitteesPage() {
 
   useEffect(() => {
     fetchCommittees().then(setCommittees).catch(console.error);
-    fetchOfficers(undefined, undefined, undefined, 'all').then(setOfficers).catch(console.error);
+    fetchOfficers(undefined, undefined, undefined, 'all').then((r) => setOfficers(r as Officer[])).catch(console.error);
   }, []);
 
   const activeCommittees = committees.filter(

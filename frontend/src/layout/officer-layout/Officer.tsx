@@ -10,7 +10,7 @@ export default function OfficerSection() {
   const [officers, setOfficers] = useState<Officer[]>([]);
 
   useEffect(() => {
-    fetchOfficers(undefined, undefined, undefined, 'all').then(setOfficers).catch(console.error);
+    fetchOfficers(undefined, undefined, undefined, 'all').then((r) => setOfficers(r as Officer[])).catch(console.error);
   }, []);
 
   /* Exclude archived officers and current-term former members from the homepage.
