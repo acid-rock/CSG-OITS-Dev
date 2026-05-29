@@ -72,3 +72,8 @@ docker-compose.override.yml
 # -------------------------
 *.tgz
 *.bak
+
+# -------------------------
+# Migration backup — local only, do not commit
+# -------------------------
+scripts/backup/

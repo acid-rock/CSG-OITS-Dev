@@ -909,5 +909,141 @@ MODIFIED  backend/src/routes/announcements.routes.js  (GET /, GET /archived, GET
     even though /user/list was fetched and the map was populated correctly
 
 =============================================================================
+WAVE 11 — EGRESS REDUCTION: WEBP COMPRESSION + LAZY LOADING (v1.11.0)
+=============================================================================
+
+Motivation: Supabase free-tier cached egress was at 224% (11.2 GB / 5 GB cap).
+Root cause: all image uploads stored at full original resolution with no cache
+headers; every page load fetched all officer/organization/committee data
+regardless of which page the visitor actually navigated to.
+
+--- NEW DEPENDENCY ---
+
+MODIFIED  backend/package.json
+  - Added: sharp ^0.34.x (native libvips Node.js image processing)
+
+--- MIGRATION SCRIPT ---
+
+CREATED   backend/scripts/migrate-images-to-webp.js
+  - One-time script to convert all existing images in Supabase Storage to WebP
+  - Buckets: officers, bulletin, events, committees, organizations
+  - Flow per file: download → save original to scripts/backup/<bucket>/<path>
+    → sharp resize (max 1200 px wide) + webp({ quality: 80 }) → re-upload to
+    same path with contentType: 'image/webp', cacheControl: '31536000'
+  - Skips files where sharp detects format === 'webp' (already converted)
+  - Logs KB before → after and reduction % per file; summary at end
+  - Non-zero exit code if any file failed
+
+CREATED   backend/scripts/restore-backup.js
+  - Single-file restore utility for post-migration rollback
+  - Usage: node scripts/restore-backup.js <bucket> <path>
+  - Reads from scripts/backup/<bucket>/<path>, uploads to Supabase with upsert
+
+MODIFIED  backend/.gitignore
+  - Added: scripts/backup/ (local backup directory must not be committed)
+
+--- UPLOAD PIPELINE (all image buckets) ---
+
+MODIFIED  backend/src/routes/announcements.routes.js
+  - Added: import sharp from 'sharp'
+  - Modified: POST /add image upload — original buffer → sharp().resize({ width:
+    1200, withoutEnlargement: true }).webp({ quality: 80 }).toBuffer() before
+    supabase.storage.upload(); contentType changed to 'image/webp'; added
+    cacheControl: '31536000'
+  - Modified: POST /edit image upload — same sharp pipeline applied when a
+    replacement cover image is provided
+
+MODIFIED  backend/src/routes/officers.routes.js
+  - Added: import sharp from 'sharp'
+  - Modified: POST /add avatar upload — converted to webp (max 800 px wide);
+    filename changed to ${data.id}.webp; contentType: 'image/webp';
+    cacheControl: '31536000'
+  - Modified: POST /edit avatar upload — same pipeline; avatarPath changed to
+    ${id}.webp; old file removed if path changed (existing delete logic handles
+    the path diff correctly)
+
+MODIFIED  backend/src/routes/organizations.routes.js
+  - Added: import sharp from 'sharp'
+  - Modified: POST /add logo upload — converted to webp (max 800 px wide);
+    logoPath changed to ${data.id}.webp
+  - Modified: POST /edit logo upload — same pipeline; logoPath changed to
+    ${id}.webp
+
+MODIFIED  backend/src/routes/committee.routes.js
+  - Added: import sharp from 'sharp'
+  - Modified: POST /upload-cover — converted to webp (max 1200 px wide);
+    coverPath changed to ${id}.webp; removed dynamic ext detection
+
+MODIFIED  backend/src/routes/events.routes.js
+  - Added: import sharp from 'sharp'
+  - Fixed: multer config missing limits object — added limits: { fileSize:
+    5 * 1024 * 1024 } to match all other route files
+  - Modified: POST /add image loop — each image converted to webp (max 1200 px);
+    upload path kept as ${id}/${i}.jpg (not stored in DB; GET reads from bucket
+    listing so extension is irrelevant to URL generation); cacheControl added
+  - Modified: POST /edit per-slot image replacement — same sharp pipeline
+
+MODIFIED  backend/src/routes/borrowing.routes.js
+  - Added: import sharp from 'sharp'
+  - Modified: POST /inventory/add image upload — converted to webp (max 800 px);
+    imagePath changed to ${data.id}.webp
+  - Modified: POST /inventory/edit image replacement — same pipeline; imagePath
+    changed to ${id}.webp
+
+MODIFIED  backend/src/routes/documents.routes.js
+  - Fixed: thumbnail upload option typo — { thumbnailContentType, upsert: true }
+    is not a valid Supabase Storage option; corrected to
+    { contentType: thumbnailContentType, cacheControl: '31536000', upsert: true }
+
+--- FRONTEND: LAZY LOADING ---
+
+MODIFIED  frontend/src/root-layout/Root-layout.tsx
+  - Removed: fetchOfficers, fetchOrganizations, fetchCommittees imports
+  - Removed: officers, organizations, committees state variables
+  - Removed: fetchOfficers / fetchOrganizations / fetchCommittees from
+    Promise.allSettled call (now fetches only bulletin, documents, events,
+    and access_paused setting on root layout mount)
+  - Removed: officers, organizations, committees from allFailed check
+  - Removed: setOfficers, setOrganizations, setCommittees result handlers
+  - Removed: officers, organizations, committees from OutletContext interface
+  - Removed: officers, organizations, committees from <Outlet context={...} />
+  - Kept: Organization, Committee type re-exports for downstream consumers
+  - Effect: visiting /announcements, /documents, or /events no longer triggers
+    officer or organization image loads
+
+MODIFIED  frontend/src/layout/officer-layout/Officer.tsx
+  - Removed: useOutletContext usage
+  - Added: useState<Officer[]>([]) + useEffect fetching fetchOfficers('all')
+    on mount; component is self-contained
+
+MODIFIED  frontend/src/layout/organizations-section/OrganizationsSection.tsx
+  - Removed: useOutletContext usage
+  - Added: useState<Organization[]>([]) + useEffect fetching fetchOrganizations()
+    on mount; component is self-contained
+
+MODIFIED  frontend/src/route/officers/Officers.tsx
+  - Removed: useOutletContext; OutletContext, Committee imports from Root-layout
+  - Added: Committee import from config/committeeConfig
+  - Added: fetchOfficers, fetchCommittees imports from config/
+  - Added: useState + useEffect fetching both on mount
+
+MODIFIED  frontend/src/route/committees/CommitteesPage.tsx
+  - Removed: useOutletContext; OutletContext import
+  - Added: Officer import from Root-layout; fetchCommittees, fetchOfficers imports
+  - Added: useState + useEffect fetching both on mount
+
+MODIFIED  frontend/src/route/organizations/OrganizationsPage.tsx
+  - Removed: useOutletContext; OutletContext import
+  - Added: fetchOrganizations import from config/organizationsConfig
+  - Added: useState<Organization[]> + useEffect fetching on mount
+
+MODIFIED  frontend/src/route/about/AboutPage.tsx
+  - Removed: officers, committees from useOutletContext destructuring
+  - Added: fetchOfficers, fetchCommittees imports
+  - Added: officerCount, committeeCount state; useEffect fetching both on mount
+  - Changed: stat bar renders officerCount / committeeCount instead of
+    officers.length / committees.length
+
+=============================================================================
 END OF CHANGE LOG
 =============================================================================

@@ -18,14 +18,8 @@ const TRACK_MAP: Record<string, string> = {
 import fetchBulletinData from "../config/bulletinConfig";
 import fetchDocuments from "../config/documentsConfig";
 import fetchEvents from "../config/eventConfig";
-import fetchOfficers from "../config/officerConfig";
 import type { CommitteeMembership } from "../config/officerConfig";
-import { fetchOrganizations } from "../config/organizationsConfig";
-import type { Organization } from "../config/organizationsConfig";
-import fetchCommittees from "../config/committeeConfig";
-import type { Committee } from "../config/committeeConfig";
-export type { Organization };
-export type { Committee };
+export type { CommitteeMembership };
 
 
 export type Announcement = {
@@ -76,16 +70,12 @@ export type Officer = {
   /** Committee memberships from junction table — source of truth for multi-committee */
   committee_memberships?: CommitteeMembership[];
 };
-export type { CommitteeMembership };
 
 
 export interface OutletContext {
   bulletin: Announcement[];
   documents: Document[];
   events: Event[];
-  officers: Officer[];
-  organizations: Organization[];
-  committees: Committee[];
 }
 
 const Root = () => {
@@ -95,9 +85,6 @@ const Root = () => {
   const [bulletin, setBulletin] = useState<Announcement[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [officers, setOfficers] = useState<Officer[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [committees, setCommittees] = useState<Committee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -170,15 +157,11 @@ const Root = () => {
     setLoading(true);
     setError(null);
 
-    const [bulletinResult, documentsResult, eventsResult, officersResult, orgsResult, committeesResult, pauseResult] =
+    const [bulletinResult, documentsResult, eventsResult, pauseResult] =
       await Promise.allSettled([
         fetchBulletinData(),
         fetchDocuments(),
         fetchEvents(),
-        // status=all → returns active + archived (former) officers; frontend filters
-        fetchOfficers(undefined, undefined, undefined, 'all'),
-        fetchOrganizations(),
-        fetchCommittees(),
         // Check if admin has paused public access
         axios.get<{ key: string; value: string }>(`${VITE_API_URL}/settings/access_paused`),
       ]);
@@ -190,7 +173,7 @@ const Root = () => {
       return;
     }
 
-    const allFailed = [bulletinResult, documentsResult, eventsResult, officersResult]
+    const allFailed = [bulletinResult, documentsResult, eventsResult]
       .every((r) => r.status === "rejected");
 
     if (allFailed) {
@@ -210,9 +193,6 @@ const Root = () => {
     if (documentsResult.status === "fulfilled" && Array.isArray(documentsResult.value))
       setDocuments(documentsResult.value as unknown as Document[]);
     if (eventsResult.status === "fulfilled") setEvents(eventsResult.value);
-    if (officersResult.status === "fulfilled") setOfficers(officersResult.value as Officer[]);
-    if (orgsResult.status === "fulfilled") setOrganizations(orgsResult.value);
-    if (committeesResult.status === "fulfilled") setCommittees(committeesResult.value);
 
     setLoading(false);
   }, []);
@@ -330,7 +310,7 @@ const Root = () => {
   return (
     <div className="relative px-4 md:px-8 lg:px-16 lx:px-32 2xl:px-64 overflow-hidden flex flex-col">
       <Navigation />
-      <Outlet context={{ bulletin, documents, events, officers, organizations, committees }} />
+      <Outlet context={{ bulletin, documents, events }} />
       <Footer />
     </div>
   );

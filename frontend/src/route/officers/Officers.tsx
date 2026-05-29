@@ -1,9 +1,11 @@
 import "./officers.css";
 import "../committees/committees.css";
-import { useOutletContext } from "react-router-dom";
 import { FaFacebook } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import type { Officer, OutletContext, Committee, CommitteeMembership } from "../../root-layout/Root-layout";
+import type { Officer, CommitteeMembership } from "../../root-layout/Root-layout";
+import type { Committee } from "../../config/committeeConfig";
+import fetchOfficers from "../../config/officerConfig";
+import fetchCommittees from "../../config/committeeConfig";
 import { useLockBodyScroll } from "../../hooks/useLockBodyScroll";
 import SearchFilterBar from "../../components/search-filter-bar/SearchFilterBar";
 
@@ -97,10 +99,13 @@ function OCard({ officer, avatarSize = 80, isAdviser = false }: OfficerCardProps
 
 /* ── Main Officers page ── */
 const Officers = () => {
-  /* ══════════════════════════════════════════
-     LOCKED DATA BINDINGS — do not modify
-     ══════════════════════════════════════════ */
-  const { officers, committees } = useOutletContext<OutletContext>();
+  const [officers, setOfficers] = useState<Officer[]>([]);
+  const [committees, setCommittees] = useState<Committee[]>([]);
+
+  useEffect(() => {
+    fetchOfficers(undefined, undefined, undefined, 'all').then(setOfficers).catch(console.error);
+    fetchCommittees().then(setCommittees).catch(console.error);
+  }, []);
 
   const [selectedCommittee, setSelectedCommittee] = useState<Committee | null>(null);
   const [officerSearch, setOfficerSearch] = useState("");

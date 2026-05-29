@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import type { OutletContext } from '../../root-layout/Root-layout';
+import { useState, useEffect } from 'react';
 import type { Organization } from '../../config/organizationsConfig';
+import { fetchOrganizations } from '../../config/organizationsConfig';
 import OrganizationCard from '../../components/organization-card/OrganizationCard';
 import OrganizationModal from '../../components/organization-card/OrganizationModal';
 import SpecialUnitCard from '../../components/organization-card/SpecialUnitCard';
@@ -177,8 +176,12 @@ function OrgSection({ kicker, title, sub, items, alt, onSelect, subOrgMap }: Org
    ============================================================ */
 
 export default function OrganizationsPage() {
-  const { organizations } = useOutletContext<OutletContext>();
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [query, setQuery]   = useState('');
+
+  useEffect(() => {
+    fetchOrganizations().then(setOrganizations).catch(console.error);
+  }, []);
   const [filter, setFilter] = useState<FilterValue>('all');
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 

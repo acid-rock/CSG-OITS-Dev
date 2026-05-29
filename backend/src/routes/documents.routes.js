@@ -222,7 +222,7 @@ router.post(
 
     const { error: thumbnailError } = await userSupabase.storage
       .from("thumbnails")
-      .upload(imgName, thumbnail, { thumbnailContentType, upsert: true });
+      .upload(imgName, thumbnail, { contentType: thumbnailContentType, cacheControl: "31536000", upsert: true });
     if (thumbnailError) throw new Error(thumbnailError.message);
 
     const term = req.body.term;
