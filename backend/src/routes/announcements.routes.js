@@ -8,6 +8,7 @@
 
 import { Router } from "express";
 import multer from "multer";
+import sharp from "sharp";
 import ApiError from "../lib/apiError.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.js";
@@ -98,10 +99,15 @@ router.post(
     if (error) throw new Error(error.message);
 
     const imgPath = `${data[0].id}.jpg`;
+    const compressed = await sharp(req.file.buffer)
+      .resize({ width: 1200, withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
     const { data: imgData, error: uploadError } = await userSupabase.storage
       .from("bulletin")
-      .upload(imgPath, req.file.buffer, {
-        contentType: req.file.mimetype,
+      .upload(imgPath, compressed, {
+        contentType: "image/webp",
+        cacheControl: "31536000",
         upsert: true,
       });
 
@@ -136,10 +142,15 @@ router.post(
     // Replace the cover image only when a new file was uploaded
     if (req.file) {
       const imgPath = `${id}.jpg`;
+      const compressed = await sharp(req.file.buffer)
+        .resize({ width: 1200, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
       const { error: uploadError } = await userSupabase.storage
         .from("bulletin")
-        .upload(imgPath, req.file.buffer, {
-          contentType: req.file.mimetype,
+        .upload(imgPath, compressed, {
+          contentType: "image/webp",
+          cacheControl: "31536000",
           upsert: true,
         });
       if (uploadError) throw new Error(uploadError.message);

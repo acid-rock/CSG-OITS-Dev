@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-05-29
+
+### Added
+- **WebP image compression pipeline** — all image uploads across the admin panel are now converted to WebP (max 1200 px wide, quality 80) via `sharp` before being stored in Supabase Storage; applies to announcements, officers, organizations, committees, events, and equipment inventory; `Content-Type: image/webp` and `Cache-Control: max-age=31536000` (1-year browser cache) are set on every upload
+- **One-time WebP migration script** (`backend/scripts/migrate-images-to-webp.js`) — downloads every existing image from the five image buckets, saves the original to `backend/scripts/backup/<bucket>/<path>` locally, converts to WebP, and re-uploads to the same path; public URLs remain unchanged; skips files already in WebP format; logs size reduction per file and a storage-saved summary
+- **Backup restore script** (`backend/scripts/restore-backup.js`) — single-file restore utility: `node scripts/restore-backup.js <bucket> <path>` pushes a backed-up original back to Supabase Storage; for use if a migrated image needs to be rolled back
+- `scripts/backup/` added to `backend/.gitignore` to prevent local backup files from being committed
+
+### Changed
+- **Frontend data fetching — lazy-load officers, committees, organizations** — removed `officers`, `committees`, and `organizations` from `Root-layout.tsx`'s `Promise.allSettled` and `OutletContext`; each consuming component (`OfficerSection`, `OrganizationsSection`, `Officers`, `CommitteesPage`, `OrganizationsPage`, `AboutPage`) now fetches its own data on mount; visitors to content-only pages (`/announcements`, `/documents`, `/events`) no longer trigger officer or organization image loads
+
+### Fixed
+- **`events.routes.js` multer config missing file size limit** — `multer({ storage: memoryStorage() })` had no `limits` object, allowing arbitrarily large uploads into memory; added `limits: { fileSize: 5 * 1024 * 1024 }` to match all other route files
+- **`documents.routes.js` thumbnail upload — `contentType` option typo** — the thumbnail upload to the `thumbnails` bucket passed `{ thumbnailContentType, upsert: true }` where `thumbnailContentType` is not a recognised Supabase Storage option; corrected to `{ contentType: thumbnailContentType, cacheControl: '31536000', upsert: true }`
+
 ## [1.10.2] - 2026-05-29
 
 ### Fixed

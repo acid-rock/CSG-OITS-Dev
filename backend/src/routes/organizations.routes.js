@@ -1,5 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
+import sharp from "sharp";
 import { anonSupabase, supabase } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
@@ -70,11 +71,14 @@ router.post(
     if (insertError) throw new ApiError(500, insertError.message);
 
     if (req.file) {
-      const ext = req.file.mimetype.split("/")[1] || "jpg";
-      const logoPath = `${data.id}.${ext}`;
+      const logoPath = `${data.id}.webp`;
+      const compressed = await sharp(req.file.buffer)
+        .resize({ width: 800, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
       const { error: uploadError } = await supabase.storage
         .from("organizations")
-        .upload(logoPath, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+        .upload(logoPath, compressed, { contentType: "image/webp", cacheControl: "31536000", upsert: true });
       if (uploadError) throw new ApiError(500, uploadError.message);
 
       const { error: updateError } = await supabase
@@ -113,11 +117,14 @@ router.post(
     };
 
     if (req.file) {
-      const ext = req.file.mimetype.split("/")[1] || "jpg";
-      const logoPath = `${id}.${ext}`;
+      const logoPath = `${id}.webp`;
+      const compressed = await sharp(req.file.buffer)
+        .resize({ width: 800, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
       const { error: uploadError } = await supabase.storage
         .from("organizations")
-        .upload(logoPath, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+        .upload(logoPath, compressed, { contentType: "image/webp", cacheControl: "31536000", upsert: true });
       if (uploadError) throw new ApiError(500, uploadError.message);
       updates.logo_path = logoPath;
     }

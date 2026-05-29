@@ -1,4 +1,5 @@
 import { Router } from "express";
+import sharp from "sharp";
 import { anonSupabase, supabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import { requireAuth } from "../middlewares/auth.middleware.js";
@@ -17,7 +18,7 @@ import { sanitizeContent } from "../lib/sanitize.js";
 
 const router = Router();
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 // MANUAL STEP: ALTER TABLE events ADD COLUMN IF NOT EXISTS is_archived boolean NOT NULL DEFAULT false;
 // MANUAL STEP: ALTER TABLE events ADD COLUMN IF NOT EXISTS archived_at timestamptz;
@@ -120,10 +121,13 @@ router.post(
 
     for (let i = 0; i < images.length; i++) {
       const filename = `${eventData[0].id}/${i}.jpg`;
-      const buffer = images[i].buffer;
-
-      const { data, error } = await eventBucket.upload(filename, buffer, {
-        contentType: images[i].mimetype,
+      const compressed = await sharp(images[i].buffer)
+        .resize({ width: 1200, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
+      const { data, error } = await eventBucket.upload(filename, compressed, {
+        contentType: "image/webp",
+        cacheControl: "31536000",
       });
       if (error) throw new Error(error.message);
     }
@@ -167,10 +171,14 @@ router.post(
       const slotFiles = req.files?.[`image_${i}`];
       if (slotFiles && slotFiles.length > 0) {
         const file = slotFiles[0];
+        const compressed = await sharp(file.buffer)
+          .resize({ width: 1200, withoutEnlargement: true })
+          .webp({ quality: 80 })
+          .toBuffer();
         const { error: uploadError } = await eventBucket.upload(
           `${id}/${i}.jpg`,
-          file.buffer,
-          { contentType: file.mimetype, upsert: true },
+          compressed,
+          { contentType: "image/webp", cacheControl: "31536000", upsert: true },
         );
         if (uploadError) throw new ApiError(500, uploadError.message);
       }

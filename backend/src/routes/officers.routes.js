@@ -2,6 +2,7 @@
 // MANUAL STEP: ALTER TABLE officers ADD COLUMN IF NOT EXISTS archived_at timestamptz;
 
 import { Router } from "express";
+import sharp from "sharp";
 import {
   anonSupabase,
   supabase,
@@ -219,15 +220,16 @@ router.post(
     let avatarPath = null;
     if (req.file) {
       try {
-        const ext =
-          req.file.originalname?.split(".").pop() ||
-          req.file.mimetype.split("/")[1] ||
-          "jpg";
-        const fileName = `${data.id}.${ext}`;
+        const fileName = `${data.id}.webp`;
+        const compressed = await sharp(req.file.buffer)
+          .resize({ width: 800, withoutEnlargement: true })
+          .webp({ quality: 80 })
+          .toBuffer();
         const { error: uploadError } = await supabase.storage
           .from("officers")
-          .upload(fileName, req.file.buffer, {
-            contentType: req.file.mimetype,
+          .upload(fileName, compressed, {
+            contentType: "image/webp",
+            cacheControl: "31536000",
             upsert: true,
           });
         if (!uploadError) {
@@ -298,13 +300,17 @@ router.post(
         .eq("id", id)
         .single();
 
-      const ext = req.file.mimetype.split("/")[1] || "jpg";
-      const avatarPath = `${id}.${ext}`;
+      const avatarPath = `${id}.webp`;
+      const compressed = await sharp(req.file.buffer)
+        .resize({ width: 800, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
 
       const { error: uploadError } = await supabase.storage
         .from("officers")
-        .upload(avatarPath, req.file.buffer, {
-          contentType: req.file.mimetype,
+        .upload(avatarPath, compressed, {
+          contentType: "image/webp",
+          cacheControl: "31536000",
           upsert: true,
         });
       if (uploadError) throw new ApiError(500, uploadError.message);

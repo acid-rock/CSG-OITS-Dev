@@ -1,15 +1,18 @@
-import { useState } from "react";
-import { useOutletContext } from "react-router-dom";
-import type { OutletContext } from "../../root-layout/Root-layout";
+import { useState, useEffect } from "react";
 import type { Organization } from "../../config/organizationsConfig";
+import { fetchOrganizations } from "../../config/organizationsConfig";
 import OrganizationCard from "../../components/organization-card/OrganizationCard";
 import OrganizationModal from "../../components/organization-card/OrganizationModal";
 import SpecialUnitCard from "../../components/organization-card/SpecialUnitCard";
 import "./OrganizationsSection.css";
 
 export default function OrganizationsSection() {
-  const { organizations } = useOutletContext<OutletContext>();
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+
+  useEffect(() => {
+    fetchOrganizations().then(setOrganizations).catch(console.error);
+  }, []);
 
   // Build a parent_id → children[] lookup for badge counts and modal detail
   const subOrgMap = new Map<string, Organization[]>();
