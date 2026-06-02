@@ -114,6 +114,11 @@ const IcoWarn = (p: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/* ── QR size — computed from viewport so it fills the card proportionally ── */
+function computeQrSize(): number {
+  return Math.round(Math.min(window.innerWidth * 0.26, window.innerHeight * 0.42, 480));
+}
+
 /* ── Main component ── */
 export default function LogbookDisplay() {
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
@@ -121,27 +126,18 @@ export default function LogbookDisplay() {
   const [sessions, setSessions]     = useState<SessionEntry[]>([]);
   const [countdown, setCountdown]   = useState(0);
   const [now, setNow]               = useState(() => new Date());
+  const [qrSize, setQrSize]         = useState(computeQrSize);
 
   const tokenTimerRef   = useRef<ReturnType<typeof setTimeout>  | null>(null);
   const sessionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const clockRef        = useRef<ReturnType<typeof setInterval> | null>(null);
-  const displayRef      = useRef<HTMLDivElement>(null);
 
-  /* ── Viewport scaling — keeps the 1920×1080 canvas fitted to any window ── */
+  /* ── Responsive QR size — updates on window resize ── */
   useEffect(() => {
-    const scaleDisplay = () => {
-      if (!displayRef.current) return;
-      const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-      const left  = (window.innerWidth  - 1920 * scale) / 2;
-      const top   = (window.innerHeight - 1080 * scale) / 2;
-      displayRef.current.style.transform = `scale(${scale})`;
-      displayRef.current.style.left      = `${left}px`;
-      displayRef.current.style.top       = `${top}px`;
-    };
-    scaleDisplay();
-    window.addEventListener('resize', scaleDisplay);
-    return () => window.removeEventListener('resize', scaleDisplay);
+    const handle = () => setQrSize(computeQrSize());
+    window.addEventListener('resize', handle);
+    return () => window.removeEventListener('resize', handle);
   }, []);
 
   /* ── Token fetch ── */
@@ -212,7 +208,7 @@ export default function LogbookDisplay() {
   if (tokenError) {
     return (
       <div className="kk-root kk-root--display">
-        <div className="kk-display" ref={displayRef}>
+        <div className="kk-display">
           <div className="kk-display-bg"/>
           <div style={{
             position: 'relative', zIndex: 1, width: '100%', height: '100%',
@@ -262,7 +258,7 @@ export default function LogbookDisplay() {
   if (!tokenData) {
     return (
       <div className="kk-root kk-root--display">
-        <div className="kk-display" ref={displayRef}>
+        <div className="kk-display">
           <div className="kk-display-bg"/>
           <div style={{
             position: 'relative', zIndex: 1, width: '100%', height: '100%',
@@ -279,13 +275,13 @@ export default function LogbookDisplay() {
   /* ── Main kiosk layout ── */
   return (
     <div className="kk-root kk-root--display">
-      <div className="kk-display" ref={displayRef}>
+      <div className="kk-display">
         <div className="kk-display-bg"/>
 
         {/* ── Header ── */}
         <div className="kk-display-head">
           <div className="kk-display-brand">
-            <img src={logo} alt="CSG Logo" width={56} height={56} style={{ borderRadius: '50%' }}/>
+            <img src={logo} alt="CSG Logo" style={{ width: 'clamp(36px,4vw,56px)', height: 'clamp(36px,4vw,56px)', borderRadius: '50%', flexShrink: 0 }}/>
             <div className="kk-display-brand-text">
               <span className="kk-display-brand-name">CSG-OITS · Office Logbook</span>
               <span className="kk-display-brand-sub">Cavite State University — Imus</span>
@@ -323,7 +319,7 @@ export default function LogbookDisplay() {
               >
                 <QRCode
                   value={checkinUrl}
-                  size={420}
+                  size={qrSize}
                   className="kk-qr-img"
                   bgColor="#ffffff"
                   fgColor="#0f1729"

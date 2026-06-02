@@ -229,7 +229,6 @@ const RESET_SECONDS = 10;
 
 export default function LogbookCheckoutKiosk() {
   /* ── Refs ── */
-  const displayRef  = useRef<HTMLDivElement>(null);
   const clockRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionRef  = useRef<ReturnType<typeof setInterval> | null>(null);
   const resetRef    = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -256,21 +255,6 @@ export default function LogbookCheckoutKiosk() {
   /* ── Auto-reset countdown after success ── */
   const [resetIn, setResetIn] = useState(0);
 
-  /* ── Viewport scaling ── */
-  useEffect(() => {
-    const scale = () => {
-      if (!displayRef.current) return;
-      const s    = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-      const left = (window.innerWidth  - 1920 * s) / 2;
-      const top  = (window.innerHeight - 1080 * s) / 2;
-      displayRef.current.style.transform = `scale(${s})`;
-      displayRef.current.style.left      = `${left}px`;
-      displayRef.current.style.top       = `${top}px`;
-    };
-    scale();
-    window.addEventListener('resize', scale);
-    return () => window.removeEventListener('resize', scale);
-  }, []);
 
   /* ── Officers fetch ── */
   useEffect(() => {
@@ -403,13 +387,13 @@ export default function LogbookCheckoutKiosk() {
      ════════════════════════════════════════════════════ */
   return (
     <div className="kk-root kk-root--display">
-      <div className="kk-display" ref={displayRef}>
+      <div className="kk-display">
         <div className="kk-display-bg"/>
 
         {/* ── Header ── */}
         <div className="kk-display-head">
           <div className="kk-display-brand">
-            <img src={logo} alt="CSG Logo" width={56} height={56} style={{ borderRadius: '50%' }}/>
+            <img src={logo} alt="CSG Logo" style={{ width: 'clamp(36px,4vw,56px)', height: 'clamp(36px,4vw,56px)', borderRadius: '50%', flexShrink: 0 }}/>
             <div className="kk-display-brand-text">
               <span className="kk-display-brand-name">CSG-OITS · Office Logbook</span>
               <span className="kk-display-brand-sub">Cavite State University — Imus</span>
