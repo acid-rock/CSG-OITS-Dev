@@ -351,8 +351,8 @@ const Settings = () => {
 
   const handleSavePin = async (role: 'publication' | 'secretariat' | 'finance') => {
     const pin = pins[role].trim();
-    if (!pin || pin.length < 4) {
-      setPinError((e) => ({ ...e, [role]: 'PIN must be at least 4 characters.' }));
+    if (!pin || pin.length < 8) {
+      setPinError((e) => ({ ...e, [role]: 'PIN must be at least 8 characters.' }));
       return;
     }
     setPinSaving((s) => ({ ...s, [role]: true }));

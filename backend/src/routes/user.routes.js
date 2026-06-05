@@ -5,7 +5,7 @@ import asyncHandler from "express-async-handler";
 import ApiError from "../lib/apiError.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
-import { loginSchema } from "../schemas/index.js";
+import { loginSchema, registerSchema } from "../schemas/index.js";
 
 const router = Router();
 
@@ -13,8 +13,8 @@ const router = Router();
 router.post(
   "/register",
   requireAuth,
+  validate(registerSchema),
   asyncHandler(async (req, res) => {
-    // TODO: Make this so that admin can only access this route
     const { role, email, password, studentNumber, fullname, nickname } =
       req.body;
 

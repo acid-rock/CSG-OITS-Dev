@@ -220,6 +220,11 @@ export const registerSchema = z.object({
     .max(72, 'Password too long')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
+  // role is allowlisted — prevents arbitrary role injection into Supabase app_metadata
+  role: z.enum(['admin'], { errorMap: () => ({ message: 'Invalid role.' }) }),
+  fullname: z.string().min(1, 'Full name is required').max(200),
+  nickname: z.string().max(100).optional(),
+  studentNumber: z.string().min(1, 'Student number is required').max(20),
 });
 
 export const loginSchema = z.object({

@@ -1,13 +1,57 @@
-import { Router } from "express";
-import crypto from "crypto";
-import { supabase } from "../lib/supabaseClient.js";
+import { Router }    from "express";
+import crypto         from "crypto";
+import { promisify }  from "util";
+import rateLimit      from "express-rate-limit";
+import { supabase }   from "../lib/supabaseClient.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
-import ApiError from "../lib/apiError.js";
-import asyncHandler from "express-async-handler";
+import ApiError        from "../lib/apiError.js";
+import asyncHandler    from "express-async-handler";
 
 const router = Router();
 
-// role → settings key
+// ── PIN hashing (scrypt via Node built-ins — no extra dependency) ─────────────
+// PINs are short committee credentials, not user passwords, so a fixed salt is
+// acceptable here. The "scrypt:" prefix lets us distinguish hashed values from
+// legacy plaintext so existing PINs keep working until an admin re-saves them.
+
+const scryptAsync = promisify(crypto.scrypt);
+const SCRYPT_SALT = "csg-oits-committee-pins";
+const SCRYPT_LEN  = 32;
+
+async function hashPin(pin) {
+  const key = await scryptAsync(pin.trim(), SCRYPT_SALT, SCRYPT_LEN);
+  return "scrypt:" + key.toString("hex");
+}
+
+/** Compare a candidate PIN against the stored value (hashed or legacy plaintext). */
+async function verifyPin(candidate, stored) {
+  if (stored.startsWith("scrypt:")) {
+    // Compare against stored hash
+    const storedHex       = stored.slice("scrypt:".length);
+    const candidateKey    = await scryptAsync(candidate.trim(), SCRYPT_SALT, SCRYPT_LEN);
+    const candidateHex    = candidateKey.toString("hex");
+    // Use timingSafeEqual to prevent timing attacks
+    const a = Buffer.from(storedHex,    "hex");
+    const b = Buffer.from(candidateHex, "hex");
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  }
+  // Legacy plaintext fallback — opportunistic migration: next save will hash it
+  return candidate.trim() === stored;
+}
+
+// ── Strict rate limiter for the public /verify endpoint ───────────────────────
+// 10 attempts per IP per 15-minute window.
+// At this rate a 4-char lowercase PIN would take ~1.3 years per IP;
+// with the 8-char minimum enforced below, brute force is entirely infeasible.
+const pinVerifyLimiter = rateLimit({
+  windowMs:       15 * 60 * 1000,
+  max:            10,
+  standardHeaders: true,
+  legacyHeaders:   false,
+  message: { error: "Too many PIN attempts. Please wait 15 minutes and try again." },
+});
+
+// ── role → settings key ───────────────────────────────────────────────────────
 const ROLE_KEYS = {
   publication: "committee_pin_publication",
   secretariat: "committee_pin_secretariat",
@@ -21,7 +65,7 @@ const DEFAULTS = {
   finance:     "fin2026",
 };
 
-// Helper — load all three PINs from DB (returns defaults for missing rows)
+// Helper — load all PINs from DB (returns defaults for missing rows)
 async function loadPins() {
   const { data, error } = await supabase
     .from("settings")
@@ -35,36 +79,44 @@ async function loadPins() {
     const row = data?.find((d) => d.key === key);
     pins[role] = row?.value ?? DEFAULTS[role];
   }
-  return pins; // { publication: "...", secretariat: "...", finance: "..." }
+  return pins;
 }
 
 /* ─────────────────────────────────────────────────────────────────
    POST /api/v1/committee-pins/verify
    Public — compare submitted PIN against stored PINs, return role.
+   Protected by pinVerifyLimiter (10 req / 15 min per IP).
    Also issues a session nonce so only the most-recent sign-in for
    each role remains active (single-session enforcement).
 ───────────────────────────────────────────────────────────────── */
 router.post(
   "/verify",
+  pinVerifyLimiter,
   asyncHandler(async (req, res) => {
     const { pin } = req.body;
     if (!pin || typeof pin !== "string") throw new ApiError(400, "PIN is required.");
 
     const pins = await loadPins();
 
-    // Reverse-map: value → role
-    const role = Object.entries(pins).find(([, v]) => v === pin.trim())?.[0];
-    if (!role) throw new ApiError(401, "Invalid PIN. Please try again.");
+    // Find matching role (supports both hashed and legacy plaintext values)
+    let matchedRole = null;
+    for (const [role, stored] of Object.entries(pins)) {
+      if (await verifyPin(pin, stored)) {
+        matchedRole = role;
+        break;
+      }
+    }
+    if (!matchedRole) throw new ApiError(401, "Invalid PIN. Please try again.");
 
     // Generate a session nonce — overwrites any existing nonce for this role,
     // invalidating previous sessions on other browsers/tabs.
-    const nonce = crypto.randomUUID();
-    const nonceKey = `committee_session_nonce_${role}`;
+    const nonce    = crypto.randomUUID();
+    const nonceKey = `committee_session_nonce_${matchedRole}`;
     await supabase
       .from("settings")
       .upsert({ key: nonceKey, value: nonce }, { onConflict: "key" });
 
-    return res.status(200).json({ role, nonce });
+    return res.status(200).json({ role: matchedRole, nonce });
   })
 );
 
@@ -98,35 +150,45 @@ router.post(
 /* ─────────────────────────────────────────────────────────────────
    GET /api/v1/committee-pins
    Admin-only — return all current PINs.
+   Returns placeholder text for hashed values (write-only after hashing).
 ───────────────────────────────────────────────────────────────── */
 router.get(
   "/",
   requireAuth,
   asyncHandler(async (req, res) => {
     const pins = await loadPins();
-    return res.status(200).json(pins);
+    // Never expose hash strings to the client — return empty string for hashed PINs
+    // so the Settings UI shows the input as blank (admin must re-enter to update).
+    const safe = {};
+    for (const [role, value] of Object.entries(pins)) {
+      safe[role] = value.startsWith("scrypt:") ? "" : value;
+    }
+    return res.status(200).json(safe);
   })
 );
 
 /* ─────────────────────────────────────────────────────────────────
    POST /api/v1/committee-pins/:role
    Admin-only — update one committee's PIN.
+   Minimum 8 characters enforced. PIN is hashed with scrypt before storage.
 ───────────────────────────────────────────────────────────────── */
 router.post(
   "/:role",
   requireAuth,
   asyncHandler(async (req, res) => {
     const { role } = req.params;
-    const { pin } = req.body;
+    const { pin }  = req.body;
 
     if (!ROLE_KEYS[role]) throw new ApiError(400, "Unknown committee role.");
-    if (!pin || typeof pin !== "string" || pin.trim().length < 4)
-      throw new ApiError(400, "PIN must be at least 4 characters.");
+    if (!pin || typeof pin !== "string" || pin.trim().length < 8)
+      throw new ApiError(400, "PIN must be at least 8 characters.");
 
-    const key = ROLE_KEYS[role];
+    const key    = ROLE_KEYS[role];
+    const hashed = await hashPin(pin.trim());
+
     const { error } = await supabase
       .from("settings")
-      .upsert({ key, value: pin.trim() }, { onConflict: "key" });
+      .upsert({ key, value: hashed }, { onConflict: "key" });
 
     if (error) throw new ApiError(500, error.message);
     return res.sendStatus(200);
