@@ -100,7 +100,6 @@ export default function Sidebar({ active }: SidebarProps) {
         { withCredentials: true },
       );
     } finally {
-      localStorage.removeItem('admin_authenticated');
       localStorage.removeItem(ADMIN_NAME_CACHE_KEY);
       window.location.href = '/admin/login';
     }
