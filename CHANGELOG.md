@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.11.1] - 2026-06-06
+
+### Security
+- **Admin panel — ProtectedRoute localStorage bypass** — `ProtectedRoute` previously gated the entire admin UI with `localStorage.getItem('admin_authenticated') === '1'`; any visitor could open DevTools and set that flag to render the admin panel without a valid session cookie; replaced with a server-side `GET /api/v1/user/me` call on mount — only a verified HttpOnly cookie session grants access; removed all `localStorage.setItem/removeItem('admin_authenticated')` calls from `Login.tsx`, `Sidebar.tsx`, and `SessionExpiredModal.tsx`
+- **Committee PIN brute-force protection** — `POST /api/v1/committee-pins/verify` was under the shared `adminLimiter` (500 req/15 min), making a 4-character PIN crackable in ~9 days per IP; added a dedicated `pinVerifyLimiter` (10 req/15 min per IP) on that endpoint specifically; minimum PIN length raised from 4 → 8 characters (enforced on the backend route and the Settings UI); PINs are now hashed with `crypto.scrypt` before storage (prefixed `scrypt:` to distinguish from legacy plaintext); comparison uses `crypto.timingSafeEqual` to prevent timing attacks; existing plaintext PINs continue to work via a fallback until an admin re-saves them; `GET /committee-pins` returns `""` for hashed values — hashes are never sent to the client
+- **Register endpoint role injection** — `POST /api/v1/user/register` accepted an arbitrary `role` string and wrote it directly into Supabase `app_metadata` with no validation; `registerSchema` extended to validate all fields (`role` locked to `z.enum(['admin'])`, plus `fullname`, `nickname`, `studentNumber`); `validate(registerSchema)` middleware applied to the route — requests with `role: "super_admin"` or any unlisted value are now rejected with 400 before reaching Supabase
+
 ## [1.11.0] - 2026-05-29
 
 ### Added
