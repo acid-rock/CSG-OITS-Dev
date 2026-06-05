@@ -11,7 +11,6 @@ const SessionExpiredModal = ({ isOpen }: SessionExpiredModalProps) => {
   if (!isOpen) return null;
 
   const handleGoToLogin = () => {
-    localStorage.removeItem("admin_authenticated");
     window.location.href = "/admin/login";
   };
 

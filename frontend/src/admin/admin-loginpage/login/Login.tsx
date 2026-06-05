@@ -100,7 +100,6 @@ const Login = () => {
         { email, password },
         { withCredentials: true },
       );
-      localStorage.setItem('admin_authenticated', '1');
       navigate('/admin');
     } catch (err: unknown) {
       const message =
