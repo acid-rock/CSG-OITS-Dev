@@ -158,7 +158,7 @@ router.post(
   upload.single("file"),
   requireAuth,
   validate(addDocumentSchema),
-  auditLogger(),
+  auditLogger("document:add"),
   asyncHandler(async (req, res) => {
     validatePdfUpload(req.file, true);
     const token = req.token;
@@ -241,7 +241,7 @@ router.post(
   upload.none(), // parse multipart/form-data text fields without accepting a file upload
   requireAuth,
   validate(editDocumentSchema),
-  auditLogger(),
+  auditLogger("document:edit"),
   asyncHandler(async (req, res) => {
     const token = req.token;
     const { name, description, type, id, term } = req.body;
@@ -300,7 +300,7 @@ router.delete(
   "/delete",
   requireAuth,
   validate(deleteIdsSchema),
-  auditLogger(),
+  auditLogger("document:delete"),
   asyncHandler(async (req, res) => {
     const token = req.token;
     const userSupabase = createUserClient(token);

@@ -249,7 +249,8 @@ export const logbookCheckinSchema = z.object({
 });
 
 export const logbookCheckoutSchema = z.object({
-  officer_id: uuidField,
+  officer_id:     uuidField,
+  student_number: z.string().min(1, 'Student number is required').max(30),
 });
 
 export const logbookAdminCheckoutSchema = z.object({
@@ -277,3 +278,14 @@ export const feedbackUpdateSchema = z.object({
 export const feedbackDeleteSchema = z.object({
   ids: z.array(uuidField).min(1, 'At least one ID required'),
 });
+
+// ─── Whitelist ────────────────────────────────────────────────────────────────
+
+export const whitelistInsertSchema = z.object({
+  email:      z.string().email('Invalid email').max(254).optional().or(z.literal('')),
+  full_name:  z.string().max(200).optional(),
+  student_id: z.string().max(20).optional(),
+}).refine(
+  (d) => d.email || d.student_id,
+  { message: 'Provide at least an email or student ID.' },
+);

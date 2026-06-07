@@ -40,7 +40,16 @@
       "Bash(git commit -m 'merge: resolve conflicts keeping local verified-build fixes over remote partial fixes *)",
       "Bash(git commit -m 'fix: add vercel.json SPA rewrite — all routes serve index.html on direct load/refresh *)",
       "Bash(git push *)",
-      "Bash(git commit -m 'style\\(admin\\): custom scrollbar styling across admin panel *)"
+      "Bash(git commit -m 'style\\(admin\\): custom scrollbar styling across admin panel *)",
+      "Bash(dir \"C:\\\\Users\\\\Zee\\\\Projects\\\\CSG-OITS-Dev\")",
+      "Bash(findstr /i \"test\\\\|jest\\\\|vitest\\\\|mocha\")",
+      "Bash(Test-Path \"C:\\\\Users\\\\Zee\\\\Projects\\\\CSG-OITS-Dev\\\\backend\\\\.env\")",
+      "Bash(Test-Path \"C:\\\\Users\\\\Zee\\\\Projects\\\\CSG-OITS-Dev\\\\frontend\\\\.env\")",
+      "Bash(npx playwright *)",
+      "Bash(timeout 15 node src/server.js)",
+      "Bash(node src/server.js)",
+      "Bash(curl -s http://localhost:5050/health)",
+      "Bash(kill %1)"
     ]
   }
 }

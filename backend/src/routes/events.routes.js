@@ -94,7 +94,7 @@ router.post(
   upload.array("images", 3),
   requireAuth,
   validate(addEventSchema),
-  auditLogger(),
+  auditLogger("event:add"),
   asyncHandler(async (req, res) => {
     if (req.files?.length) {
       for (const file of req.files) {
@@ -145,7 +145,7 @@ router.post(
   ]),
   requireAuth,
   validate(editEventSchema),
-  auditLogger(),
+  auditLogger("event:edit"),
   asyncHandler(async (req, res) => {
     if (req.files) {
       for (const slotFiles of Object.values(req.files)) {
@@ -192,7 +192,7 @@ router.delete(
   "/delete",
   requireAuth,
   validate(singleIdSchema),
-  auditLogger(),
+  auditLogger("event:delete"),
   asyncHandler(async (req, res) => {
     const { id } = req.body;
     const token = req.token;

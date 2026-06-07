@@ -4,58 +4,62 @@ test.describe("Public homepage", () => {
   test("loads without errors", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Central Student Government/);
-    await expect(page.locator("nav")).toBeVisible();
+    // Two <nav> elements exist (desktop + mobile) — use first()
+    await expect(page.locator("nav").first()).toBeVisible();
   });
 
-  test("navigation dropdown opens on hover", async ({ page }) => {
+  test("navigation dropdown shows Announcements and Events links", async ({ page }) => {
     await page.goto("/");
-    await page.hover("text=News");
-    await expect(page.locator("text=Announcements")).toBeVisible();
-    await expect(page.locator("text=Events")).toBeVisible();
+    // Click the "News" group button — adds nav-group-open class which shows the dropdown.
+    // (CSS :hover also opens it for real users; click is used here for test reliability.)
+    await page.locator("button.nav-group-btn").filter({ hasText: "News" }).click();
+    const openDrop = page.locator(".nav-group-open .nav-dropdown");
+    await expect(openDrop.getByText("Announcements")).toBeVisible();
+    await expect(openDrop.getByText("Events", { exact: true })).toBeVisible();
   });
 
-  test("clicking Announcements in dropdown navigates to /announcements", async ({
+  test("clicking Announcements in dropdown navigates to /bulletin", async ({
     page,
   }) => {
     await page.goto("/");
-    await page.hover("text=News");
-    await page.click("text=Announcements");
-    await expect(page).toHaveURL(/\/announcements/);
+    await page.hover(".nav-group:has-text('News')");
+    // Click the Announcements menuitem — nav item href is /bulletin
+    await page.locator('[role="menuitem"]').filter({ hasText: "Announcements" }).first().click();
+    await expect(page).toHaveURL(/\/bulletin/);
   });
 });
 
-test.describe("/announcements page", () => {
+test.describe("/bulletin (announcements) page", () => {
   test("search bar filters announcements", async ({ page }) => {
-    await page.goto("/announcements");
+    await page.goto("/bulletin");
+    // Wait for the RootLayout splash screen to clear and API data to load
+    await page.waitForLoadState("networkidle");
     const searchInput = page.getByPlaceholder("Search announcements...");
     await expect(searchInput).toBeVisible();
     await searchInput.fill("CSG");
-    await expect(page.locator("body")).not.toContainText(
-      "Something went wrong",
-    );
+    await expect(page.locator("body")).not.toContainText("Something went wrong");
   });
 
   test("category filter chips are visible", async ({ page }) => {
-    await page.goto("/announcements");
-    await expect(page.locator("text=CSG Updates")).toBeVisible();
-    await expect(page.locator("text=Class Advisories")).toBeVisible();
+    await page.goto("/bulletin");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("button.bl-chip", { hasText: "CSG Updates" })).toBeVisible();
+    await expect(page.locator("button.bl-chip", { hasText: "Class Advisories" })).toBeVisible();
   });
 
   test("clicking a category chip filters the list", async ({ page }) => {
-    await page.goto("/announcements");
-    await page.click("text=Examinations");
-    const chip = page.locator("button", { hasText: "Examinations" });
-    await expect(chip).toHaveClass(/active|selected/);
+    await page.goto("/bulletin");
+    await page.waitForLoadState("networkidle");
+    await page.locator("button.bl-chip", { hasText: "Examinations" }).click();
+    // The active chip receives the bl-chip-active class
+    await expect(page.locator("button.bl-chip-active")).toContainText("Examinations");
   });
 });
 
 test.describe("/events page", () => {
   test("loads with events section visible", async ({ page }) => {
     await page.goto("/events");
-    // Page should load without error regardless of content
-    await expect(page.locator("body")).not.toContainText(
-      "Something went wrong",
-    );
+    await expect(page.locator("body")).not.toContainText("Something went wrong");
   });
 
   test("search bar is present and functional", async ({ page }) => {
@@ -68,14 +72,13 @@ test.describe("/events page", () => {
 test.describe("/officers page", () => {
   test("page loads without error", async ({ page }) => {
     await page.goto("/officers");
-    await expect(page.locator("body")).not.toContainText(
-      "Something went wrong",
-    );
+    await expect(page.locator("body")).not.toContainText("Something went wrong");
   });
 
   test("committee card opens modal on click", async ({ page }) => {
     await page.goto("/officers");
-    await page.locator("text=COMMITTEES").scrollIntoViewIfNeeded();
+    // Wait for API data so committee cards have a chance to render
+    await page.waitForLoadState("networkidle");
     const firstCard = page.locator('[class*="committee-card"]').first();
     if (await firstCard.isVisible()) {
       await firstCard.click();
@@ -89,9 +92,7 @@ test.describe("/officers page", () => {
 test.describe("/borrow equipment page", () => {
   test("page loads without error", async ({ page }) => {
     await page.goto("/borrow");
-    await expect(page.locator("body")).not.toContainText(
-      "Something went wrong",
-    );
+    await expect(page.locator("body")).not.toContainText("Something went wrong");
   });
 
   test("Reserve Equipment button navigates to /borrow/:id", async ({

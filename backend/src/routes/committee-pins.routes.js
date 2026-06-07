@@ -15,27 +15,51 @@ const router = Router();
 // legacy plaintext so existing PINs keep working until an admin re-saves them.
 
 const scryptAsync = promisify(crypto.scrypt);
+// SCRYPT_SALT kept only for verifying legacy fixed-salt hashes (format: "scrypt:<hash>").
+// New hashes use a per-value random salt (format: "scrypt:<salt>:<hash>").
 const SCRYPT_SALT = "csg-oits-committee-pins";
 const SCRYPT_LEN  = 32;
 
+/**
+ * Hash a PIN with a freshly generated random salt.
+ * Output format: "scrypt:<16-byte-hex-salt>:<32-byte-hex-hash>"
+ */
 async function hashPin(pin) {
-  const key = await scryptAsync(pin.trim(), SCRYPT_SALT, SCRYPT_LEN);
-  return "scrypt:" + key.toString("hex");
+  const salt = crypto.randomBytes(16).toString("hex"); // 32 hex chars
+  const key  = await scryptAsync(pin.trim(), salt, SCRYPT_LEN);
+  return `scrypt:${salt}:${key.toString("hex")}`;
 }
 
-/** Compare a candidate PIN against the stored value (hashed or legacy plaintext). */
+/**
+ * Compare a candidate PIN against the stored value.
+ * Supports three formats (oldest → newest):
+ *   1. Plaintext            — "mysecretpin"
+ *   2. Fixed-salt hash      — "scrypt:<64-hex-hash>"
+ *   3. Per-value random salt — "scrypt:<32-hex-salt>:<64-hex-hash>"
+ *
+ * Formats 1 and 2 remain valid until the admin re-saves the PIN,
+ * at which point it is automatically upgraded to format 3.
+ */
 async function verifyPin(candidate, stored) {
   if (stored.startsWith("scrypt:")) {
-    // Compare against stored hash
-    const storedHex       = stored.slice("scrypt:".length);
-    const candidateKey    = await scryptAsync(candidate.trim(), SCRYPT_SALT, SCRYPT_LEN);
-    const candidateHex    = candidateKey.toString("hex");
-    // Use timingSafeEqual to prevent timing attacks
-    const a = Buffer.from(storedHex,    "hex");
-    const b = Buffer.from(candidateHex, "hex");
-    return a.length === b.length && crypto.timingSafeEqual(a, b);
+    const rest  = stored.slice("scrypt:".length);
+    const parts = rest.split(":");
+
+    if (parts.length === 2) {
+      // Format 3 — random salt: scrypt:<salt>:<hash>
+      const [saltHex, storedHex] = parts;
+      const key = await scryptAsync(candidate.trim(), saltHex, SCRYPT_LEN);
+      const a   = Buffer.from(storedHex, "hex");
+      // key is already a Buffer; compare directly (timingSafeEqual)
+      return a.length === key.length && crypto.timingSafeEqual(a, key);
+    } else {
+      // Format 2 — legacy fixed salt: scrypt:<hash>
+      const key = await scryptAsync(candidate.trim(), SCRYPT_SALT, SCRYPT_LEN);
+      const a   = Buffer.from(rest, "hex");
+      return a.length === key.length && crypto.timingSafeEqual(a, key);
+    }
   }
-  // Legacy plaintext fallback — opportunistic migration: next save will hash it
+  // Format 1 — legacy plaintext fallback
   return candidate.trim() === stored;
 }
 
@@ -49,6 +73,17 @@ const pinVerifyLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders:   false,
   message: { error: "Too many PIN attempts. Please wait 15 minutes and try again." },
+});
+
+// ── Rate limiter for the public /validate-session endpoint ────────────────────
+// 30 requests per minute per IP — well above what a single CommitteeProtectedRoute
+// navigation needs (1 call) but prevents bulk scraping / DB hammering.
+const validateSessionLimiter = rateLimit({
+  windowMs:       60 * 1000,
+  max:            30,
+  standardHeaders: true,
+  legacyHeaders:   false,
+  message: { error: "Too many requests. Please try again." },
 });
 
 // ── role → settings key ───────────────────────────────────────────────────────
@@ -127,6 +162,7 @@ router.post(
 ───────────────────────────────────────────────────────────────── */
 router.post(
   "/validate-session",
+  validateSessionLimiter,
   asyncHandler(async (req, res) => {
     const { role, nonce } = req.body;
     if (!role || !nonce) throw new ApiError(400, "role and nonce are required.");
