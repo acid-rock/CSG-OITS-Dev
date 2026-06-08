@@ -84,11 +84,22 @@ const buildDocRow = (file, signedUrl = null) => ({
   deleted_at:  file.deleted_at,
 });
 
+const buildDocRowPublic = (file) => ({
+  id:          file.id,
+  createdAt:   file.created_at,
+  name:        file.file_path,
+  description: file.description,
+  category:    file.file_path.split("/")[0],
+  url:         null,
+  thumbnail:   supabase.storage.from("thumbnails").getPublicUrl(`${file.id}.png`).data.publicUrl,
+  term:        file.term ?? null,
+});
+
 /**
- * Public list shape — NO signed PDF URLs.
+ * Public list shape — NO signed PDF URLs, NO internal fields.
  * Download URLs are generated on-demand via GET /:id/url when a user clicks.
  */
-const buildDocBatchPublic = (files) => files.map((f) => buildDocRow(f, null));
+const buildDocBatchPublic = (files) => files.map((f) => buildDocRowPublic(f));
 
 /**
  * Admin shape — includes signed PDF URLs (auth-gated routes only).

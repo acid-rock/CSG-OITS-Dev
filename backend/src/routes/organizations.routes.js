@@ -35,13 +35,20 @@ router.get(
 
     const { data, error } = await anonSupabase
       .from("organizations")
-      .select("*")
+      .select("id, name, description, facebook_link, logo_path, created_at")
       .eq("is_archived", false)
       .is("deleted_at", null)
       .order("created_at", { ascending: true });
     if (error) throw new ApiError(500, error.message);
 
-    const result = data.map((org) => ({ ...org, logo_url: getLogoUrl(org.logo_path) }));
+    const result = data.map((org) => ({
+      id:            org.id,
+      name:          org.name,
+      description:   org.description,
+      facebook_link: org.facebook_link,
+      created_at:    org.created_at,
+      logo_url:      getLogoUrl(org.logo_path),
+    }));
     setCache(cacheKey, result, 60_000);
     return res.status(200).json(result);
   }),

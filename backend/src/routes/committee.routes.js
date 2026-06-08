@@ -77,13 +77,14 @@ router.get(
     // Explicitly exclude duty_pin from public responses
     const { data, error } = await anonSupabase
       .from("committees")
-      .select("id, name, status, chair_name, vice_chair_name, description, cover_image_path, deleted_at")
+      .select("id, name, status, chair_name, vice_chair_name, description, cover_image_path")
       .eq("status", status)
       .is("deleted_at", null)  // exclude bin items
       .order("id", { ascending: true });
     if (error) throw new Error(error.message);
 
-    const result = await withCoverUrl(data);
+    const withUrls = await withCoverUrl(data);
+    const result = withUrls.map(({ cover_image_path, ...rest }) => rest);
     setCache(cacheKey, result, 60_000);
     return res.status(200).json(result);
   }),

@@ -1215,5 +1215,56 @@ MODIFIED  backend/src/routes/officers.routes.js
     active officers only regardless of ?status= query param
 
 =============================================================================
+SECURITY HARDENING — ROUND 3 (v1.11.3, applied 2026-06-08)
+=============================================================================
+
+Public API response sanitization — internal/sensitive fields stripped from
+the four public GET endpoints that were over-exposing database row state.
+Admin routes (all behind requireAuth) are unaffected.
+
+--- announcements.routes.js  GET / ---
+
+MODIFIED  backend/src/routes/announcements.routes.js
+  - Removed: owner_id: row.owner_id ?? null from the .map() return object
+  - Rationale: reveals which admin account authored each bulletin post;
+    no public page consumes or displays the owner identity
+
+--- documents.routes.js  GET / ---
+
+MODIFIED  backend/src/routes/documents.routes.js
+  - Added: buildDocRowPublic() — lean shape builder for the public list;
+    contains id, createdAt, name, description, category, url (always null),
+    thumbnail, term — omits owner_id, is_archived, archived_at, deleted_at
+  - Changed: buildDocBatchPublic() now calls buildDocRowPublic() instead of
+    the shared buildDocRow(); buildDocRow() is unchanged so admin routes that
+    call it directly continue to receive the full row shape
+  - Rationale: owner_id leaks authorship; is_archived / archived_at /
+    deleted_at expose the internal content lifecycle state to the public
+
+--- committee.routes.js  GET / ---
+
+MODIFIED  backend/src/routes/committee.routes.js
+  - Changed: .select() string — removed deleted_at (filter uses the column
+    but the value does not need to be in the response)
+  - Changed: after withCoverUrl() resolves cover_image_path to a URL, the
+    raw cover_image_path field is stripped via destructuring before the
+    result is cached and returned: .map(({ cover_image_path, ...rest }) => rest)
+  - Rationale: deleted_at is an internal soft-delete marker; cover_image_path
+    is an internal Supabase Storage bucket path — clients receive cover_image_url
+
+--- organizations.routes.js  GET / ---
+
+MODIFIED  backend/src/routes/organizations.routes.js
+  - Changed: .select("*") → .select("id, name, description, facebook_link,
+    logo_path, created_at") — only the columns needed for the public response
+    are fetched; is_archived and deleted_at are never transferred from the DB
+  - Changed: data.map((org) => ({ ...org, logo_url: ... })) spread replaced
+    with an explicit projection: { id, name, description, facebook_link,
+    created_at, logo_url } — logo_path omitted from the response (internal
+    storage reference; clients receive logo_url)
+  - Rationale: is_archived / deleted_at expose content lifecycle state;
+    logo_path is an internal bucket path
+
+=============================================================================
 END OF CHANGE LOG
 =============================================================================

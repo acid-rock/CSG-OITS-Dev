@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.11.3] - 2026-06-08
+
+### Security
+- **Sensitive fields stripped from public API responses** — four public GET endpoints were returning internal fields that serve no purpose for unauthenticated consumers: `GET /bulletin/` leaked `owner_id` (reveals which admin account created each post); `GET /documents/` leaked `owner_id`, `is_archived`, `archived_at`, and `deleted_at` (full soft-delete and archive state visible publicly); `GET /committees/` leaked `deleted_at` and the raw Supabase storage path `cover_image_path`; `GET /organizations/` leaked `is_archived`, `deleted_at`, and `logo_path`; all four routes updated — sensitive fields removed from Supabase `.select()` strings where possible, and response map functions rewritten to use explicit projections; a separate `buildDocRowPublic()` helper introduced in `documents.routes.js` so the shared `buildDocRow()` (used by admin routes) is unaffected; admin routes retain full row data
+
 ## [1.11.2] - 2026-06-08
 
 ### Security

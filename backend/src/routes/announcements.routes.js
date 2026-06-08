@@ -62,7 +62,6 @@ router.get(
         created_at: row.created_at,
         is_pinned: row.is_pinned ?? false,
         category: row.category ?? 'CSG Updates',
-        owner_id: row.owner_id ?? null,
       };
     });
 
