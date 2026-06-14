@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import {
   createBrowserRouter,
@@ -7,38 +7,55 @@ import {
 } from "react-router-dom";
 import "./index.css";
 
-// Guest pages
+// Public shell + landing page stay eager for fast first paint
 import RootLayout from "./root-layout/Root-layout";
 import Homepage from "./route/homepage/App";
-import Bulletin from "./route/bulletin/Bulletin";
-import DocumentsPage from "./route/documents/Documents";
-import EventsPage from "./route/events/Events";
-import Officers from "./route/officers/Officers";
-import AboutPage from "./route/about/AboutPage";
-import Borrow from "./route/borrow/Borrow";
-import BorrowCheckout from "./route/borrow/BorrowCheckout";
-import BorrowReservation from "./route/borrow/BorrowReservation";
-import ContributorsPage from "./route/contributors/Contributors";
-import OrganizationsPage from "./route/organizations/OrganizationsPage";
 
-// Admin Login (Public)
-import Login from "./admin/admin-loginpage/login/Login";
-import Forgot from "./admin/admin-loginpage/forgot/Forgot";
-import Reset from "./admin/admin-loginpage/reset/Reset";
-import AdminPage from "./admin/AdminPage";
-import ProtectedRoute from "./admin/ProtectedRoute";
+// Guest pages (lazy)
+const Bulletin = lazy(() => import("./route/bulletin/Bulletin"));
+const DocumentsPage = lazy(() => import("./route/documents/Documents"));
+const EventsPage = lazy(() => import("./route/events/Events"));
+const Officers = lazy(() => import("./route/officers/Officers"));
+const AboutPage = lazy(() => import("./route/about/AboutPage"));
+const Borrow = lazy(() => import("./route/borrow/Borrow"));
+const BorrowCheckout = lazy(() => import("./route/borrow/BorrowCheckout"));
+const BorrowReservation = lazy(() => import("./route/borrow/BorrowReservation"));
+const ContributorsPage = lazy(() => import("./route/contributors/Contributors"));
+const OrganizationsPage = lazy(() => import("./route/organizations/OrganizationsPage"));
 
-// Logbook (standalone — no nav header)
-import LogbookPage from "./route/logbook/LogbookPage";
-import LogbookDisplay from "./route/logbook/LogbookDisplay";
+// Admin Login (Public, lazy)
+const Login = lazy(() => import("./admin/admin-loginpage/login/Login"));
+const Forgot = lazy(() => import("./admin/admin-loginpage/forgot/Forgot"));
+const Reset = lazy(() => import("./admin/admin-loginpage/reset/Reset"));
+const AdminPage = lazy(() => import("./admin/AdminPage"));
+const ProtectedRoute = lazy(() => import("./admin/ProtectedRoute"));
 
-// Public Office Hours (under RootLayout)
-import OfficePage from "./route/office/OfficePage";
+// Logbook (standalone — no nav header, lazy)
+const LogbookPage = lazy(() => import("./route/logbook/LogbookPage"));
+const LogbookDisplay = lazy(() => import("./route/logbook/LogbookDisplay"));
 
-// Committee portal
-import CommitteeLogin from "./route/committee-login/CommitteeLogin";
-import CommitteeAdminPage from "./route/committee-admin/CommitteeAdminPage";
-import CommitteeProtectedRoute from "./route/committee-admin/CommitteeProtectedRoute";
+// Public Office Hours (under RootLayout, lazy)
+const OfficePage = lazy(() => import("./route/office/OfficePage"));
+
+// Committee portal (lazy)
+const CommitteeLogin = lazy(() => import("./route/committee-login/CommitteeLogin"));
+const CommitteeAdminPage = lazy(() => import("./route/committee-admin/CommitteeAdminPage"));
+const CommitteeProtectedRoute = lazy(
+  () => import("./route/committee-admin/CommitteeProtectedRoute"),
+);
+
+const Fallback = (
+  <div
+    style={{
+      minHeight: "60vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <span aria-busy="true">Loading…</span>
+  </div>
+);
 
 const router = createBrowserRouter([
   // Guest Routes
@@ -109,6 +126,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <Suspense fallback={Fallback}>
+      <RouterProvider router={router} />
+    </Suspense>
   </StrictMode>,
 );

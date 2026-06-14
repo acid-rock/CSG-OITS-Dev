@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import ExcelJS from 'exceljs';
+import type ExcelJS from 'exceljs';
 import '../_shared/admin-list.css';
 import '../_shared/office-duty.css';
 import Sidebar from '../_shared/Sidebar';
@@ -354,7 +354,8 @@ async function exportSessionsXLSX(sessions: LogbookSession[], from: string, to: 
     month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 
-  const wb = new ExcelJS.Workbook();
+  const { default: ExcelJSLib } = await import('exceljs');
+  const wb = new ExcelJSLib.Workbook();
   wb.creator  = 'CSG-OITS';
   wb.created  = new Date();
   const ws = wb.addWorksheet('Office Duty', { views: [{ state: 'frozen', ySplit: 6 }] });
