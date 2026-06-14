@@ -270,8 +270,8 @@ router.get(
         date: s.date,
         check_in_at: s.check_in_at,
         check_out_at: s.check_out_at,
-        check_in_lat: s.check_in_lat,
-        check_in_lng: s.check_in_lng,
+        // check_in_lat / check_in_lng intentionally omitted from the public
+        // response — officer geolocation is private. Available in GET /admin.
         auto_checkout: s.auto_checkout,
         officer: officer
           ? {
@@ -433,8 +433,25 @@ router.post(
   "/checkout",
   validate(logbookCheckoutSchema),
   asyncHandler(async (req, res) => {
-    const { officer_id } = req.body;
+    const { officer_id, student_number } = req.body;
     const today = todayPH();
+
+    // Verify student_number matches the officer record — same check as check-in.
+    // Prevents anyone with a public officer UUID from checking out another officer.
+    const { data: officer, error: officerErr } = await supabase
+      .from("officers")
+      .select("student_number")
+      .eq("id", officer_id)
+      .is("deleted_at", null)
+      .single();
+
+    if (officerErr || !officer) throw new ApiError(404, "Officer not found.");
+    if (!officer.student_number) {
+      throw new ApiError(403, "No student number on record for this officer. Contact an admin.");
+    }
+    if (officer.student_number.trim() !== student_number.trim()) {
+      throw new ApiError(401, "Student number does not match our records.");
+    }
 
     const { data: openSession } = await supabase
       .from("logbook_sessions")
@@ -484,12 +501,28 @@ router.post(
  */
 router.post(
   "/recheck-in",
-  validate(logbookCheckoutSchema), // reuses { officer_id } schema
+  validate(logbookCheckoutSchema), // reuses { officer_id, student_number } schema
   asyncHandler(async (req, res) => {
-    const { officer_id } = req.body;
+    const { officer_id, student_number } = req.body;
     const today = todayPH();
     const ACCIDENT_MAX_MIN   = 5;  // session must be shorter than this to qualify
     const RECHECK_WINDOW_MIN = 10; // must call within this many minutes of checkout
+
+    // Verify student_number before allowing re-check-in.
+    const { data: officer, error: officerErr } = await supabase
+      .from("officers")
+      .select("student_number")
+      .eq("id", officer_id)
+      .is("deleted_at", null)
+      .single();
+
+    if (officerErr || !officer) throw new ApiError(404, "Officer not found.");
+    if (!officer.student_number) {
+      throw new ApiError(403, "No student number on record for this officer. Contact an admin.");
+    }
+    if (officer.student_number.trim() !== student_number.trim()) {
+      throw new ApiError(401, "Student number does not match our records.");
+    }
 
     // Block if already checked in
     const { data: open } = await supabase

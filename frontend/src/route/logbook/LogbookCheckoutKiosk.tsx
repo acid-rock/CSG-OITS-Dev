@@ -238,8 +238,9 @@ export default function LogbookCheckoutKiosk() {
   const [officersLoading, setOfficersLoading] = useState(true);
 
   /* ── Form state ── */
-  const [officerId,   setOfficerId]   = useState('');
-  const [openSession, setOpenSession] = useState<OpenSession | null | undefined>(undefined);
+  const [officerId,     setOfficerId]     = useState('');
+  const [studentNumber, setStudentNumber] = useState('');
+  const [openSession,   setOpenSession]   = useState<OpenSession | null | undefined>(undefined);
 
   /* ── Phase / result ── */
   type Phase = 'form' | 'success';
@@ -348,6 +349,7 @@ export default function LogbookCheckoutKiosk() {
   const handleReset = useCallback(() => {
     setPhase('form');
     setOfficerId('');
+    setStudentNumber('');
     setOpenSession(undefined);
     setError('');
     setCheckoutData(null);
@@ -355,11 +357,14 @@ export default function LogbookCheckoutKiosk() {
   }, []);
 
   const handleCheckout = useCallback(async () => {
-    if (!officerId) return;
+    if (!officerId || !studentNumber.trim()) return;
     setError('');
     setSubmitting(true);
     try {
-      const { data } = await axios.post(`${API}/logbook/checkout`, { officer_id: officerId });
+      const { data } = await axios.post(`${API}/logbook/checkout`, {
+        officer_id:     officerId,
+        student_number: studentNumber.trim(),
+      });
       const name = data.officer_name ?? officers.find((o) => o.id === officerId)?.full_name ?? '';
       setCheckoutData({
         officer_name: name,
@@ -377,7 +382,7 @@ export default function LogbookCheckoutKiosk() {
     } finally {
       setSubmitting(false);
     }
-  }, [officerId, officers, openSession, fetchSessions]);
+  }, [officerId, studentNumber, officers, openSession, fetchSessions]);
 
   /* ── Derived values ── */
   const present = sessions.filter((s) => !s.check_out_at && !s.auto_checkout);
@@ -466,8 +471,24 @@ export default function LogbookCheckoutKiosk() {
                   <KioskCombobox
                     officers={officers}
                     value={officerId}
-                    onChange={(id) => { setOfficerId(id); setError(''); }}
+                    onChange={(id) => { setOfficerId(id); setStudentNumber(''); setError(''); }}
                     disabled={officersLoading}
+                  />
+                </div>
+
+                {/* Student number — required to verify identity at checkout */}
+                <div className="kk-co-field">
+                  <label className="kk-co-field-lbl">Student number</label>
+                  <input
+                    className="kk-kiosk-input"
+                    type="text"
+                    value={studentNumber}
+                    onChange={(e) => { setStudentNumber(e.target.value); setError(''); }}
+                    placeholder="e.g. 202X-XXXXX"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    inputMode="text"
                   />
                 </div>
 
@@ -506,7 +527,7 @@ export default function LogbookCheckoutKiosk() {
                 {/* Checkout button */}
                 <button
                   className="kk-co-checkout-btn"
-                  disabled={submitting || !officerId || !openSession}
+                  disabled={submitting || !officerId || !studentNumber.trim() || !openSession}
                   onClick={handleCheckout}
                 >
                   {submitting ? (

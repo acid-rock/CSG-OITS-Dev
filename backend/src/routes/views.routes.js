@@ -24,11 +24,13 @@ router.post(
       return res.json({ ok: false, reason: "invalid entity_type" });
     }
 
-    // Use anonSupabase — RLS allows anon INSERT on page_views
+    // Use anonSupabase — RLS allows anon INSERT on page_views.
+    // ip_address intentionally not stored — raw IPs are PII under the
+    // Philippine Data Privacy Act. The column remains in the schema but
+    // is left NULL for all new rows.
     await anonSupabase.from("page_views").insert({
       entity_type,
       entity_id: entity_id ?? null,
-      ip_address: req.ip ?? null,
     });
     // Intentionally ignoring error — if the table doesn't exist yet (migration
     // not run), the endpoint degrades silently rather than breaking public pages.

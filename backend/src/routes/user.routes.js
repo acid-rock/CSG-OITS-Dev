@@ -5,9 +5,23 @@ import asyncHandler from "express-async-handler";
 import ApiError from "../lib/apiError.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
-import { loginSchema, registerSchema } from "../schemas/index.js";
+import { loginSchema, registerSchema, whitelistInsertSchema } from "../schemas/index.js";
 
 const router = Router();
+
+/**
+ * Shared password complexity validator.
+ * Mirrors the rules in registerSchema so all password-setting paths
+ * (register, reset, change) enforce the same policy.
+ */
+function assertPasswordComplexity(password) {
+  if (!password || password.length < 8)
+    throw new ApiError(400, "Password must be at least 8 characters.");
+  if (!/[A-Z]/.test(password))
+    throw new ApiError(400, "Password must contain at least one uppercase letter.");
+  if (!/[0-9]/.test(password))
+    throw new ApiError(400, "Password must contain at least one number.");
+}
 
 // Routes go here
 router.post(
@@ -202,9 +216,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const { access_token, new_password } = req.body;
 
-    if (!new_password || new_password.length < 8) {
-      throw new ApiError(400, "Password must be at least 8 characters.");
-    }
+    assertPasswordComplexity(new_password);
 
     if (!access_token) {
       throw new ApiError(400, "Access token is required.");
@@ -221,6 +233,44 @@ router.post(
       password: new_password,
     });
     if (error) throw new ApiError(400, error.message);
+
+    return res.sendStatus(200);
+  }),
+);
+
+/**
+ * POST /complete-reset
+ * Merges the two-step PKCE reset flow (exchange-code + reset-password) into a
+ * single server-side call. The intermediate access_token never leaves the server.
+ * Body: { code, new_password }
+ *
+ * The old /exchange-code + /reset-password endpoints are kept for compatibility
+ * during a staggered rollout. Remove them once the frontend ships /complete-reset.
+ */
+router.post(
+  "/complete-reset",
+  asyncHandler(async (req, res) => {
+    const { code, new_password } = req.body;
+    if (!code) throw new ApiError(400, "code is required.");
+    assertPasswordComplexity(new_password);
+
+    // 1. Exchange PKCE code for session — server-side only; token never sent to client
+    const { data, error: exchangeError } = await anonSupabase.auth.exchangeCodeForSession(code);
+    if (exchangeError || !data?.session?.access_token)
+      throw new ApiError(400, exchangeError?.message ?? "Invalid or expired reset link.");
+
+    // 2. Verify the token resolves to a real user
+    const { data: userData, error: getUserError } =
+      await supabase.auth.getUser(data.session.access_token);
+    if (getUserError || !userData?.user)
+      throw new ApiError(401, "Recovery link is invalid or has expired.");
+
+    // 3. Update password via admin API
+    const { error: pwErr } = await supabase.auth.admin.updateUserById(
+      userData.user.id,
+      { password: new_password },
+    );
+    if (pwErr) throw new ApiError(400, pwErr.message);
 
     return res.sendStatus(200);
   }),
@@ -246,12 +296,9 @@ router.get(
 router.post(
   "/whitelist",
   requireAuth,
+  validate(whitelistInsertSchema),
   asyncHandler(async (req, res) => {
     const { email, full_name, student_id } = req.body;
-
-    if (!email && !student_id) {
-      throw new ApiError(400, "Provide at least an email or student ID.");
-    }
 
     const { error } = await supabase.from("whitelist").insert({
       email: email || null,
@@ -289,9 +336,7 @@ router.post(
     if (new_password !== confirm_password) {
       throw new ApiError(400, "Passwords do not match.");
     }
-    if (new_password.length < 8) {
-      throw new ApiError(400, "New password must be at least 8 characters.");
-    }
+    assertPasswordComplexity(new_password);
     if (new_password === current_password) {
       throw new ApiError(400, "New password must be different from the current password.");
     }
@@ -330,23 +375,16 @@ router.post(
 
 router.get("/list", requireAuth, async (req, res) => {
   try {
-    console.log("[USER LIST] Handler entered");
-
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("owner_id, role")
       .order("owner_id", { ascending: true });
-
-    console.log("[USER LIST] Profiles result:", JSON.stringify(profiles));
-    console.log("[USER LIST] Profiles error:", JSON.stringify(profilesError));
 
     if (profilesError) throw new ApiError(500, "Profiles fetch failed: " + profilesError.message);
 
     let users = [];
     try {
       const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
-      console.log("[USER LIST] Auth users count:", authData?.users?.length);
-      console.log("[USER LIST] Auth error:", JSON.stringify(authError));
       if (!authError) users = authData.users;
     } catch (authEx) {
       console.error("[USER LIST] auth.admin.listUsers threw:", authEx.message);
@@ -364,7 +402,6 @@ router.get("/list", requireAuth, async (req, res) => {
       };
     });
 
-    console.log("[USER LIST] Returning", result.length, "accounts");
     res.json(result);
   } catch (err) {
     console.error("[USER LIST] Caught error:", err.message, err.stack);

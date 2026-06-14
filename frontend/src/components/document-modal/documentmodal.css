@@ -24,7 +24,7 @@
   box-shadow: var(--shadow-modal);
 }
 
-/* Header bar — sits above the iframe, houses title + close */
+/* Header bar — sits above the canvas area, houses title + close */
 .modal__header {
   display: flex;
   align-items: center;
@@ -64,13 +64,71 @@
   background: var(--color-primary-dark);
 }
 
-/* iframe fills the remaining space */
-.modal__iframe {
-  width: 100%;
+/* Scrollable area that holds the rendered PDF pages */
+.modal__scroll {
   flex: 1;
-  border: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  background: var(--color-surface, #f4f5f7);
+}
+
+.modal__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.modal__loading p {
+  margin: 0;
+}
+
+/* Container that holds one canvas per PDF page */
+.modal__pages {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal__canvas {
+  width: 100%;
+  height: auto;
   display: block;
-  min-height: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Error state */
+.modal__error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.modal__error p {
+  margin: 0;
+}
+
+.modal__error button {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  cursor: pointer;
 }
 
 @media (max-width: 767px) {

@@ -1045,5 +1045,226 @@ MODIFIED  frontend/src/route/about/AboutPage.tsx
     officers.length / committees.length
 
 =============================================================================
+SECURITY HARDENING — ROUND 1 (v1.11.1 / v1.11.2, applied 2026-06-06 to 2026-06-08)
+=============================================================================
+
+Full security audit pass covering 15 findings (3 critical, 5 high, 4 medium,
+3 low/informational). H3 (multer file-size limit) deferred pending PDF
+compression strategy. L2 (access/join rate limit) conditional on Cloudflare
+WAF confirmation.
+
+--- C1: Strip GPS coordinates from public logbook response ---
+
+MODIFIED  backend/src/routes/logbook.routes.js
+  - Removed: check_in_lat, check_in_lng from the public GET /today response
+    transform (lines ~272–275); both fields remain available in GET /admin
+    (behind requireAuth)
+
+--- C2: Require student_number on checkout and recheck-in ---
+
+MODIFIED  backend/src/schemas/index.js
+  - Updated: logbookCheckoutSchema — added student_number field (required)
+
+MODIFIED  backend/src/routes/logbook.routes.js
+  - Modified: POST /checkout — added student_number body read and server-side
+    comparison against officer.student_number (same pattern as POST /checkin)
+  - Modified: POST /recheck-in — same student_number verification added before
+    time-window validation
+
+MODIFIED  frontend/src/route/logbook/LogbookCheckin.tsx
+  - Added: student_number: studentNumber.trim() to handleCheckout,
+    handleRecheck, and checkout-form phase request bodies
+  - Added: student number input field to checkout-form and already-in phases
+  - Updated: checkout button disabled condition to include !studentNumber.trim()
+
+MODIFIED  frontend/src/route/logbook/LogbookCheckoutKiosk.tsx
+  - Added: studentNumber state; input field after KioskCombobox
+  - Added: student_number: studentNumber.trim() to handleCheckout body
+  - Added: studentNumber cleared on reset and officer change
+  - Updated: checkout button disabled to include !studentNumber.trim()
+
+--- C3: Remove debug console.log with PII ---
+
+MODIFIED  backend/src/routes/officers.routes.js
+  - Removed: console.log calls at add-officer (payload + result/error),
+    archive-officer (id + result/error), and one bare console.log(id) in the
+    edit handler; all console.error calls retained
+
+MODIFIED  backend/src/routes/user.routes.js
+  - Removed: console.log calls in the user-list handler that printed profile
+    rows, auth user counts, and handler entry/exit messages; all
+    console.error calls retained
+
+--- H1: Per-value random salt for committee PINs ---
+(Committed separately in d64dd82 — see [1.11.1] CHANGELOG entry)
+
+--- H2: Password complexity on reset-password and change-password ---
+
+MODIFIED  backend/src/routes/user.routes.js
+  - Added: assertPasswordComplexity(password) helper (min 8 chars, at least
+    one uppercase letter, at least one digit)
+  - Applied: to POST /reset-password, POST /change-password, and
+    POST /complete-reset; replaces previous length-only check
+
+--- H3: Multer 5 MB / PDF 20 MB mismatch ---
+⏸ DEFERRED — pending PDF compression strategy decision
+
+--- H4: Zod validation on whitelist POST ---
+
+MODIFIED  backend/src/schemas/index.js
+  - Added: whitelistInsertSchema — email (format + max 254), full_name (max 200),
+    student_id (max 20), refine at least one of email/student_id present
+
+MODIFIED  backend/src/routes/user.routes.js
+  - Applied: validate(whitelistInsertSchema) middleware on POST /whitelist
+  - Removed: manual if (!email && !student_id) guard (now redundant)
+
+--- H5: Rate-limit /committee-pins/validate-session ---
+
+MODIFIED  backend/src/routes/committee-pins.routes.js
+  - Added: validateSessionLimiter (30 req/min per IP)
+  - Applied: to POST /validate-session
+
+--- L1: Action labels on all auditLogger() calls ---
+
+MODIFIED  backend/src/routes/announcements.routes.js
+  - Changed: auditLogger() → auditLogger('announcement:add'),
+    auditLogger('announcement:edit'), auditLogger('announcement:delete')
+
+MODIFIED  backend/src/routes/documents.routes.js
+  - Changed: auditLogger() → auditLogger('document:add'),
+    auditLogger('document:edit'), auditLogger('document:delete')
+
+MODIFIED  backend/src/routes/events.routes.js
+  - Changed: auditLogger() → auditLogger('event:add'),
+    auditLogger('event:edit'), auditLogger('event:delete')
+
+--- L2: Rate-limit /access/join ---
+⏭ OPTIONAL — pending Cloudflare WAF confirmation
+
+--- L3: Merge exchange-code + reset-password into /complete-reset ---
+
+MODIFIED  backend/src/routes/user.routes.js
+  - Added: POST /complete-reset — accepts { code, new_password }; performs PKCE
+    exchange server-side via anonSupabase.auth.exchangeCodeForSession(code);
+    verifies resolved user; updates password via supabase.auth.admin.updateUserById;
+    the intermediate access_token never leaves the server
+  - Kept: POST /exchange-code and POST /reset-password for backward compatibility
+    during staggered rollout
+
+MODIFIED  frontend/src/admin/admin-loginpage/reset/Reset.tsx
+  - Changed: two-step flow (POST /exchange-code then POST /reset-password) →
+    single POST /complete-reset with { code, new_password }
+
+--- M1: Stop storing raw IPs in page_views ---
+
+MODIFIED  backend/src/routes/views.routes.js
+  - Removed: ip_address: req.ip from the page_views insert; column retained in
+    DB schema; existing rows should be cleared with:
+    UPDATE page_views SET ip_address = NULL;
+
+--- M2: Remove unsafe-inline from CSP style-src ---
+
+MODIFIED  backend/src/app.js
+  - Changed: styleSrc: ["'self'", "'unsafe-inline'"] → styleSrc: ["'self'"]
+
+--- M3: Document trust proxy count ---
+
+MODIFIED  backend/src/app.js
+  - Added: explanatory comments above app.set("trust proxy", 1) documenting
+    the deployment topology assumption and how to adjust if it changes
+
+--- M4: Reduce JSON body limit to 1 MB ---
+
+MODIFIED  backend/src/app.js
+  - Changed: express.json({ limit: "10mb" }) → limit: "1mb"
+  - Changed: express.urlencoded({ limit: "10mb" }) → limit: "1mb"
+
+=============================================================================
+SECURITY HARDENING — ROUND 2 (v1.11.2, applied 2026-06-08)
+=============================================================================
+
+Second security audit pass. Three new findings confirmed by independent
+verification. Finding 4 (logbook presence oracle) confirmed intentional
+per project transparency mission — no fix applied.
+
+--- F1 (Critical): Admin nonce bypass via missing cookie ---
+
+MODIFIED  backend/src/middlewares/auth.middleware.js
+  - Changed: checkAdminNonce() line 10 — if (!adminNonce) return true →
+    if (!adminNonce) { res.status(401).json({...}); return false; }
+  - Rationale: checkAdminNonce is only called from requireAuth (admin-only guard);
+    a missing nonce cookie now correctly signals an invalidated or stripped session
+
+--- F2 (High): Stale post-logout JWT grants isAdmin via optionalAuth ---
+
+MODIFIED  backend/src/middlewares/auth.middleware.js
+  - Changed: optionalAuth from sync to async
+  - Added: after jwt.verify(), reads admin_nonce cookie and compares against
+    DB value (reusing admin:session_nonce cache, 5-second TTL); req.isAdmin
+    only set to true when nonce cookie is present and matches; no nonce cookie →
+    req.isAdmin remains falsy; request always proceeds (next() always called)
+
+--- F3 (Medium): Unauthenticated access to archived officer roster ---
+
+MODIFIED  backend/src/routes/officers.routes.js
+  - Changed: both statusFilter assignments (paginated + non-paginated paths) from
+    req.query.status || "active" →
+    isAdmin ? (req.query.status || "active") : "active"
+  - isAdmin derived from optionalAuth; unauthenticated callers always receive
+    active officers only regardless of ?status= query param
+
+=============================================================================
+SECURITY HARDENING — ROUND 3 (v1.11.3, applied 2026-06-08)
+=============================================================================
+
+Public API response sanitization — internal/sensitive fields stripped from
+the four public GET endpoints that were over-exposing database row state.
+Admin routes (all behind requireAuth) are unaffected.
+
+--- announcements.routes.js  GET / ---
+
+MODIFIED  backend/src/routes/announcements.routes.js
+  - Removed: owner_id: row.owner_id ?? null from the .map() return object
+  - Rationale: reveals which admin account authored each bulletin post;
+    no public page consumes or displays the owner identity
+
+--- documents.routes.js  GET / ---
+
+MODIFIED  backend/src/routes/documents.routes.js
+  - Added: buildDocRowPublic() — lean shape builder for the public list;
+    contains id, createdAt, name, description, category, url (always null),
+    thumbnail, term — omits owner_id, is_archived, archived_at, deleted_at
+  - Changed: buildDocBatchPublic() now calls buildDocRowPublic() instead of
+    the shared buildDocRow(); buildDocRow() is unchanged so admin routes that
+    call it directly continue to receive the full row shape
+  - Rationale: owner_id leaks authorship; is_archived / archived_at /
+    deleted_at expose the internal content lifecycle state to the public
+
+--- committee.routes.js  GET / ---
+
+MODIFIED  backend/src/routes/committee.routes.js
+  - Changed: .select() string — removed deleted_at (filter uses the column
+    but the value does not need to be in the response)
+  - Changed: after withCoverUrl() resolves cover_image_path to a URL, the
+    raw cover_image_path field is stripped via destructuring before the
+    result is cached and returned: .map(({ cover_image_path, ...rest }) => rest)
+  - Rationale: deleted_at is an internal soft-delete marker; cover_image_path
+    is an internal Supabase Storage bucket path — clients receive cover_image_url
+
+--- organizations.routes.js  GET / ---
+
+MODIFIED  backend/src/routes/organizations.routes.js
+  - Changed: .select("*") → .select("id, name, description, facebook_link,
+    logo_path, created_at") — only the columns needed for the public response
+    are fetched; is_archived and deleted_at are never transferred from the DB
+  - Changed: data.map((org) => ({ ...org, logo_url: ... })) spread replaced
+    with an explicit projection: { id, name, description, facebook_link,
+    created_at, logo_url } — logo_path omitted from the response (internal
+    storage reference; clients receive logo_url)
+  - Rationale: is_archived / deleted_at expose content lifecycle state;
+    logo_path is an internal bucket path
+
+=============================================================================
 END OF CHANGE LOG
 =============================================================================

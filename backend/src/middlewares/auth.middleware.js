@@ -7,7 +7,13 @@ const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
 /** Shared nonce-check helper (single-device enforcement for admin sessions). */
 async function checkAdminNonce(req, res) {
   const adminNonce = req.cookies["admin_nonce"];
-  if (!adminNonce) return true; // no nonce cookie → skip check (committee/public users)
+  if (!adminNonce) {
+    // Nonce cookie absent — caller either cleared cookies after logout or is
+    // presenting only JWT cookies without the nonce. Reject unconditionally:
+    // every legitimate admin session receives the nonce cookie at login.
+    res.status(401).json({ error: "Session cookie missing or expired. Please log in again." });
+    return false;
+  }
 
   let dbNonce = getCached("admin:session_nonce");
   if (dbNonce === undefined) {
@@ -86,15 +92,37 @@ export async function requireAuth(req, res, next) {
 
 /**
  * optionalAuth — attempts JWT verification without blocking the request.
- * Sets req.isAdmin = true when a valid admin token is found.
- * Always calls next().
+ * Sets req.isAdmin = true only when the token is valid AND the admin nonce
+ * cookie matches the active session nonce in the DB (preventing revoked /
+ * post-logout JWTs from receiving admin-only response fields such as
+ * student_number). Always calls next() — never rejects the request.
  */
-export function optionalAuth(req, _res, next) {
+export async function optionalAuth(req, _res, next) {
   try {
     const token = req.cookies?.sb_access_token;
     if (token) {
       jwt.verify(token, SUPABASE_JWT_SECRET);
-      req.isAdmin = true;
+
+      // Require the nonce cookie to be present and match the active session.
+      // Without this check, a revoked (post-logout) JWT that hasn't expired yet
+      // would still receive req.isAdmin = true and admin-only response fields.
+      const cookieNonce = req.cookies?.admin_nonce;
+      if (cookieNonce) {
+        let dbNonce = getCached("admin:session_nonce");
+        if (dbNonce === undefined) {
+          const { data } = await supabase
+            .from("settings")
+            .select("value")
+            .eq("key", "admin_session_nonce")
+            .single();
+          dbNonce = data?.value ?? null;
+          setCache("admin:session_nonce", dbNonce, 5_000);
+        }
+        // isAdmin = true only if nonces match (or no nonce in DB yet)
+        req.isAdmin = !dbNonce || dbNonce === cookieNonce;
+      }
+      // No nonce cookie → JWT alone is insufficient proof of an active admin
+      // session. req.isAdmin stays undefined (falsy); request proceeds as public.
     }
   } catch {
     // invalid or expired token — treat as public

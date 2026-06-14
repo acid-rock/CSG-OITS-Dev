@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import '../login/login.css';
@@ -139,35 +139,19 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 const Reset: React.FC = () => {
   // Read the URL synchronously at mount — avoids any useEffect timing gap.
-  const [rawToken]        = useState<string | null>(() => readTokenFromUrl());
-  const [accessToken, setAccessToken] = useState<string | null>(
-    rawToken && !rawToken.startsWith('code:') ? rawToken : null,
-  );
+  const [rawToken] = useState<string | null>(() => readTokenFromUrl());
+
+  // For the implicit flow, the access_token arrives directly in the URL.
+  // For the PKCE flow, rawToken starts with "code:" — the server exchange now
+  // happens inside POST /complete-reset so the intermediate token never reaches
+  // the browser's network layer. No client-side exchange step needed.
+  const accessToken = rawToken && !rawToken.startsWith('code:') ? rawToken : null;
 
   const [newPassword, setNewPassword]         = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // PKCE code exchange — fires only when a `code:` prefix token was found.
-  const [exchanging, setExchanging]       = useState(false);
-  const [exchangeError, setExchangeError] = useState('');
-
-  useEffect(() => {
-    if (!rawToken?.startsWith('code:')) return;
-    const code = rawToken.slice(5); // strip "code:" prefix
-    setExchanging(true);
-    axios
-      .post(`${API_URL}/user/exchange-code`, { code })
-      .then(({ data }) => setAccessToken(data.access_token))
-      .catch(() =>
-        setExchangeError(
-          'This recovery link has expired or has already been used. Please request a new one.',
-        ),
-      )
-      .finally(() => setExchanging(false));
-  }, [rawToken]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -180,10 +164,20 @@ const Reset: React.FC = () => {
 
     setLoading(true);
     try {
-      await axios.post(`${API_URL}/user/reset-password`, {
-        access_token: accessToken,
-        new_password: newPassword,
-      });
+      if (rawToken?.startsWith('code:')) {
+        // PKCE flow — server exchanges the code and updates the password in one call.
+        // The intermediate access_token is never sent back to the client.
+        await axios.post(`${API_URL}/user/complete-reset`, {
+          code:         rawToken.slice(5), // strip "code:" prefix added by readTokenFromUrl
+          new_password: newPassword,
+        });
+      } else {
+        // Implicit flow — access_token arrived directly from the URL hash/query.
+        await axios.post(`${API_URL}/user/reset-password`, {
+          access_token: accessToken,
+          new_password: newPassword,
+        });
+      }
       setSuccess(true);
     } catch (err: unknown) {
       const d = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
@@ -193,22 +187,9 @@ const Reset: React.FC = () => {
     }
   };
 
-  /* ── Loading: exchanging PKCE code ── */
-  if (exchanging) {
-    return (
-      <Shell>
-        <div className="lv-form lv-form--snug" style={{ alignItems: 'center', textAlign: 'center' }}>
-          <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>
-            Verifying recovery link…
-          </p>
-        </div>
-      </Shell>
-    );
-  }
-
-  /* ── Error: invalid / expired link ── */
-  if (!accessToken || exchangeError) {
-    const msg = exchangeError || 'This recovery link is invalid or has already been used.';
+  /* ── Error: no token found in URL ── */
+  if (!rawToken) {
+    const msg = 'This recovery link is invalid or has already been used.';
     return (
       <Shell>
         <div className="lv-form lv-form--snug" style={{ alignItems: 'center', textAlign: 'center' }}>

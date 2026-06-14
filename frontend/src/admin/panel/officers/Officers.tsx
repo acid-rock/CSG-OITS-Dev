@@ -6,7 +6,7 @@ import Sidebar from "../_shared/Sidebar";
 import { PageHead, Tabs, Toolbar, BulkBar } from "../_shared/chrome";
 import { Tag, MiniAvatar } from "../_shared/atoms";
 import { I } from "../_shared/icons";
-import ExcelJS from 'exceljs';
+import type ExcelJS from 'exceljs';
 import { academicYear } from "../_shared/utils";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
@@ -230,6 +230,7 @@ const OfficersPanel = () => {
     });
 
   const handleExportXLSX = async () => {
+    const { default: ExcelJSLib } = await import('exceljs');
     const P   = 'FF4F6FD1';
     const PL  = 'FFD6DEF5';
     const WHT = 'FFFFFFFF';
@@ -248,7 +249,7 @@ const OfficersPanel = () => {
       month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
 
-    const wb = new ExcelJS.Workbook();
+    const wb = new ExcelJSLib.Workbook();
     wb.creator = 'CSG-OITS';
     wb.created = new Date();
     const ws = wb.addWorksheet('Officers');

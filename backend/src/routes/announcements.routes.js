@@ -62,7 +62,6 @@ router.get(
         created_at: row.created_at,
         is_pinned: row.is_pinned ?? false,
         category: row.category ?? 'CSG Updates',
-        owner_id: row.owner_id ?? null,
       };
     });
 
@@ -75,7 +74,7 @@ router.post(
   requireAuth,
   upload.single("image"),
   validate(addAnnouncementSchema),
-  auditLogger(),
+  auditLogger("announcement:add"),
   asyncHandler(async (req, res) => {
     validateImageUpload(req.file, true);
     const token = req.token;
@@ -122,7 +121,7 @@ router.post(
   requireAuth,
   upload.single("image"), // optional — only present when the admin replaces the cover image
   validate(editAnnouncementSchema),
-  auditLogger(),
+  auditLogger("announcement:edit"),
   asyncHandler(async (req, res) => {
     validateImageUpload(req.file, false);
     if (!req.body) throw new ApiError(400, "No valid request body is found.");
@@ -204,7 +203,7 @@ router.delete(
   "/delete",
   requireAuth,
   validate(deleteIdsSchema),
-  auditLogger(),
+  auditLogger("announcement:delete"),
   asyncHandler(async (req, res) => {
     const token = req.token;
     const userSupabase = createUserClient(token);

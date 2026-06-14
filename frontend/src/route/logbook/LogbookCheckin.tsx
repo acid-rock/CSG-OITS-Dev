@@ -444,13 +444,17 @@ export default function LogbookCheckin() {
   /**
    * Re-check-in after an accidental checkout (session < 5 min).
    * No QR token required — server validates the recency of the short session.
+   * student_number is still required to prevent spoofing.
    */
   const handleRecheck = useCallback(async () => {
-    if (!officerId) return;
+    if (!officerId || !studentNumber.trim()) return;
     setError('');
     setSubmitting(true);
     try {
-      const { data } = await axios.post(`${API}/logbook/recheck-in`, { officer_id: officerId });
+      const { data } = await axios.post(`${API}/logbook/recheck-in`, {
+        officer_id:     officerId,
+        student_number: studentNumber.trim(),
+      });
       setSuccessData({
         officer_name: data.officer_name,
         check_in_at:  data.session.check_in_at,
@@ -467,11 +471,14 @@ export default function LogbookCheckin() {
   }, [officerId]);
 
   const handleCheckout = useCallback(async () => {
-    if (!officerId) return;
+    if (!officerId || !studentNumber.trim()) return;
     setError('');
     setSubmitting(true);
     try {
-      const { data } = await axios.post(`${API}/logbook/checkout`, { officer_id: officerId });
+      const { data } = await axios.post(`${API}/logbook/checkout`, {
+        officer_id:     officerId,
+        student_number: studentNumber.trim(),
+      });
       const officerName =
         data.officer_name ??
         officers.find((o) => o.id === officerId)?.full_name ??
@@ -795,20 +802,37 @@ export default function LogbookCheckin() {
             </div>
           </div>
 
+          {/* Student number required to confirm identity before remote checkout */}
+          <div className="kk-field">
+            <label className="kk-field-lbl">Student number</label>
+            <input
+              className="kk-field-input"
+              type="text"
+              value={studentNumber}
+              onChange={(e) => { setStudentNumber(e.target.value); setError(''); }}
+              placeholder="e.g. 202X-XXXXX"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="text"
+            />
+            <span className="kk-field-hint">Confirm your identity to check out remotely.</span>
+          </div>
+
           {error && <span className="kk-field-err">{error}</span>}
 
           <div className="kk-btn-row">
             <button
               className="kk-btn kk-btn--ghost"
               style={{ flex: 1 }}
-              onClick={() => { setPhase('form'); setOfficerId(''); setError(''); }}
+              onClick={() => { setPhase('form'); setOfficerId(''); setStudentNumber(''); setError(''); }}
             >
               Not me
             </button>
             <button
               className="kk-btn kk-btn--primary"
               style={{ flex: 1.4 }}
-              disabled={submitting}
+              disabled={submitting || !studentNumber.trim()}
               onClick={handleCheckout}
             >
               <IcoOut width={14} height={14}/>
@@ -825,7 +849,7 @@ export default function LogbookCheckin() {
         <div className="kk-card">
           <h1>Check <em>out</em></h1>
           <p className="lead">
-            Select your name to close your open session. No QR scan needed.
+            Select your name and enter your student number to close your session.
           </p>
 
           <div className="kk-field">
@@ -836,8 +860,26 @@ export default function LogbookCheckin() {
               onChange={(id) => { setOfficerId(id); setError(''); }}
               disabled={officersLoading}
             />
-            {error && <span className="kk-field-err">{error}</span>}
           </div>
+
+          {/* Student number — required to verify identity at checkout */}
+          <div className="kk-field">
+            <label className="kk-field-lbl">Student number</label>
+            <input
+              className="kk-field-input"
+              type="text"
+              value={studentNumber}
+              onChange={(e) => { setStudentNumber(e.target.value); setError(''); }}
+              placeholder="e.g. 202X-XXXXX"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="text"
+            />
+            <span className="kk-field-hint">We&rsquo;ll verify this matches your officer record.</span>
+          </div>
+
+          {error && <span className="kk-field-err">{error}</span>}
 
           {/* Show open session summary when officer is selected */}
           {officerId && openSession && (
@@ -862,7 +904,7 @@ export default function LogbookCheckin() {
 
           <button
             className="kk-btn kk-btn--primary"
-            disabled={submitting || !officerId}
+            disabled={submitting || !officerId || !studentNumber.trim()}
             onClick={handleCheckout}
           >
             <IcoOut width={16} height={16}/>

@@ -55,6 +55,10 @@ const adminLimiter = rateLimit({
 
 const app = express();
 
+// 1 reverse proxy sits between the internet and this app (e.g. Render / Railway).
+// Increase to 2 if a CDN (e.g. Cloudflare) is also in front (Cloudflare → host proxy → app).
+// Set to 0 / remove if the app is directly exposed with no proxy.
+// Incorrect values cause req.ip and rate-limit keying to use the wrong IP.
 app.set("trust proxy", 1);
 
 // Middlewares
@@ -63,7 +67,9 @@ app.use(helmet({
     directives: {
       defaultSrc:     ["'self'"],
       scriptSrc:      ["'self'"],
-      styleSrc:       ["'self'", "'unsafe-inline'"],
+      // "'unsafe-inline'" removed — this is an API server (JSON only, no HTML).
+      // Frontend CSP must be configured at the hosting layer (e.g. Vercel headers).
+      styleSrc:       ["'self'"],
       imgSrc:         ["'self'", `https://${supabaseHost}`, "data:", "blob:"],
       mediaSrc:       ["'self'", `https://${supabaseHost}`],
       connectSrc:     ["'self'", `https://${supabaseHost}`],
@@ -90,9 +96,11 @@ app.use(
   }),
 );
 app.use(morgan("combined"));
-app.use(express.json({ limit: "10mb" }));
+// 1 MB is ample for all JSON payloads (largest is ~50 KB announcement content).
+// File uploads use multer (multipart/form-data) and are unaffected by this limit.
+app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 // Routes — public (stricter) vs admin (generous)
 // NOTE: officers, committees, equipment, organizations serve BOTH the public

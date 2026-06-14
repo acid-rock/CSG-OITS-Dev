@@ -75,7 +75,9 @@ router.get(
       const from = (page - 1) * limit;
       const to = from + limit - 1;
 
-      const statusFilter = req.query.status || "active";
+      // Unauthenticated callers are always limited to active officers only.
+      // Admin JWTs (isAdmin = true) may request archived or all records.
+      const statusFilter = isAdmin ? (req.query.status || "active") : "active";
 
       const { data, error, count } = await anonSupabase
         .from("officers")
@@ -93,7 +95,9 @@ router.get(
       });
     }
 
-    const statusFilter = req.query.status || "active";
+    // Unauthenticated callers are always limited to active officers only.
+    // Admin JWTs (isAdmin = true) may request archived or all records.
+    const statusFilter = isAdmin ? (req.query.status || "active") : "active";
     const termFilter = req.query.term || null;
     const termYearFilter = req.query.term_year || null;
 
@@ -195,16 +199,11 @@ router.post(
       avatar: null,
     };
 
-    console.log("[ADD OFFICER] payload:", JSON.stringify(insertPayload));
-
     const { data, error: insertError } = await supabase
       .from("officers")
       .insert(insertPayload)
       .select()
       .single();
-
-    console.log("[ADD OFFICER] result:", JSON.stringify(data));
-    console.log("[ADD OFFICER] error:", JSON.stringify(insertError));
 
     if (insertError) {
       if (insertError.code === "23505") {
@@ -323,7 +322,6 @@ router.post(
     }
 
     if (Object.keys(updates).length === 0) return res.sendStatus(200);
-    console.log(id);
 
     const { error } = await userSupabase
       .from("officers")
@@ -390,14 +388,11 @@ router.post(
   validate(archiveOfficerSchema),
   asyncHandler(async (req, res) => {
     const { id, term_year } = req.body;
-    console.log("[OFFICER ARCHIVE] id:", id, "term_year:", term_year ?? null);
     const { data, error } = await supabase
       .from("officers")
       .update({ status: "archived", term_year: term_year ?? "2025-2026" })
       .eq("id", id)
       .select("id, status");
-    console.log("[OFFICER ARCHIVE] service key result:", JSON.stringify(data));
-    console.log("[OFFICER ARCHIVE] service key error:", JSON.stringify(error));
     if (error) throw new ApiError(500, "Archive failed: " + error.message);
     if (!data || data.length === 0) {
       throw new ApiError(
