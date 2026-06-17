@@ -171,7 +171,7 @@ router.post(
   validate(addDocumentSchema),
   auditLogger("document:add"),
   asyncHandler(async (req, res) => {
-    validatePdfUpload(req.file, true);
+    await validatePdfUpload(req.file, true);
     const token = req.token;
     const { name, type, description } = req.body;
     const boxes = req.body.boxes;

@@ -1266,5 +1266,127 @@ MODIFIED  backend/src/routes/organizations.routes.js
     logo_path is an internal bucket path
 
 =============================================================================
+SECURITY HARDENING — ROUND 4 (Unreleased, applied 2026-06-17)
+=============================================================================
+
+Magic-byte validation on file uploads. Previously both upload validation
+functions checked only the client-supplied Content-Type header via Multer's
+mimetype field; a spoofed upload (e.g. an HTML or script payload declared as
+image/png) passed the declared-type check and reached sharp() with no further
+verification. Both functions now also read the uploaded buffer through file-type
+to detect the actual MIME type from the file's magic bytes and reject mismatches.
+
+--- NEW DEPENDENCY ---
+
+MODIFIED  backend/package.json
+  - Added: file-type ^20.x (magic-byte detection from Buffer via fileTypeFromBuffer)
+
+--- UPLOAD VALIDATION REWRITE ---
+
+MODIFIED  backend/src/lib/uploadValidation.js
+  - Changed: validateImageUpload — from sync to async
+  - Changed: validatePdfUpload — from sync to async
+  - Added: detectMimeFromBuffer(buffer) private helper — calls
+    fileTypeFromBuffer(buffer) from file-type; returns detected MIME string
+    or null if the signature is unrecognised
+  - Added: after declared-type and size checks pass, detectMimeFromBuffer() is
+    awaited on file.buffer; if the detected MIME is absent or not in the
+    allowed-format list (ALLOWED_IMAGE_MAGIC_BYTES / ALLOWED_PDF_MAGIC_BYTES)
+    an ApiError(415, ...) is thrown with message
+    "File content does not match a valid image/PDF format"
+  - Rationale: file-type inspects actual byte signatures; a spoofed Content-Type
+    header (e.g. text/html → image/png) passes the declared-type check but its
+    magic bytes (<!DOCTYPE html...) don't match any allowed image format, so the
+    second check rejects it; works because all upload routes already use
+    multer.memoryStorage() which populates file.buffer
+
+--- CALL SITES UPDATED (await added) ---
+
+MODIFIED  backend/src/routes/announcements.routes.js
+  - Changed: validateImageUpload(req.file, true)  → await validateImageUpload(req.file, true)   (POST /add)
+  - Changed: validateImageUpload(req.file, false) → await validateImageUpload(req.file, false)  (POST /edit)
+
+MODIFIED  backend/src/routes/documents.routes.js
+  - Changed: validatePdfUpload(req.file, true) → await validatePdfUpload(req.file, true)  (POST /add)
+
+MODIFIED  backend/src/routes/events.routes.js
+  - Changed: validateImageUpload(file, false) → await validateImageUpload(file, false)  (POST /add, file loop)
+  - Changed: validateImageUpload(file, false) → await validateImageUpload(file, false)  (POST /edit, file loop)
+
+MODIFIED  backend/src/routes/officers.routes.js
+  - Changed: validateImageUpload(req.file, false) → await validateImageUpload(req.file, false)  (POST /add)
+  - Changed: validateImageUpload(req.file, false) → await validateImageUpload(req.file, false)  (POST /edit)
+
+MODIFIED  backend/src/routes/organizations.routes.js
+  - Changed: validateImageUpload(req.file, false) → await validateImageUpload(req.file, false)  (POST /add)
+  - Changed: validateImageUpload(req.file, false) → await validateImageUpload(req.file, false)  (POST /edit)
+
+--- TESTS ---
+
+MODIFIED  backend/tests/unit/uploadValidation.test.js
+  - Replaced: makeFile() stub with no buffer field → makeFile() now accepts a
+    third buffer parameter; all test cases supply realistic minimal-valid buffers:
+      JPEG_BYTES  — FF D8 FF E0 ... (JFIF header)
+      PNG_BYTES   — 89 50 4E 47 signature + IHDR (13-byte chunk) + IDAT chunk
+      WEBP_BYTES  — RIFF container with WEBP FourCC
+      PDF_BYTES   — %PDF-1.4 magic header
+      HTML_BYTES  — <!DOCTYPE html> (no valid image/PDF signature)
+  - Changed: all it() callbacks from sync to async; assertions use
+    expect(...).resolves / .rejects.toMatchObject({ status: ... })
+  - Added: 4 new spoofed-upload test cases:
+      "throws 415 when declared MIME is an image but content is not
+       (spoofed Content-Type)" — image/png declared, HTML_BYTES supplied
+      "throws 415 when declared MIME is an image but content is actually
+       a PDF (spoofed Content-Type)" — image/jpeg declared, PDF_BYTES supplied
+      "throws 415 when declared MIME is PDF but content is actually an
+       image (spoofed Content-Type)" — application/pdf declared, JPEG_BYTES
+      "throws 415 when declared MIME is PDF but content is HTML (spoofed
+       Content-Type)" — application/pdf declared, HTML_BYTES supplied
+  - Result: 11 original tests retained + 4 new = 15 passing; pre-existing
+    route-level failures unrelated to this change confirmed pre-existing
+
+--- DOCS ---
+
+MODIFIED  backend/src/lib/README.md
+  - Changed: usage examples for validateImageUpload and validatePdfUpload updated
+    to show await prefix
+  - Added: explanation of magic-byte second-pass check and memoryStorage requirement
+
+MODIFIED  docs/security.md  (Section 3: File upload validation)
+  - Replaced: "MIME type sniffing at the byte level is not implemented."
+    with description of the file-type buffer check and spoofed-header rejection
+
+=============================================================================
+SECURITY HARDENING — ROUND 4 ADDENDUM (Unreleased, applied 2026-06-17)
+=============================================================================
+
+Upload validation wired into the two routes that were missed in Round 4:
+committee.routes.js /upload-cover and borrowing.routes.js /inventory/add
+and /inventory/edit. Both routes called sharp() on the raw buffer with no
+MIME-type check and no magic-byte check. Bad files caused either an
+uncontrolled 500 (committee) or a silent 200 with the image silently dropped
+(inventory, due to the non-fatal try/catch). validateImageUpload is now called
+on all three, placed outside the try/catch on the inventory routes so that
+validation failures propagate as ApiError(415) rather than being swallowed.
+
+MODIFIED  backend/src/routes/committee.routes.js
+  - Added: import { validateImageUpload } from '../lib/uploadValidation.js'
+  - Added: await validateImageUpload(req.file, true) in POST /upload-cover,
+    after the req.file presence check and before the sharp() pipeline
+  - Effect: non-image or spoofed-type uploads now return ApiError(415, ...)
+    instead of a raw sharp runtime error that produces a 500
+
+MODIFIED  backend/src/routes/borrowing.routes.js
+  - Added: import { validateImageUpload } from '../lib/uploadValidation.js'
+  - Added: await validateImageUpload(req.file, false) in POST /inventory/add,
+    inside the `if (req.file)` block but OUTSIDE the non-fatal try/catch —
+    validation errors propagate as ApiError(415, ...) to asyncHandler; the
+    existing try/catch continues to handle sharp/storage errors non-fatally
+  - Added: await validateImageUpload(req.file, false) in POST /inventory/edit,
+    same placement — outside the try/catch, inside the `if (req.file)` block
+  - Effect: non-image or spoofed-type uploads are now rejected with 415 instead
+    of silently falling through to a 200 with the image quietly discarded
+
+=============================================================================
 END OF CHANGE LOG
 =============================================================================

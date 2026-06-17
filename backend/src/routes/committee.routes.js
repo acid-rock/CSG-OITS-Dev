@@ -10,6 +10,7 @@ import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
 import { getCached, setCache, invalidateCachePrefix } from "../lib/cache.js";
 import { validate } from "../middlewares/validate.middleware.js";
+import { validateImageUpload } from "../lib/uploadValidation.js";
 import {
   addCommitteeSchema,
   editCommitteeSchema,
@@ -308,6 +309,7 @@ router.post(
     const { id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
     if (!req.file) throw new ApiError(400, "cover image file is required.");
+    await validateImageUpload(req.file, true);
 
     const coverPath = `${id}.webp`;
     const compressed = await sharp(req.file.buffer)
