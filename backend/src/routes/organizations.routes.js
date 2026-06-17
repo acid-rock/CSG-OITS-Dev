@@ -60,7 +60,7 @@ router.post(
   upload.single("logo"),
   validate(addOrganizationSchema),
   asyncHandler(async (req, res) => {
-    validateImageUpload(req.file, false);
+    await validateImageUpload(req.file, false);
     const { name, description, facebook_link, org_type, parent_id } = req.body;
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");
 
@@ -109,7 +109,7 @@ router.post(
   upload.single("logo"),
   validate(editOrganizationSchema),
   asyncHandler(async (req, res) => {
-    validateImageUpload(req.file, false);
+    await validateImageUpload(req.file, false);
     const { id, name, description, facebook_link, org_type, parent_id } = req.body;
     if (!id) throw new ApiError(400, "id is required.");
     if (!name || !name.trim()) throw new ApiError(400, "name is required.");

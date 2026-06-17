@@ -58,7 +58,7 @@ Two validation functions applied at upload endpoints:
 - Maximum size: 20 MB
 - Returns `ApiError(415, ...)` for non-PDF, `ApiError(413, ...)` for oversized file
 
-Both functions check the `mimetype` field set by Multer (from the `Content-Type` header) — note this relies on the client-reported type. MIME type sniffing at the byte level is not implemented.
+Both functions first check the `mimetype` field set by Multer (from the client-reported `Content-Type` header), then independently verify the file's actual content via magic-byte sniffing (using [`file-type`](https://www.npmjs.com/package/file-type) against the buffer Multer captured in memory). A file whose `Content-Type` header was spoofed to pass the declared-type check (e.g. an HTML or script payload renamed/declared as `image/png`) is still rejected with `ApiError(415, ...)` because its real signature doesn't match an allowed format.
 
 ---
 

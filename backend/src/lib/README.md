@@ -104,20 +104,22 @@ Apply to user-provided HTML before any database INSERT or UPDATE (announcement `
 
 ### `uploadValidation.js`
 
-Two validation functions. Call after Multer, before any storage operation.
+Two **async** validation functions. Call after Multer, before any storage operation, and `await` them.
 
 ```js
 import { validateImageUpload, validatePdfUpload } from '../lib/uploadValidation.js';
 
-validateImageUpload(req.file);           // required by default
-validateImageUpload(req.file, false);    // optional — no error if missing
-validatePdfUpload(req.file);
+await validateImageUpload(req.file);           // required by default
+await validateImageUpload(req.file, false);    // optional — no error if missing
+await validatePdfUpload(req.file);
 ```
 
 | Function | Allowed types | Max size | Errors thrown |
 |---|---|---|---|
 | `validateImageUpload` | `image/jpeg`, `image/jpg`, `image/png`, `image/webp` | 5 MB | `ApiError(415, ...)`, `ApiError(413, ...)` |
 | `validatePdfUpload` | `application/pdf` | 20 MB | `ApiError(415, ...)`, `ApiError(413, ...)` |
+
+Both functions check the declared `mimetype` (from Multer/the `Content-Type` header) first, then re-verify the file's actual magic bytes via [`file-type`](https://www.npmjs.com/package/file-type) against the same allowlist. A file whose Content-Type was spoofed to look like an allowed type (e.g. an HTML or executable payload declared as `image/png`) is rejected with `ApiError(415, ...)` even though the declared-type check alone would have passed it. This requires `req.file.buffer` — only works with Multer's `memoryStorage()` (all current upload routes use it).
 
 ### `mailer.js` and `emailTemplates.js`
 
