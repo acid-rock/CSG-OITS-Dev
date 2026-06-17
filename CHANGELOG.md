@@ -3,7 +3,11 @@
 All notable changes to CSG-OITS will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [1.11.4] - 2026-06-17
+
+### Security
+- **Magic-byte validation on file uploads** — `validateImageUpload` and `validatePdfUpload` in `backend/src/lib/uploadValidation.js` previously accepted any file whose `Content-Type` header declared an allowed type; a spoofed upload (e.g. an HTML or script payload declared as `image/png`) passed the declared-type check and was piped directly to `sharp` with no further verification; both functions are now `async` and additionally read the uploaded buffer through [`file-type`](https://www.npmjs.com/package/file-type) to detect the real MIME type from the file's magic bytes; if the detected type doesn't match the allowed image or PDF allowlist the request is rejected with `ApiError(415, ...)` regardless of what the `Content-Type` header said; all 9 original call sites (announcements add/edit, documents add, events add/edit, officers add/edit, organizations add/edit) updated to `await` the now-async functions; `file-type` added as a new backend dependency; unit tests rewritten with real magic-byte fixtures and four new spoofed-upload test cases that were not catchable before this change
+- **Upload validation wired into committee and borrowing routes** — `POST /committees/upload-cover`, `POST /borrowing/inventory/add`, and `POST /borrowing/inventory/edit` accepted image uploads but called neither `validateImageUpload` nor any other MIME-type check, going directly to `sharp()` on the raw buffer; a non-image file caused `sharp` to throw an uncontrolled runtime error (500 on the committee endpoint; silently swallowed with a 200 on the two inventory endpoints due to their non-fatal `try/catch`); `validateImageUpload` now runs on all three routes before `sharp` is invoked; on the inventory routes the call is placed outside the non-fatal `try/catch` so that MIME/magic-byte rejections propagate as a proper `ApiError(415, ...)` rather than being swallowed
 
 ## [1.11.3] - 2026-06-08
 

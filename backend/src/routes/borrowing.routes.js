@@ -46,6 +46,7 @@ import { requireAuth } from "../middlewares/auth.middleware.js";
 import ApiError from "../lib/apiError.js";
 import multer from "multer";
 import { sendEmail } from "../lib/mailer.js";
+import { validateImageUpload } from "../lib/uploadValidation.js";
 import {
   submissionConfirmationEmail,
   approvalEmail,
@@ -138,6 +139,7 @@ router.post(
 
     // Upload image if provided (non-fatal on failure)
     if (req.file) {
+      await validateImageUpload(req.file, false); // rejects invalid types with 415 before attempting sharp
       try {
         const imagePath = `${data.id}.webp`;
         const compressed = await sharp(req.file.buffer)
@@ -188,6 +190,7 @@ router.post(
 
     // Replace image if a new file was provided
     if (req.file) {
+      await validateImageUpload(req.file, false); // rejects invalid types with 415 before attempting sharp
       try {
         // Remove old image first
         const { data: existing } = await userSupabase

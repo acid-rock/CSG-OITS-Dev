@@ -164,7 +164,7 @@ router.post(
   upload.single("avatar"),
   validate(addOfficerSchema),
   asyncHandler(async (req, res) => {
-    validateImageUpload(req.file, false);
+    await validateImageUpload(req.file, false);
     const {
       full_name,
       position,
@@ -259,7 +259,7 @@ router.post(
   upload.single("avatar"),
   validate(editOfficerSchema),
   asyncHandler(async (req, res) => {
-    validateImageUpload(req.file, false);
+    await validateImageUpload(req.file, false);
     const {
       id,
       full_name,

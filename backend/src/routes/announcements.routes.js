@@ -76,7 +76,7 @@ router.post(
   validate(addAnnouncementSchema),
   auditLogger("announcement:add"),
   asyncHandler(async (req, res) => {
-    validateImageUpload(req.file, true);
+    await validateImageUpload(req.file, true);
     const token = req.token;
     const { title, content, category } = req.body;
     const sanitizedContent = sanitizeContent(content);
@@ -123,7 +123,7 @@ router.post(
   validate(editAnnouncementSchema),
   auditLogger("announcement:edit"),
   asyncHandler(async (req, res) => {
-    validateImageUpload(req.file, false);
+    await validateImageUpload(req.file, false);
     if (!req.body) throw new ApiError(400, "No valid request body is found.");
     const { id, title, content, category } = req.body;
     const sanitizedContent = sanitizeContent(content);

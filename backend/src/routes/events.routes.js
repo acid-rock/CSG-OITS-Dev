@@ -98,7 +98,7 @@ router.post(
   asyncHandler(async (req, res) => {
     if (req.files?.length) {
       for (const file of req.files) {
-        validateImageUpload(file, false);
+        await validateImageUpload(file, false);
       }
     }
     const { name, description, date_happened } = req.body;
@@ -150,7 +150,7 @@ router.post(
     if (req.files) {
       for (const slotFiles of Object.values(req.files)) {
         for (const file of slotFiles) {
-          validateImageUpload(file, false);
+          await validateImageUpload(file, false);
         }
       }
     }
