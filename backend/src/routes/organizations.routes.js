@@ -35,7 +35,7 @@ router.get(
 
     const { data, error } = await anonSupabase
       .from("organizations")
-      .select("id, name, description, facebook_link, logo_path, created_at")
+      .select("id, name, description, facebook_link, logo_path, created_at, org_type, parent_id")
       .eq("is_archived", false)
       .is("deleted_at", null)
       .order("created_at", { ascending: true });
@@ -47,6 +47,8 @@ router.get(
       description:   org.description,
       facebook_link: org.facebook_link,
       created_at:    org.created_at,
+      org_type:      org.org_type,
+      parent_id:     org.parent_id,
       logo_url:      getLogoUrl(org.logo_path),
     }));
     setCache(cacheKey, result, 60_000);
