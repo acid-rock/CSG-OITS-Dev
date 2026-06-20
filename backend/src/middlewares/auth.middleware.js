@@ -4,7 +4,36 @@ import { getCached, setCache } from "../lib/cache.js";
 
 const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
 
-/** Shared nonce-check helper (single-device enforcement for admin sessions). */
+/** Resolve the user id from whatever shape req.user has. */
+function resolveUserId(req) {
+  // Normal path sets req.user = JWT payload (has `sub`); the refresh path sets
+  // req.user = Supabase user object (has `id`).
+  return req.user?.sub ?? req.user?.id ?? null;
+}
+
+/**
+ * Read the per-user session nonce stored in `settings`.
+ * Keyed per user so each admin has an independent single-device session — a
+ * login by one admin no longer invalidates every other admin's session.
+ * Returns the stored nonce string, or null when none exists (logged out).
+ */
+async function getDbNonce(userId) {
+  if (!userId) return null;
+  const cacheKey = `admin:session_nonce:${userId}`;
+  let dbNonce = getCached(cacheKey);
+  if (dbNonce === undefined) {
+    const { data } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", `admin_session_nonce:${userId}`)
+      .single();
+    dbNonce = data?.value ?? null;
+    setCache(cacheKey, dbNonce, 5_000); // 5-second cache
+  }
+  return dbNonce;
+}
+
+/** Shared nonce-check helper (single-device enforcement per admin). */
 async function checkAdminNonce(req, res) {
   const adminNonce = req.cookies["admin_nonce"];
   if (!adminNonce) {
@@ -15,19 +44,34 @@ async function checkAdminNonce(req, res) {
     return false;
   }
 
-  let dbNonce = getCached("admin:session_nonce");
-  if (dbNonce === undefined) {
-    const { data } = await supabase
-      .from("settings")
-      .select("value")
-      .eq("key", "admin_session_nonce")
-      .single();
-    dbNonce = data?.value ?? null;
-    setCache("admin:session_nonce", dbNonce, 5_000); // 5-second cache
-  }
+  const dbNonce = await getDbNonce(resolveUserId(req));
 
-  if (dbNonce && dbNonce !== adminNonce) {
-    res.status(401).json({ error: "Session invalidated. Another device has logged in." });
+  // Deny unless a stored nonce exists AND matches the cookie. An absent stored
+  // nonce means the session was logged out (the row is deleted on logout), so a
+  // still-valid but revoked JWT cannot be replayed until its natural expiry.
+  if (!dbNonce || dbNonce !== adminNonce) {
+    res.status(401).json({ error: "Session invalidated. Please log in again." });
+    return false;
+  }
+  return true;
+}
+
+/** HTTP methods that mutate state and therefore require CSRF protection. */
+const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+/**
+ * CSRF double-submit check.
+ * Cookies are SameSite=None (frontend and API are cross-site), so a forged
+ * cross-site request would carry the auth cookies but cannot read the
+ * non-httpOnly csrf_token cookie to replay it in the X-CSRF-Token header.
+ * Returns true when the request is safe to proceed.
+ */
+function checkCsrf(req, res) {
+  if (!UNSAFE_METHODS.has(req.method)) return true; // GET/HEAD/OPTIONS are safe
+  const headerToken = req.get("x-csrf-token");
+  const cookieToken = req.cookies?.csrf_token;
+  if (!headerToken || !cookieToken || headerToken !== cookieToken) {
+    res.status(403).json({ error: "Invalid or missing CSRF token." });
     return false;
   }
   return true;
@@ -40,6 +84,10 @@ export async function requireAuth(req, res, next) {
   if (!accessToken && !refreshToken) {
     return res.status(403).json({ message: "Not authenticated." });
   }
+
+  // CSRF gate runs before any auth work — every state-changing admin route
+  // passes through requireAuth, so this is the single enforcement point.
+  if (!checkCsrf(req, res)) return;
 
   try {
     const payload = jwt.verify(accessToken, SUPABASE_JWT_SECRET);
@@ -101,25 +149,17 @@ export async function optionalAuth(req, _res, next) {
   try {
     const token = req.cookies?.sb_access_token;
     if (token) {
-      jwt.verify(token, SUPABASE_JWT_SECRET);
+      const payload = jwt.verify(token, SUPABASE_JWT_SECRET);
 
       // Require the nonce cookie to be present and match the active session.
       // Without this check, a revoked (post-logout) JWT that hasn't expired yet
       // would still receive req.isAdmin = true and admin-only response fields.
       const cookieNonce = req.cookies?.admin_nonce;
       if (cookieNonce) {
-        let dbNonce = getCached("admin:session_nonce");
-        if (dbNonce === undefined) {
-          const { data } = await supabase
-            .from("settings")
-            .select("value")
-            .eq("key", "admin_session_nonce")
-            .single();
-          dbNonce = data?.value ?? null;
-          setCache("admin:session_nonce", dbNonce, 5_000);
-        }
-        // isAdmin = true only if nonces match (or no nonce in DB yet)
-        req.isAdmin = !dbNonce || dbNonce === cookieNonce;
+        const dbNonce = await getDbNonce(payload?.sub ?? null);
+        // isAdmin = true ONLY when a stored per-user nonce exists and matches.
+        // A missing stored nonce means the session was logged out → not admin.
+        req.isAdmin = Boolean(dbNonce) && dbNonce === cookieNonce;
       }
       // No nonce cookie → JWT alone is insufficient proof of an active admin
       // session. req.isAdmin stays undefined (falsy); request proceeds as public.
