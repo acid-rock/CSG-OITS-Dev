@@ -160,9 +160,20 @@ app.use((err, req, res, next) => {
   const isDev = process.env.NODE_ENV !== "production";
 
   if (err.isOperational) {
-    return res.status(err.status || 500).json({
-      error: err.message,
-    });
+    const status = err.status || 500;
+    // 4xx operational errors carry intentional, client-safe messages
+    // (validation, not-found, auth) and are returned as-is. 5xx operational
+    // errors are frequently constructed from raw Supabase/Postgres error text
+    // (e.g. `new ApiError(500, error.message)`), which can leak schema and
+    // constraint detail. Mask those in production; log the real message
+    // server-side so it's still diagnosable.
+    if (status >= 500 && !isDev) {
+      console.error("Operational 5xx error:", err.message);
+      return res.status(status).json({
+        error: "An unexpected error occurred. Please try again later.",
+      });
+    }
+    return res.status(status).json({ error: err.message });
   }
 
   console.error("Unexpected error:", err);
