@@ -3,6 +3,16 @@
 All notable changes to CSG-OITS will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.11.6] - 2026-06-21
+
+### Fixed
+- **Admin "session expired" lockout introduced by v1.11.5** — after the per-admin nonce change, admins were repeatedly kicked out with "session expired" a few seconds after logging in; root cause was a cache-contract mismatch in `getDbNonce` (`backend/src/middlewares/auth.middleware.js`): it gated the database read on `dbNonce === undefined`, but `getCached` (`backend/src/lib/cache.js`) returns **`null`** on a miss/expiry, never `undefined`; so once the 5-second cache primed at login expired, the DB read was skipped, the nonce resolved to `null`, and the new deny-by-default logic treated `null` as "logged out" → 401 on the next request → `SessionExpiredModal` (which fires only on 401); login re-primed the cache for 5 seconds, so every session worked briefly then died; `getDbNonce` now treats any non-null cache value as a hit and reads the DB otherwise, so the per-user nonce is correctly DB-backed beyond the 5-second window (the v1.11.5 code had the same `=== undefined` bug but its old lenient `null → allow` branch masked it; the deny-by-default fix exposed it)
+- **CSRF token unreadable across domains (would block all admin writes)** — v1.11.5 delivered the CSRF token via a non-httpOnly `csrf_token` cookie that the frontend interceptor read with `document.cookie`; because the frontend (`csg-oits.vercel.app`) and backend (`*.onrender.com`) are different sites, frontend JS cannot read a cookie scoped to the backend domain, so the `X-CSRF-Token` header was never attached and every state-changing admin request (`requireAuth` + POST/PUT/PATCH/DELETE) would have returned 403 (masked until now only because the nonce 401 above hit first); the double-submit cookie is retained for the server-side comparison, but the token is now also returned in the `POST /user/login` and `GET /user/me` JSON bodies (both CORS-protected, so a cross-origin attacker still cannot read it); `frontend/src/config/axiosSetup.ts` stores the token (module memory + `sessionStorage`) via a new `setCsrfToken()` export and attaches it from there instead of reading the cookie; `Login.tsx` seeds it on login and `ProtectedRoute.tsx` rehydrates it from `/user/me` on every admin mount (covers reloads)
+
+### Notes
+- Requires redeploying both services: the backend (Render) for the nonce fix and the backend half of the CSRF fix, and the frontend (Vercel) for the frontend half; both halves of the CSRF change must ship together
+- The cross-domain CSRF failure does not reproduce on a localhost dev setup (frontend and backend share the `localhost` host, so the cookie is readable either way); the nonce lockout fix is fully verifiable locally by staying logged in past the 5-second window
+
 ## [1.11.5] - 2026-06-21
 
 ### Security
