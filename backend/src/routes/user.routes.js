@@ -1,13 +1,28 @@
 import { Router } from "express";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
 import { supabase, anonSupabase, createUserClient } from "../lib/supabaseClient.js";
 import asyncHandler from "express-async-handler";
 import ApiError from "../lib/apiError.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
+import { setCache } from "../lib/cache.js";
 import { loginSchema, registerSchema, whitelistInsertSchema } from "../schemas/index.js";
 
 const router = Router();
+
+// Strict limiter for credential-handling endpoints (login, password reset).
+// The router as a whole is mounted under adminLimiter (500/15min) in app.js,
+// which is far too generous for brute-force / credential-stuffing protection.
+// 10 attempts/15min per IP throttles guessing without impacting real admins.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many attempts. Please try again later." },
+});
 
 /**
  * Shared password complexity validator.
@@ -69,6 +84,7 @@ router.post(
 
 router.post(
   "/login",
+  authLimiter,
   validate(loginSchema),
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -98,18 +114,35 @@ router.post(
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // ── Single-device enforcement — generate a new session nonce ──────────
-    // Upserting a new nonce invalidates any existing admin session on other
-    // browsers; auth.middleware.js validates this nonce on every requireAuth call.
+    // ── Single-device enforcement (per admin) — generate a new session nonce ──
+    // The nonce is keyed per user (admin_session_nonce:<userId>) so each admin
+    // has an independent single-device session. Logging in here only invalidates
+    // THIS admin's other devices, not every other admin. auth.middleware.js
+    // validates this nonce on every requireAuth call.
+    const userId = data.user.id;
     const nonce = crypto.randomUUID();
     await supabase
       .from("settings")
-      .upsert({ key: "admin_session_nonce", value: nonce }, { onConflict: "key" });
+      .upsert({ key: `admin_session_nonce:${userId}`, value: nonce }, { onConflict: "key" });
+    // Prime the auth-middleware cache so the first authed request after login
+    // doesn't read a stale (pre-login) nonce during the 5s cache window.
+    setCache(`admin:session_nonce:${userId}`, nonce, 5_000);
     res.cookie("admin_nonce", nonce, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000, // match refresh token lifespan
+    });
+
+    // ── CSRF double-submit token ──────────────────────────────────────────
+    // Non-httpOnly so the frontend can read it and echo it back in the
+    // X-CSRF-Token header; requireAuth compares the two on unsafe methods.
+    const csrfToken = crypto.randomUUID();
+    res.cookie("csrf_token", csrfToken, {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     // ──────────────────────────────────────────────────────────────────────
 
@@ -120,6 +153,19 @@ router.post(
 router.post(
   "/logout",
   asyncHandler(async (req, res) => {
+    // Resolve the user id from the (possibly expired) access token so we delete
+    // the right per-user nonce. decode() — not verify() — because we still want
+    // to revoke the session even if the token has already expired.
+    const accessToken = req.cookies["sb_access_token"];
+    let userId = null;
+    if (accessToken) {
+      try {
+        userId = jwt.decode(accessToken)?.sub ?? null;
+      } catch {
+        userId = null;
+      }
+    }
+
     res.clearCookie("sb_access_token", {
       httpOnly: true,
       secure: true,
@@ -135,11 +181,21 @@ router.post(
       secure: true,
       sameSite: "none",
     });
-    // Remove the stored nonce so no session can reuse it after logout
-    await supabase
-      .from("settings")
-      .delete()
-      .eq("key", "admin_session_nonce");
+    res.clearCookie("csrf_token", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+    });
+    // Remove this user's stored nonce so the JWT can't be replayed after logout.
+    if (userId) {
+      await supabase
+        .from("settings")
+        .delete()
+        .eq("key", `admin_session_nonce:${userId}`);
+      // Invalidate the cached value immediately (otherwise a replayed JWT could
+      // pass the nonce check for up to 5s using the stale cached nonce).
+      setCache(`admin:session_nonce:${userId}`, null, 5_000);
+    }
     return res.sendStatus(200);
   }),
 );
@@ -178,6 +234,7 @@ router.get(
 
 router.post(
   "/forgot-password",
+  authLimiter,
   asyncHandler(async (req, res) => {
     const { email } = req.body;
     // FRONTEND_URL may be comma-separated (multi-origin); use only the first value
@@ -201,6 +258,7 @@ router.post(
  */
 router.post(
   "/exchange-code",
+  authLimiter,
   asyncHandler(async (req, res) => {
     const { code } = req.body;
     if (!code) throw new ApiError(400, "code is required.");
@@ -213,6 +271,7 @@ router.post(
 
 router.post(
   "/reset-password",
+  authLimiter,
   asyncHandler(async (req, res) => {
     const { access_token, new_password } = req.body;
 
@@ -249,6 +308,7 @@ router.post(
  */
 router.post(
   "/complete-reset",
+  authLimiter,
   asyncHandler(async (req, res) => {
     const { code, new_password } = req.body;
     if (!code) throw new ApiError(400, "code is required.");

@@ -4,13 +4,13 @@ Axios fetch functions and shared HTTP client configuration.
 
 ## Overview
 
-This directory contains one fetch function per API resource plus the shared axios instance. These functions are called by `Root-layout.tsx` during the parallel data fetch on mount. Admin panel components call the API directly via `axiosInstance` rather than using these config functions.
+This directory contains one fetch function per API resource plus global axios setup. These functions are called by `Root-layout.tsx` during the parallel data fetch on mount. Admin panel components call the API directly via the raw `axios` instance (with `withCredentials: true`) rather than using these config functions.
 
 ## Contents
 
 | File                        | Exports                               | API call                                                                                           |
 | --------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `axiosInstance.ts`          | `axiosInstance` (default)             | Axios instance configured with `baseURL: import.meta.env.VITE_API_URL` and `withCredentials: true` |
+| `axiosSetup.ts`             | — (side-effect import)                | Registers a global axios request interceptor that attaches the `X-CSRF-Token` header from the `csrf_token` cookie. Imported once in `main.tsx`. |
 | `bulletinConfig.ts`         | `fetchBulletinData()`                 | `GET /announcements/` — formats dates, returns `Announcement[]`                                    |
 | `documentsConfig.ts`        | `fetchDocuments(page?, limit?)`       | `GET /documents/` — supports optional pagination                                                   |
 | `eventConfig.ts`            | `fetchEvents()`                       | `GET /events/` — formats dates, returns `Event[]`                                                  |
@@ -38,13 +38,13 @@ const [, bulletinResult, docsResult, eventsResult, officersResult, orgsResult] =
 
 ## `VITE_API_URL`
 
-All functions use `axiosInstance`, which has `baseURL` set to `import.meta.env.VITE_API_URL`. In development this is `https://localhost:3000/api/v1`. In production it is the deployed backend URL.
+All functions build URLs from `import.meta.env.VITE_API_URL`. In development this is `https://localhost:3000/api/v1`. In production it is the deployed backend URL.
 
 ## Rules
 
 - Child route components must NOT call these functions directly if the data is already in the outlet context. Use `useOutletContext()` instead.
 - If a public page needs data not in the outlet context (e.g., committees within Officers.tsx), a direct `axios.get()` inside `useEffect` is acceptable.
-- The `axiosInstance` is pre-configured with `withCredentials: true`, which is required for the admin panel's httpOnly cookie authentication.
+- Admin panel write calls must pass `withCredentials: true`, which is required for the httpOnly cookie authentication. The CSRF header is attached automatically by the global interceptor in `axiosSetup.ts`.
 
 ## Related
 

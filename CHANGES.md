@@ -1388,5 +1388,145 @@ MODIFIED  backend/src/routes/borrowing.routes.js
     of silently falling through to a 200 with the image quietly discarded
 
 =============================================================================
+PRODUCTION HARDENING — OWASP ZAP RESPONSE (v1.11.5, applied 2026-06-21)
+=============================================================================
+
+Trigger: an external OWASP ZAP automated scan against the production Vercel
+site (csg-oits.vercel.app) returned 8 alerts — all missing HTTP response
+headers on the static frontend (the backend already sets them via Helmet, but
+Helmet only decorates API responses, not the Vercel-served React bundle). A
+follow-up manual code review found five issues the passive scan could not see:
+a weak login rate limit, a global (not per-admin) session nonce, a post-logout
+JWT replay window, raw DB error text leaking to clients, and CSRF defense
+resting entirely on the CORS allowlist. All six workstreams are below.
+
+Deploy note: this release invalidates all existing admin sessions (per-user
+nonce keys do not yet exist for current sessions, and the new CSRF requirement
+forces one re-login). Expected for a security release.
+
+--- W1: Frontend security headers (clears ~6 of the 8 ZAP alerts) ---
+
+MODIFIED  frontend/vercel.json
+  - Added: a "headers" block (alongside the existing SPA "rewrites") applying
+    to source "/(.*)":
+      Content-Security-Policy — mirrors the backend Helmet directives:
+        default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'
+        (Vite/React inject inline styles); img-src 'self' data: blob:
+        https://*.supabase.co; font-src 'self' data:; media-src 'self'
+        https://*.supabase.co; connect-src 'self' https://*.supabase.co
+        <backend origin>; frame-src 'self' https://*.supabase.co;
+        frame-ancestors 'none'; object-src 'none'; base-uri 'self';
+        form-action 'self'; upgrade-insecure-requests
+      X-Frame-Options: DENY
+      X-Content-Type-Options: nosniff
+      Referrer-Policy: strict-origin-when-cross-origin
+      Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+      Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+  - Note: connect-src must list the real backend origin (host part of
+    VITE_API_URL without the /api/v1 suffix); set at deploy time
+  - Not addressed (informational ZAP findings, no third-party CDN scripts
+    loaded): Sub-Resource Integrity, "Modern Web Application", "Retrieved from
+    Cache", cache-control directives, Cross-Domain Misconfiguration
+
+--- W2: Dedicated login rate limiter (brute-force / credential stuffing) ---
+
+MODIFIED  backend/src/routes/user.routes.js
+  - Added: import rateLimit from 'express-rate-limit'
+  - Added: authLimiter — 10 req/15 min per IP, standardHeaders, generic
+    "Too many attempts" message
+  - Applied authLimiter to POST /login, /forgot-password, /reset-password,
+    /complete-reset, /exchange-code (the credential-handling endpoints);
+    the rest of the router keeps the generous adminLimiter (500/15 min) it
+    inherits from app.js
+
+--- W3: Per-admin session nonce + post-logout JWT replay fix ---
+
+MODIFIED  backend/src/middlewares/auth.middleware.js
+  - Added: resolveUserId(req) helper — returns req.user.sub (normal path) or
+    req.user.id (token-refresh path) so the nonce key is consistent across
+    both requireAuth code paths
+  - Added: getDbNonce(userId) helper — reads settings key
+    admin_session_nonce:<userId> with a per-user 5-second cache
+    (admin:session_nonce:<userId>)
+  - Changed: checkAdminNonce — now keyed per user and DENIES when no stored
+    nonce exists for the user OR it does not match the cookie (previously an
+    absent stored nonce was treated as "accept any nonce", which — combined
+    with logout deleting the row — let a still-valid JWT pass after logout)
+  - Changed: optionalAuth — captures the verified JWT payload and sets
+    req.isAdmin = true ONLY when a per-user stored nonce exists and matches the
+    cookie (was: true when no nonce in DB)
+
+MODIFIED  backend/src/routes/user.routes.js
+  - Added: import jwt from 'jsonwebtoken'; import { setCache } from '../lib/cache.js'
+  - Changed: POST /login — nonce upserted under admin_session_nonce:<userId>
+    (userId = data.user.id) instead of the single global key; primes
+    setCache('admin:session_nonce:<userId>', nonce, 5000) so the first authed
+    request after login does not read a stale pre-login nonce
+  - Changed: POST /logout — decodes the (possibly expired) access token with
+    jwt.decode to resolve the user id, deletes only admin_session_nonce:<userId>,
+    and clears the per-user auth cache immediately (setCache(..., null, 5000))
+    so the deny takes effect without waiting out the cache window
+
+--- W4: Mask raw DB error messages in production (central fix) ---
+
+MODIFIED  backend/src/app.js
+  - Changed: the global error handler — operational errors (ApiError, which
+    sets isOperational = true) with a status >= 500 now return a generic
+    "An unexpected error occurred. Please try again later." in production and
+    log the real message via console.error; 4xx operational messages
+    (validation, not-found, auth) are still returned verbatim
+  - Rationale: ~100 handlers build 5xx errors from raw Supabase/Postgres text
+    (e.g. new ApiError(500, error.message)); fixing the single choke-point
+    masks all current and future occurrences without editing each call site.
+    Plain `throw new Error(...)` was already masked via the non-operational
+    branch, so those sites needed no change
+
+--- W5: CSRF protection (double-submit cookie) ---
+
+MODIFIED  backend/src/routes/user.routes.js
+  - Added: POST /login now sets a csrf_token cookie (crypto.randomUUID(),
+    httpOnly: false so JS can read it, secure, sameSite: 'none', 7-day maxAge)
+    alongside the session cookies
+  - Added: POST /logout now clears the csrf_token cookie
+
+MODIFIED  backend/src/middlewares/auth.middleware.js
+  - Added: UNSAFE_METHODS set (POST/PUT/PATCH/DELETE) and checkCsrf(req, res)
+    helper — for unsafe methods, requires the X-CSRF-Token header to equal the
+    csrf_token cookie (both present); returns 403 otherwise; GET/HEAD/OPTIONS
+    pass through
+  - Changed: requireAuth runs checkCsrf as its first step (before any auth
+    work), so every state-changing admin route is covered at one enforcement
+    point; genuinely public POST endpoints are unaffected because they do not
+    use requireAuth
+
+CREATED   frontend/src/config/axiosSetup.ts
+  - Registers a single global axios request interceptor that reads the
+    csrf_token cookie (via document.cookie) and attaches it as the
+    X-CSRF-Token header on every request; covers all existing raw-axios call
+    sites with no per-call changes
+
+MODIFIED  frontend/src/main.tsx
+  - Added: side-effect import "./config/axiosSetup" to register the interceptor
+    once at app bootstrap
+
+MODIFIED  frontend/src/admin/README.md, frontend/src/config/README.md
+  - Corrected: both referenced a non-existent axiosInstance.ts; updated to
+    describe the actual setup — raw axios with withCredentials: true plus the
+    global CSRF interceptor in config/axiosSetup.ts
+
+--- VERIFICATION ---
+
+  - frontend: npx tsc --noEmit — clean
+  - backend: npm test — 39 tests pass; the 3 failing suites
+    (announcements/documents/user route tests) were confirmed PRE-EXISTING via
+    git stash (their vi.mock of auth.middleware.js omits the optionalAuth
+    export); this change introduces no test regressions
+  - node --check on app.js, auth.middleware.js, user.routes.js — clean
+  - vercel.json — valid JSON (top-level keys: rewrites, headers)
+  - eslint not runnable in this environment (backend has no eslint.config.js;
+    frontend config uses the pre-ESLint-9 plugins-as-array format) —
+    pre-existing, unrelated to this change
+
+=============================================================================
 END OF CHANGE LOG
 =============================================================================

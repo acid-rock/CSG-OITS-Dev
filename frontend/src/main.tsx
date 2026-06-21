@@ -6,6 +6,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./index.css";
+// Registers the global axios CSRF interceptor (side-effect import).
+import "./config/axiosSetup";
 
 // Public shell + landing page stay eager for fast first paint
 import RootLayout from "./root-layout/Root-layout";

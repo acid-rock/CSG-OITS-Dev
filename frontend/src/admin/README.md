@@ -4,7 +4,7 @@ Entire admin panel — authentication pages, the panel shell, all content panels
 
 ## Overview
 
-The admin panel is a password-protected content management interface for CSG administrators. It lives at `/admin` and uses a `?panel=` URL query parameter for internal navigation — there are no additional nested routes. The blue sidebar on the left links to 12 content panels. All API calls use `axiosInstance` with `withCredentials: true` to include the httpOnly session cookie.
+The admin panel is a password-protected content management interface for CSG administrators. It lives at `/admin` and uses a `?panel=` URL query parameter for internal navigation — there are no additional nested routes. The blue sidebar on the left links to 12 content panels. API calls use the raw `axios` default instance with `withCredentials: true` to include the httpOnly session cookie. A global request interceptor (registered in `src/config/axiosSetup.ts`) automatically attaches the `X-CSRF-Token` header from the `csrf_token` cookie on every request.
 
 ## Entry points
 
@@ -51,7 +51,7 @@ The admin panel uses its own CSS design system (`panel/_shared/admin-list.css` +
 
 ## Rules
 
-- All admin write calls must include `withCredentials: true`.
+- All admin write calls must include `withCredentials: true` (the CSRF header is added automatically by the global interceptor in `src/config/axiosSetup.ts`).
 - Never use `window.location.reload()` after writes — update local React state directly.
 - Never use the `any` TypeScript type.
 - `parseInt()` is required on ALL committee ID comparisons (committees.id is an INTEGER).
