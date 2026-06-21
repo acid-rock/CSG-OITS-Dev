@@ -146,7 +146,10 @@ router.post(
     });
     // ──────────────────────────────────────────────────────────────────────
 
-    return res.status(200).json({ message: "Login successful." });
+    // Return the CSRF token in the body too: the frontend and backend are
+    // cross-site, so frontend JS cannot read the csrf_token cookie via
+    // document.cookie. It echoes this value in the X-CSRF-Token header instead.
+    return res.status(200).json({ message: "Login successful.", csrfToken });
   }),
 );
 
@@ -228,6 +231,10 @@ router.get(
       name,
       email,
       role: profileData?.role ?? "admin",
+      // Rehydration point for the CSRF token: the browser sends the csrf_token
+      // cookie here (cross-site, but sent automatically), and the frontend reads
+      // it from this CORS-protected body since it can't read the cookie via JS.
+      csrfToken: req.cookies?.csrf_token ?? null,
     });
   }),
 );

@@ -1528,5 +1528,83 @@ MODIFIED  frontend/src/admin/README.md, frontend/src/config/README.md
     pre-existing, unrelated to this change
 
 =============================================================================
+HOTFIX — v1.11.5 ADMIN LOCKOUT + CROSS-DOMAIN CSRF (v1.11.6, applied 2026-06-21)
+=============================================================================
+
+Two follow-up bugs in the v1.11.5 hardening, found after deploy when admins were
+kicked out with "session expired" seconds after logging in.
+
+--- BUG 1: nonce cache-miss check never matched (the lockout) ---
+
+backend/src/lib/cache.js getCached() returns null (not undefined) on a miss or
+expiry. getDbNonce() in auth.middleware.js gated its DB read on
+`if (dbNonce === undefined)`, which is therefore never true. Once the 5-second
+cache primed at login expired, the DB read was skipped, getDbNonce returned null,
+and the v1.11.5 deny-by-default logic read null as "logged out" → 401 → the
+frontend SessionExpiredModal (which only fires on 401). Login re-primed the cache
+for 5 seconds, so every session worked briefly then died, repeatedly. The
+v1.11.5 code had the same === undefined bug, but its old lenient null → allow
+branch masked it; the deny-by-default change turned the latent bug into a hard
+lockout.
+
+MODIFIED  backend/src/middlewares/auth.middleware.js
+  - Changed: getDbNonce() now treats any non-null getCached value as a hit
+    (const cached = getCached(cacheKey); if (cached !== null) return cached;)
+    and reads the DB otherwise; fixes both checkAdminNonce and optionalAuth
+    (both call getDbNonce). Logged-out users (null nonce) re-read the DB each
+    request — negligible. Side effect: the per-user single-device nonce is now
+    correctly DB-backed beyond the 5-second cache window for the first time.
+
+--- BUG 2: CSRF token unreadable cross-domain (would block all admin writes) ---
+
+v1.11.5 delivered the CSRF token via a non-httpOnly csrf_token cookie that the
+frontend interceptor read with document.cookie. The frontend (vercel.app) and
+backend (onrender.com) are different sites, so frontend JS cannot read a cookie
+scoped to the backend domain — the X-CSRF-Token header was never attached and
+every state-changing admin request would have 403'd (masked until now only
+because Bug 1's 401 hit first). Fix: keep the cookie for the server-side compare,
+but also deliver the token through CORS-protected response bodies that the
+frontend can actually read.
+
+MODIFIED  backend/src/routes/user.routes.js
+  - Changed: POST /login now also returns the token in the body
+    ({ message, csrfToken })
+  - Changed: GET /user/me now returns csrfToken: req.cookies.csrf_token ?? null
+    as the rehydration point (the browser sends the cookie to the backend
+    automatically; the frontend reads it from this body since it can't read the
+    cookie via JS; cross-origin attackers can't read the body due to CORS)
+
+MODIFIED  frontend/src/config/axiosSetup.ts
+  - Changed: replaced the document.cookie read with a module-level token store
+    seeded from sessionStorage; added setCsrfToken(token) export; the request
+    interceptor attaches X-CSRF-Token from the store
+
+MODIFIED  frontend/src/admin/ProtectedRoute.tsx
+  - Changed: the GET /user/me .then now calls setCsrfToken(res.data.csrfToken)
+    before setStatus("ok") — rehydrates the token on every admin mount / reload
+
+MODIFIED  frontend/src/admin/admin-loginpage/login/Login.tsx
+  - Changed: login success now calls setCsrfToken(res.data.csrfToken) so writes
+    work immediately, before the /user/me round-trip
+
+--- VERIFICATION ---
+
+  - frontend: npx tsc --noEmit — clean
+  - backend: npm test — 39 pass (same 3 pre-existing suite failures: the
+    announcements/documents/user route tests' vi.mock omits optionalAuth)
+  - node --check on auth.middleware.js, user.routes.js — clean
+  - Bug 1 is fully reproducible/verifiable locally (stay logged in past the
+    5-second window). Bug 2's cross-domain failure does NOT reproduce on a
+    localhost dev setup (frontend and backend share the localhost host, so the
+    cookie is readable either way) — it is validated on the deployed
+    Vercel <-> Render pair.
+
+--- DEPLOY NOTE ---
+
+  Redeploy both services: backend (Render) for Bug 1 + the backend half of
+  Bug 2; frontend (Vercel) for the frontend half. Both halves of the CSRF
+  change must ship together.
+
+=============================================================================
 END OF CHANGE LOG
 =============================================================================
