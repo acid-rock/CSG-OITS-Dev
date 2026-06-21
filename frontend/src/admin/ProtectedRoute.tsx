@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import axios from "axios";
+import { setCsrfToken } from "../config/axiosSetup";
 import "../index.css";
 
 const API = import.meta.env.VITE_API_URL as string;
@@ -33,7 +34,11 @@ const ProtectedRoute = () => {
   useEffect(() => {
     axios
       .get(`${API}/user/me`, { withCredentials: true })
-      .then(() => setStatus("ok"))
+      .then((res) => {
+        // Rehydrate the CSRF token so admin write requests carry X-CSRF-Token.
+        setCsrfToken(res.data?.csrfToken ?? null);
+        setStatus("ok");
+      })
       .catch(() => setStatus("denied"));
   }, []);
 

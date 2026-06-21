@@ -20,16 +20,21 @@ function resolveUserId(req) {
 async function getDbNonce(userId) {
   if (!userId) return null;
   const cacheKey = `admin:session_nonce:${userId}`;
-  let dbNonce = getCached(cacheKey);
-  if (dbNonce === undefined) {
-    const { data } = await supabase
-      .from("settings")
-      .select("value")
-      .eq("key", `admin_session_nonce:${userId}`)
-      .single();
-    dbNonce = data?.value ?? null;
-    setCache(cacheKey, dbNonce, 5_000); // 5-second cache
-  }
+  // getCached returns null on a miss/expiry (never undefined), and a logged-out
+  // user legitimately has a null nonce, so the cache can't distinguish
+  // "cached null" from "miss". Treat any non-null cache value as a hit; read the
+  // DB whenever the cache doesn't hold a real nonce. (Logged-out users re-read
+  // the DB each request, which is negligible — they don't hammer requireAuth.)
+  const cached = getCached(cacheKey);
+  if (cached !== null) return cached;
+
+  const { data } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", `admin_session_nonce:${userId}`)
+    .single();
+  const dbNonce = data?.value ?? null;
+  setCache(cacheKey, dbNonce, 5_000); // 5-second cache
   return dbNonce;
 }
 

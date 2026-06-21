@@ -2,6 +2,7 @@ import './login.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import axios from 'axios';
+import { setCsrfToken } from '../../../config/axiosSetup';
 
 /* ── Inline SVG icons ────────────────────────────────────── */
 const IconMail = () => (
@@ -95,11 +96,14 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      await axios.post(
+      const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/user/login`,
         { email, password },
         { withCredentials: true },
       );
+      // Store the CSRF token returned by login so writes work immediately
+      // (frontend JS can't read the cross-site csrf_token cookie).
+      setCsrfToken(res.data?.csrfToken ?? null);
       navigate('/admin');
     } catch (err: unknown) {
       const message =
