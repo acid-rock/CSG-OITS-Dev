@@ -114,6 +114,13 @@ app.use(helmet({
 
 **Note:** `styleSrc` allows `'unsafe-inline'` because the frontend uses inline styles for dynamic token values and animation state. This is a known trade-off.
 
+**Frontend CSP (separate from the above):** The Helmet CSP only decorates backend API/JSON responses. The static React app served by Vercel is governed by its own CSP header in `frontend/vercel.json`. It mirrors the backend directives but additionally whitelists Google Fonts, which `index.html` loads:
+
+- `style-src` includes `https://fonts.googleapis.com` — the `css2` stylesheet
+- `font-src` includes `https://fonts.gstatic.com` — the `.woff2` font files
+
+Changes to `frontend/vercel.json` only take effect on a Vercel redeploy.
+
 ---
 
 ### 6. CORS
