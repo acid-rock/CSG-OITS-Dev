@@ -951,7 +951,16 @@ The pinned announcement appears as the hero card on `/bulletin` and as the "Late
 
 `crossOriginEmbedderPolicy: false` is required so the PDF iframe from Supabase Storage can load.
 
-**Frontend CSP (Vercel):** The Helmet CSP above applies only to backend API responses. The static React app is served by Vercel under its own CSP header in `frontend/vercel.json`, which mirrors these directives and additionally whitelists the Google Fonts origins loaded by `index.html`: `https://fonts.googleapis.com` in `style-src` (the `css2` stylesheet) and `https://fonts.gstatic.com` in `font-src` (the `.woff2` files). Edits to `frontend/vercel.json` only take effect on a Vercel redeploy.
+**Frontend CSP (Vercel):** The Helmet CSP above applies only to backend API responses. The static React app is served by Vercel under its own CSP header in `frontend/vercel.json`, which mirrors these directives and additionally whitelists the third-party origins the frontend loads:
+
+| Directive | Added origin | Used by |
+|---|---|---|
+| `style-src` | `https://fonts.googleapis.com` | Google Fonts `css2` stylesheet (`index.html`) |
+| `font-src` | `https://fonts.gstatic.com` | Google Fonts `.woff2` files |
+| `frame-src` | `https://maps.google.com`, `https://www.google.com` | embedded Google Map on `/office` |
+| `img-src` | `https://*.tile.openstreetmap.org` | OpenStreetMap tiles for the admin geofence map |
+
+The admin geofence map renders Leaflet directly in React (shared `GeofenceMap` component) rather than via a `srcDoc` iframe loading a CDN + inline script, so it requires no `script-src` relaxation. Edits to `frontend/vercel.json` only take effect on a Vercel redeploy.
 
 ### 12.3 HTML Sanitization Allowlist
 
