@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../_shared/Sidebar';
 import ReservationCalendar, { type AdminDot } from '../../../components/reservation-calendar/ReservationCalendar';
+import GeofenceMap from '../../components/GeofenceMap/GeofenceMap';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 const LIMIT_MB = 1024;
@@ -355,37 +356,6 @@ function ViewsLineChart({ stats, height = 220 }: { stats: ViewStats; height?: nu
       )}
     </div>
   );
-}
-
-/* ── Geofence map helper ─────────────────────────────────── */
-function buildGeofenceMap(lat: number, lng: number, radiusM: number): string {
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <style>html,body,#map{height:100%;margin:0;padding:0;}</style>
-</head>
-<body>
-  <div id="map"></div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
-  <script>
-    var map = L.map('map', { scrollWheelZoom: false, zoomControl: true }).setView([${lat}, ${lng}], 17);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-    }).addTo(map);
-    L.marker([${lat}, ${lng}]).addTo(map);
-    L.circle([${lat}, ${lng}], {
-      radius: ${radiusM},
-      color: '#4f6fd1',
-      fillColor: '#4f6fd1',
-      fillOpacity: 0.12,
-      weight: 2
-    }).addTo(map);
-  <\/script>
-</body>
-</html>`;
 }
 
 /* ── Dashboard component ─────────────────────────────────── */
@@ -775,11 +745,10 @@ const Dashboard = () => {
                 </button>
               </div>
               <div style={{ borderRadius: 10, overflow: 'hidden', height: 240, border: '1px solid var(--color-border-soft)' }}>
-                <iframe
-                  srcDoc={buildGeofenceMap(parseFloat(geoLat), parseFloat(geoLng), parseFloat(geoRadius || '150'))}
-                  title="Office geofence"
-                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                  sandbox="allow-scripts"
+                <GeofenceMap
+                  lat={parseFloat(geoLat)}
+                  lng={parseFloat(geoLng)}
+                  radiusM={parseFloat(geoRadius || '150')}
                 />
               </div>
               <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--color-text-muted)' }}>

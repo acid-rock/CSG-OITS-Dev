@@ -114,10 +114,14 @@ app.use(helmet({
 
 **Note:** `styleSrc` allows `'unsafe-inline'` because the frontend uses inline styles for dynamic token values and animation state. This is a known trade-off.
 
-**Frontend CSP (separate from the above):** The Helmet CSP only decorates backend API/JSON responses. The static React app served by Vercel is governed by its own CSP header in `frontend/vercel.json`. It mirrors the backend directives but additionally whitelists Google Fonts, which `index.html` loads:
+**Frontend CSP (separate from the above):** The Helmet CSP only decorates backend API/JSON responses. The static React app served by Vercel is governed by its own CSP header in `frontend/vercel.json`. It mirrors the backend directives but additionally whitelists the third-party origins the frontend legitimately loads:
 
-- `style-src` includes `https://fonts.googleapis.com` — the `css2` stylesheet
-- `font-src` includes `https://fonts.gstatic.com` — the `.woff2` font files
+- `style-src` includes `https://fonts.googleapis.com` — the Google Fonts `css2` stylesheet
+- `font-src` includes `https://fonts.gstatic.com` — the Google Fonts `.woff2` files
+- `frame-src` includes `https://maps.google.com https://www.google.com` — the embedded Google Map on `/office` (`OfficePage.tsx`)
+- `img-src` includes `https://*.tile.openstreetmap.org` — OpenStreetMap tiles for the admin geofence map
+
+The admin geofence map (admin Dashboard + Settings) renders Leaflet directly in the React tree via the shared `GeofenceMap` component. It was previously a `srcDoc` iframe that loaded Leaflet from `unpkg.com` and ran an inline `<script>`; because a `srcDoc` document inherits the parent CSP, that approach was fully blocked. The current component bundles Leaflet (CSS + marker assets served same-origin / inlined as `data:`), so it needs **no** `script-src` or CDN exceptions — only the OpenStreetMap tile origin in `img-src`.
 
 Changes to `frontend/vercel.json` only take effect on a Vercel redeploy.
 
