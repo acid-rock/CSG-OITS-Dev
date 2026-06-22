@@ -951,6 +951,8 @@ The pinned announcement appears as the hero card on `/bulletin` and as the "Late
 
 `crossOriginEmbedderPolicy: false` is required so the PDF iframe from Supabase Storage can load.
 
+**Frontend CSP (Vercel):** The Helmet CSP above applies only to backend API responses. The static React app is served by Vercel under its own CSP header in `frontend/vercel.json`, which mirrors these directives and additionally whitelists the Google Fonts origins loaded by `index.html`: `https://fonts.googleapis.com` in `style-src` (the `css2` stylesheet) and `https://fonts.gstatic.com` in `font-src` (the `.woff2` files). Edits to `frontend/vercel.json` only take effect on a Vercel redeploy.
+
 ### 12.3 HTML Sanitization Allowlist
 
 `lib/sanitize.js` allows only: `b`, `strong`, `i`, `em`, `u`, `a`, `br`, `p`.
